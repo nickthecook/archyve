@@ -1,0 +1,2 @@
+class ModelConfig < ApplicationRecord
+end

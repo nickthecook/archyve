@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_09_211428) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_09_211807) do
+  create_table "model_configs", force: :cascade do |t|
+    t.string "name"
+    t.string "model"
+    t.float "temperature"
+    t.string "system_prompt"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "model_servers", force: :cascade do |t|
     t.string "name"
     t.string "url"
