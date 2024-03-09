@@ -1,0 +1,9 @@
+dependencies:
+actions:
+  server:
+    command: bin/rails server
+    load_secrets: true
+  console:
+    command: bin/rails console
+    load_secrets: true
+    alias: c
