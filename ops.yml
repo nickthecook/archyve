@@ -3,7 +3,6 @@ actions:
   server:
     command: bin/rails server
     load_secrets: true
-  console:
-    command: bin/rails console
+  rails:
+    command: bin/rails
     load_secrets: true
-    alias: c
