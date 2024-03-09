@@ -10,12 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_09_212342) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_09_212449) do
   create_table "conversations", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "model_config_id", null: false
+    t.index ["model_config_id"], name: "index_conversations_on_model_config_id"
     t.index ["user_id"], name: "index_conversations_on_user_id"
   end
 
@@ -61,6 +63,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_09_212342) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "conversations", "model_configs"
   add_foreign_key "conversations", "users"
   add_foreign_key "messages", "conversations"
   add_foreign_key "messages", "users"
