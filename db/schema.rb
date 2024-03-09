@@ -10,7 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_09_211807) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_09_212307) do
+  create_table "conversations", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "title"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_conversations_on_user_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_messages_on_user_id"
+  end
+
   create_table "model_configs", force: :cascade do |t|
     t.string "name"
     t.string "model"
@@ -18,6 +34,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_09_211807) do
     t.string "system_prompt"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "model_server_id", null: false
+    t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
   create_table "model_servers", force: :cascade do |t|
@@ -41,4 +59,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_09_211807) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "conversations", "users"
+  add_foreign_key "messages", "users"
+  add_foreign_key "model_configs", "model_servers"
 end
