@@ -1,7 +1,9 @@
 dependencies:
+  brew:
+    - overmind
 actions:
   server:
-    command: bin/rails server
+    command: overmind start -f Procfile.dev
     load_secrets: true
   rails:
     command: bin/rails
