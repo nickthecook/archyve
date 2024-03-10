@@ -7,3 +7,33 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+User.find_or_create_by!(email: "nickthecook@gmail.com")  do |user|
+  user.password = "password"
+end
+
+ModelServer.find_or_create_by!(name: "SHARD") do |ms|
+  ms.url = "http://localhost:11434"
+  ms.provider = "ollama"
+end
+
+ModelConfig.find_or_create_by!(name: "mistral:7b") do |mc|
+  mc.model = "mistral:7b"
+  mc.temperature = 0.1
+  mc.model_server = ModelServer.first
+end
+
+ModelConfig.find_or_create_by!(name: "gemma:7b") do |mc|
+  mc.model = "gemma:7b"
+  mc.temperature = 0.2
+  mc.model_server = ModelServer.first
+end
+
+Conversation.find_or_create_by!(title: "Test Conversation", user_id: User.first.id) do |c|
+  c.model_config = ModelConfig.first
+end
+
+Message.find_or_create_by!(content: "Hello, world!") do |msg|
+  msg.conversation = Conversation.first
+  msg.user = User.first
+end
