@@ -1,0 +1,23 @@
+:root {
+  --clr-dark: black;
+  --clr-light: white;
+  --clr-accent: red;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.item {
+  width: 150px;
+  height: 150px;
+  background-color: indigo;
+  padding: 1em;
+  font-weight: 600;
+  color: darkorange;
+  text-align: center;
+  border: 10px solid orange;
+  border-radius: 10px;
+}

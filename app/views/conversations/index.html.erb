@@ -8,8 +8,17 @@
       <%= render "conversation_list", conversations: @conversations %>
     </div>
 
-    <div class="flex-1 w-100 h-screen bg-gray-100 text-gray-700 overflow-y-scroll p-5">
-      <%= render "no_conversation" %>
+    <div id="conversation_area" class="flex-1 w-100 h-screen bg-gray-100 text-gray-700 overflow-y-scroll p-5">
+      <%= turbo_stream_from "conversations" %>
+      <div id="conversation" class="h-full overflow-y-scroll">
+        <% if @conversation %>
+          <%= render @conversation %>
+        <% else %>
+           <div class="container flex justify-center align-center h-full">
+            <%= render "no_conversation" %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 

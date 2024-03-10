@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+:root {
+  --clr-dark: black;
+  --clr-light: white;
+  --clr-accent: red;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.body {
+	align-items: center;
+}
+
+.container {
+	width: 80%;
+	height: 500px;
+	margin: 0 auto;
+	border: 10px solid var(--clr-dark)
+}
+
+.item {
+  width: 150px;
+  height: 150px;
+  background-color: orange;
+  padding: 1em;
+  font-weight: 600;
+  color: var(--clr-light);
+  text-align: center;
+  border: 10px solid darkorange;
+  border-radius: 10px;
+}
+
+.container {
+	display: flex;
+	/* flex-direction: column; */
+	/* justify-content: flex-end; */
+	/* justify-content: space-around; */
+	/* justify-content: space-between; */
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.item-1 {
+	flex: 1
+}
+		</style>
+	</head>
+	<body>
+		<h1>Hello!</h1>
+		<div class="container flex">
+			<div class="item item-1">Beep</div>
+			<div class="item item-2">Boop</div>
+			<div class="item item-3">Blerp</div>
+		</div>
+	</body>
+</html>
+

@@ -1,4 +1,4 @@
-<div class="text-xl font-bold pb-5">Conversations</div>
+<div class="text-xl font-bold pb-5"><%= link_to "Conan", root_path %></div>
 <% conversations.each do |conversation| %>
   <%= link_to "New conversation", new_conversation_path, class: "rounded-lg py-1 px-3 my-2 text-center bg-blue-600 text-white block font-medium" %>
   <%= render "conversation_list_item", conversation: %>
