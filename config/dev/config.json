@@ -1,5 +1,6 @@
 {
   "environment": {
-    "PORT": 3300
+    "PORT": 3300,
+    "DATABASE_URL": "postgresql://localhost:5432"
   }
 }
