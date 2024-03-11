@@ -4,11 +4,9 @@
   <% end %>
 
   <div class="flex w-100">
-    <div id="conversations" class="w-64 h-screen bg-indigo-200 text-gray-700 p-5">
-      <%= render "conversation_list", conversations: @conversations %>
-    </div>
+    <%= render "conversation_list", conversations: @conversations %>
 
-    <div id="conversation_area" class="flex-1 w-100 h-screen bg-gray-100 text-gray-700 overflow-y-scroll p-5">
+    <div id="conversation_area" class="flex-1 w-100 h-screen bg-secondary-200 text-gray-700 overflow-y-scroll p-5">
       <%= turbo_stream_from "conversations" %>
       <div id="conversation" class="h-full overflow-y-scroll">
         <% if @conversation %>

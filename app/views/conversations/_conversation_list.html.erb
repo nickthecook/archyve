@@ -1,5 +1,13 @@
-<div class="text-xl font-bold pb-5"><%= link_to "Conan", root_path %></div>
-<% conversations.each do |conversation| %>
-  <%= link_to "New conversation", new_conversation_path, class: "rounded-lg py-1 px-3 my-2 text-center bg-blue-600 text-white block font-medium" %>
-  <%= render "conversation_list_item", conversation: %>
-<% end %>
+<div id="conversations" class="w-64 h-screen bg-secondary-300 text-gray-700 p-5">
+  <div class="container flex flex-col h-full">
+    <div class="text-2xl font-bold pb-2 w-full text-center"><%= link_to "Conan", root_path, class: "text-primary-600" %></div>
+    <%= link_to "New conversation", new_conversation_path, class: "rounded-lg py-1 px-3 my-2 text-center text-white block font-medium bg-primary-700" %>
+    <div class="flex-1">
+      <% conversations.each do |conversation| %>
+        <%= render "conversation_list_item", conversation: %>
+      <% end %>
+    </div>
+      <div class="font-bold text-sm"><%= @current_user.email %></div>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-white block font-medium bg-primary-700" %>
+  </div>
+</div>
