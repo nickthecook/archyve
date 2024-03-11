@@ -1,12 +1,13 @@
 <div class="w-100">
-  <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
-  <% end %>
-
   <div class="flex w-100">
     <%= render "conversation_list", conversations: @conversations %>
 
     <div id="conversation_area" class="flex-1 w-100 h-screen bg-secondary-200 text-gray-700 overflow-y-scroll p-5">
+      <div class="container flex justify-center align-center w-full">
+        <p class="notice text-sm text-secondary-700"><%= notice %></p>
+        <p class="alert text-sm text-primary-700"><%= alert %></p>
+      </div>
+
       <%= turbo_stream_from "conversations" %>
       <div id="conversation" class="h-full overflow-y-scroll">
         <% if @conversation %>
