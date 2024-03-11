@@ -1,6 +1,10 @@
 dependencies:
   brew:
     - overmind
+  docker:
+    - deps
+forwards:
+  deps: deps
 actions:
   server:
     command: overmind start -f Procfile.dev
