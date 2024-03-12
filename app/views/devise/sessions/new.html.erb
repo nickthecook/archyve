@@ -1,5 +1,5 @@
 <div class="p-5 bg-secondary-950">
-  <div class="container flex justify-center items-center w-full h-screen">
+  <div class="flex justify-center items-center w-screen h-screen">
     <div class="flex flex-col justify-center h-full text-center">
       <div><%= image_tag "archyve.svg", title: "ARCHYVE, the Librarian", class: "pb-10" %></div>
       <div class="pb-40">
@@ -19,7 +19,7 @@
           <% end %>
 
           <div class="actions">
-            <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-primary-700 dark:bg-primary-400" %>
+            <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-primary-700 dark:bg-primary-500" %>
             <%= f.submit "Sign up", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-secondary-600 dark:bg-secondary-300" %>
           </div>
           <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
