@@ -1,30 +1,32 @@
-<div class="p-5 bg-secondary-200">
-  <div class="container w-full flex h-screen justify-center items-center">
-    <div class="flex flex-col text-center">
-      <%= image_tag "conan_message.svg", title: "Conan, the Librarian" %>
-      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-        <div class="field">
-          <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "email", class: "rounded-md my-1" %>
-        </div>
-
-        <div class="field">
-          <%= f.password_field :password, autocomplete: "current-password", placeholder: "password", class: "rounded-md" %>
-        </div>
-
-        <% if devise_mapping.rememberable? %>
+<div class="p-5 bg-secondary-950">
+  <div class="container flex justify-center items-center w-full h-screen">
+    <div class="flex flex-col justify-center h-full text-center">
+      <div><%= image_tag "archyve.svg", title: "ARCHYVE, the Librarian", class: "pb-10" %></div>
+      <div class="pb-40">
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
           <div class="field">
-            <%= f.hidden_field :remember_me, value: true %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "email", class: "rounded-md my-1 dark:bg-secondary-900" %>
           </div>
-        <% end %>
 
-        <div class="actions">
-          <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white block font-medium bg-primary-700" %>
-          <%= f.submit "Sign up", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white block font-medium bg-secondary-600" %>
-        </div>
-        <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
-          <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-xs text-slate-600" %><br />
+          <div class="field">
+            <%= f.password_field :password, autocomplete: "current-password", placeholder: "password", class: "rounded-md dark:bg-secondary-900" %>
+          </div>
+
+          <% if devise_mapping.rememberable? %>
+            <div class="field">
+              <%= f.hidden_field :remember_me, value: true %>
+            </div>
+          <% end %>
+
+          <div class="actions">
+            <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-primary-700 dark:bg-primary-400" %>
+            <%= f.submit "Sign up", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-secondary-600 dark:bg-secondary-300" %>
+          </div>
+          <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
+            <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-xs text-slate-600" %><br />
+          <% end %>
         <% end %>
-      <% end %>
+      </div>
     </div>
   </div>
 </div>
