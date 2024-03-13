@@ -20,6 +20,13 @@ class ConversationsController < ApplicationController
   # GET /conversations/new
   def new
     @conversation = Conversation.new
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.replace("conversation", partial: "conversation") }
+      format.html do
+        @conversations = Conversation.all
+        render :index
+      end
+    end
   end
 
   # GET /conversations/1/edit
@@ -29,10 +36,14 @@ class ConversationsController < ApplicationController
   # POST /conversations or /conversations.json
   def create
     @conversation = Conversation.new(conversation_params)
+    @conversation.user = current_user
+    @conversation.model_config ||= ModelConfig.first
+    @conversation.title ||= "New conversation"
+    @conversation.save!
 
     respond_to do |format|
       if @conversation.save
-        format.html { redirect_to conversation_url(@conversation), notice: "Conversation was successfully created." }
+        format.html { redirect_to conversation_url(@conversation) }
         format.json { render :show, status: :created, location: @conversation }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -45,7 +56,14 @@ class ConversationsController < ApplicationController
   def update
     respond_to do |format|
       if @conversation.update(conversation_params)
-        format.html { redirect_to conversation_url(@conversation), notice: "Conversation was successfully updated." }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            helpers.dom_id(@conversation),
+            partial: "conversation_list_item",
+            locals: { conversation: @conversation }
+          )
+        end
+        format.html { redirect_to conversation_url(@conversation) }
         format.json { render :show, status: :ok, location: @conversation }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -72,6 +90,9 @@ class ConversationsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def conversation_params
-      params.require(:conversation).permit(:user_id, :title)
+      updated_params = params.require(:conversation).permit(:title, :model_config_id)
+      updated_params[:model_config_id] = updated_params[:model_config_id].to_i if params.include?(:model_config_id)
+
+      updated_params
     end
 end

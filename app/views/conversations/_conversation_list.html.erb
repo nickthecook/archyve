@@ -1,13 +1,13 @@
 <div id="conversations" class="p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
   <div class="container flex flex-col h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-primary-800 dark:text-primary-400" %></div>
-    <%= link_to "New conversation", new_conversation_path, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-500" %>
+    <%= link_to "New conversation", conversations_path, method: :post, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-500 opacity-75 hover:opacity-70" %>
     <div class="flex-1">
       <% conversations.each do |conversation| %>
         <%= render "conversation_list_item", conversation: %>
       <% end %>
     </div>
       <div class="text-sm font-bold"><%= @current_user.email %></div>
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-500" %>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-500 opacity-50" %>
   </div>
 </div>

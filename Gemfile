@@ -75,3 +75,5 @@ gem "devise", "~> 4.9"
 gem "pry-rails", "~> 0.3.9"
 
 gem "actiontext", "~> 7.1"
+
+gem "rspec-rails", "~> 6.1"
