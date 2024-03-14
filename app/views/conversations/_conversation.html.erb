@@ -18,9 +18,9 @@
 
   <div class="container flex flex-col rounded-lg flex-start">
     <div id="messages">
-      <%= render @conversation.messages %>
+      <%= render @conversation.messages.order(:created_at) %>
     </div>
-    <%= render "messages/form" %>
 
+    <%= render "messages/form" %>
   </div>
 </div>

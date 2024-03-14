@@ -7,12 +7,10 @@ class ReplyToMessage
 
   def execute
     reply = Message.create!(
-      content: "We'll be right back! (#{@message.id})",
+      content: "",
       author: @message.conversation.model_config,
       conversation: @message.conversation
     )
-
-    append("messages", "messages/message", { message: reply })
   end
 
   private
