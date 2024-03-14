@@ -19,10 +19,20 @@ class ReplyToMessage
     streamer.stream do |message|
       Rails.logger.info("Got back: #{message}")
       @reply.update!(content: @reply.content + message)
+
+      convert_to_markdown
     end
   end
 
   private
+
+  def convert_to_markdown
+    Turbo::StreamsChannel.broadcast_append_to(
+      "conversations",
+      target: reply_id,
+      html: "<script>document.getElementById('#{reply_id}').dataset.markdownTextUpdatedValue = #{Time.current.to_f};</script>"
+    )
+  end
 
   def append(target, partial, locals)
     Turbo::StreamsChannel.broadcast_append_to("conversations", target:, partial:, locals:)
