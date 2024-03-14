@@ -311,7 +311,6 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  actiontext (~> 7.1)
   bootsnap
   capybara
   debug
