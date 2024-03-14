@@ -35,7 +35,7 @@ class ConversationsController < ApplicationController
 
   # POST /conversations or /conversations.json
   def create
-    @conversation = Conversation.new(conversation_params)
+    @conversation = Conversation.new
     @conversation.user = current_user
     @conversation.model_config ||= ModelConfig.first
     @conversation.title ||= "New conversation"
