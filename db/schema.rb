@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_10_210312) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_14_133458) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -60,13 +63,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_210312) do
   end
 
   create_table "messages", force: :cascade do |t|
-    t.integer "user_id", null: false
     t.string "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "conversation_id", null: false
+    t.string "author_type"
+    t.bigint "author_id", null: false
+    t.index ["author_type", "author_id"], name: "index_messages_on_author"
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
-    t.index ["user_id"], name: "index_messages_on_user_id"
   end
 
   create_table "model_configs", force: :cascade do |t|
@@ -106,6 +110,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_10_210312) do
   add_foreign_key "conversations", "model_configs"
   add_foreign_key "conversations", "users"
   add_foreign_key "messages", "conversations"
-  add_foreign_key "messages", "users"
   add_foreign_key "model_configs", "model_servers"
 end
