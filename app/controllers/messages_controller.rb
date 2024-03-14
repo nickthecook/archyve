@@ -1,11 +1,18 @@
 class MessagesController < ApplicationController
-  before_action :set_message
+  before_action :set_message, except: [:create]
   before_action :set_conversation
 
   def create
     @message = Message.new(message_params)
     @message.user = current_user
     @message.save!
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "message", locals: { message: @message }) }
+      format.html do
+        render @message.conversation
+      end
+    end
   end
 
   def destroy
@@ -16,7 +23,7 @@ class MessagesController < ApplicationController
   private
 
   def message_params
-    params.require(:message).permit(:content)
+    params.permit(:content, :conversation_id)
   end
 
   def set_message
@@ -24,6 +31,6 @@ class MessagesController < ApplicationController
   end
 
   def set_conversation
-    @conversation = Conversation.find(@message.conversation_id)
+    @conversation = Conversation.find(message_params[:conversation_id])
   end
 end

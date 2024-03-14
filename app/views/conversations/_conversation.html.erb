@@ -17,6 +17,10 @@
   </div>
 
   <div class="container flex flex-col rounded-lg flex-start">
-    <%= render @conversation.messages %>
+    <div id="messages">
+      <%= render @conversation.messages %>
+    </div>
+
+    <%= render "messages/form" %>
   </div>
 </div>
