@@ -8,7 +8,12 @@ class MessagesController < ApplicationController
     @message.save!
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "message", locals: { message: @message }) }
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.append(:messages, partial: "message", locals: { message: @message }),
+          turbo_stream.replace(:message_form, partial: "messages/form")
+        ]
+      end
       format.html do
         render @message.conversation
       end
