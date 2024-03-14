@@ -18,7 +18,7 @@ class MessagesController < ApplicationController
         render @message.conversation
       end
 
-      RespondToMessage.new(@message).execute
+      ResponderJob.perform_async(@message.id)
     end
   end
 
