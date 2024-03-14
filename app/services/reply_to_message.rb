@@ -1,3 +1,5 @@
+require "net/http"
+
 class ReplyToMessage
   STATS = [:elapsed_ms, :tokens, :tokens_per_sec].freeze
 
@@ -6,11 +8,18 @@ class ReplyToMessage
   end
 
   def execute
-    reply = Message.create!(
+    @reply = Message.create!(
       content: "",
       author: @message.conversation.model_config,
       conversation: @message.conversation
     )
+
+    append(reply_id, "messages/spinner", { message: @reply })
+
+    streamer.stream do |message|
+      Rails.logger.info("Got back: #{message}")
+      @reply.update!(content: @reply.content + message)
+    end
   end
 
   private
@@ -28,10 +37,21 @@ class ReplyToMessage
   end
 
   def streamer
-    @streamer ||= ResponseStreamer.new(@message.model_config, @message.content)
+    @streamer ||= ResponseStreamer.new(
+      {
+        endpoint: model_config.model_server.url,
+        model: model_config.name,
+        provider: model_config.model_server.provider
+      },
+      @message.content
+    )
+  end
+
+  def model_config
+    @message.conversation.model_config
   end
 
   def reply_id
-    @reply_id ||= "message_#{@message.id}"
+    @reply_id ||= "message_#{@reply.id}"
   end
 end

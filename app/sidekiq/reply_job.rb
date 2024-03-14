@@ -1,6 +1,8 @@
 class ReplyJob
   include Sidekiq::Job
 
+  sidekiq_options retry: false
+
   def perform(*args)
     @message = Message.find(args.first)
 
