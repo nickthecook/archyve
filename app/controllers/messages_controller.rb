@@ -17,6 +17,8 @@ class MessagesController < ApplicationController
       format.html do
         render @message.conversation
       end
+
+      RespondToMessage.new(@message).execute
     end
   end
 
