@@ -26,7 +26,7 @@ class MessageProcessor
         when " "
           ret += @in_code_block ? "&nbsp;" : " "
         when "\n"
-          ret += "<br>"
+          ret += "<br><br>"
         else
           ret += CGI.escapeHTML(char)
         end

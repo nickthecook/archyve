@@ -78,3 +78,6 @@ gem "pry-rails", "~> 0.3.9"
 gem "rspec-rails", "~> 6.1"
 
 gem "sidekiq", "~> 7.2"
+
+gem "rails_admin", "~> 3.0.beta2"
+gem "sassc-rails"
