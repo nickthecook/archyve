@@ -14,7 +14,7 @@ class ReplyToMessage
       conversation: @message.conversation
     )
 
-    append(reply_id, "messages/spinner", { message: @reply })
+    prepend(reply_id, "messages/spinner")
 
     streamer.stream do |message|
       Rails.logger.info("Got back: #{message}")
@@ -22,6 +22,22 @@ class ReplyToMessage
 
       convert_to_markdown
     end
+  rescue ResponseStreamer::ResponseStreamerError => e
+    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+    append("messages", "messages/error", { error: e.to_s })
+  rescue ResponseStreamer::NetworkError
+    raise
+  rescue LlmClients::ResponseError => e
+    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+    append("messages", "messages/error", { error: "#{e.to_s}: #{e.additional_info}" })
+  rescue StandardError => e
+    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+    append("messages", "messages/error", { error: "An internal error occurred" })
+  ensure
+    remove(reply_id, "messages/spinner")
   end
 
   private
@@ -30,19 +46,31 @@ class ReplyToMessage
     Turbo::StreamsChannel.broadcast_append_to(
       "conversations",
       target: reply_id,
-      html: "<script>document.getElementById('#{reply_id}').dataset.markdownTextUpdatedValue = #{Time.current.to_f};</script>"
+      html: <<~HTML
+        <script>
+          document.getElementById('#{reply_id}').dataset.markdownTextUpdatedValue = #{Time.current.to_f};
+        </script>
+      HTML
     )
   end
 
-  def append(target, partial, locals)
+  def append(target, partial, locals = {})
+    locals.merge!({ message: @reply })
     Turbo::StreamsChannel.broadcast_append_to("conversations", target:, partial:, locals:)
   end
 
-  def replace(target, partial, locals)
+  def prepend(target, partial, locals = {})
+    locals.merge!({ message: @reply })
+    Turbo::StreamsChannel.broadcast_prepend_to("conversations", target:, partial:, locals:)
+  end
+
+  def replace(target, partial, locals = {})
+    locals.merge!({ message: @reply })
     Turbo::StreamsChannel.broadcast_replace_to(target, partial:)
   end
 
-  def remove(target)
+  def remove(target, partial, locals = {})
+    locals.merge!({ message: @reply })
     Turbo::StreamsChannel.broadcast_remove_to(target)
   end
 

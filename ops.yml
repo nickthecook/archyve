@@ -3,6 +3,8 @@ dependencies:
     - overmind
   docker:
     - deps
+  custom:
+    - bundle
 forwards:
   deps: deps
 actions:

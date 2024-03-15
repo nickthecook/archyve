@@ -38,3 +38,4 @@
 !/app/assets/builds/.keep
 deps/redis
 node_modules
+deps/postgres

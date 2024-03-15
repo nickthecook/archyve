@@ -7,16 +7,6 @@ class ResponseStreamer
   class NetworkError < ResponseStreamerError; end
   class UnsupportedServerError < ResponseStreamerError; end
 
-  class ResponseError < StandardError
-    attr_reader :additional_info
-
-    def initialize(message, additional_info)
-      @additional_info = additional_info
-
-      super(message)
-    end
-  end
-
   delegate :input, to: :processor
   delegate :output, to: :processor
   delegate :stats, to: :client
@@ -60,21 +50,6 @@ class ResponseStreamer
     headers[:Authorization] = "Bearer #{@model.api_key}" if @model.api_key
 
     headers
-  end
-
-  def response_error_for(response)
-    additional_info = [response.uri]
-
-    error = begin
-      JSON.parse(response.body)["error"]
-    rescue JSON::ParserError
-      nil
-    end
-    additional_info.append(error) if error
-
-    ResponseError.new(
-      "Server responded with #{response.code}: #{response.message}", additional_info
-    )
   end
 
   def processor

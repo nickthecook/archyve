@@ -35,5 +35,5 @@ end
 
 Message.find_or_create_by!(content: "Hello, world!") do |msg|
   msg.conversation = Conversation.first
-  msg.user = User.first
+  msg.author = User.first
 end
