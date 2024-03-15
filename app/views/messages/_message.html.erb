@@ -1,6 +1,6 @@
 <%= content_tag :div, id: dom_id(message), class: "flex justify-start items-start px-10 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-925" do %>
   <div class="flex-1 whitespace-prewrap" data-controller="markdown-text">
-      <%= message.content.html_safe %>
+      <%= message.content %>
   </div>
   <p class="py-1 text-xs text-right text-muted"><%= author_name_for(message) %></p>
   <p class="py-1 text-xs text-right text-muted"><%= time_ago_in_words(message.created_at) %> ago</p>
