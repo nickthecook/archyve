@@ -10,9 +10,9 @@ export default class extends Controller {
   updatedValueChanged() {
     const markdownText = this.element.innerText || ""
     const html = marked(markdownText, {breaks: true})
-    // this.element.innerHTML = html
-    // this.element.querySelectorAll("pre").forEach((block) => {
-    //   hljs.highlightElement(block)
-    // })
+    this.element.innerHTML = html
+    this.element.querySelectorAll("pre").forEach((block) => {
+      hljs.highlightElement(block)
+    })
   }
 }
