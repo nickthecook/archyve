@@ -22,6 +22,8 @@ class ReplyToMessage
 
       convert_to_markdown
     end
+
+    append("messages", "messages/stats", { stats: streamer.stats })
   rescue ResponseStreamer::ResponseStreamerError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 

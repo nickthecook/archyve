@@ -25,3 +25,9 @@ p {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+
+@layer base {
+  ul, ol {
+    list-style: revert;
+  }
+}
