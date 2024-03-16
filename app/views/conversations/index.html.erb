@@ -9,7 +9,7 @@
       </div>
 
       <%= turbo_stream_from "conversations" %>
-      <div id="conversation" class="h-full overflow-y-scroll">
+      <div class="h-full">
         <% if @conversation %>
           <%= render @conversation %>
         <% else %>
