@@ -7,6 +7,10 @@ Rails.application.routes.draw do
     resources :messages, only: [:create, :destroy]
   end
 
+  resources :collections do
+    resources :documents, only: [:create, :destroy]
+  end
+
   devise_for :users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

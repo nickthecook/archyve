@@ -1,0 +1,21 @@
+<div class="flex">
+  <%= render "collection_list", collections: @collections %>
+
+  <div id="collection_area" class="overflow-y-scroll flex-1 h-screen w-100 bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+    <div class="container flex justify-center w-full align-center">
+      <p class="text-sm notice text-secondary-700"><%= notice %></p>
+      <p class="text-sm alert text-tertiary-700"><%= alert %></p>
+    </div>
+
+    <%= turbo_stream_from "collection" %>
+    <div class="h-full">
+      <% if @collection %>
+        <%= render @collection %>
+      <% else %>
+          <div class="container flex justify-center h-full align-center">
+          <%= render "no_collection" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,5 +1,5 @@
 <div id="<%= dom_id(conversation) %>">
   <div class="container flex pl-4">
-    <%= link_to "#{conversation.title} (#{conversation.id})", conversation %>
+    <%= link_to "#{conversation.title} (#{conversation.messages.count})", conversation %>
   </div>
 </div>
