@@ -3,8 +3,11 @@
 
   <div id="conversation_area" class="overflow-y-scroll flex-1 h-screen w-100 bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
     <div class="container flex justify-center w-full align-center">
-      <p class="text-sm notice text-secondary-700"><%= notice %></p>
-      <p class="text-sm alert text-primary-700"><%= alert %></p>
+      <% if notice %>
+        <p class="text-sm notice text-secondary-700"><%= notice %></p>
+      <% elsif alert %>
+        <p class="text-sm alert text-primary-700"><%= alert %></p>
+      <% end %>
     </div>
 
     <%= turbo_stream_from "conversations" %>

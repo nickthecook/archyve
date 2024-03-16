@@ -1,7 +1,7 @@
 <div id="collections" class="overflow-y-scroll p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
   <div class="container flex flex-col items-center h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-tertiary-800 dark:text-tertiary-300" %></div>
-    <%= button_to "New collection", collections_path, class: "rounded-lg py-1 px-3 my-2 text-center text-tertiary-200 dark:text-tertiary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-300", data: { turbo: false } %>
+    <%= button_to "New collection", collections_path, class: "rounded-lg py-1 px-3 my-2 text-center text-tertiary-200 dark:text-tertiary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-500", data: { turbo: false } %>
     <div class="flex-1">
       <% collections.each do |collection| %>
         <%= render "collection_list_item", collection: %>
