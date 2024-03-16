@@ -1,7 +1,7 @@
-<div id="conversations" class="p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
+<div id="conversations" class="overflow-y-scroll p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
   <div class="container flex flex-col h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-primary-800 dark:text-primary-300" %></div>
-    <%= button_to "New conversation", conversations_path, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-300", target: :_top %>
+    <%= button_to "New conversation", conversations_path, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-300", data: { turbo: false } %>
     <div class="flex-1">
       <% conversations.each do |conversation| %>
         <%= render "conversation_list_item", conversation: %>
