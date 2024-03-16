@@ -5,6 +5,8 @@ dependencies:
     - deps
   custom:
     - bundle
+  apt:
+    - ruby-poppler
 forwards:
   deps: deps
 actions:

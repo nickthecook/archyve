@@ -145,6 +145,7 @@ GEM
       activerecord
       kaminari-core (= 1.2.2)
     kaminari-core (1.2.2)
+    language_server-protocol (3.17.0.3)
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -186,6 +187,7 @@ GEM
       racc (~> 1.4)
     orm_adapter (0.5.0)
     pg (1.5.6)
+    prism (0.24.0)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -274,6 +276,10 @@ GEM
       rspec-mocks (~> 3.12)
       rspec-support (~> 3.12)
     rspec-support (3.13.1)
+    ruby-lsp (0.14.6)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 0.22.0, < 0.25)
+      sorbet-runtime (>= 0.5.10782)
     ruby-vips (2.2.1)
       ffi (~> 1.12)
     rubyzip (2.3.2)
@@ -295,6 +301,7 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.19.0)
+    sorbet-runtime (0.5.11294)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -351,6 +358,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  activestorage (~> 7.1)
   bootsnap
   capybara
   debug
@@ -365,6 +373,7 @@ DEPENDENCIES
   rails_admin (~> 3.0.beta2)
   redis (>= 4.0.1)
   rspec-rails (~> 6.1)
+  ruby-lsp (~> 0.14.6)
   sassc-rails
   selenium-webdriver
   sidekiq (~> 7.2)
