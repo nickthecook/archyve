@@ -6,33 +6,6 @@ class ConversationsController < ApplicationController
     @conversations = Conversation.all
   end
 
-  # GET /conversations/1 or /conversations/1.json
-  def show
-    respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("conversation", partial: "conversation") }
-      format.html do
-        @conversations = Conversation.all
-        render :index
-      end
-    end
-  end
-
-  # GET /conversations/new
-  def new
-    @conversation = Conversation.new
-    respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("conversation", partial: "conversation") }
-      format.html do
-        @conversations = Conversation.all
-        render :index
-      end
-    end
-  end
-
-  # GET /conversations/1/edit
-  def edit
-  end
-
   # POST /conversations or /conversations.json
   def create
     @conversation = Conversation.new
