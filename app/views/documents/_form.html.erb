@@ -1,1 +1,5 @@
-TODO: allow updloading document
+<%= form_with url: collection_documents_path(@collection), html: { id: "document_form", class: "mt-3 w-full" } do |f| %>
+  <div class="pb-2 text-tertiary-900 dark:text-tertiary-600">Add document</div>
+  <%= f.file_field :file, class: "w-full pb-2" %>
+  <%= f.submit "Upload Document", class: "rounded-lg px-2 py-1 text-center text-white dark:text-secondary-950 block font-medium bg-tertiary-700 dark:bg-tertiary-500"%>
+<% end %>
