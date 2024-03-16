@@ -67,12 +67,10 @@ class ConversationsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
     def set_conversation
       @conversation = Conversation.find(params[:id])
     end
 
-    # Only allow a list of trusted parameters through.
     def conversation_params
       updated_params = params.require(:conversation).permit(:title, :model_config_id)
       updated_params[:model_config_id] = updated_params[:model_config_id].to_i if params.include?(:model_config_id)
