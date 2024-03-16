@@ -80,7 +80,7 @@ class ReplyToMessage
     @streamer ||= ResponseStreamer.new(
       {
         endpoint: model_config.model_server.url,
-        model: model_config.name,
+        model: model_config.model,
         provider: model_config.model_server.provider
       },
       @message.content
