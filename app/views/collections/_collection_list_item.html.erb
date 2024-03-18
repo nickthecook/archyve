@@ -1,5 +1,10 @@
 <div id="<%= dom_id(collection) %>">
   <div class="container flex pl-4">
-    <%= link_to "#{collection.name} (#{collection.documents.count})", collection %>
+    <div class="flex-1">
+      <%= link_to "#{collection.name} (#{collection.documents.count})", collection %>
+    </div>
+    <div class="flex-none">
+      <%= button_to "🗑️", collection, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} %>
+    </div>
   </div>
 </div>

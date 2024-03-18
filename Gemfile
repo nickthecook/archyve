@@ -85,3 +85,5 @@ gem "rails_admin", "~> 3.0.beta2"
 gem "sassc-rails"
 
 gem "activestorage", "~> 7.1"
+
+gem "font-awesome-sass", "~> 6.5"
