@@ -39,3 +39,4 @@
 deps/redis
 node_modules
 deps/postgres
+vendor

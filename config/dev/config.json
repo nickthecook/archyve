@@ -1,6 +1,7 @@
 {
   "environment": {
     "PORT": 3300,
-    "DATABASE_URL": "postgresql://localhost:5432"
+    "DATABASE_URL": "postgresql://127.0.0.1:5431",
+    "REDIS_URL": "redis://127.0.0.1:6378/1"
   }
 }
