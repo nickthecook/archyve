@@ -7,7 +7,13 @@ module.exports = {
     './app/javascript/**/*.js',
     './app/views/**/*.{erb,haml,html,slim}'
   ],
+  safelist: [{
+    pattern: /hljs+/,
+  }],
   theme: {
+    hljs: {
+      theme: 'an-old-hope',
+    },
     extend: {
       fontFamily: {
         sans: ['Inter var', ...defaultTheme.fontFamily.sans],
@@ -56,5 +62,6 @@ module.exports = {
     require('@tailwindcss/aspect-ratio'),
     require('@tailwindcss/typography'),
     require('@tailwindcss/container-queries'),
+    require('tailwind-highlightjs'),
   ]
 }

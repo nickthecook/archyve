@@ -11,7 +11,7 @@ export default class extends Controller {
     const markdownText = this.element.innerText || ""
     const html = marked(markdownText, {breaks: true})
     this.element.innerHTML = html
-    this.element.querySelectorAll("pre").forEach((block) => {
+    this.element.querySelectorAll("code").forEach((block) => {
       hljs.highlightElement(block)
     })
   }
