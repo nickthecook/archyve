@@ -10,10 +10,11 @@
 
 User.find_or_create_by!(email: "nickthecook@gmail.com")  do |user|
   user.password = "password"
+  user.admin = true
 end
 
 ModelServer.find_or_create_by!(name: "SHARD") do |ms|
-  ms.url = "http://localhost:11434"
+  ms.url = "http://shard:11434"
   ms.provider = "ollama"
 end
 
@@ -27,6 +28,21 @@ ModelConfig.find_or_create_by!(name: "gemma:7b") do |mc|
   mc.model = "gemma:7b"
   mc.temperature = 0.2
   mc.model_server = ModelServer.first
+end
+
+ModelServer.find_or_create_by!(name: "localhost") do |ms|
+  ms.url = "http://localhost:11434"
+  ms.provider = "ollama"
+end
+
+ModelConfig.find_or_create_by!(name: "mistral:7b", model_server: ModelServer.second) do |mc|
+  mc.model = "mistral:7b"
+  mc.temperature = 0.1
+end
+
+ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.second) do |mc|
+  mc.model = "gemma:7b"
+  mc.temperature = 0.2
 end
 
 Conversation.find_or_create_by!(title: "Test Conversation", user_id: User.first.id) do |c|
