@@ -25,8 +25,8 @@
     </div>
   </div>
 
-  <div class="container flex flex-col rounded-lg flex-start">
-    <div id="messages">
+  <div class="container flex flex-col rounded-lg flex-start items-center">
+    <div id="messages" class="w-3/4">
       <%= render @conversation.messages.order(:created_at) %>
     </div>
 
