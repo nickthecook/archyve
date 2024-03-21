@@ -12,7 +12,7 @@ module.exports = {
   }],
   theme: {
     hljs: {
-      theme: 'an-old-hope',
+      theme: 'base16/atelier-cave',
     },
     extend: {
       fontFamily: {
