@@ -87,3 +87,5 @@ gem "sassc-rails"
 gem "activestorage", "~> 7.1"
 
 gem "font-awesome-rails", "~> 4.7"
+
+gem "httparty", "~> 0.21.0"

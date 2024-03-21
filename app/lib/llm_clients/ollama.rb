@@ -47,6 +47,12 @@ module LlmClients
     end
     # rubocop:enable all
 
+    def embed(model, prompt)
+      HTTParty.post("#{@endpoint}/api/embeddings", body: {
+        model:,
+        prompt:
+      })
+    end
     private
 
     def request(prompt)
