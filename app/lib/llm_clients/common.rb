@@ -12,4 +12,6 @@ module LlmClients
       super(message)
     end
   end
+
+  class Common; end
 end

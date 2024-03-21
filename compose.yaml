@@ -1,0 +1,36 @@
+version: "3.5"
+services:
+  redis:
+    image: redis:alpine
+    volumes:
+      - "redis:/data"
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_USER: archyve
+      POSTGRES_PASSWORD: password
+  archyve:
+    image: archyve:latest
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    ports:
+      - 3300:3000
+  archyve-worker:
+    image: archyve:latest
+    environment:
+      - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+    command: bundle exec sidekiq
+volumes:
+  redis:
+    driver: local
+  postgres:
+    driver: local

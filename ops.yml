@@ -16,3 +16,9 @@ actions:
   rails:
     command: bin/rails
     load_secrets: true
+  build:
+    command: docker build . -t archyve:latest
+    load_secrets: true
+  container:
+    command: docker compose up
+    load_secrets: true
