@@ -3,7 +3,7 @@
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-primary-800 dark:text-primary-400" %></div>
     <%= button_to "New conversation", conversations_path, class: "rounded-lg py-1 px-3 my-2 text-center text-primary-200 dark:text-primary-950 block font-medium bg-primary-800 dark:bg-primary-400", data: { turbo: false } %>
     <div class="flex-1">
-      <% conversations.each do |conversation| %>
+      <% conversations.order(created_at: :desc).each do |conversation| %>
         <%= render "conversation_list_item", conversation: %>
       <% end %>
     </div>

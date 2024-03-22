@@ -10,6 +10,7 @@ class Message < ApplicationRecord
       target: "messages",
       partial: "messages/message"
     )
+    TitleSetterJob.perform_async(conversation.id)
   }
   after_update_commit -> { 
     broadcast_replace_to(

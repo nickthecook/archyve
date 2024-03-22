@@ -4,7 +4,7 @@
       <%= form_for @conversation do |f| %>
         <%= f.text_field(
           :title,
-          class: "text-xl rounded-md dark:bg-secondary-900 mx-2",
+          class: "rounded-md dark:bg-secondary-900 mx-2",
           value: @conversation.title,
           placeholder: "title",
           onchange: "this.form.submit()"
@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <div class="container flex flex-col rounded-lg flex-start items-center">
+  <div class="container flex flex-col items-center rounded-lg flex-start">
     <div id="messages" class="w-3/4">
       <%= render @conversation.messages.order(:created_at) %>
     </div>

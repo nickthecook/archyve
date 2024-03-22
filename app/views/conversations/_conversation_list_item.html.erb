@@ -1,5 +1,5 @@
 <div id="<%= dom_id(conversation) %>">
-  <div class="container flex pl-4">
+  <div class="container flex justify-start py-1 pl-4 dark:hover:bg-secondary-800">
     <%= link_to "#{conversation.title} (#{conversation.messages.count})", conversation %>
   </div>
 </div>

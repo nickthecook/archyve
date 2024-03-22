@@ -1,4 +1,18 @@
 module LlmClients
+  class ClientError < StandardError; end
+  class NetworkError < ClientError; end
+  class UnsupportedServerError < ClientError; end
+
+  class ResponseError < StandardError
+    attr_reader :additional_info
+
+    def initialize(message, additional_info)
+      @additional_info = additional_info
+
+      super(message)
+    end
+  end
+
   class Client
     MODEL_TEMPLATE_MAP = {
       "^gemma:" => { prefix: "<start_of_turn>user\n", suffix: "<end_of_turn>\n<start_of_turn>model" },
@@ -7,6 +21,14 @@ module LlmClients
 
     attr_reader :stats
 
+    class << self
+      def client_class_for(provider)
+        LlmClients.const_get(provider.camelize)
+      rescue NameError
+        raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
+      end
+    end
+  
     def initialize(endpoint:, api_key:, model:, temperature: default_temperature, batch_size: default_batch_size)
       @endpoint = endpoint
       @api_key = api_key
