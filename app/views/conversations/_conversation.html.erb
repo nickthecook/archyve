@@ -28,8 +28,8 @@
   <div class="container flex flex-col items-center rounded-lg flex-start">
     <div id="messages" class="w-3/4">
       <%= render @conversation.messages.order(:created_at) %>
-    </div>
 
-    <%= render "messages/form" %>
+      <%= render "messages/form" %>
+    </div>
   </div>
 </div>
