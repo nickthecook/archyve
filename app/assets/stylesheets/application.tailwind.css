@@ -35,3 +35,7 @@ li {
   padding-bottom: 1rem;
   margin-left: 1rem;
 }
+
+html {
+  font-size: 15px;
+}
