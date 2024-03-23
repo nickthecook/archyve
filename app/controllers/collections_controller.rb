@@ -52,6 +52,11 @@ class CollectionsController < ApplicationController
   end
 
   def destroy
+    @collection.destroy!
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove(@collection) }
+      format.html { redirect_to collections_url }
+    end
   end
 
   private
