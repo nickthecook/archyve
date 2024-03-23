@@ -1,12 +1,26 @@
 require "httparty"
 module Chromadb
   class RequestError < StandardError; end
+  class ResponseError < StandardError; end
 
   class Client
+    attr_reader :last_response
+
     def initialize(host, port)
       @host = host
       @port = port
       @url = "http://#{@host}:#{@port}"
+    end
+
+    def version
+      get("api/v1/version")
+    end
+  
+    def create_collection(name, metadata = nil)
+      body = { name: }
+      body[:metadata] = metadata if metadata
+
+      post("api/v1/collections", body)
     end
 
     def collections(name = nil)
@@ -17,12 +31,27 @@ module Chromadb
       end
     end
 
-    def get_documents(collection_name, ids)
-      post("api/v1/collections/#{collection_name}/get", body: {ids: ids})
+    def add_documents(collection_id, documents, embeddings)
+      ids = documents.map { |_doc| SecureRandom.uuid }
+
+      post("api/v1/collections/#{collection_id}/add", { ids:, documents:, embeddings: })
+
+      ids
     end
 
-    def query(collection_name, embeddings)
-      post("api/v1/collections/#{collection_name}/query", { query_embeddings: [ [0.1, 0.2, 0.3], [0.4, 0.5, 0.6] ] })
+    def count(collection_id)
+      get("api/v1/collections/#{collection_id}/count")
+    end
+
+    def get_documents(collection_id, ids = nil)
+      body = {}
+      body[:ids] = ids if ids
+
+      post("api/v1/collections/#{collection_id}/get", body)
+    end
+
+    def query(collection_id, embeddings)
+      post("api/v1/collections/#{collection_id}/query", { query_embeddings: embeddings })
     end
 
     private
@@ -36,12 +65,23 @@ module Chromadb
     end
 
     def get(path)
-      HTTParty.get(url(path), headers: { "Content-Type" => "application/json" })
+      @last_response = HTTParty.get(url(path), headers: { "Content-Type" => "application/json" })
+
+      unless @last_response.success?
+        raise ResponseError, @last_response.body
+      end
+
+      @last_response.parsed_response
     end
 
     def post(path, body = {})
-      puts body
-      HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
+      @last_response = HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
+
+      unless @last_response.success?
+        raise ResponseError, @last_response.body
+      end
+
+      @last_response.parsed_response
     end
 
     def url(path)

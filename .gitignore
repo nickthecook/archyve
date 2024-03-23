@@ -40,3 +40,4 @@ deps/redis
 node_modules
 deps/postgres
 vendor
+deps/chroma-data
