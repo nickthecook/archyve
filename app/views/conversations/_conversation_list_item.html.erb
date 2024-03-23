@@ -1,5 +1,15 @@
 <div id="<%= dom_id(conversation) %>">
-  <div class="container flex justify-start py-1 pl-4 dark:hover:bg-secondary-800">
-    <%= link_to "#{conversation.title} (#{conversation.messages.count})", conversation %>
+  <div class="container flex items-center pl-4">
+    <div class="flex-1 px-2 py-1 text-sm rounded-lg hover:bg-secondary-300 dark:hover:bg-secondary-700">
+      <%= link_to "#{conversation.title}", conversation %>
+    </div>
+    <div class="text-secondary-300 dark:text-secondary-400">
+      <%= conversation.messages.count %>
+    </div>
+    <div class="flex-none mx-1">
+      <%= button_to conversation, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
+        <i class="fa fa-trash"></i>
+      <% end %>
+    </div>
   </div>
 </div>
