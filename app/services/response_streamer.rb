@@ -20,7 +20,7 @@ class ResponseStreamer
   end
 
   def stream
-    client.call(@prompt) do |response|
+    client.complete(@prompt) do |response|
       @on_start&.call
       @on_start = nil
 

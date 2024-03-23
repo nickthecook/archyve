@@ -36,10 +36,14 @@ module LlmClients
       @temperature = temperature
       @batch_size = batch_size
 
-      @uri = URI("#{@endpoint}/#{completion_path}")
+      @uri = URI(endpoint)
     end
 
     private
+
+    def uri(path)
+      URI("#{@endpoint}#{"/" unless path.starts_with?("/")}#{path}")
+    end
 
     def headers
       headers = { "Content-Type": "application/json" }

@@ -3,9 +3,9 @@ require_relative "common"
 module LlmClients
   class Ollama < Client
     # rubocop:disable all
-    def call(prompt, &block)
+    def complete(prompt, &block)
       @stats = new_stats
-      request = request(prompt)
+      request = completion_request(prompt)
 
       Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
         http.request(request) do |response|
@@ -48,15 +48,16 @@ module LlmClients
     # rubocop:enable all
 
     def embed(model, prompt)
-      HTTParty.post("#{@endpoint}/api/embeddings", body: {
-        model:,
-        prompt:
-      })
+      request = embedding_request(prompt)
+      http = Net::HTTP.new(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https")
+
+      http.request(request)
     end
+
     private
 
-    def request(prompt)
-      request = Net::HTTP::Post.new(@uri, **headers)
+    def completion_request(prompt)
+      request = Net::HTTP::Post.new(uri(completion_path), **headers)
       request.body = {
         model: @model,
         prompt:,
@@ -66,6 +67,14 @@ module LlmClients
       }.to_json
 
       request
+    end
+
+    def embedding_request(prompt)
+      Net::HTTP::Post.new(uri(embedding__path), **headers)
+      request.body = {
+        model: embedding_model,
+        prompt:
+      }.to_json
     end
 
     def extract_message(response_string)
@@ -87,7 +96,16 @@ module LlmClients
     end
 
     def completion_path
-      "api/generate"
+      "/api/generate"
+    end
+
+    def embedding_path
+      "/api/embeddings"
+    end
+
+    def embedding_model
+      # TODO: make this configurable
+      "all-minilm"
     end
   end
 end
