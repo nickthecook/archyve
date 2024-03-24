@@ -7,10 +7,11 @@ module LlmClients
       @stats = new_stats
       request = completion_request(prompt)
 
+      # TODO: switch to HTTParty for this?
       Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
         stats[:start_time] = current_time
         http.request(request) do |response|
-          raise response_error_for(response) unless response.code.to_i >= 200 && response.code.to_i < 300
+          raise response_error_for(response) unless response.is_a?(Net::HTTPSuccess)
 
           stats[:first_token_time] = current_time
 
@@ -48,11 +49,16 @@ module LlmClients
     end
     # rubocop:enable all
 
-    def embed(model, prompt)
-      request = embedding_request(prompt)
-      http = Net::HTTP.new(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https")
+    def embed(prompt)
+      response = HTTParty.post(uri(embedding_path), headers:, body: {
+        model: embedding_model,
+        prompt:
+      }.to_json)
 
-      http.request(request)
+      puts response
+      raise response_error_for(response) unless response.success?
+
+      response.parsed_response
     end
 
     private
@@ -68,14 +74,6 @@ module LlmClients
       }.to_json
 
       request
-    end
-
-    def embedding_request(prompt)
-      Net::HTTP::Post.new(uri(embedding__path), **headers)
-      request.body = {
-        model: embedding_model,
-        prompt:
-      }.to_json
     end
 
     def extract_message(response_string)
