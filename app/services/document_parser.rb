@@ -12,12 +12,14 @@ class DocumentParser
   end
 
   def text
-    text = ""
-    reader.pages.each do |page|
-      text << page.text
-    end
+    @text ||= begin
+      text = ""
+      reader.pages.each do |page|
+        text << page.text
+      end
 
-    text
+      text
+    end
   end
 
   private
