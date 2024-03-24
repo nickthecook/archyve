@@ -1,19 +1,19 @@
 class Embedder
-  def initialize(model_config)
-    @model_config = model_config
+  def initialize(endpoint)
+    @endpoint = endpoint
   end
 
   def embed(document)
     response = client.embed(document)
-    puts response
+
+    response["embedding"]
   end
 
   private
 
   def client
     @client ||= LlmClients::Ollama.new(
-      endpoint: @model_config.model_server.url,
-      model: @model_config.model,
+      endpoint: @endpoint,
       api_key: "todo"
     )
   end

@@ -43,7 +43,6 @@ class Chonker
       prev_chunk = chunks[idx-1] if idx > 0
       next_chunk = chunks[idx+1] if idx < (chunks.length - 1)
 
-      puts "CHUNK #{chunk}"
       # TODO: this is horribly inefficient - stop copying so much string data around
       if prev_chunk
         ending_of_prev_chunk = prev_chunk.match(/\b(.{1,20})\Z/m)

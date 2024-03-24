@@ -29,7 +29,7 @@ module LlmClients
       end
     end
   
-    def initialize(endpoint:, api_key:, model:, temperature: default_temperature, batch_size: default_batch_size)
+    def initialize(endpoint:, api_key:, model: nil, temperature: default_temperature, batch_size: default_batch_size)
       @endpoint = endpoint
       @api_key = api_key
       @model = model
