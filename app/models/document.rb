@@ -19,4 +19,8 @@ class Document < ApplicationRecord
       partial: "documents/document"
     )
   }
+
+  def contents
+    file.download
+  end
 end
