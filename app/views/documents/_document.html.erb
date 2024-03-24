@@ -5,5 +5,10 @@
   <div class="flex flex-col ms-4">
     <p class="py-1 text-xs text-right text-muted"><%= document.user.email %></p>
     <p class="py-1 text-xs text-right text-muted"><%= time_ago_in_words(document.created_at) %> ago</p>
+    <div class="flex-none mx-1">
+      <%= button_to collection_document_path(document.collection, document), method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
+        <i class="fa fa-trash"></i>
+      <% end %>
+    </div>
   </div>
 <% end %>

@@ -14,9 +14,15 @@ class Document < ApplicationRecord
   }
   after_update_commit -> { 
     broadcast_replace_to(
-      :conversations,
+      :collections,
       target: "document_#{id}",
       partial: "documents/document"
+    )
+  }
+  after_destroy_commit -> {
+    broadcast_remove_to(
+      :collection,
+      target: "document_#{id}"
     )
   }
 

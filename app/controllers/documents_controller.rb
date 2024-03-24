@@ -1,5 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :set_collection
+  before_action :set_document, only: [:show, :destroy]
 
   def create
     @document = Document.new(document_params)
@@ -15,8 +16,16 @@ class DocumentsController < ApplicationController
         ]
       end
       format.html do
-        render @message.conversation
+        render @document.collection
       end
+    end
+  end
+
+  def destroy
+    @document.destroy!
+
+    respond_to do |format|
+      format.html { redirect_to collection_path(@collection) }
     end
   end
 
