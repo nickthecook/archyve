@@ -11,8 +11,8 @@ module LlmClients
         http.request(request) do |response|
           raise response_error_for(response) unless response.code.to_i >= 200 && response.code.to_i < 300
 
-          stats[:start_time] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
+          stats[:start_time] = current_time
+          stats[:first_token_time] = current_time
           body = response.read_body
           content = ""
           each_message(body) do |message|

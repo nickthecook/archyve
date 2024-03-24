@@ -8,7 +8,7 @@ class SummarizeMessage
   end
 
   def execute
-    client.call("#{SUMMARY_PROMPT}\nMessage:\n#{message_content}") do |response|
+    client.complete("#{SUMMARY_PROMPT}\nMessage:\n#{message_content}") do |response|
       @summary += response
     end
 

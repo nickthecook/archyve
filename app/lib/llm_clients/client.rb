@@ -93,15 +93,17 @@ module LlmClients
         end_time: nil,
         elapsed_ms: nil,
         tokens: 0,
-        tokens_per_sec: nil
+        tokens_per_sec: nil,
+        time_to_first_token: nil,
       }
     end
 
     def calculate_stats
-      @stats[:end_time] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      @stats[:end_time] = current_time
       elapsed_s = (@stats[:end_time] - @stats[:start_time])
       @stats[:elapsed_ms] = (elapsed_s * 1000).to_i
       @stats[:tokens_per_sec] = (@stats[:tokens] / elapsed_s).round(2)
+      @stats[:time_to_first_token] = (@stats[:first_token_time] - @stats[:start_time]).round(3)
     end
 
     def default_temperature
@@ -110,6 +112,10 @@ module LlmClients
 
     def default_batch_size
       256
+    end
+
+    def current_time
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
   end
 end

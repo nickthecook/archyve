@@ -8,10 +8,11 @@ module LlmClients
       request = completion_request(prompt)
 
       Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
+        stats[:start_time] = current_time
         http.request(request) do |response|
           raise response_error_for(response) unless response.code.to_i >= 200 && response.code.to_i < 300
 
-          stats[:start_time] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          stats[:first_token_time] = current_time
 
           current_chunk = ""
           current_batch = ""
