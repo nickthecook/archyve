@@ -9,29 +9,30 @@ class Search
     
     puts response
 
-    chunks_for(response["ids"].first).each do |chunk|
+    response["ids"].first.each_with_index do |id, index|
+      chunk = chunk_for(id)
+      distance = response["distances"].first[index]
+
       Turbo::StreamsChannel.broadcast_append_to(
-        "collection", target: dom_id, partial: "shared/chunk", locals: { chunk:}
+        "collection", target: dom_id, partial: "shared/chunk", locals: { chunk:, distance: }
       )
     end
   end
 
   private
 
-  def chunks_for(ids)
-    ids.map do |id|
-      chunk = Chunk.find_by(vector_id: id)
+  def chunk_for(id)
+    chunk = Chunk.find_by(vector_id: id)
 
-      if chunk.present?
-        Rails.logger.info("Got hit for chunk #{id} in collection #{@collection.slug}.")
-      else
-        Rails.logger.warn(
-          "Could not find chunk with id #{id} while searching collection #{@collection.slug} (#{@collection.id})."
-        )
-      end
-
-      chunk
+    if chunk.present?
+      Rails.logger.info("Got hit for chunk #{id} in collection #{@collection.slug}.")
+    else
+      Rails.logger.warn(
+        "Could not find chunk with id #{id} while searching collection #{@collection.slug} (#{@collection.id})."
+      )
     end
+
+    chunk
   end
 
   def collection_id
