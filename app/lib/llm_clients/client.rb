@@ -11,6 +11,10 @@ module LlmClients
 
       super(message)
     end
+
+    def to_s
+      "#{self.class.name}: #{super.to_s}: #{additional_info.join("; ")}"
+    end
   end
 
   class Client

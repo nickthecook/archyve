@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_24_195908) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_25_131338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_24_195908) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "chunks", force: :cascade do |t|
+    t.bigint "document_id", null: false
+    t.string "vector_id"
+    t.string "content"
+    t.jsonb "embeddings"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id"], name: "index_chunks_on_document_id"
   end
 
   create_table "collections", force: :cascade do |t|
@@ -117,6 +127,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_24_195908) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "chunks", "documents"
   add_foreign_key "conversations", "model_configs"
   add_foreign_key "conversations", "users"
   add_foreign_key "documents", "collections"

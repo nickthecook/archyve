@@ -2,12 +2,23 @@ class DocumentsController < ApplicationController
   before_action :set_collection
   before_action :set_document, only: [:show, :destroy]
 
+  def show
+    @collections = current_user.collections
+
+    respond_to do |format|
+      format.html { render "collections/index", locals: { document: @document } }
+      format.json { render json: @document}
+    end
+  end
+
   def create
     @document = Document.new(document_params)
     @document.filename = params[:file].original_filename
     @document.collection = @collection
     @document.user = current_user
     @document.save!
+
+    IngestJob.perform_async(@document.id)
 
     respond_to do |format|
       format.turbo_stream do

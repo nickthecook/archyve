@@ -5,4 +5,9 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   has_many :messages, as: :author
+
+  # TODO: make collection belong_to user and remove this
+  def collections
+    Collection.all
+  end
 end

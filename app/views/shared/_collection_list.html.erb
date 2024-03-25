@@ -6,7 +6,7 @@
     <%= button_to "New collection", collections_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-300", data: { turbo: false } %>
     <div class="container overflow-y-scroll flex-1">
       <% collections.each do |collection| %>
-        <%= render "collection_list_item", collection: %>
+        <%= render "shared/collection_list_item", collection: %>
       <% end %>
     </div>
     <div class="w-full text-sm font-bold text-center">

@@ -26,5 +26,7 @@ module Conan
     config.eager_load_paths << "#{root}/app/lib"
     config.autoload_paths << "#{root}/app/services"
     config.autoload_paths << "#{root}/app/lib"
+
+    Sidekiq.strict_args!(false)
   end
 end

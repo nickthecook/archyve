@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   end
 
   resources :collections do
-    resources :documents, only: [:create, :destroy]
+    resources :documents, only: [:create, :destroy, :show, :vectorize]
   end
 
   devise_for :users

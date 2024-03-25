@@ -3,8 +3,8 @@ class Embedder
     @endpoint = endpoint
   end
 
-  def embed(document)
-    response = client.embed(document)
+  def embed(chunk)
+    response = client.embed(chunk.content)
 
     response["embedding"]
   end

@@ -1,14 +1,25 @@
-<%= content_tag :div, id: dom_id(document), class: "flex justify-start items-start px-10 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900" do %>
-  <div class="flex-1 whitespace-prewrap" data-controller="markdown-text">
-      <%= document.filename %>
-  </div>
-  <div class="flex flex-col ms-4">
-    <p class="py-1 text-xs text-right text-muted"><%= document.user.email %></p>
-    <p class="py-1 text-xs text-right text-muted"><%= time_ago_in_words(document.created_at) %> ago</p>
-    <div class="flex-none mx-1">
-      <%= button_to collection_document_path(document.collection, document), method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
-        <i class="fa fa-trash"></i>
-      <% end %>
+<% @document ||= document %>
+<div id="<%= dom_id(document) %>-details">
+  <div class="flex justify-center">
+    <div class="flex flex-col w-3/4">
+      <div class="flex items-center">
+        <div class="p-4 text-lg font-semibold text-secondary-900 dark:text-secondary-100"><%= document.filename %></div>
+        <div class="text-xs text-muted">Created <%= time_ago_in_words(document.created_at) %> ago.</div>
+        <%= link_to "Back to collection", collection_path(@document.collection), class: "rounded-lg ml-auto py-1 mb-4 px-3 my-2 text-tertiary-200 dark:text-secondary-950 font-medium bg-tertiary-800 dark:bg-tertiary-300"%>
+
+      </div>
+
+      <div class="container flex flex-col items-center rounded-lg flex-start">
+        <div id="<%= dom_id(document) %>-chunks">
+          <% if document.chunks.any? %>
+            <% document.chunks.each do |chunk| %>
+              <%= render "shared/chunk", chunk: %>
+            <% end %>
+          <% else %>
+            This document has no chunks.
+          <% end %>
+        </div>
+      </div>
     </div>
   </div>
-<% end %>
+</div>

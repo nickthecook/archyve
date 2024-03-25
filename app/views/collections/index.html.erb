@@ -1,5 +1,5 @@
 <div class="flex">
-  <%= render "collection_list", collections: @collections %>
+  <%= render "shared/collection_list", collections: @collections %>
 
   <div id="collection_area" class="overflow-y-scroll flex-1 h-screen w-100 bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
     <div class="container flex justify-center w-full align-center">
@@ -12,7 +12,9 @@
 
     <%= turbo_stream_from "collection" %>
     <div class="m-2 h-full">
-      <% if @collection %>
+      <% if @document %>
+        <%= render @document %>
+      <% elsif @collection %>
         <%= render @collection %>
       <% else %>
           <div class="container flex justify-center h-full align-center">

@@ -55,7 +55,6 @@ module LlmClients
         prompt:
       }.to_json)
 
-      puts response
       raise response_error_for(response) unless response.success?
 
       response.parsed_response

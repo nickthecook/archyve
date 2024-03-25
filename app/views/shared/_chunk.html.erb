@@ -1,0 +1,9 @@
+<%= content_tag :div, id: dom_id(chunk), class: "flex justify-start items-start px-10 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900" do %>
+  <div class="flex-1 whitespace-prewrap">
+    <%= chunk.content %>
+  </div>
+  <div class="flex flex-col ms-4">
+    <p class="py-1 text-xs text-right text-muted"><%= number_to_human_size(chunk.content.size) %></p>
+    <p class="py-1 text-xs text-right text-muted"><%= time_ago_in_words(chunk.created_at) %> ago</p>
+  </div>
+<% end %>

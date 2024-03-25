@@ -31,10 +31,10 @@ class Chonker
 
     chunks = text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
 
-    overlap_chunks(chunks)
+    overlapped_chunks(chunks)
   end
 
-  def overlap_chunks(chunks)
+  def overlapped_chunks(chunks)
     chunk_overlap = @options[:overlap]
     chunk_size = @options[:bytes]
     overlapped_chunks = []
