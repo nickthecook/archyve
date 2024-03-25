@@ -91,3 +91,5 @@ gem "font-awesome-rails", "~> 4.7"
 gem "httparty", "~> 0.21.0"
 
 gem "pdf-reader", "~> 2.12"
+
+gem "aasm", "~> 5.5"
