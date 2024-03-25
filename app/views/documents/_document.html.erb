@@ -13,7 +13,7 @@
         <div id="<%= dom_id(document) %>-chunks">
           <% if document.chunks.any? %>
             <% document.chunks.each do |chunk| %>
-              <%= render "shared/chunk", chunk: %>
+              <%= render "shared/chunk", chunk:, distance: nil %>
             <% end %>
           <% else %>
             This document has no chunks.

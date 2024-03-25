@@ -7,7 +7,8 @@ class TheIngestor
   def ingest
     ensure_collection_exists
 
-    @chunks = chonker.chunks.map { |chunk| Chunk.new(document: @document, content: chunk)}
+    @chunks = chonker.chunks.map { |chunk| Chunk.new(document: @document, content: chunk) }
+    Rails.logger.info("Got #{@chunks.count} chunks from #{@document.filename}.")
 
     ## save all chunks to the db
     @document.transaction do

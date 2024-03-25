@@ -8,6 +8,20 @@ class ReplyToMessage
   end
 
   def execute
+    broadcast_event(
+      "Searching #{collections_to_search.map(&:name).join(', ')}...",
+      "message_#{@message.id}-collections-event"
+    )
+    broadcast_event(
+      "#{search_results.count} hits.",
+      "message_#{@message.id}-count-event"
+    )
+
+    broadcast_event(
+      "Sending prompt: #{prompt}",
+      "message_#{@message.id}-prompt-event"
+    )
+
     @reply = Message.create!(
       content: "",
       author: @message.conversation.model_config,
@@ -43,6 +57,25 @@ class ReplyToMessage
   end
 
   private
+
+  def broadcast_event(event_content, dom_id)
+    return unless collections_to_search.any?
+
+    Turbo::StreamsChannel.broadcast_append_to(
+      "conversations",
+      target: "messages",
+      partial: "shared/conversation_event",
+      locals: {
+        event_content:,
+        text_class: "text-xs",
+        dom_id:
+      }
+    )
+  end
+
+  def collections_to_search
+    @collections_to_search ||= @message.conversation.collections
+  end
 
   def convert_to_markdown
     Turbo::StreamsChannel.broadcast_append_to(
@@ -83,8 +116,30 @@ class ReplyToMessage
         model: model_config.model,
         provider: model_config.model_server.provider
       },
-      @message.content
+      prompt
     )
+  end
+
+  def search_results
+    @search_results ||= search.search(@message.content)
+  end
+
+  def prompt
+    @prompt ||= begin
+      return @message.content unless collections_to_search.any?
+
+      prompt = "Given this context, answer the following question:\n\n"
+      search_results.each do |chunk|
+        prompt << "#{chunk.content}\n\n"
+      end
+
+      prompt << "Question: #{@message.content}"
+    end
+  end
+
+  def search
+    # TODO: support more than one collection
+    @search ||= Search.new(collections_to_search.first)
   end
 
   def model_config

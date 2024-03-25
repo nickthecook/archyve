@@ -8,6 +8,6 @@ class SearchJob
     
     collection = Collection.find(collection_id)
 
-    Search.new(collection).search(query, dom_id)
+    Search.new(collection, dom_id).search(query)
   end
 end
