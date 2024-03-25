@@ -1,5 +1,5 @@
 class ConversationsController < ApplicationController
-  before_action :set_conversation, only: %i[ show edit update destroy ]
+  before_action :set_conversation, only: %i[ show edit update destroy update_collections ]
 
   # GET /conversations or /conversations.json
   def index
@@ -66,15 +66,24 @@ class ConversationsController < ApplicationController
     end
   end
 
+  def update_collections
+    @conversation
+    collections = Collection.find(params[:collection_ids])
+
+    @conversation.collections << collections
+    @conversation.save!
+  end
+
   private
-    def set_conversation
-      @conversation = Conversation.find(params[:id])
-    end
 
-    def conversation_params
-      updated_params = params.require(:conversation).permit(:title, :model_config_id)
-      updated_params[:model_config_id] = updated_params[:model_config_id].to_i if params.include?(:model_config_id)
+  def set_conversation
+    @conversation = Conversation.find(params[:id] || params[:conversation_id])
+  end
 
-      updated_params
-    end
+  def conversation_params
+    updated_params = params.require(:conversation).permit(:title, :model_config_id)
+    updated_params[:model_config_id] = updated_params[:model_config_id].to_i if params.include?(:model_config_id)
+
+    updated_params
+  end
 end

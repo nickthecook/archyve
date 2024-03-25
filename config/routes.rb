@@ -7,6 +7,8 @@ Rails.application.routes.draw do
     resources :messages, only: [:create, :destroy]
   end
 
+  resources :conversation_collections, only: [:create]
+
   resources :collections do
     resources :documents, only: [:create, :destroy, :show, :vectorize]
     post :search, as: :search

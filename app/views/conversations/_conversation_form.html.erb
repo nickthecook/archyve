@@ -1,0 +1,33 @@
+<div class="flex">
+  <%= form_for @conversation do |f| %>
+    <%= f.text_field(
+      :title,
+      class: "rounded-md dark:bg-secondary-900 mx-1",
+      value: @conversation.title,
+      placeholder: "title",
+      onchange: "this.form.submit()",
+      disabled: @conversation.messages.any? ? true : false
+    )%>
+    <%= f.collection_select(:model_config_id, model_config_list, :id, :description, {}, {
+      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
+      onchange: "this.form.submit()",
+      disabled: @conversation.messages.any? ? true : false
+    })%>
+    <%= f.submit "Update", hidden: true %>
+  <% end %>
+
+  <%= form_with url: conversation_collections_path, method: :post do |f|%>
+  <% selected_collection_id = @conversation.collections&.first&.id %>
+    <%= f.collection_select(:collection_ids, collection_list, :id, :name, {
+      selected: selected_collection_id,
+      include_blank: true,
+      prompt: "Select a collection...",
+    }, {
+      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
+      onchange: "this.form.submit()",
+      disabled: @conversation.messages.any? ? true : false
+    })%>
+    <%= f.text_field :conversation_id, value: @conversation.id, type: :hidden %>
+    <%= f.submit "Update", hidden: true %>
+  <% end %>
+</div>

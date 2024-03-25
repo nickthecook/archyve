@@ -1,27 +1,7 @@
 <div id="conversation">
   <div class="flex">
     <div class="flex-1 pb-5">
-      <%= form_for @conversation do |f| %>
-        <%= f.text_field(
-          :title,
-          class: "rounded-md dark:bg-secondary-900 mx-2",
-          value: @conversation.title,
-          placeholder: "title",
-          onchange: "this.form.submit()"
-        )%>
-        <% if @conversation.messages.any? %>
-          <%= f.collection_select(:model_config_id, model_config_list, :id, :description, {}, {
-            disabled: true,
-            class: "rounded-lg text-secondary-500 bg-secondary-200 dark:text-secondary-400 dark:bg-secondary-800 border-0 mx-2"
-          })%>
-        <% else %>
-          <%= f.collection_select(:model_config_id, model_config_list, :id, :description, {}, {
-            class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800",
-            onchange: "this.form.submit()"
-          })%>
-        <% end %>
-        <%= f.submit "Update", hidden: true %>
-      <% end %>
+      <%= render "conversation_form" %>
     </div>
   </div>
 
