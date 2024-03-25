@@ -17,10 +17,12 @@ class TheIngestor
     end
 
     @chunks.each do |chunk|
-      embedding = embedder.embed(chunk)
+      embedding = embedder.embed(chunk.content)
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
     end
+
+    @document.embedded!
   end
 
   private
@@ -29,19 +31,9 @@ class TheIngestor
     if @document.created?
       initialize_collection
     else
+      Rails.logger.warn("RESETTING DOCUMENT #{@document.id}: is in state #{@document.state}...")
       reset_document
     end
-  end
-
-  def reset_document
-    # remove all docs from collection in chroma
-    @collection_id = chromadb.empty_collection(collection_name)
-
-    # remove all local chunks from db
-    @document.chunks.destroy_all
-
-    # set the document's state back to created
-    @document.reset!
   end
 
   def parser
@@ -53,11 +45,7 @@ class TheIngestor
   end
 
   def embedder
-    @embedder ||= Embedder.new(embedding_endpoint)
-  end
-
-  def embedding_endpoint
-    "http://shard:11434"
+    @embedder ||= Embedder.new
   end
 
   def chromadb
@@ -77,5 +65,16 @@ class TheIngestor
     end
 
     @collection_id = collection_id
+  end
+
+  def reset_document
+    # remove all docs from collection in chroma
+    @collection_id = chromadb.empty_collection(collection_name)
+
+    # remove all local chunks from db
+    @document.chunks.destroy_all
+
+    # set the document's state back to created
+    @document.reset!
   end
 end

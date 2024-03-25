@@ -102,8 +102,7 @@ module LlmClients
     end
 
     def embedding_model
-      # TODO: make this configurable
-      "all-minilm"
+      Rails.configuration.embedding_model
     end
   end
 end

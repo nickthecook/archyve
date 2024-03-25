@@ -1,5 +1,7 @@
 class CollectionsController < ApplicationController
-  before_action :set_collection, only: %i[ show update destroy ]
+  include ActionView::RecordIdentifier
+
+  before_action :set_collection, only: %i[ show update destroy search ]
 
   def index
     @collections = Collection.all
@@ -18,8 +20,8 @@ class CollectionsController < ApplicationController
   def create
     @collection = Collection.new
     @collection.name ||= "New collection"
-    @collection.generate_slug
     @collection.save!
+    @collection.generate_slug
 
     respond_to do |format|
       if @collection.save
@@ -59,6 +61,30 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def search
+    query = params[:query]
+    dom_id = "search_results"
+
+    SearchJob.perform_async(@collection.id, query, dom_id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace(
+            dom_id,
+            partial: "search_results",
+            locals: { query_id: dom_id }
+          ),
+          turbo_stream.replace(
+            "#{dom_id(@collection)}-documents",
+            partial: "search_results",
+            locals: { query_id: dom_id }
+          )
+        ]
+      end
+    end
+  end
+
   private
 
   def collection_params
@@ -66,6 +92,6 @@ class CollectionsController < ApplicationController
   end
 
   def set_collection
-    @collection = Collection.find(params[:id])
+    @collection = Collection.find(params[:id] || params[:collection_id])
   end
 end

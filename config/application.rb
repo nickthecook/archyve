@@ -28,5 +28,8 @@ module Conan
     config.autoload_paths << "#{root}/app/lib"
 
     Sidekiq.strict_args!(false)
+
+    config.embedding_endpoint = ENV.fetch("EMBEDDING_ENDPOINT") { "http://shard:11434" }
+    config.embedding_model = ENV.fetch("EMBEDDING_MODEL") { "all-minilm" }
   end
 end

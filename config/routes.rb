@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
   resources :collections do
     resources :documents, only: [:create, :destroy, :show, :vectorize]
+    post :search, as: :search
   end
 
   devise_for :users
