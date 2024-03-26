@@ -79,6 +79,11 @@ class CollectionsController < ApplicationController
             "#{dom_id(@collection)}-documents",
             partial: "search_results",
             locals: { query_id: dom_id }
+          ),
+          turbo_stream.replace(
+            "search_form",
+            partial: "search_form",
+            locals: { collection: @collection }
           )
         ]
       end
