@@ -1,4 +1,6 @@
 class DocumentsController < ApplicationController
+  include ActionView::RecordIdentifier
+
   before_action :set_collection
   before_action :set_document, only: [:show, :destroy, :vectorize]
 
@@ -24,6 +26,7 @@ class DocumentsController < ApplicationController
       format.turbo_stream do
         render turbo_stream: [
           turbo_stream.replace(:document_form, partial: "documents/form"),
+          turbo_stream.append("#{dom_id(@collection)}-documents", partial: "shared/document")
         ]
       end
       format.html do
