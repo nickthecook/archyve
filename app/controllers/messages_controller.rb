@@ -10,7 +10,7 @@ class MessagesController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.replace(:message_form, partial: "messages/form", collections: @conversation.collections),
+          turbo_stream.replace(:message_form, partial: "messages/form"),
         ]
       end
       format.html do

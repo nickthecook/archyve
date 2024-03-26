@@ -1,6 +1,6 @@
 class DocumentsController < ApplicationController
   before_action :set_collection
-  before_action :set_document, only: [:show, :destroy]
+  before_action :set_document, only: [:show, :destroy, :vectorize]
 
   def show
     @collections = current_user.collections
@@ -40,6 +40,10 @@ class DocumentsController < ApplicationController
     end
   end
 
+  def vectorize
+    IngestJob.perform_async(@document.id)
+  end
+
   private
 
   def document_params
@@ -47,7 +51,7 @@ class DocumentsController < ApplicationController
   end
 
   def set_document
-    @document = Document.find(params[:id])
+    @document = Document.find(params[:id] || params[:document_id])
   end
 
   def set_collection

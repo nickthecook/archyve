@@ -7,16 +7,16 @@ class Document < ApplicationRecord
   include Turbo::Broadcastable
   include AASM
 
-  after_create_commit -> { 
+  after_create_commit -> {
     broadcast_append_to(
       :collection,
       target: "documents",
       partial: "shared/document"
     )
   }
-  after_update_commit -> { 
+  after_update_commit -> {
     broadcast_replace_to(
-      :collections,
+      :collection,
       target: "document_#{id}",
       partial: "shared/document",
       document: @document
@@ -36,34 +36,47 @@ class Document < ApplicationRecord
 
   enum state: {
     created: 0,
+    chunking: 4,
     chunked: 1,
+    embedding: 5,
     embedded: 2,
+    storing: 6,
     stored: 3,
     errored: 10
   }
-  
+
   aasm column: :state do
     state :created
+    state :chunking
     state :chunked
+    state :embedding
     state :embedded
+    state :storing
     state :stored
     state :error
 
     event :reset do
       # TODO: validate that there are no chunks in the db
-      transitions from: [:chunked, :embedded, :stored], to: :created
+      transitions from: [:chunking, :chunked, :embedding, :embedded, :storing, :stored], to: :created
     end
 
+    event :chunking do
+      transitions from: :created, to: :chunking
+    end
     event :chunk do
-      transitions from: :created, to: :chunked
+      transitions from: :chunking, to: :chunked
     end
-
+    event :embedding do
+      transitions from: :chunked, to: :embedding
+    end
     event :embed do
-      transitions from: :chunked, to: :embedded
+      transitions from: :embedding, to: :embedded
     end
-
+    event :storing do
+      transitions from: :embedded, to: :storing
+    end
     event :store do
-      transitions from: [:created, :embedded], to: :stored
+      transitions from: :storing, to: :stored
     end
 
     event :error do
@@ -73,5 +86,9 @@ class Document < ApplicationRecord
 
   def contents
     file.download
+  end
+
+  def state_indexable?
+    !state.end_with?("ing")
   end
 end

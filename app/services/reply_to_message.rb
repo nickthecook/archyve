@@ -8,19 +8,7 @@ class ReplyToMessage
   end
 
   def execute
-    broadcast_event(
-      "Searching #{collections_to_search.map(&:name).join(', ')}...",
-      "message_#{@message.id}-collections-event"
-    )
-    broadcast_event(
-      "#{search_results.count} hits.",
-      "message_#{@message.id}-count-event"
-    )
-
-    broadcast_event(
-      "Sending prompt: #{prompt}",
-      "message_#{@message.id}-prompt-event"
-    )
+    search if collections_to_search.any?
 
     @reply = Message.create!(
       content: "",
@@ -43,7 +31,9 @@ class ReplyToMessage
 
     append("messages", "messages/error", { error: e.to_s })
   rescue ResponseStreamer::NetworkError
-    raise
+    Rails.logger.error("\nNetworkError: #{e.message}#{e.backtrace.join("\n")}")
+
+    append("messages", "messages/error", { error: "A network error occurred: #{e.message}" })
   rescue LlmClients::ResponseError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
@@ -53,7 +43,7 @@ class ReplyToMessage
 
     append("messages", "messages/error", { error: "An internal error occurred" })
   ensure
-    remove(reply_id, "messages/spinner")
+    remove(reply_id, "messages/spinner") if @reply
   end
 
   private
@@ -121,7 +111,7 @@ class ReplyToMessage
   end
 
   def search_results
-    @search_results ||= search.search(@message.content)
+    @search_results ||= searcher.search(@message.content)
   end
 
   def prompt
@@ -138,8 +128,23 @@ class ReplyToMessage
   end
 
   def search
+    broadcast_event(
+      "Searching #{collections_to_search.map(&:name).join(', ')}...",
+      "message_#{@message.id}-collections-event"
+    )
+    broadcast_event(
+      "#{search_results.count} hits.",
+      "message_#{@message.id}-count-event"
+    )
+    broadcast_event(
+      "Sending prompt: #{prompt}",
+      "message_#{@message.id}-prompt-event"
+    )
+  end
+
+  def searcher
     # TODO: support more than one collection
-    @search ||= Search.new(collections_to_search.first)
+    @searcher ||= Search.new(collections_to_search.first)
   end
 
   def model_config

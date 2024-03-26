@@ -29,7 +29,9 @@ module Conan
 
     Sidekiq.strict_args!(false)
 
-    config.embedding_endpoint = ENV.fetch("EMBEDDING_ENDPOINT") { "http://shard:11434" }
+    config.embedding_endpoint = ENV.fetch("EMBEDDING_ENDPOINT") { "http://localhost:11434" }
     config.embedding_model = ENV.fetch("EMBEDDING_MODEL") { "all-minilm" }
+    config.summarization_endpoint = ENV.fetch("SUMMARIZATION_ENDPOINT") { "http://localhost:11435" }
+    config.summarization_model = ENV.fetch("SUMMARIZATION_MODEL") { "mistral:instruct" }
   end
 end

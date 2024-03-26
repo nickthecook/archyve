@@ -8,7 +8,7 @@ class Search
   def search(query)
     embedded_query = embedder.embed(query)
     response = chroma.query(collection_id, [embedded_query])
-    
+
     puts response
 
     results = []
@@ -33,7 +33,7 @@ class Search
 
   def broadcast_chunk(chunk, distance)
     Turbo::StreamsChannel.broadcast_append_to(
-      "collection", target: @dom_id, partial: @partial, locals: { chunk:, distance: }
+      :collection, target: @dom_id, partial: @partial, locals: { chunk:, distance: }
     )
   end
 

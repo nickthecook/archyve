@@ -7,22 +7,23 @@ class TheIngestor
   def ingest
     ensure_collection_exists
 
+    @document.chunking!
     @chunks = chonker.chunks.map { |chunk| Chunk.new(document: @document, content: chunk) }
     Rails.logger.info("Got #{@chunks.count} chunks from #{@document.filename}.")
 
     ## save all chunks to the db
     @document.transaction do
       @chunks.each(&:save!)
-
-      @document.chunked!
     end
+    @document.chunked!
 
+    @document.embedding!
     @chunks.each do |chunk|
+      Rails.logger.info("Embedding chunk #{chunk.id} of document #{@document.id}")
       embedding = embedder.embed(chunk.content)
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
     end
-
     @document.embedded!
   end
 

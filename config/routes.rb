@@ -10,7 +10,10 @@ Rails.application.routes.draw do
   resources :conversation_collections, only: [:create]
 
   resources :collections do
-    resources :documents, only: [:create, :destroy, :show, :vectorize]
+    resources :documents, only: [:create, :destroy, :show] do
+      post :vectorize, as: :vectorize
+    end
+
     post :search, as: :search
   end
 
