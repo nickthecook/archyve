@@ -2,18 +2,22 @@
   <div class="flex-1 whitespace-prewrap">
     <div class="flex flex-col">
       <div class="flex-1">
-        <%= link_to document.filename, collection_document_path(document.collection, document), format: :turbo_stream %>
-        <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 p-1">
-          <%= document.state %>
+        <div class="flex items-baseline">
+          <div class="pb-2">
+            <%= link_to document.filename, collection_document_path(document.collection, document), format: :turbo_stream %>
+          </div>
+          <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 bg-secondary-300 dark:bg-secondary-700 px-2">
+            <%= document.state %>
+          </div>
         </div>
       </div>
-      <%= button_to "Index", collection_document_vectorize_path(document.collection, document), class: "rounded-lg bg-tertiary-700 dark:bg-tertiary-400 text-secondary-900 dark:text-tertiary-100 py-2 px-4 disabled:bg-opacity-50 ", disabled: !document.state_indexable? %>
+      <%= button_to "Index", collection_document_vectorize_path(document.collection, document), class: "rounded-lg bg-tertiary-700 dark:bg-tertiary-400 text-secondary-900 dark:text-tertiary-100 py-1 px-4 disabled:bg-opacity-40", disabled: !document.state_indexable? %>
     </div>
   </div>
   <div class="flex flex-col ms-4">
-    <p class="py-1 text-xs text-right text-muted"><%= document.user.email %></p>
-    <p class="py-1 text-xs text-right text-muted"><%= time_ago_in_words(document.created_at) %> ago</p>
-    <div class="flex-none mx-1">
+    <p class="py-1 text-xs text-right"><%= document.user.email %></p>
+    <p class="py-1 text-xs text-right"><%= time_ago_in_words(document.created_at) %> ago</p>
+    <div class="flex-none mx-1 text-right">
       <%= button_to collection_document_path(document.collection, document), method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
         <i class="fa fa-trash"></i>
       <% end %>
