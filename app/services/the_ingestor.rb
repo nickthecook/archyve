@@ -18,8 +18,8 @@ class TheIngestor
     @document.chunked!
 
     @document.embedding!
-    @chunks.each do |chunk|
-      Rails.logger.info("Embedding chunk #{chunk.id} of document #{@document.id}")
+    @chunks.each_with_index do |chunk, idx|
+      Rails.logger.info("Embedding chunk #{chunk.id} (#{idx}/#{@chunks.count})...")
       embedding = embedder.embed(chunk.content)
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
