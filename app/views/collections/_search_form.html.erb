@@ -1,9 +1,9 @@
 <% collection ||= @collection %>
 <div id="search_form">
-  <%= form_with url: collection_search_path(@collection) do |f| %>
+  <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex">
       <% 
-        if @collection.documents.any? { |doc| doc.embedded? }
+        if collection.documents.reload.any? { |doc| doc.embedded? }
           placeholder = "Search your documents..."
           disabled = false
         else

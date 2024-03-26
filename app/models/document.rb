@@ -23,8 +23,14 @@ class Document < ApplicationRecord
     )
     broadcast_replace_to(
       :documents,
-      target: "docuemnt_#{id}-details",
+      target: "document_#{id}-details",
       partial: "documents/document"
+    )
+    broadcast_replace_to(
+      :collection,
+      target: "search_form",
+      partial: "collections/search_form",
+      locals: { collection: }
     )
   }
   after_destroy_commit -> {
