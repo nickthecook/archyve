@@ -1,4 +1,4 @@
-<div id="conversations" class="overflow-y-scroll p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
+<div id="conversations" class="overflow-y-scroll no-scrollbar p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
   <div class="container flex flex-col items-center h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-primary-800 dark:text-primary-400" %></div>
     <%= button_to "New conversation", conversations_path, class: "rounded-lg py-1 px-3 mb-4 my-2 text-center text-secondary-200 dark:text-secondary-950 block font-medium bg-primary-800 dark:bg-primary-400", data: { turbo: false } %>
