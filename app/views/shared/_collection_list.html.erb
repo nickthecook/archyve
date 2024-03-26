@@ -1,9 +1,9 @@
 <div id="collections" class="p-5 w-64 h-screen bg-secondary-300 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-100">
   <div class="container flex flex-col items-center h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center">
-      <%= link_to "ARCHYVE", root_path, class: "text-tertiary-800 dark:text-tertiary-300" %>
+      <%= link_to "ARCHYVE", root_path, class: "text-tertiary-800 dark:text-tertiary-400" %>
     </div>
-    <%= button_to "New collection", collections_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-300", data: { turbo: false } %>
+    <%= button_to "New collection", collections_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-400", data: { turbo: false } %>
     <div class="container overflow-y-scroll no-scrollbar flex-1">
       <% collections.each do |collection| %>
         <%= render "shared/collection_list_item", collection: %>
@@ -13,7 +13,7 @@
       <%= @current_user.email %>
     </div>
     <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-300 w-full font-medium" %>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-400 w-full font-medium" %>
     </div>
     <div class="w-full">
       <%= link_to "Chat", "/conversations", class: "rounded-lg py-1 px-3 text-center text-tertiary-200 block font-medium bg-tertiary-800 dark:text-secondary-950 dark:bg-primary-500", data: { turbo: false } %>

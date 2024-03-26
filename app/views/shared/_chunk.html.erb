@@ -7,6 +7,6 @@
       <p class="py-1 text-xs text-right text-muted">distance: <%= distance.round(3) %></p>
     <% end %>
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></p>
-    <p class="py-1 text-xs text-right text-muted"><%= chunk ? time_ago_in_words(chunk.created_at) : "?" %>ago</p>
+    <p class="py-1 text-xs text-right text-muted"><%= chunk ? time_ago_in_words(chunk.created_at) : "?" %> ago</p>
   </div>
 <% end %>
