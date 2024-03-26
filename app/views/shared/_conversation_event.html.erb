@@ -1,9 +1,9 @@
 <%
-  event_bg_classes ||= "bg-secondary-200 dark:bg-primary-900"
+  event_bg_classes ||= "bg-secondary-200 dark:bg-primary-900 bg-opacity-50 dark:bg-opacity-50"
   text_class ||= "text-sm"
 %>
 <%= content_tag :div, id: dom_id, class: "flex justify-start" do %>
-  <div class="text-secondary-900 dark:text-secondary-100 px-4 my-1 rounded-md <%= "#{event_bg_classes} #{text_class}" %>">
+  <div class="text-secondary-900 dark:text-secondary-100 px-4 py-1 my-1 rounded-md <%= "#{event_bg_classes} #{text_class}" %>">
       <%= event_content %>
   </div>
 <% end %>
