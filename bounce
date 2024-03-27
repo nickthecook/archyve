@@ -1,0 +1,6 @@
+docker compose down
+docker volume rm archyve_postgres
+docker volume rm archyve_redis
+docker volume rm archyve_chromadb
+docker image rm archyve:local
+docker compose up

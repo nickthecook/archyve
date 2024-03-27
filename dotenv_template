@@ -1,0 +1,10 @@
+SECRET_KEY_BASE=# run `openssl rand -hex 64` to generate this value
+CHAT_ENDPOINT=http://host.docker.internal:11434
+EMBEDDING_ENDPOINT=http://host.docker.internal:11434
+EMBEDDING_MODEL=all-minilm
+SUMMARIZATION_ENDPOINT=http://host.docker.internal:11434
+SUMMARIZATION_MODEL=mistral:instruct
+CHROMADB_HOST=chromadb
+CHROMADB_PORT=8000
+USERNAME=admin@archyve.io
+PASSWORD=password

@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+# wait for database
+DATABASE_HOST=$([[ $DATABASE_URL =~ ^postgres://[^@]*@([^:]*): ]] && echo ${BASH_REMATCH[1]})
+echo "Waiting for '$DATABASE_HOST:5432' to be open..."
+while ! nc -z "$DATABASE_HOST" 5432; do sleep 0.5; done
+
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
   ./bin/rails db:prepare

@@ -51,7 +51,7 @@ class TheIngestor
   end
 
   def chromadb
-    @chromadb ||= Chromadb::Client.new("localhost", 8000)
+    @chromadb ||= Chromadb::Client.new
   end
 
   def collection_name

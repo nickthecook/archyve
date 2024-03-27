@@ -11,26 +11,76 @@ services:
     environment:
       POSTGRES_USER: archyve
       POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U archyve"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - chromadb:/chroma/chroma
+    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+    environment:
+      - IS_PERSISTENT=TRUE
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   archyve:
-    image: archyve:latest
+    image: archyve:local
+    build: .
     environment:
       - PORT=3000
       - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - CHAT_ENDPOINT=${CHAT_ENDPOINT}
+      - EMBEDDING_ENDPOINT=${EMBEDDING_ENDPOINT}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - SUMMARIZATION_ENDPOINT=${SUMMARIZATION_ENDPOINT}
+      - SUMMARIZATION_MODEL=${SUMMARIZATION_MODEL}
+      - CHROMADB_HOST=${CHROMADB_HOST}
+      - CHROMADB_PORT=${CHROMADB_PORT}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
+    volumes:
+      - archyve_files:/rails/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
-      - 3300:3000
+      - 3000:3000
+    depends_on:
+      - redis
+      - postgres
   archyve-worker:
-    image: archyve:latest
+    image: archyve:local
     environment:
       - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - CHAT_ENDPOINT=${CHAT_ENDPOINT}
+      - EMBEDDING_ENDPOINT=${EMBEDDING_ENDPOINT}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - SUMMARIZATION_ENDPOINT=${SUMMARIZATION_ENDPOINT}
+      - SUMMARIZATION_MODEL=${SUMMARIZATION_MODEL}
+      - CHROMADB_HOST=${CHROMADB_HOST}
+      - CHROMADB_PORT=${CHROMADB_PORT}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
+    volumes:
+      - archyve_files:/rails/storage
     extra_hosts:
     - "host.docker.internal:host-gateway"
     command: bundle exec sidekiq
+    depends_on:
+      - redis
+      - postgres
+
 volumes:
   redis:
-    driver: local
   postgres:
-    driver: local
+  chromadb:
+  archyve_files:

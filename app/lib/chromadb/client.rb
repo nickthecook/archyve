@@ -6,16 +6,16 @@ module Chromadb
   class Client
     attr_reader :last_response
 
-    def initialize(host, port)
-      @host = host
-      @port = port
+    def initialize(host = nil, port = nil)
+      @host = host || ENV.fetch("CHROMADB_HOST") { "localhost" }
+      @port = port || ENV.fetch("CHROMADB_PORT") { 8000 }
       @url = "http://#{@host}:#{@port}"
     end
 
     def version
       get("api/v1/version")
     end
-  
+
     def create_collection(name, metadata = nil, tenant = nil, database = nil)
       body = { name: }
       body[:metadata] = metadata if metadata

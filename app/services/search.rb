@@ -58,6 +58,6 @@ class Search
   end
 
   def chroma
-    @chrome ||= Chromadb::Client.new("localhost", 8000)
+    @chrome ||= Chromadb::Client.new
   end
 end

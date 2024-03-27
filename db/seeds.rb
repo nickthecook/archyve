@@ -8,48 +8,28 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
-User.find_or_create_by!(email: "nickthecook@gmail.com")  do |user|
-  user.password = "password"
+default_user = ENV.fetch("USERNAME") { "admin@archyve.io" }
+default_password = ENV.fetch("PASSWORD") { "password" }
+model_endpoint = ENV.fetch("CHAT_ENDPOINT") { "https://localhost:11434/v1/" }
+
+puts "Seeding database with USERNAME '#{default_user}', PASSWORD '********', and endpoint '#{model_endpoint}'..."
+
+User.find_or_create_by!(email: default_user)  do |user|
+  user.password = default_password
   user.admin = true
 end
 
-ModelServer.find_or_create_by!(name: "SHARD") do |ms|
-  ms.url = "http://shard:11434"
-  ms.provider = "ollama"
-end
-
-ModelConfig.find_or_create_by!(name: "mistral:7b") do |mc|
-  mc.model = "mistral:7b"
-  mc.temperature = 0.1
-  mc.model_server = ModelServer.first
-end
-
-ModelConfig.find_or_create_by!(name: "gemma:7b") do |mc|
-  mc.model = "gemma:7b"
-  mc.temperature = 0.2
-  mc.model_server = ModelServer.first
-end
-
 ModelServer.find_or_create_by!(name: "localhost") do |ms|
-  ms.url = "http://localhost:11434"
+  ms.url = model_endpoint
   ms.provider = "ollama"
 end
 
-ModelConfig.find_or_create_by!(name: "mistral:7b", model_server: ModelServer.second) do |mc|
-  mc.model = "mistral:7b"
+ModelConfig.find_or_create_by!(name: "mistral:instruct", model_server: ModelServer.first) do |mc|
+  mc.model = "mistral:instruct"
   mc.temperature = 0.1
 end
 
-ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.second) do |mc|
+ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first) do |mc|
   mc.model = "gemma:7b"
   mc.temperature = 0.2
-end
-
-Conversation.find_or_create_by!(title: "Test Conversation", user_id: User.first.id) do |c|
-  c.model_config = ModelConfig.first
-end
-
-Message.find_or_create_by!(content: "Hello, world!") do |msg|
-  msg.conversation = Conversation.first
-  msg.author = User.first
 end

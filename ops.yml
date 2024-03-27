@@ -22,3 +22,6 @@ actions:
   container:
     command: docker compose up
     load_secrets: true
+  shell:
+    command: docker compose exec archyve bash
+    alias: sh
