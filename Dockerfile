@@ -51,14 +51,12 @@ FROM base
 
 # Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libsqlite3-0 libvips netcat-traditional && \
+    apt-get install --no-install-recommends -y curl libsqlite3-0 libvips netcat-traditional libpq5 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
-# Copy libpq-dev files, except manpages
-COPY --from=build /usr/lib/*/libpq.so.* /usr/lib/aarch64-linux-gnu/
 
 # Run and own only the runtime files as a non-root user for security
 RUN useradd rails --create-home --shell /bin/bash && \
