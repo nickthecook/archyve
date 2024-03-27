@@ -58,7 +58,7 @@ RUN apt-get update -qq && \
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 # Copy libpq-dev files, except manpages
-COPY --from=build /usr/lib/aarch64-linux-gnu/libpq.so.* /usr/lib/aarch64-linux-gnu/
+COPY --from=build /usr/lib/*/libpq.so.* /usr/lib/aarch64-linux-gnu/
 
 # Run and own only the runtime files as a non-root user for security
 RUN useradd rails --create-home --shell /bin/bash && \
