@@ -1,0 +1,24 @@
+actions:
+  start: docker compose up -d --build
+  stop: docker compose down
+  restart: docker compose restart
+  bounce: ops stop && ops start
+  logs:
+    command: docker compose logs --tail 200 --follow
+    alias: l
+  status:
+    command: docker compose ps
+    alias: ps
+  start-with-logs:
+    command: ops start && ops logs
+    alias: sl
+  bounce-with-logs:
+    command: ops bounce && ops logs
+    alias: bl
+  restart-with-logs:
+    command: ops restart && ops logs
+    alias: rl
+  ollama: docker compose exec chat_ollama ollama
+  shell:
+    command: docker compose exec chat bash
+    alias: sh

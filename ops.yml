@@ -1,10 +1,9 @@
 dependencies:
   brew:
     - overmind
-  docker:
-    - deps
   custom:
     - bundle
+    - ops deps up
   apt:
     - ruby-poppler
 forwards:

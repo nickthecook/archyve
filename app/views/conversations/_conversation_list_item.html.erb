@@ -1,9 +1,9 @@
 <div id="<%= dom_id(conversation) %>">
-  <div class="container flex items-center pl-4">
-    <div class="flex-1 px-2 py-1 text-sm rounded-lg hover:bg-secondary-300 dark:hover:bg-secondary-700">
+  <div class="container flex hover:bg-secondary-300 dark:hover:bg-secondary-700">
+    <div class="flex-1 px-2 py-1 text-sm rounded-lg">
       <%= link_to "#{conversation.title}", conversation %>
     </div>
-    <div class="text-secondary-300 dark:text-secondary-400">
+    <div class="text-secondary-300 dark:text-secondary-400 px-2">
       <%= conversation.messages.count %>
     </div>
     <div class="flex-none mx-1">
