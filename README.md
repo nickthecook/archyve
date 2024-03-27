@@ -29,7 +29,7 @@ docker compose up
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
 
-1. Browse to http://127.0.0.1:3000 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
+1. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
 
 See the next section for setting up Ollama for use by Archyve or document uploads and chat **will fail**.
 
@@ -49,4 +49,4 @@ You can change the embedding model and the summarization model by changing those
 
 ## Admin UI
 
-There is an admin UI running at http://127.0.0.1:3000/admin. There, you can view and change ModelConfigs and ModelServers.
+There is an admin UI running at http://127.0.0.1:3300/admin. There, you can view and change ModelConfigs and ModelServers.
