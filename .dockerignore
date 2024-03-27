@@ -43,5 +43,3 @@ Dockerfile
 compose.yaml
 
 config/dev
-
-testing
