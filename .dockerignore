@@ -41,3 +41,5 @@
 /log/*
 Dockerfile
 compose.yaml
+
+config/dev
