@@ -32,20 +32,7 @@ services:
   archyve:
     image: archyve:local
     build: .
-    environment:
-      - PORT=3000
-      - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
-      - CHAT_ENDPOINT=${CHAT_ENDPOINT}
-      - EMBEDDING_ENDPOINT=${EMBEDDING_ENDPOINT}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
-      - SUMMARIZATION_ENDPOINT=${SUMMARIZATION_ENDPOINT}
-      - SUMMARIZATION_MODEL=${SUMMARIZATION_MODEL}
-      - CHROMADB_HOST=${CHROMADB_HOST}
-      - CHROMADB_PORT=${CHROMADB_PORT}
-      - USERNAME=${USERNAME}
-      - PASSWORD=${PASSWORD}
+    env_file: ./local.env
     volumes:
       - archyve_files:/rails/storage
     extra_hosts:
@@ -57,19 +44,7 @@ services:
       - postgres
   archyve-worker:
     image: archyve:local
-    environment:
-      - DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
-      - CHAT_ENDPOINT=${CHAT_ENDPOINT}
-      - EMBEDDING_ENDPOINT=${EMBEDDING_ENDPOINT}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
-      - SUMMARIZATION_ENDPOINT=${SUMMARIZATION_ENDPOINT}
-      - SUMMARIZATION_MODEL=${SUMMARIZATION_MODEL}
-      - CHROMADB_HOST=${CHROMADB_HOST}
-      - CHROMADB_PORT=${CHROMADB_PORT}
-      - USERNAME=${USERNAME}
-      - PASSWORD=${PASSWORD}
+    env_file: ./local.env
     volumes:
       - archyve_files:/rails/storage
     extra_hosts:

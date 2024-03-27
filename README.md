@@ -19,8 +19,8 @@ Archyve provides:
 To run Archyve, use `docker compose` or `podman compose`.
 
 1. Clone this repo
-2. `cp dotenv_template .env`
-3. Run `openssl rand -hex 64` and put the value in the `SECRET_KEY_BASE` variable in your `.env` file
+2. `cp dotenv_template local.env`
+3. Run `openssl rand -hex 64` and put the value in the `SECRET_KEY_BASE` variable in your `local.env` file
 4. Run the container
 
 ```bash
@@ -29,7 +29,7 @@ docker compose up
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
 
-1. Browse to http://127.0.0.1:3000 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `.env` file and restarting the container)
+1. Browse to http://127.0.0.1:3000 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
 
 See the next section for setting up Ollama for use by Archyve or document uploads and chat **will fail**.
 
@@ -45,7 +45,7 @@ Archyve will use a local instance of [Ollama](https://ollama.com/) by default. E
 - chat model: `ollama pull mistral:instruct`
 - alternative chat model: `ollama pull gemma:7b` (if you intend to use Gemma)
 
-You can change the embedding model and the summarization model by changing those variables in your `.env` file and restarting the server. If you change these values, make sure you pull the new models in Ollama.
+You can change the embedding model and the summarization model by changing those variables in your `local.env` file and restarting the server. If you change these values, make sure you pull the new models in Ollama.
 
 ## Admin UI
 
