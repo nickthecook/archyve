@@ -1,7 +1,7 @@
 <div class="p-5 bg-secondary-950">
   <div class="flex justify-center items-center w-screen h-screen">
     <div class="flex flex-col justify-center h-full text-center">
-      <div><%= image_tag "archyve.svg", title: "ARCHYVE, the Librarian", class: "pb-10" %></div>
+      <div><%= image_tag "archyve_red.svg", title: "ARCHYVE", class: "pb-10" %></div>
       <div class="pb-40">
         <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
           <div class="field">
@@ -19,7 +19,7 @@
           <% end %>
 
           <div class="actions">
-            <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-primary-700 dark:bg-primary-500" %>
+            <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-tertiary-700 dark:bg-tertiary-500" %>
           </div>
           <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
             <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-xs text-slate-600" %><br />
