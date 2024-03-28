@@ -2,6 +2,7 @@ dependencies:
   brew:
     - overmind
   custom:
+    - bundle config --local path vendor/bundle 
     - bundle
     - ops deps up
   apt:
