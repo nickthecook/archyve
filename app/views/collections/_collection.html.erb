@@ -17,7 +17,7 @@
   <div class="flex-1 flex flex-col items-center py-4 w-full">
     <div class="flex-1 flex flex-col flex-start w-3/4">
       <div class="py-4">
-        <%= render "search_form" %>
+        <%= render "search_form", query: "" %>
       </div>
       <div id="<%= dom_id(@collection) %>-documents" class="flex-1">
         <% @collection.documents.order(:created_at).each do |document| %>

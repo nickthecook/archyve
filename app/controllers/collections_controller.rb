@@ -83,7 +83,7 @@ class CollectionsController < ApplicationController
           turbo_stream.replace(
             "search_form",
             partial: "search_form",
-            locals: { collection: @collection }
+            locals: { collection: @collection, query: }
           )
         ]
       end
