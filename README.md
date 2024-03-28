@@ -24,7 +24,7 @@ To run Archyve, use `docker compose` or `podman compose`.
 4. Run the container
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
