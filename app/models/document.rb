@@ -59,7 +59,7 @@ class Document < ApplicationRecord
     state :embedded
     state :storing
     state :stored
-    state :error
+    state :errored
 
     event :reset do
       # TODO: validate that there are no chunks in the db
@@ -86,15 +86,11 @@ class Document < ApplicationRecord
     end
 
     event :error do
-      transitions from: [:embedded, :stored], to: :errored
+      transitions to: :errored
     end
   end
 
   def contents
     file.download
-  end
-
-  def state_indexable?
-    !state.end_with?("ing")
   end
 end
