@@ -129,7 +129,7 @@ module LlmClients
       while retries <= TIMEOUT_RETRIES
         begin
           return yield
-        rescue Net::OpenTimeout => e
+        rescue Net::OpenTimeout, Net::ReadTimeout => e
           exception = e
           retries += 1
           Rails.logger.warn("Attempt #{retries}/#{TIMEOUT_RETRIES} failed.")

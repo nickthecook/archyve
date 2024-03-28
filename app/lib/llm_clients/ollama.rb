@@ -2,7 +2,7 @@ require_relative "common"
 
 module LlmClients
   class Ollama < Client
-    NETWORK_TIMEOUT = 5
+    NETWORK_TIMEOUT = 8
 
     # rubocop:disable all
     def complete(prompt, &block)
