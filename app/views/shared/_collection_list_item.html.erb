@@ -7,7 +7,7 @@
       <%= collection.documents.count %>
     </div>
     <div class="flex-none mx-1">
-      <%= button_to collection, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
+      <%= button_to collection, method: :delete, form: { data: { turbo: false, confirm: "Are you sure?" } } do %>
         <i class="fa fa-trash"></i>
       <% end %>
     </div>
