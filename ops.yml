@@ -18,6 +18,9 @@ actions:
   build:
     command: docker compose build
     load_secrets: true
+  rebuild:
+    command: docker compose up --build -d
+    load_secrets: true
   container:
     command: docker compose up
     load_secrets: true

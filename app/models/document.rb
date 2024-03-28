@@ -30,7 +30,7 @@ class Document < ApplicationRecord
       :collection,
       target: "search_form",
       partial: "collections/search_form",
-      locals: { collection: }
+      locals: { collection:, query: "" }
     )
   }
   after_destroy_commit -> {

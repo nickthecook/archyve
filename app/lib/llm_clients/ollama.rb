@@ -2,6 +2,8 @@ require_relative "common"
 
 module LlmClients
   class Ollama < Client
+    NETWORK_TIMEOUT = 5
+
     # rubocop:disable all
     def complete(prompt, &block)
       @stats = new_stats
@@ -50,10 +52,12 @@ module LlmClients
     # rubocop:enable all
 
     def embed(prompt)
-      response = HTTParty.post(uri(embedding_path), headers:, body: {
-        model: embedding_model,
-        prompt:
-      }.to_json)
+      response = with_retries do
+        HTTParty.post(uri(embedding_path), headers:, timeout: NETWORK_TIMEOUT, body: {
+          model: embedding_model,
+          prompt:
+        }.to_json)
+      end
 
       raise response_error_for(response) unless response.success?
 

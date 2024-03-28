@@ -25,6 +25,11 @@ class TheIngestor
       chunk.update!(vector_id: ids.first)
     end
     @document.embedded!
+  rescue StandardError => e
+    Rails.logger.error("Error ingesting document #{@document.id}\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+    @document.error!
+
+    raise e
   end
 
   private

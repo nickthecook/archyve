@@ -22,6 +22,7 @@ module LlmClients
       "^gemma:" => { prefix: "<start_of_turn>user\n", suffix: "<end_of_turn>\n<start_of_turn>model" },
       "^mi[xs]tral:" => { prefix: "<s>[INST]", suffix: "[/INST] " }
     }.freeze
+    TIMEOUT_RETRIES = 3
 
     attr_reader :stats
 
@@ -32,7 +33,7 @@ module LlmClients
         raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
       end
     end
-  
+
     def initialize(endpoint:, api_key:, model: nil, temperature: default_temperature, batch_size: default_batch_size)
       @endpoint = endpoint
       @api_key = api_key
@@ -120,6 +121,23 @@ module LlmClients
 
     def current_time
       Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
+    def with_retries
+      retries = 0
+      exception = nil
+      while retries <= TIMEOUT_RETRIES
+        begin
+          return yield
+        rescue Net::OpenTimeout => e
+          exception = e
+          retries += 1
+          Rails.logger.warn("Attempt #{retries}/#{TIMEOUT_RETRIES} failed.")
+        end
+      end
+
+      Rails.logger.error("Retries exhausted (#{retries}/#{TIMEOUT_RETRIES})")
+      raise e
     end
   end
 end
