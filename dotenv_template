@@ -10,3 +10,9 @@ CHROMADB_HOST=chromadb
 CHROMADB_PORT=8000
 USERNAME=admin@archyve.io
 PASSWORD=password
+# run `rails db:encryption:init within the container` to get these values
+ACTIVE_RECORD_ENCRYPTION="{
+  \"primary_key\": \"...\",
+  \"deterministic_key\": \"...\",
+  \"key_derivation_salt\": \"...\"
+}"

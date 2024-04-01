@@ -29,9 +29,35 @@ docker compose up --build
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
 
-1. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
+5. get a shell in the Archyve container with `docker compose exec archyve bash`
+6. run `bin/rails db:encryption:init` from within the container
 
-See the next section for setting up Ollama for use by Archyve or document uploads and chat **will fail**.
+```bash
+$ rails db:encryption:init
+Running `bin/rails db:encryption:init` in environment 'dev'...
+Add this entry to the credentials of the target environment:
+
+active_record_encryption:
+  primary_key: PqxwHUF2E3MnPUW3qmOHUikIWJxhvY90
+  deterministic_key: wJi0qI8KftvGhqkNh42SaG2oh64ZKIGZ
+  key_derivation_salt: sE2nd5xn1rq2YdkDHHxQOuDhcOMfV5jr
+```
+
+7. put the values from the output into your `local.env` file
+
+```bash
+...
+ACTIVE_RECORD_ENCRYPTION="{
+  \"primary_key\": \"PqxwHUF2E3MnPUW3qmOHUikIWJxhvY90\",
+  \"deterministic_key\": \"wJi0qI8KftvGhqkNh42SaG2oh64ZKIGZ\",
+  \"key_derivation_salt\": \"sE2nd5xn1rq2YdkDHHxQOuDhcOMfV5jr\"
+}"
+```
+
+8.  restart the containers
+9.  Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
+
+See the next section for setting up Ollama for use by Archyve or **document uploads and chat will fail**.
 
 ## Dependencies
 
