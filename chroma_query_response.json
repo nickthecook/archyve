@@ -1,0 +1,41 @@
+{
+  "ids": [
+    [
+      "3708fd88-ced1-4762-976d-4f8ee2f39b95",
+      "e4fd20b9-3f98-4b2a-8391-3fef952fae9b",
+      "f80c9fe4-141c-465a-ae12-20a5e2c4454c",
+      "b5601451-b10b-419c-9eb9-85112bbda251",
+      "1cd8a176-5b6d-4168-9809-cd19dafc27f2",
+      "bac8c076-23e8-42eb-8c5a-75506b9d10db",
+      "061ad52c-2c39-4412-a2a8-4b67881bc610",
+      "e6c27a8d-6668-44a1-8b44-1012520b3ddc",
+      "bb46dc21-95bf-40c8-94d9-5dda35c46f9b",
+      "09a4aefe-de83-4baf-bab8-6405bf85bc82"
+    ]
+  ],
+  "distances": [
+    [
+      43.95210647583008, 44.11347961425781, 44.653310255153094,
+      45.344451904296875, 46.07332229614258, 47.01285934448242,
+      47.23863220214844, 47.27199935913086, 47.48906707763672, 47.57305715123836
+    ]
+  ],
+  "metadatas": [[null, null, null, null, null, null, null, null, null, null]],
+  "embeddings": null,
+  "documents": [
+    [
+      " Ruby in MacOS is fairly\ncurrent, it's a good idea to install a version so your user has permissions to manage installed gems. You\n\nwill have problems if you",
+      "'re not sure, use SSH.\n\nITerm2\n\nIt is highly recommended to install ITerm2 and use it instead of the built-in Terminal.app.\n\n brew install --cask iterm2",
+      "configuration for a prompagnoster theme from oh-my-zsh; feel free to adapt for your\n\nshell/preference.\n\n  # software execution environment",
+      " gems. You\n\nwill have problems if you skip this section, because the system Ruby environment is inadequate for\ndevelopment.\n\nInstall all available software ",
+      "run:\n\n ops up\n\nThis will install any dependencies that thdev  commands need. Then put the following alias in your\nshell's .rc file",
+      "We use Homebrew for installing many development dependencies. Install Homebrew.\n\nIf you set up a personal user on the laptop, and want to use Homebrew as both",
+      "brew install chruby ruby-install\n\nInstall\n\nThen installruby-2.7.4  using ruby-install :\n\n  ruby-install ruby-2.7.4\n\nand set it as active in y.bashrc  or .zshrc",
+      "app.\n\n brew install --cask iterm2\n\nRuby\n\nWe're doing a few things in Ruby (e.certitude ), and while the included Ruby in MacOS is fairly",
+      " to use the laptop for personal things as well as work, just make sure you create a separate\nuser for that. That way, you can install InTune just for your",
+      " directory:\n\n mkdir ~/.nvm\n\nAdd the following to your desired shell configuration file:\n\n  export NVM_DIR=\"$HOME/.nvm\"\n\n  [ -s \"/usr/local/opt/nvm/"
+    ]
+  ],
+  "uris": null,
+  "data": null
+}

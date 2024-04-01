@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-  authenticate :user, lambda { |u| u.admin? } do
-    mount RailsAdmin::Engine => '/admin', as: 'rails_admin'
+  authenticate :user, ->(u) { u.admin? } do
+    mount RailsAdmin::Engine => "/admin", as: "rails_admin"
   end
 
   resources :conversations do
@@ -15,6 +15,20 @@ Rails.application.routes.draw do
     end
 
     post :search, as: :search
+  end
+
+  # API
+  namespace :v1 do
+    resources :documents, only: [:index, :show]
+    resources :collections do
+      get "list", on: :collection, to: "collections#list"
+      get "get", on: :member, to: "collections#get"
+      get "search", on: :member, to: "collections#search"
+    end
+    resources :chunks do
+      get "list", on: :collection, to: "chunks#list"
+      get "get", on: :member, to: "chunks#get"
+    end
   end
 
   devise_for :users

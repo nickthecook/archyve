@@ -1,4 +1,6 @@
 class Search
+  class SearchError < StandardError; end
+
   def initialize(collection, dom_id = nil, partial = "shared/chunk")
     @collection = collection
     @dom_id = dom_id
@@ -6,16 +8,18 @@ class Search
   end
 
   def search(query)
+    raise SearchError, "No query given" if query.blank?
+
     embedded_query = embedder.embed(query)
     response = chroma.query(collection_id, [embedded_query])
 
-    puts response
+    Rails.logger.info("ChromaDB response:\n#{response.to_json}")
 
     results = []
     response["ids"].first.each_with_index do |id, index|
       chunk = chunk_for(id)
 
-      yield chunk if block_given? and chunk.present?
+      yield chunk if block_given? && chunk.present?
 
       if @dom_id.present?
         distance = response["distances"].first[index]
@@ -58,6 +62,6 @@ class Search
   end
 
   def chroma
-    @chrome ||= Chromadb::Client.new
+    @chroma ||= Chromadb::Client.new
   end
 end

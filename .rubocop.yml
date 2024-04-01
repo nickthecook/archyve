@@ -1,0 +1,123 @@
+require:
+  - rubocop-rspec
+  - rubocop-rails
+AllCops:
+  NewCops: disable
+  TargetRubyVersion: 3.1
+  Exclude:
+    - vendor/**/*
+    - bin/**/*
+    - db/**/*
+    - deps/**/*
+    - node_modules/**/*
+Layout/IndentationStyle:
+  Enabled: false
+Layout/IndentationWidth:
+  Width: 2
+Style/Documentation:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: true
+Style/HashTransformKeys:
+  Enabled: true
+Style/HashTransformValues:
+  Enabled: true
+Metrics/ClassLength:
+  Max: 100
+  Exclude:
+    - app/controllers/**/*
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - spec/**/*
+    - db/**/*
+    - config/**/*
+    - engines/**/config/**/*
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+    - lib/app.rb
+    - config/**/*
+    - app/models/request.rb
+    - db/**/*
+    - app/admin/**/*
+Metrics/MethodLength:
+  CountAsOne: ["array", "heredoc", "method_call", "hash"]
+  Exclude:
+    - db/**/*
+  Max: 25
+Style/IfUnlessModifier:
+  Enabled: false
+Lint/RaiseException:
+  Enabled: true
+Lint/StructNewOverride:
+  Enabled: true
+Style/RegexpLiteral:
+  Enabled: false
+Style/StderrPuts:
+  Enabled: false
+Style/DoubleNegation:
+  Enabled: false
+Style/BlockComments:
+  Exclude:
+    - "spec/**/*"
+Layout/SpaceAroundMethodCallOperator:
+  Enabled: true
+Style/ExponentialNotation:
+  Enabled: true
+Layout/ClosingParenthesisIndentation:
+  Enabled: false
+Layout/MultilineMethodCallBraceLayout:
+  Enabled: false
+Layout/ArgumentAlignment:
+  Enabled: false
+Layout/FirstArgumentIndentation:
+  Enabled: false
+Style/StringLiteralsInInterpolation:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Exclude:
+    - "config.ru"
+    - "config/initializers/*"
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: consistent_comma
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: variable
+Style/SymbolArray:
+  MinSize: 4
+Layout/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+Metrics/BlockNesting:
+  Exclude:
+    - "config/initializers/*"
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+Style/NumericLiterals:
+  Enabled: false
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+RSpec/MultipleExpectations:
+  Max: 5
+RSpec/NamedSubject:
+  Enabled: false
+RSpec/NestedGroups:
+  Max: 5
+RSpec/ExampleLength:
+  Max: 10
+  CountAsOne: ["array", "heredoc", "hash"]
+Rails/ReversibleMigration:
+  Enabled: true
+Layout/CaseIndentation:
+  EnforcedStyle: end
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Rails/ApplicationController:
+  Exclude:
+    - app/controllers/v1/**/*

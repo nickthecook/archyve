@@ -40,7 +40,7 @@ gem "redis", ">= 4.0.1"
 # gem "bcrypt", "~> 3.1.7"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data", platforms: %i[windows jruby]
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -50,7 +50,7 @@ gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ]
+  gem "debug", platforms: %i[mri windows]
 end
 
 group :development do
@@ -76,7 +76,6 @@ gem "devise", "~> 4.9"
 
 gem "pry-rails", "~> 0.3.9"
 
-
 gem "rspec-rails", "~> 6.1"
 
 gem "sidekiq", "~> 7.2"
@@ -93,3 +92,7 @@ gem "httparty", "~> 0.21.0"
 gem "pdf-reader", "~> 2.12"
 
 gem "aasm", "~> 5.5"
+
+gem "rubocop", "~> 1.62"
+gem "rubocop-rails", "~> 2.24"
+gem "rubocop-rspec", "~> 2.28"

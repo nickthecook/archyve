@@ -1,4 +1,5 @@
 require "httparty"
+
 module Chromadb
   class RequestError < StandardError; end
   class ResponseError < StandardError; end
@@ -56,8 +57,11 @@ module Chromadb
       post("api/v1/collections/#{collection_id}/get", body)
     end
 
-    def query(collection_id, embeddings)
-      post("api/v1/collections/#{collection_id}/query", { query_embeddings: embeddings })
+    def query(collection_id, embeddings, return_objects: false)
+      response = post("api/v1/collections/#{collection_id}/query", { query_embeddings: embeddings })
+      return response unless return_objects
+
+      Responses::Query.new(response).objects
     end
 
     def delete_collection(collection_name)
@@ -69,7 +73,8 @@ module Chromadb
 
       delete_collection(collection_name)
 
-      response = create_collection(collection["name"], collection["metadata"], collection["tenant"], collection["database"])
+      response = create_collection(collection["name"], collection["metadata"], collection["tenant"],
+collection["database"])
 
       response["id"]
     end
@@ -97,6 +102,7 @@ module Chromadb
     def post(path, body = {})
       @last_response = HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
 
+      Rails.logger.info("ChromaDB request: #{@last_response.request.inspect}")
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end

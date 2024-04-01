@@ -42,3 +42,4 @@ node_modules
 deps/postgres
 vendor
 deps/chroma-data
+config/dev

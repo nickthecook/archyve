@@ -14,7 +14,7 @@ module Conan
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
+    config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -28,6 +28,11 @@ module Conan
     config.autoload_paths << "#{root}/app/lib"
 
     Sidekiq.strict_args!(false)
+
+    active_record_encryption = JSON.parse(ENV["ACTIVE_RECORD_ENCRYPTION"] || "{}")
+    config.active_record.encryption.primary_key = active_record_encryption["primary_key"]
+    config.active_record.encryption.deterministic_key = active_record_encryption["deterministic_key"]
+    config.active_record.encryption.key_derivation_salt = active_record_encryption["key_derivation_salt"]
 
     config.embedding_endpoint = ENV.fetch("EMBEDDING_ENDPOINT") { "http://localhost:11434" }
     config.embedding_model = ENV.fetch("EMBEDDING_MODEL") { "all-minilm" }

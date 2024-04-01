@@ -4,7 +4,7 @@ dependencies:
   custom:
     - bundle config --local path vendor/bundle 
     - bundle
-    - ops deps up
+    - ops deps start
   apt:
     - ruby-poppler
 forwards:
@@ -28,3 +28,10 @@ actions:
   shell:
     command: docker compose exec archyve bash
     alias: sh
+  with_secrets:
+    command: " "
+    load_secrets: true
+    shell_expansion: true
+options:
+  exec:
+    load_secrets: true
