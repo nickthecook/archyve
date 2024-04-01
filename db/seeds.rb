@@ -33,3 +33,30 @@ ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first
   mc.model = "gemma:7b"
   mc.temperature = 0.2
 end
+
+if Rails.env == "development"
+  default_client = Client.find_by(name: "default")
+
+  if default_client.nil?
+    default_client = Client.create!(
+      name: "default",
+      client_id: Client.new_client_id,
+      api_key: Client.new_api_key,
+      user: User.first
+    )
+  end
+
+  puts <<~TEXT
+    To authenticate with the default API client, set these headers:
+
+    Authorization: Bearer #{default_client.api_key}
+    X-Client-Id: #{default_client.client_id}
+
+    E.g.:
+
+    curl -v localhost:3300/v1/collections \\
+      -H "Accept: application/json" \\
+      -H "Authorization: Bearer #{default_client.api_key}" \\
+      -H "X-Client-Id: #{default_client.client_id}"
+  TEXT
+end
