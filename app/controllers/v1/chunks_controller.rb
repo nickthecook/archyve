@@ -1,5 +1,7 @@
 module V1
   class ChunksController < ApiController
+    before_action :set_chunk!
+
     def index
       @chunks = Chunk.all
 
@@ -7,11 +9,15 @@ module V1
     end
 
     def show
-      @chunk = Chunk.find(params[:id])
-
-      return render json: { "error": "Chunk not found" }, status: :not_found unless @chunk
-
       render json: @chunk
+    end
+
+    private
+
+    def set_chunk!
+      @chunk = Chunk.find_by(id: params[:id])
+
+      render json: { "error": "Chunk not found" }, status: :not_found if @chunk.nil?
     end
   end
 end
