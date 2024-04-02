@@ -46,6 +46,7 @@ module Api
       results.map! do |result|
         chunk = Chunk.find(result[:id])
         # TODO: make this dynamic, based on url_helpers
+        # TODO: probably make this a link for a browser, once chunks#show is implemented
         result[:url] = "#{@base_url}/v1/chunks/#{chunk.id}"
 
         result

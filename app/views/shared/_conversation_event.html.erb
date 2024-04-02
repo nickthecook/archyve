@@ -4,6 +4,17 @@
 %>
 <%= content_tag :div, id: dom_id, class: "flex justify-start" do %>
   <div class="text-secondary-900 dark:text-secondary-100 px-4 py-1 my-1 rounded-md <%= "#{event_bg_classes} #{text_class}" %>">
+    <% if summary.present? %>
+      <details>
+        <summary class="cursor-pointer"><%= summary %></summary>
+        <p>
+    <% end %>
+    <% if pre %><pre><% end %>
       <%= event_content %>
+    <% if pre %></pre><% end %>
+    <% if summary.present? %>
+        </p>
+      </details>
+    <% end %>
   </div>
 <% end %>

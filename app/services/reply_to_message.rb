@@ -37,7 +37,7 @@ class ReplyToMessage
   rescue LlmClients::ResponseError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: "#{e.to_s}: #{e.additional_info}" })
+    append("messages", "messages/error", { error: "#{e}: #{e.additional_info}" })
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
@@ -48,7 +48,7 @@ class ReplyToMessage
 
   private
 
-  def broadcast_event(event_content, dom_id)
+  def broadcast_event(event_content, dom_id, pre: false, summary: nil)
     return unless collections_to_search.any?
 
     Turbo::StreamsChannel.broadcast_append_to(
@@ -58,7 +58,9 @@ class ReplyToMessage
       locals: {
         event_content:,
         text_class: "text-xs",
-        dom_id:
+        dom_id:,
+        pre:,
+        summary:
       }
     )
   end
@@ -138,7 +140,9 @@ class ReplyToMessage
     )
     broadcast_event(
       "Sending prompt: #{prompt}",
-      "message_#{@message.id}-prompt-event"
+      "message_#{@message.id}-prompt-event",
+      pre: true,
+      summary: "Generated prompt"
     )
   end
 
