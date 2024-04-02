@@ -32,6 +32,14 @@ actions:
     command: " "
     load_secrets: true
     shell_expansion: true
+  request:
+    param_expansion: true
+    command: >
+      curl -v localhost:3300/$1 \
+        -H "Accept: application/json" \
+        -H "Authorization: Bearer $API_KEY" \
+        -H "X-Client-id: $CLIENT_ID" | jq
+    load_secrets: true
 options:
   exec:
     load_secrets: true
