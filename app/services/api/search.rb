@@ -4,8 +4,9 @@ module Api
 
     include Rails.application.routes.url_helpers
 
-    def initialize(collection)
+    def initialize(collection, base_url: nil)
       @collection = collection
+      @base_url = base_url
     end
 
     def search(query)
@@ -16,7 +17,7 @@ module Api
 
       Rails.logger.info("ChromaDB results:\n#{results}")
 
-      apply_filters(results, :add_chunk_ids, :add_document_urls, :remove_documents)
+      apply_filters(results, :add_chunk_ids, :add_document_urls)
     end
 
     private
@@ -45,15 +46,7 @@ module Api
       results.map! do |result|
         chunk = Chunk.find(result[:id])
         # TODO: make this dynamic, based on url_helpers
-        result[:url] = "/v1/chunks/#{chunk.id}"
-
-        result
-      end
-    end
-
-    def remove_documents(results)
-      results.map! do |result|
-        result.delete(:document)
+        result[:url] = "#{@base_url}/v1/chunks/#{chunk.id}"
 
         result
       end
