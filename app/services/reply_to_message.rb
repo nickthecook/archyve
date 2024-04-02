@@ -120,7 +120,7 @@ class ReplyToMessage
     @prompt ||= begin
       return @message.content unless collections_to_search.any?
 
-      prompt = "Given this context, answer the following question:\n\n"
+      prompt = "Here is some context that may help you answer the following question:\n\n"
       search_results.each do |chunk|
         prompt << "#{chunk.content}\n\n"
       end
@@ -135,14 +135,10 @@ class ReplyToMessage
       "message_#{@message.id}-collections-event"
     )
     broadcast_event(
-      "#{search_results.count} hits.",
-      "message_#{@message.id}-count-event"
-    )
-    broadcast_event(
-      "Sending prompt: #{prompt}",
+      prompt,
       "message_#{@message.id}-prompt-event",
       pre: true,
-      summary: "Generated prompt"
+      summary: "#{search_results.count} hits added to context"
     )
   end
 
