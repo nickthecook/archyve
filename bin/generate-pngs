@@ -1,0 +1,46 @@
+#!/bin/bash
+
+export inkscape=/Applications/Inkscape.app/Contents/MacOS/inkscape
+if ! [ -e "$inkscape" ]; then
+	echo 1>&2 "'$inkscape' is not an executable file."
+  exit 2
+fi
+
+asset_dir="app/assets/images"
+cd "$asset_dir" || {
+	echo 1>&2 "Unable to cd to asset directory '$asset_dir'."
+  exit 5
+}
+
+source=archyve_red.svg
+if ! [ -f "$source" ]; then
+	echo 1>&2 "Source image '$source' does not exist."
+  exit 4
+fi
+
+# sizes
+for size in 16 32 64 128 256 512; do
+  echo "$0: Generating $size"x"$size PNG of '$source'..."
+
+  $inkscape -w $size -h $size "$source" -o archyve-"$size"x"$size".png || {
+		echo 1>&2 "$0: failed to generate png; aborting..."
+		exit 3
+  }
+done
+
+# favicon
+echo "$0: generating 144x144 favicon..."
+$inkscape -w 144 -h 144 "$source" -o favicon.png || {
+  echo 1>&2 "$0: failed to generate png; aborting..."
+  exit 6
+}
+
+# apple touch icon
+echo "$0: generating 180x180 apple touch icon..."
+$inkscape -w 180 -h 180 "$source" -o apple-touch-icon.png || {
+  echo 1>&2 "$0: failed to generate apple touch icon; aborting..."
+  exit 7
+}
+
+echo 1>&2 "$0: Done."
+

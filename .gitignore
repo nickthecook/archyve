@@ -44,3 +44,4 @@ vendor
 deps/chroma-data
 config/dev
 local.env
+.DS_Store
