@@ -9,7 +9,7 @@ class DocumentsController < ApplicationController
 
     respond_to do |format|
       format.html { render "collections/index", locals: { document: @document } }
-      format.json { render json: @document}
+      format.json { render json: @document }
     end
   end
 
@@ -26,7 +26,7 @@ class DocumentsController < ApplicationController
       format.turbo_stream do
         render turbo_stream: [
           turbo_stream.replace(:document_form, partial: "documents/form"),
-          turbo_stream.append("#{dom_id(@collection)}-documents", partial: "shared/document")
+          turbo_stream.append("#{dom_id(@collection)}-documents", partial: "shared/document"),
         ]
       end
       format.html do

@@ -48,9 +48,19 @@ module Api
         # TODO: make this dynamic, based on url_helpers
         # TODO: probably make this a link for a browser, once chunks#show is implemented
         result[:url] = "#{@base_url}/v1/chunks/#{chunk.id}"
+        result[:browser_url] = url_for(chunk)
 
         result
       end
+    end
+
+    def url_for(chunk)
+      collection_document_chunk_url(
+        chunk.collection,
+        chunk.document,
+        chunk,
+        host: @base_url
+      )
     end
 
     def broadcast_chunk(chunk, distance)

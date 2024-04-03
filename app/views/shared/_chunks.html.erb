@@ -1,0 +1,21 @@
+<% chunk ||= @chunk %>
+<% chunk_range = [chunks.first.id, chunks.last.id] %>
+<div class="flex justify-center">
+  <div class="flex flex-col w-3/4">
+    <div class="flex items-center">
+      <div class="p-4 text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+        Chunks #<%= chunk_range.first %> to #<%= chunk_range.last %> from <%= chunk.document.filename %>
+      </div>
+      <div class="text-xs text-muted">Created <%= time_ago_in_words(chunk.document.created_at) %> ago.</div>
+      <%= link_to(
+        "Back to document",
+        collection_document_path(@collection, @document),
+        class: "rounded-lg ml-auto py-1 mb-4 px-3 my-2 text-tertiary-200 dark:text-secondary-950 font-medium bg-tertiary-800 dark:bg-tertiary-400"
+      )%>
+    </div>
+
+    <% chunks.each do |chunk| %>
+      <%= render chunk, selected: chunk.id == selected_id %>
+    <% end %>
+  </div>
+</div>

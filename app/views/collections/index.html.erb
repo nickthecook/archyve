@@ -12,7 +12,9 @@
 
     <%= turbo_stream_from "collection" %>
     <div class="m-2 h-full">
-      <% if @document %>
+      <% if @chunks %>
+        <%= render "shared/chunks", chunks: @chunks, selected_id: @chunk.id %>
+      <% elsif @document %>
         <%= render @document %>
       <% elsif @collection %>
         <%= render @collection %>

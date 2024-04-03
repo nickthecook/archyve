@@ -12,6 +12,8 @@ Rails.application.routes.draw do
   resources :collections do
     resources :documents, only: [:create, :destroy, :show] do
       post :vectorize, as: :vectorize
+
+      resources :chunks, only: [:index, :show]
     end
 
     post :search, as: :search

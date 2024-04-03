@@ -5,6 +5,10 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def render_not_found
+    render file: Rails.root.join("public/404.html"), status: :not_found
+  end
+
   def set_current_user
     @current_user = current_user
   end

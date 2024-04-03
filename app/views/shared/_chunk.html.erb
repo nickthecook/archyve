@@ -1,4 +1,6 @@
 <%= content_tag :div, id: chunk ? dom_id(chunk) : "missing", class: "flex justify-start items-start px-10 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900" do %>
+  <%= link_to collection_document_chunk_path(chunk.collection, chunk.document, chunk),
+    class: "flex justify-start items-center px-3 py-1 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700" do %>
   <div class="flex-1 whitespace-prewrap">
     <%= chunk&.content || "Missing chunk!" %>
   </div>
@@ -9,4 +11,5 @@
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></p>
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? time_ago_in_words(chunk.created_at) : "?" %> ago</p>
   </div>
+  <% end %>
 <% end %>
