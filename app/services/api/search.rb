@@ -17,10 +17,18 @@ module Api
 
       Rails.logger.info("ChromaDB results:\n#{results}")
 
+      add_chunks(results)
+      results.reject! { |result| result[:chunk].nil? }
       apply_filters(results, :add_chunk_ids, :add_document_urls)
     end
 
     private
+
+    def add_chunks(results)
+      results.each do |result|
+        result[:chunk] = chunk_for(result[:id])
+      end
+    end
 
     def apply_filters(results, *filter_names)
       filter_names.each do |filter|
@@ -33,10 +41,9 @@ module Api
     def add_chunk_ids(results)
       results.map! do |result|
         vector_id = result[:id]
-        chunk_id = Chunk.select("id").find_by(vector_id:).id
 
         result[:vector_id] = vector_id
-        result[:id] = chunk_id
+        result[:id] = result[:chunk]&.id
 
         result
       end
@@ -44,7 +51,7 @@ module Api
 
     def add_document_urls(results)
       results.map! do |result|
-        chunk = Chunk.find(result[:id])
+        chunk = result[:chunk]
         # TODO: make this dynamic, based on url_helpers
         # TODO: probably make this a link for a browser, once chunks#show is implemented
         result[:url] = "#{@base_url}/v1/chunks/#{chunk.id}"
@@ -63,19 +70,11 @@ module Api
       )
     end
 
-    def broadcast_chunk(chunk, distance)
-      Turbo::StreamsChannel.broadcast_append_to(
-        :collection, target: @dom_id, partial: @partial, locals: { chunk:, distance: }
-      )
-    end
+    def chunk_for(vector_id)
+      chunk = Chunk.find_by(vector_id:)
 
-    def chunk_for(id)
-      chunk = Chunk.find_by(vector_id: id)
-
-      if chunk.present?
-        Rails.logger.info("Got hit for chunk #{id} in collection #{@collection.slug}.")
-      else
-        Rails.logger.warn("Could not find chunk with id #{id} while searching collection #{@collection.slug}.")
+      if chunk.nil?
+        Rails.logger.warn("Could not find chunk with id #{vector_id} while searching collection #{@collection.slug}.")
       end
 
       chunk

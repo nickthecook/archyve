@@ -9,8 +9,8 @@ module V1
     private
 
     def authenticate_api_key!
-      client = client_from_request
-      return render json: { error: "Unrecognized client_id" }, status: :unauthorized if client.nil?
+      @client = client_from_request
+      return render json: { error: "Unrecognized client_id" }, status: :unauthorized if @client.nil?
 
       unless request.headers["Authorization"]
         return render json: { error: "No API key provided." }, status: :unauthorized
@@ -19,7 +19,7 @@ module V1
       api_key = api_key_from_request
       return render json: { error: "Invalid API key" }, status: :unauthorized unless api_key
 
-      return unless client.api_key != api_key
+      return unless @client.api_key != api_key
 
       render json: { error: "Unrecognized API key" }, status: :unauthorized unless @client
     end

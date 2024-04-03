@@ -96,7 +96,7 @@ class ReplyToMessage
     Turbo::StreamsChannel.broadcast_replace_to(target, partial:)
   end
 
-  def remove(target, partial, locals = {})
+  def remove(target, locals = {})
     locals.merge!({ message: @reply })
     Turbo::StreamsChannel.broadcast_remove_to(target)
   end
@@ -112,8 +112,8 @@ class ReplyToMessage
     )
   end
 
-  def search_results
-    @search_results ||= searcher.search(@message.content)
+  def search_hit
+    @search_hit ||= searcher.search(@message.content)
   end
 
   def prompt
@@ -121,8 +121,8 @@ class ReplyToMessage
       return @message.content unless collections_to_search.any?
 
       prompt = "Here is some context that may help you answer the following question:\n\n"
-      search_results.each do |chunk|
-        prompt << "#{chunk.content}\n\n"
+      search_hit.each do |hit|
+        prompt << "#{hit.chunk.content}\n\n"
       end
 
       prompt << "Question: #{@message.content}"
@@ -138,13 +138,13 @@ class ReplyToMessage
       prompt,
       "message_#{@message.id}-prompt-event",
       pre: true,
-      summary: "#{search_results.count} hits added to context"
+      summary: "#{search_hit.count} hits added to context"
     )
   end
 
   def searcher
     # TODO: support more than one collection
-    @searcher ||= Search.new(collections_to_search.first)
+    @searcher ||= Search::Search.new(collections_to_search.first)
   end
 
   def model_config

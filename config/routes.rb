@@ -7,6 +7,9 @@ Rails.application.routes.draw do
     resources :messages, only: [:create, :destroy]
   end
 
+  get :search, as: :searches, controller: :search
+  post :search, as: :search, controller: :search
+
   resources :conversation_collections, only: [:create]
 
   resources :collections do
@@ -31,6 +34,8 @@ Rails.application.routes.draw do
       get "list", on: :collection, to: "chunks#list"
       get "get", on: :member, to: "chunks#get"
     end
+
+    get "search", to: "search#search"
   end
 
   devise_for :users
@@ -41,5 +46,5 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
-  root "collections#index"
+  root "search#index"
 end

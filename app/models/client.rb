@@ -19,6 +19,11 @@ class Client < ApplicationRecord
     end
   end
 
+  def collections
+    # TODO: scope to Client
+    Collection.all
+  end
+
   private
 
   def api_key_format
