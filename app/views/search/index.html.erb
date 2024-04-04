@@ -11,10 +11,12 @@
     </div>
 
     <%= turbo_stream_from "search" %>
-    <div class="flex flex-1 justify-center w-full">
-      <div class="w-3/4 py-5 px-10">
-        <%= render "search_form", query: "" %>
-        <div id="search_multiple_results"></div>
+    <div class="flex flex-col h-full w-full items-center align-middle">
+      <div class="flex flex-1 justify-center w-full items-center">
+        <div class="w-3/4 py-5 px-10">
+          <%= render "search_form", query: "" %>
+          <div id="search_multiple_results"></div>
+        </div>
       </div>
     </div>
   </div>
