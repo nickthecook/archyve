@@ -17,9 +17,14 @@ module Api
 
       Rails.logger.info("ChromaDB results:\n#{results}")
 
-      add_chunks(results)
-      results.reject! { |result| result[:chunk].nil? }
-      apply_filters(results, :add_chunk_ids, :add_document_urls)
+      apply_filters(
+        results,
+        :add_chunks,
+        :remove_null_chunks,
+        :add_chunk_ids,
+        :add_document_urls,
+        :remove_chunks
+      )
     end
 
     private
@@ -28,6 +33,10 @@ module Api
       results.each do |result|
         result[:chunk] = chunk_for(result[:id])
       end
+    end
+
+    def remove_null_chunks(results)
+      results.reject! { |result| result[:chunk].nil? }
     end
 
     def apply_filters(results, *filter_names)
@@ -58,6 +67,12 @@ module Api
         result[:browser_url] = url_for(chunk)
 
         result
+      end
+    end
+
+    def remove_chunks(results)
+      results.map! do |result|
+        result.delete(:chunk)
       end
     end
 
