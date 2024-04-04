@@ -66,7 +66,12 @@ class ReplyToMessage
   end
 
   def collections_to_search
-    @collections_to_search ||= @message.conversation.collections
+    @collections_to_search ||= if @message.conversation.search_collections
+      message_collections = @message.conversation.collections
+      message_collections.any? ? message_collections : @message.conversation.user.collections
+    else
+      []
+    end
   end
 
   def convert_to_markdown
@@ -112,8 +117,8 @@ class ReplyToMessage
     )
   end
 
-  def search_hit
-    @search_hit ||= searcher.search(@message.content)
+  def search_hits
+    @search_hits ||= searcher.search(@message.content)
   end
 
   def prompt
@@ -121,7 +126,7 @@ class ReplyToMessage
       return @message.content unless collections_to_search.any?
 
       prompt = "Here is some context that may help you answer the following question:\n\n"
-      search_hit.each do |hit|
+      search_hits.each do |hit|
         prompt << "#{hit.chunk.content}\n\n"
       end
 
@@ -138,13 +143,12 @@ class ReplyToMessage
       prompt,
       "message_#{@message.id}-prompt-event",
       pre: true,
-      summary: "#{search_hit.count} hits added to context"
+      summary: "#{search_hits.count} hits added to context"
     )
   end
 
   def searcher
-    # TODO: support more than one collection
-    @searcher ||= Search::Search.new(collections_to_search.first)
+    @searcher ||= Search::SearchMultiple.new(collections_to_search, num_results: 10)
   end
 
   def model_config

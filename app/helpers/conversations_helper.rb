@@ -4,6 +4,6 @@ module ConversationsHelper
   end
 
   def collection_list
-    current_user.collections
+    current_user.collections.select(:id, :name)
   end
 end
