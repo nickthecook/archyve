@@ -7,9 +7,6 @@ Rails.application.routes.draw do
     resources :messages, only: [:create, :destroy]
   end
 
-  get :search, as: :searches, controller: :search
-  post :search, as: :search, controller: :search
-
   resources :conversation_collections, only: [:create]
 
   resources :collections do
@@ -20,6 +17,7 @@ Rails.application.routes.draw do
     end
 
     post :search, as: :search
+    post :search, as: :search, on: :collection, to: "collections#global_search"
   end
 
   # API
@@ -46,5 +44,5 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Defines the root path route ("/")
-  root "search#index"
+  root "collections#index"
 end

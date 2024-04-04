@@ -1,6 +1,6 @@
 module Search
   class SearchMultiple < Base
-    def initialize(collections, dom_id: nil, partial: "search/chunk", num_results: 20)
+    def initialize(collections, dom_id: nil, partial: "collections/search_chunk", num_results: 20)
       @collections = collections
       @dom_id = dom_id
       @partial = partial
@@ -16,7 +16,7 @@ module Search
 
       hits.first(@num_results).each do |hit|
         Turbo::StreamsChannel.broadcast_append_to(
-          "search",
+          "collection",
           target: @dom_id,
           partial: @partial,
           locals: { chunk: hit.chunk, distance: hit.distance }

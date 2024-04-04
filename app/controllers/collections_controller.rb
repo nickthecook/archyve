@@ -4,15 +4,14 @@ class CollectionsController < ApplicationController
   before_action :set_collection, only: %i[show update destroy search]
 
   def index
-    # TODO: have root redirect here instead, and show global search here?
-    redirect_to root_path
+    @collections = current_user.collections
   end
 
   def show
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.replace("collection", partial: "collection") }
       format.html do
-        @collections = Collection.all
+        @collections = current_user.collections
         render :index
       end
     end
@@ -84,6 +83,31 @@ class CollectionsController < ApplicationController
           turbo_stream.replace(
             "search_form",
             partial: "search_form",
+            locals: { collection: @collection, query: }
+          ),
+        ]
+      end
+    end
+  end
+
+  def global_search
+    query = params[:query]
+    dom_id = "global_search_results"
+    collection_ids = current_user.collections.select(:id).map(&:id)
+
+    SearchMultipleJob.perform_async(collection_ids, query, dom_id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace(
+            dom_id,
+            partial: "global_search_results",
+            locals: { query_id: dom_id }
+          ),
+          turbo_stream.replace(
+            "global_search_form",
+            partial: "global_search_form",
             locals: { collection: @collection, query: }
           ),
         ]
