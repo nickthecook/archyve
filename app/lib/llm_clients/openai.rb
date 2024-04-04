@@ -50,7 +50,7 @@ module LlmClients
         messages: [
           {
             role: "system",
-            content: "You are Conan the Barbarian."
+            content: "You are an assistant that answers questions based on context extracted from documents."
           },
           {
             role: "user",
