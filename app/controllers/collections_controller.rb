@@ -1,10 +1,11 @@
 class CollectionsController < ApplicationController
   include ActionView::RecordIdentifier
 
-  before_action :set_collection, only: %i[ show update destroy search ]
+  before_action :set_collection, only: %i[show update destroy search]
 
   def index
-    @collections = Collection.all
+    # TODO: have root redirect here instead, and show global search here?
+    redirect_to root_path
   end
 
   def show
@@ -84,7 +85,7 @@ class CollectionsController < ApplicationController
             "search_form",
             partial: "search_form",
             locals: { collection: @collection, query: }
-          )
+          ),
         ]
       end
     end
