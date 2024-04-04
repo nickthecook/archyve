@@ -71,7 +71,7 @@ module Api
     end
 
     def remove_chunks(results)
-      results.map! do |result|
+      results.each do |result|
         result.delete(:chunk)
       end
     end
