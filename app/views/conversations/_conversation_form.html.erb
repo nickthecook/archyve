@@ -25,7 +25,6 @@
   <% selected_collection_id = @conversation.collections&.first&.id %>
     <%= f.collection_select(:collection_ids, collection_list, :id, :name, {
       selected: selected_collection_id,
-      include_blank: true,
       prompt: "All collections",
     }, {
       class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
