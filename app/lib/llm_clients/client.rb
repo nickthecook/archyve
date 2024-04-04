@@ -13,7 +13,7 @@ module LlmClients
     end
 
     def to_s
-      "#{self.class.name}: #{super.to_s}: #{additional_info.join("; ")}"
+      "#{self.class.name}: #{super}: #{additional_info.join("; ")}"
     end
   end
 
@@ -47,7 +47,7 @@ module LlmClients
     private
 
     def uri(path)
-      URI("#{@endpoint}#{"/" unless path.starts_with?("/")}#{path}")
+      URI("#{@endpoint}#{"/" unless path.starts_with?("/") || @endpoint.ends_with?("/")}#{path}")
     end
 
     def headers
@@ -99,7 +99,7 @@ module LlmClients
         elapsed_ms: nil,
         tokens: 0,
         tokens_per_sec: nil,
-        time_to_first_token: nil,
+        time_to_first_token: nil
       }
     end
 
@@ -137,7 +137,7 @@ module LlmClients
       end
 
       Rails.logger.error("Retries exhausted (#{retries}/#{TIMEOUT_RETRIES})")
-      raise e
+      raise exception
     end
   end
 end

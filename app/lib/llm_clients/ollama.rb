@@ -98,11 +98,11 @@ module LlmClients
     end
 
     def completion_path
-      "/api/generate"
+      "api/generate"
     end
 
     def embedding_path
-      "/api/embeddings"
+      "api/embeddings"
     end
 
     def embedding_model

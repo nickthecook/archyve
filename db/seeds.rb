@@ -10,7 +10,7 @@
 
 default_user = ENV.fetch("USERNAME") { "admin@archyve.io" }
 default_password = ENV.fetch("PASSWORD") { "password" }
-model_endpoint = ENV.fetch("CHAT_ENDPOINT") { "https://localhost:11434/v1/" }
+model_endpoint = ENV.fetch("CHAT_ENDPOINT") { "http://localhost:11434" }
 
 puts "Seeding database with USERNAME '#{default_user}', PASSWORD '********', and endpoint '#{model_endpoint}'..."
 
