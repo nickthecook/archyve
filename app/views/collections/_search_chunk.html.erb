@@ -11,12 +11,12 @@
     <div class="text-xs text-right text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
       <%= link_to chunk.collection.name, chunk.collection %>
     </div>
-    <div class="text-xs text-right text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
-      <%= link_to chunk.document.filename, collection_document_path(chunk.collection, chunk.document) %>
+    <div class="flex-1 text-xs text-center text-secondary-400 underline">
+      <%= link_to chunk.document.filename, collection_document_path(chunk.collection, chunk.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" %>
     </div>
-    <div class="flex-1">
+    <div>
       <% if distance %>
-        <div class="text-xs text-center text-secondary-400">distance: <%= distance.round(3) %></div>
+        <div class="text-xs text-right text-secondary-400">distance: <%= distance.round(3) %></div>
       <% end %>
     </div>
   </div>
