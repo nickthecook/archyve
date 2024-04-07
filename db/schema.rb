@@ -42,6 +42,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_04_153745) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "api_calls", force: :cascade do |t|
+    t.string "service_name", null: false
+    t.string "category", null: false
+    t.integer "http_method", null: false
+    t.string "url", null: false
+    t.jsonb "request_body"
+    t.integer "response_code"
+    t.jsonb "response_body"
+    t.integer "request_size", null: false
+    t.integer "response_size", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "chunks", force: :cascade do |t|
     t.bigint "document_id", null: false
     t.string "vector_id"
