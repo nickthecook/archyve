@@ -4,21 +4,21 @@
     <g transform="matrix(1,0,0,1,-341.057,-273.697)">
         <g transform="matrix(1,0,0,1,-0.664865,-7.55969)">
             <g transform="matrix(3.61283,0,0,3.61283,-3919.22,-758.13)">
-                <path d="M1474,438L1474,594.407L1526,594.471L1526,438L1599.97,564.953L1645.01,538.969L1500.08,290L1355.11,539.039L1400.05,564.962L1474,438Z" style="fill:none;stroke:rgb(221,37,50);stroke-width:4.61px;"/>
+                <path d="M1474,438L1474,594.407L1526,594.471L1526,438L1599.97,564.953L1645.01,538.969L1500.08,290L1355.11,539.039L1400.05,564.962L1474,438Z" style="fill:none;stroke:rgb(32,211,240);stroke-width:4.61px;"/>
             </g>
         </g>
         <g transform="matrix(1,0,0,1,-0.664865,-7.55969)">
             <g transform="matrix(-1.80641,-3.1288,3.1288,-1.80641,2164.08,7478.01)">
-                <path d="M1474,334.807L1474,594.407L1526,594.471L1526,438L1599.97,564.953L1645.01,538.969L1500.08,290L1474,334.807" style="fill:none;stroke:rgb(221,37,50);stroke-width:4.61px;"/>
+                <path d="M1474,334.807L1474,594.407L1526,594.471L1526,438L1599.97,564.953L1645.01,538.969L1500.08,290L1474,334.807" style="fill:none;stroke:rgb(32,211,240);stroke-width:4.61px;"/>
             </g>
         </g>
         <g transform="matrix(1,0,0,1,-0.664865,-7.55969)">
             <g transform="matrix(-1.80641,3.1288,-3.1288,-1.80641,6255.14,-1908.34)">
-                <path d="M1526,334.526L1500.08,290L1355.11,539.039L1400.05,564.962L1474,438L1474,594.407L1526,594.471L1526,334.526" style="fill:none;stroke:rgb(221,37,50);stroke-width:4.61px;"/>
+                <path d="M1526,334.526L1500.08,290L1355.11,539.039L1400.05,564.962L1474,438L1474,594.407L1526,594.471L1526,334.526" style="fill:none;stroke:rgb(32,211,240);stroke-width:4.61px;"/>
             </g>
         </g>
         <g transform="matrix(16.3457,0,0,10.2286,-13850.8,-24124.9)">
-            <text x="868.646px" y="2623.7px" style="font-family:'DINCondensed-Bold', 'DIN Condensed';font-weight:700;font-stretch:condensed;font-size:50px;fill:none;stroke:rgb(221,37,50);stroke-width:1.22px;stroke-linecap:butt;stroke-miterlimit:2;">ARCHYVE</text>
+            <text x="868.646px" y="2623.7px" style="font-family:'DINCondensed-Bold', 'DIN Condensed';font-weight:700;font-stretch:condensed;font-size:50px;fill:none;stroke:rgb(32,211,240);stroke-width:1.22px;stroke-linecap:butt;stroke-miterlimit:2;">ARCHYVE</text>
         </g>
     </g>
 </svg>
