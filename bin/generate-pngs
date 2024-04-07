@@ -12,7 +12,7 @@ cd "$asset_dir" || {
   exit 5
 }
 
-source=archyve_red.svg
+source=archyve.svg
 if ! [ -f "$source" ]; then
 	echo 1>&2 "Source image '$source' does not exist."
   exit 4
