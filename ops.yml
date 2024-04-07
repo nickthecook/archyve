@@ -2,9 +2,10 @@ dependencies:
   brew:
     - overmind
   custom:
-    - bundle config --local path vendor/bundle 
+    - bundle config --local path vendor/bundle
     - bundle
     - ops deps start
+    - yarn
   apt:
     - ruby-poppler
 forwards:

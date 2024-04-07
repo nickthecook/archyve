@@ -2,7 +2,7 @@
 
 Archyve is a web app that makes pretrained LLMs aware of a user's documents, while keeping those documents on the user's own devices and infrastructure.
 
-<img src="app/assets/images/archyve_font_red.svg" width=100>
+<img src="app/assets/images/archyve_font.svg" width=100>
 
 ## Overview
 
