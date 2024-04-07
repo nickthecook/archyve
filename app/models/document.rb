@@ -63,7 +63,7 @@ class Document < ApplicationRecord
 
     event :reset do
       # TODO: validate that there are no chunks in the db
-      transitions from: [:chunking, :chunked, :embedding, :embedded, :storing, :stored], to: :created
+      transitions to: :created
     end
 
     event :chunking do
