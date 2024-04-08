@@ -6,11 +6,11 @@ class DocumentsController < ApplicationController
 
   def show
     @collections = current_user.collections
+    @pagy, @chunks = pagy(@document.chunks)
 
-    respond_to do |format|
-      format.html { render "collections/index", locals: { document: @document } }
-      format.json { render json: @document }
-    end
+    return render "scrollable_list" if params[:page]
+
+    render "show", locals: { document: @document }
   end
 
   def create

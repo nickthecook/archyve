@@ -1,0 +1,4 @@
+<%= turbo_frame_tag "#{dom_id(@document)}-page-#{@pagy.page}" do %>
+  <%= render "chunks", chunks: @chunks %>
+  <%= render partial: "next_page" %>
+<% end %>

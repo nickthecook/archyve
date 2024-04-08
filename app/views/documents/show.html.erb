@@ -1,16 +1,21 @@
 <div class="flex">
-  <%= render "collections/collection_list", collections: Collection.all %>
+  <%= render "shared/collection_list", collections: @collections %>
 
-  <div id="document_area" class="overflow-y-scroll flex-1 h-screen w-100 bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
-    <div class="container flex justify-center w-full align-center">
-      <% if notice %>
-        <p class="text-sm notice text-secondary-700"><%= notice %></p>
-      <% elsif alert %>
-        <p class="text-sm alert text-tertiary-700"><%= alert %></p>
-      <% end %>
+  <div id="collection_area" class="overflow-y-scroll flex-1 h-screen bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+    <%= render "shared/notice" %>
+
+    <%= turbo_stream_from dom_id(@document) %>
+      <div class="flex flex-col h-full w-full items-center align-middle m-2">
+        <div class="p-4 text-lg font-semibold text-secondary-900 dark:text-secondary-100">
+          <%= @document.filename %>
+        </div>
+        <%= render "info" %>
+        <div class="flex-1">
+          <%= render "chunks", chunks: @chunks %>
+          <%= render partial: "next_page" %>
+        </div>
+        <!-- add document search form when searching a single doc is supported -->
+      </div>
     </div>
-
-    <%= turbo_stream_from "document" %>
-    <%= render @document %>
   </div>
 </div>

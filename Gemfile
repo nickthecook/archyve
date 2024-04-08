@@ -96,3 +96,5 @@ gem "aasm", "~> 5.5"
 gem "rubocop", "~> 1.62"
 gem "rubocop-rails", "~> 2.24"
 gem "rubocop-rspec", "~> 2.28"
+
+gem "pagy", "~> 8.0"

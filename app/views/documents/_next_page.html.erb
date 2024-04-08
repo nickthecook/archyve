@@ -1,0 +1,9 @@
+<%= turbo_frame_tag(
+      "#{dom_id(@document)}-page-#{@pagy.next}",
+      # autoscroll: true,
+      loading: :lazy,
+      src: pagy_url_for(@pagy, @pagy.next),
+      target: "_top"
+    ) do %>
+  Loading...
+<% end %>

@@ -1,0 +1,8 @@
+<div class="flex w-full px-10 pb-5 justify-center text-sm">
+  <div class="px-3"><%= time_ago_in_words(@document.created_at) %> ago</div>
+  <div class="px-3"><%= @document.chunks.count %> Chunks</div>
+  <div class="px-3 underline">
+    <%= link_to "Download", rails_blob_path(@document.file.blob, disposition: 'attachment') %>
+  </div>
+  <!-- TODO: add page count, chunking profile, document size, download link -->
+</div>
