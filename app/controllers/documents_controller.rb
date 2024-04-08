@@ -8,7 +8,7 @@ class DocumentsController < ApplicationController
     @collections = current_user.collections
     @pagy, @chunks = pagy(@document.chunks)
 
-    return render "scrollable_list" if params[:page]
+    return render "scrollable_list" if params[:page].present?
 
     render "show", locals: { document: @document }
   end
