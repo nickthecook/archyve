@@ -22,7 +22,7 @@ module DocumentsHelper
 
   def default_chunk_size(method)
     case method
-    when :bytes then 120
+    when :bytes then 200
     when "sentences" then 5
     when "paragraphs" then 1
     else 1
@@ -31,7 +31,7 @@ module DocumentsHelper
 
   def default_chunk_overlap(method)
     case method
-    when :bytes then 20
+    when :bytes then 50
     when "sentences" then 1
     when "paragraphs" then 0
     when "pages" then 0

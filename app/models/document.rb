@@ -49,6 +49,7 @@ class Document < ApplicationRecord
     embedded: 2,
     storing: 6,
     stored: 3,
+    deleting: 7,
     errored: 10,
   }
 
@@ -60,6 +61,7 @@ class Document < ApplicationRecord
     state :embedded
     state :storing
     state :stored
+    state :deleting
     state :errored
 
     event :reset do
@@ -86,6 +88,9 @@ class Document < ApplicationRecord
       transitions from: :storing, to: :stored
     end
 
+    event :deleting do
+      transitions to: :deleting
+    end
     event :error do
       transitions to: :errored
     end

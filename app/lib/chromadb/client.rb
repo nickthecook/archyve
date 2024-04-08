@@ -68,6 +68,10 @@ module Chromadb
       delete("api/v1/collections/#{collection_name}")
     end
 
+    def delete_documents(collection_id, ids)
+      post("api/v1/collections/#{collection_id}/delete", { ids: })
+    end
+
     def empty_collection(collection_name)
       collection = get_collection(collection_name)
 
@@ -102,7 +106,6 @@ collection["database"])
     def post(path, body = {})
       @last_response = HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
 
-      Rails.logger.info("ChromaDB request: #{@last_response.request.inspect}")
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end

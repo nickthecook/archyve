@@ -38,7 +38,9 @@ class DocumentsController < ApplicationController
   end
 
   def destroy
-    @document.destroy!
+    @document.deleting!
+
+    DestroyJob.perform_async(@document.id)
 
     respond_to do |format|
       format.html { redirect_to collection_path(@collection) }
