@@ -5,7 +5,8 @@ class IngestJob
 
   def perform(*args)
     @document = Document.find(args.first)
+    @chunking_profile = ChunkingProfile.find(args.second)
 
-    TheIngestor.new(@document).ingest
+    TheIngestor.new(@document, @chunking_profile).ingest
   end
 end

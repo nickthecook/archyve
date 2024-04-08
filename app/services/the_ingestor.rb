@@ -1,6 +1,7 @@
 class TheIngestor
-  def initialize(document)
+  def initialize(document, chunking_profile)
     @document = document
+    @chunking_profile = chunking_profile
     @chunks = []
   end
 
@@ -48,7 +49,7 @@ class TheIngestor
   end
 
   def chonker
-    @chonker ||= Chonker.new(parser, :bytes)
+    @chonker ||= Chonker.new(parser, @chunking_profile)
   end
 
   def embedder

@@ -1,20 +1,21 @@
 class Document < ApplicationRecord
   belongs_to :collection
   belongs_to :user
+  belongs_to :chunking_profile, optional: true
   has_one_attached :file
   has_many :chunks, dependent: :destroy
 
   include Turbo::Broadcastable
   include AASM
 
-  after_create_commit -> {
+  after_create_commit lambda {
     broadcast_append_to(
       :collection,
       target: "documents",
       partial: "shared/document"
     )
   }
-  after_update_commit -> {
+  after_update_commit lambda {
     broadcast_replace_to(
       :collection,
       target: "document_#{id}",
@@ -33,7 +34,7 @@ class Document < ApplicationRecord
       locals: { collection:, query: "" }
     )
   }
-  after_destroy_commit -> {
+  after_destroy_commit lambda {
     broadcast_remove_to(
       :collection,
       target: "document_#{id}"
@@ -48,7 +49,7 @@ class Document < ApplicationRecord
     embedded: 2,
     storing: 6,
     stored: 3,
-    errored: 10
+    errored: 10,
   }
 
   aasm column: :state do

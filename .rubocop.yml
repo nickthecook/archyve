@@ -88,6 +88,8 @@ Style/ClassAndModuleChildren:
 Style/TrailingCommaInArrayLiteral:
   Enabled: true
   EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
 Style/SymbolArray:

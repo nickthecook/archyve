@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_04_153745) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_08_183547) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,16 +42,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_04_153745) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "api_calls", force: :cascade do |t|
-    t.string "service_name", null: false
-    t.string "category", null: false
-    t.integer "http_method", null: false
-    t.string "url", null: false
-    t.jsonb "request_body"
-    t.integer "response_code"
-    t.jsonb "response_body"
-    t.integer "request_size", null: false
-    t.integer "response_size", null: false
+  create_table "chunking_profiles", force: :cascade do |t|
+    t.string "method"
+    t.integer "size"
+    t.integer "overlap"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -113,6 +107,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_04_153745) do
     t.datetime "updated_at", null: false
     t.integer "state"
     t.string "vector_id"
+    t.bigint "chunking_profile_id"
+    t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
   end
@@ -169,6 +165,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_04_153745) do
   add_foreign_key "conversation_collections", "conversations"
   add_foreign_key "conversations", "model_configs"
   add_foreign_key "conversations", "users"
+  add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
   add_foreign_key "messages", "conversations"
