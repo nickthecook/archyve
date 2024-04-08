@@ -1,12 +1,13 @@
 <div id="global_search_form">
   <%= form_with url: search_collections_path do |f| %>
     <div class="container flex flex-1">
-      <%= f.text_area :query,
+      <%= f.text_field :query,
         placeholder: "Search your documents...",
         class: "rounded-md dark:bg-secondary-800 w-full flex-1",
         hidden: false,
         value: query,
-        data: { controller: "submit", "submit-target": "input" }
+        data: { controller: "submit", "submit-target": "input" },
+        autocomplete: "off"
       %>
       <div class="flex-col">
           <%= link_to "Clear", search_collections_path, class: "rounded-lg px-4 py-1 mb-2 text-center text-white align-baseline dark:text-secondary-950 block font-medium bg-secondary-700 dark:bg-secondary-400 ml-2" %>

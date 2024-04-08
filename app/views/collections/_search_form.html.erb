@@ -11,13 +11,14 @@
           disabled = true
         end
       %>
-      <%= f.text_area :query,
+      <%= f.text_field :query,
         placeholder:,
         class: "rounded-md dark:bg-secondary-800 w-full flex-1",
         disabled:,
         hidden: false,
         value: query,
-        data: { controller: "submit", "submit-target": "input" }
+        data: { controller: "submit", "submit-target": "input" },
+        autocomplete: "off"
       %>
       <div class="flex">
         <div>

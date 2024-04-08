@@ -1,11 +1,12 @@
 <%= form_with url: conversation_messages_path(@conversation), html: { id: "message_form", class: "mt-3 w-full" } do |f| %>
   <div class="container flex">
     <div class="flex-1 pr-3">
-      <%= f.text_area :content,
+      <%= f.text_field :content,
         class: "form-control w-full rounded-lg dark:bg-secondary-800",
         placeholder: "write a message",
         autofocus: true,
-        data: { controller: "submit", "submit-target": "input" }
+        data: { controller: "submit", "submit-target": "input" },
+        autocomplete: "off"
       %>
     </div>
     <div>
