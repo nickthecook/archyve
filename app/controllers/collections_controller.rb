@@ -20,6 +20,7 @@ class CollectionsController < ApplicationController
   def create
     @collection = Collection.new
     @collection.name ||= "New collection"
+    @collection.embedding_model = ModelConfig.embedding.last
     @collection.save!
     @collection.generate_slug
 
@@ -118,7 +119,7 @@ class CollectionsController < ApplicationController
   private
 
   def collection_params
-    params.require(:collection).permit(:name, :slug)
+    params.require(:collection).permit(:name, :slug, :embedding_model_id)
   end
 
   def set_collection

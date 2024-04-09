@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_09_133325) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_09_133954) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -77,6 +77,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_09_133325) do
     t.string "slug"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "embedding_model_id", null: false
+    t.index ["embedding_model_id"], name: "index_collections_on_embedding_model_id"
   end
 
   create_table "conversation_collections", force: :cascade do |t|
@@ -162,6 +164,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_09_133325) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "chunks", "documents"
   add_foreign_key "clients", "users"
+  add_foreign_key "collections", "model_configs", column: "embedding_model_id"
   add_foreign_key "conversation_collections", "collections"
   add_foreign_key "conversation_collections", "conversations"
   add_foreign_key "conversations", "model_configs"

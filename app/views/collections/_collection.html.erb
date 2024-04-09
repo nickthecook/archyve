@@ -9,6 +9,20 @@
           placeholder: "name",
           onchange: "this.form.submit()"
         )%>
+        <%
+          if @collection.documents.any?
+            classes = "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-700 mr-2"
+            disabled = true
+          else
+            classes = "rounded-lg text-secondary-800 bg-secondary-300 dark:text-secondary-200 dark:bg-secondary-800 mr-2"
+            disabled = false
+          end
+        %>
+        <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :name, {}, {
+          class: classes,
+          onchange: "this.form.submit()",
+          disabled: disabled
+        })%>
         <%= f.submit "Update", hidden: true %>
       <% end %>
     </div>
