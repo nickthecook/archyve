@@ -19,22 +19,32 @@ User.find_or_create_by!(email: default_user)  do |user|
   user.admin = true
 end
 
-ModelServer.find_or_create_by!(name: "localhost") do |ms|
-  ms.url = model_endpoint
-  ms.provider = "ollama"
-end
-
-ModelConfig.find_or_create_by!(name: "mistral:instruct", model_server: ModelServer.first) do |mc|
-  mc.model = "mistral:instruct"
-  mc.temperature = 0.1
-end
-
-ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first) do |mc|
-  mc.model = "gemma:7b"
-  mc.temperature = 0.2
-end
-
 if Rails.env == "development"
+  ModelServer.find_or_create_by!(name: "localhost") do |ms|
+    ms.url = model_endpoint
+    ms.provider = "ollama"
+  end
+
+  ModelConfig.find_or_create_by!(name: "mistral:instruct", model_server: ModelServer.first) do |mc|
+    mc.model = "mistral:instruct"
+    mc.temperature = 0.1
+  end
+
+  ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first) do |mc|
+    mc.model = "gemma:7b"
+    mc.temperature = 0.2
+  end
+
+  ModelConfig.find_or_create_by!(name: "all-minilm", model_server: ModelServer.first) do |mc|
+    mc.model = "all-minilm",
+    mc.embedding = true
+  end
+
+  ModelConfig.find_or_create_by!(name: "nomic-embed-text", model_server: ModelServer.first) do |mc|
+    mc.model = "nomic-embed-text",
+    mc.embedding = true
+  end
+
   default_client = Client.find_by(name: "default")
 
   if default_client.nil?
