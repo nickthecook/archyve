@@ -9,7 +9,7 @@ class Embedder
 
   def client
     @client ||= LlmClients::Ollama.new(
-      endpoint: endpoint,
+      endpoint:,
       api_key: "todo"
     )
   end
