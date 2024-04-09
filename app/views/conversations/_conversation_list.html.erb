@@ -17,10 +17,10 @@
       <%= link_to "Sidekiq", "/sidekiq", class: classes %>
     <% end %>
     <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "w-full font-medium rounded-lg py-1 px-3 my-1 text-center text-primary-200 dark:text-secondary-950 block font-medium bg-primary-800 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300" %>
+      <%= link_to "Documents", "/collections", class: "rounded-lg py-1 px-3 my-1 text-center text-secondary-900 block font-medium border border-tertiary-800 dark:text-secondary-100 dark:border-tertiary-400 hover:bg-secondary-200 hover:dark:bg-secondary-800", data: { turbo: false } %>
     </div>
     <div class="w-full">
-      <%= link_to "Documents", "/collections", class: "rounded-lg py-1 px-3 my-1 text-center text-secondary-100 block font-medium bg-tertiary-800 dark:text-secondary-950 dark:bg-tertiary-400 hover:bg-tertiary-700 hover:dark:bg-tertiary-300", data: { turbo: false } %>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "w-full font-medium rounded-lg py-1 px-3 my-1 text-center text-primary-200 dark:text-secondary-950 block font-medium bg-primary-800 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300" %>
     </div>
   </div>
 </div>
