@@ -54,8 +54,8 @@ module LlmClients
     def embed(prompt)
       response = with_retries do
         HTTParty.post(uri(embedding_path), headers:, timeout: NETWORK_TIMEOUT, body: {
-          model: embedding_model,
-          prompt:
+          model: @embedding_model,
+          prompt:,
         }.to_json)
       end
 
@@ -73,7 +73,7 @@ module LlmClients
         prompt:,
         temperature: @temperature,
         stream: true,
-        max_tokens: 200
+        max_tokens: 200,
       }.to_json
 
       request
@@ -103,10 +103,6 @@ module LlmClients
 
     def embedding_path
       "api/embeddings"
-    end
-
-    def embedding_model
-      Rails.configuration.embedding_model
     end
   end
 end

@@ -36,12 +36,12 @@ if Rails.env == "development"
   end
 
   ModelConfig.find_or_create_by!(name: "all-minilm", model_server: ModelServer.first) do |mc|
-    mc.model = "all-minilm",
+    mc.model = "all-minilm"
     mc.embedding = true
   end
 
   ModelConfig.find_or_create_by!(name: "nomic-embed-text", model_server: ModelServer.first) do |mc|
-    mc.model = "nomic-embed-text",
+    mc.model = "nomic-embed-text"
     mc.embedding = true
   end
 

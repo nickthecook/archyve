@@ -25,16 +25,16 @@ module Chromadb
     end
 
     def collection_id(collection_name)
-      get_collection(collection_name)["id"]
+      _collection(collection_name)["id"]
     rescue ResponseError
       nil
     end
 
     def collections(name = nil)
       if name
-        get_collection(name)
+        _collection(name)
       else
-        get_collections
+        _collections
       end
     end
 
@@ -73,23 +73,27 @@ module Chromadb
     end
 
     def empty_collection(collection_name)
-      collection = get_collection(collection_name)
+      collection = _collection(collection_name)
 
       delete_collection(collection_name)
 
-      response = create_collection(collection["name"], collection["metadata"], collection["tenant"],
-collection["database"])
+      response = create_collection(
+        collection["name"],
+        collection["metadata"],
+        collection["tenant"],
+        collection["database"]
+      )
 
       response["id"]
     end
 
     private
 
-    def get_collection(name)
+    def _collection(name)
       get("api/v1/collections/#{name}")
     end
 
-    def get_collections
+    def _collections
       get("api/v1/collections")
     end
 

@@ -20,7 +20,7 @@ module LlmClients
   class Client
     MODEL_TEMPLATE_MAP = {
       "^gemma:" => { prefix: "<start_of_turn>user\n", suffix: "<end_of_turn>\n<start_of_turn>model" },
-      "^mi[xs]tral:" => { prefix: "<s>[INST]", suffix: "[/INST] " }
+      "^mi[xs]tral:" => { prefix: "<s>[INST]", suffix: "[/INST] " },
     }.freeze
     TIMEOUT_RETRIES = 3
 
@@ -34,10 +34,18 @@ module LlmClients
       end
     end
 
-    def initialize(endpoint:, api_key:, model: nil, temperature: default_temperature, batch_size: default_batch_size)
+    def initialize(
+      endpoint:,
+      api_key:,
+      model: nil,
+      embedding_model: nil,
+      temperature: default_temperature,
+      batch_size: default_batch_size
+    )
       @endpoint = endpoint
       @api_key = api_key
       @model = model
+      @embedding_model = embedding_model
       @temperature = temperature
       @batch_size = batch_size
 
@@ -99,7 +107,7 @@ module LlmClients
         elapsed_ms: nil,
         tokens: 0,
         tokens_per_sec: nil,
-        time_to_first_token: nil
+        time_to_first_token: nil,
       }
     end
 

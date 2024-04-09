@@ -59,7 +59,7 @@ module Search
     end
 
     def embedder
-      @embedder ||= Embedder.new
+      @embedder ||= Embedder.new(@collection.embedding_model)
     end
 
     def chroma

@@ -2,6 +2,8 @@ require_relative "boot"
 
 require "rails/all"
 
+require "sidekiq/web"
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -38,5 +40,7 @@ module Archyve
     config.embedding_model = ENV.fetch("EMBEDDING_MODEL") { "all-minilm" }
     config.summarization_endpoint = ENV.fetch("SUMMARIZATION_ENDPOINT") { "http://localhost:11435" }
     config.summarization_model = ENV.fetch("SUMMARIZATION_MODEL") { "mistral:instruct" }
+
+    Sidekiq::Web.app_url = "/"
   end
 end

@@ -1,7 +1,6 @@
 class TheIngestor
-  def initialize(document, chunking_profile)
+  def initialize(document)
     @document = document
-    @chunking_profile = chunking_profile
     @chunks = []
   end
 
@@ -49,11 +48,15 @@ class TheIngestor
   end
 
   def chonker
-    @chonker ||= Chonker.new(parser, @chunking_profile)
+    @chonker ||= Chonker.new(parser, @document.chunking_profile)
   end
 
   def embedder
-    @embedder ||= Embedder.new
+    @embedder ||= Embedder.new(embedding_model)
+  end
+
+  def embedding_model
+    @document.collection.embedding_model
   end
 
   def chromadb
@@ -77,13 +80,8 @@ class TheIngestor
   end
 
   def reset_document
-    # remove all docs from collection in chroma
-    @collection_id = chromadb.empty_collection(collection_name)
+    TheDestroyor.new(@document).delete_embeddings
 
-    # remove all local chunks from db
-    @document.chunks.destroy_all
-
-    # set the document's state back to created
     @document.reset!
   end
 end

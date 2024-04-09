@@ -22,7 +22,7 @@ class DocumentsController < ApplicationController
     @document.user = current_user
     @document.save!
 
-    IngestJob.perform_async(@document.id, @chunking_profile.id)
+    IngestJob.perform_async(@document.id)
 
     respond_to do |format|
       format.turbo_stream do

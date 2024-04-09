@@ -1,4 +1,8 @@
 class Embedder
+  def initialize(embedding_model)
+    @embedding_model = embedding_model
+  end
+
   def embed(text)
     response = client.embed(text)
 
@@ -10,11 +14,12 @@ class Embedder
   def client
     @client ||= LlmClients::Ollama.new(
       endpoint:,
-      api_key: "todo"
+      api_key: "todo",
+      embedding_model: @embedding_model.model
     )
   end
 
   def endpoint
-    Rails.configuration.embedding_endpoint
+    @embedding_model.model_server.url
   end
 end
