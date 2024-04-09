@@ -9,14 +9,20 @@
         <%= render "shared/collection_list_item", collection: %>
       <% end %>
     </div>
-    <div class="w-full text-sm font-bold text-center">
+    <div class="w-full text-sm font-bold text-center my-1">
       <%= @current_user.email %>
     </div>
+    <% if current_user.admin? %>
+      <% classes = "rounded-lg py-1 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium border border-1/2 border-tertiary-800 dark:border-tertiary-400 w-full hover:bg-secondary-200 hover:dark:bg-secondary-800" %>
+
+      <%= link_to "Admin", "/admin", class: classes %>
+      <%= link_to "Sidekiq", "/sidekiq", class: classes %>
+    <% end %>
     <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-1 px-3 my-2 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-400 w-full font-medium" %>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "w-full font-medium rounded-lg py-1 px-3 my-1 text-center text-tertiary-200 dark:text-secondary-950 block font-medium bg-tertiary-800 dark:bg-tertiary-400 hover:bg-tertiary-700 dark:hover:bg-tertiary-500" %>
     </div>
     <div class="w-full">
-      <%= link_to "Chat", "/conversations", class: "rounded-lg py-1 px-3 text-center text-tertiary-200 block font-medium bg-tertiary-800 dark:text-secondary-950 dark:bg-primary-500", data: { turbo: false } %>
+      <%= link_to "Chat", "/conversations", class: "rounded-lg py-1 px-3 my-1 text-center text-primary-200 block font-medium bg-primary-800 dark:text-secondary-950 dark:bg-primary-400 hover:bg-primary-700 hover:dark:bg-primary-300", data: { turbo: false } %>
     </div>
   </div>
 </div>
