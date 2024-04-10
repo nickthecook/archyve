@@ -7,7 +7,6 @@ class Client < ApplicationRecord
   belongs_to :user
 
   validate :api_key_format
-  validates :name, uniqueness: true
 
   class << self
     def new_client_id
