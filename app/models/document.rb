@@ -53,7 +53,7 @@ class Document < ApplicationRecord
     errored: 10,
   }
 
-  aasm column: :state do
+  aasm column: :state, enum: true do
     state :created
     state :chunking
     state :chunked

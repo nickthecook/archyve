@@ -49,7 +49,7 @@ services:
       - archyve_files:/rails/storage
     extra_hosts:
     - "host.docker.internal:host-gateway"
-    command: bundle exec sidekiq
+    command: bin/rails db:seed && bundle exec sidekiq
     depends_on:
       - redis
       - postgres
