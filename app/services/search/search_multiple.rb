@@ -22,6 +22,24 @@ module Search
           locals: { chunk: hit.chunk, distance: hit.distance }
         )
       end
+    rescue StandardError => e
+      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+      broadcast_error(e)
+    end
+
+    private
+
+    def broadcast_hit(hit)
+      Turbo::StreamsChannel.broadcast_append_to(
+        "collection", target: @dom_id, partial: @partial, locals: { chunk: hit.chunk, distance: hit.distance }
+      )
+    end
+
+    def broadcast_error(exception)
+      Turbo::StreamsChannel.broadcast_append_to(
+        "collection", target: @dom_id, partial: "shared/search_error", locals: { error: "An error occurred: #{exception}" }
+      )
     end
 
     def searchers
