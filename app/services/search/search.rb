@@ -12,8 +12,8 @@ module Search
     def search(query)
       raise SearchError, "No query given" if query.blank?
 
-      embedded_query = embedder.embed(query)
-      response = chroma.query(collection_id, [embedded_query])
+      embedded_query = embed(query)
+      response = chroma_response(collection_id, embedded_query)
 
       Rails.logger.debug("ChromaDB response:\n#{response.to_json}")
 
@@ -32,17 +32,36 @@ module Search
       end
 
       results.sort_by(&:distance)
-    rescue Errno::ECONNREFUSED => e
-      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-
-      broadcast_error("The ChromaDB server at #{chroma.url} refused the connection.")
     rescue StandardError => e
+      raise if e.is_a?(Errno::ECONNREFUSED)
+
       Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
       broadcast_error(e)
     end
 
     private
+
+    def embed(query)
+      embedder.embed(query)
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+      server_url = @collection.embedding_model.model_server.url
+      broadcast_error("The embedding model server at #{server_url} refused the connection.")
+
+      raise
+    end
+
+    def chroma_response(collection_id, query)
+      chroma.query(collection_id, [query])
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+      broadcast_error("The ChromaDB server at #{chroma.url} refused the connection.")
+
+      raise
+    end
 
     def broadcast_hit(hit)
       Turbo::StreamsChannel.broadcast_append_to(
