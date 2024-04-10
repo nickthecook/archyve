@@ -1,0 +1,51 @@
+---
+engine_version: 0.4.26
+file_version: 2024-04-10 17:34:20.219590000 Z
+resources:
+- name: collection
+  preferences:
+    columns:
+    - access_type: read_only
+      name: slug
+    - access_type: read_only
+      reference:
+        name: embedding_model
+        display_name: Embedding model
+        model_name: model_config
+        reference_type: belongs_to
+        foreign_key: embedding_model_id
+        primary_key: id
+        options: {}
+        polymorphic:
+        virtual: false
+      name: embedding_model_id
+  updated_at: 2024-04-10 17:34:20.219590000 +00:00
+configs:
+- key: header.links
+  value:
+  - name: "⭐ Star on GitHub"
+    path: https://github.com/motor-admin/motor-admin-rails
+  updated_at: 2024-04-10 17:15:20.758465000 +00:00
+queries:
+- id: 1
+  name: Users
+  sql_body: Select * from users;
+  description:
+  preferences:
+    query_type: sql
+    database: primary
+    visualization: table
+    visualization_options: {}
+    variables: []
+  tags: []
+  updated_at: 2024-04-10 17:24:22.348525000 +00:00
+dashboards: []
+forms: []
+alerts: []
+api_configs:
+- id: 1
+  name: origin
+  url: "/"
+  preferences: {}
+  description:
+  updated_at: 2024-04-10 17:15:20.793735000 +00:00
