@@ -5,7 +5,7 @@ module Chromadb
   class ResponseError < StandardError; end
 
   class Client
-    attr_reader :last_response
+    attr_reader :last_response, :url
 
     def initialize(host = nil, port = nil)
       @host = host || ENV.fetch("CHROMADB_HOST") { "localhost" }
@@ -125,10 +125,6 @@ module Chromadb
       end
 
       @last_response.parsed_response
-    end
-
-    def url(path)
-      "#{@url}/#{path}"
     end
   end
 end

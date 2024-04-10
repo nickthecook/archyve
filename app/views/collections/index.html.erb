@@ -1,14 +1,8 @@
 <div class="flex">
   <%= render "shared/collection_list", collections: @collections %>
 
-  <div id="collection_area" class="overflow-y-scroll flex-1 h-screen bg-secondary-200 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
-    <div class="container flex justify-center w-full align-center">
-      <% if notice %>
-        <p class="text-sm notice text-secondary-700"><%= notice %></p>
-      <% elsif alert %>
-        <p class="text-sm alert text-tertiary-700"><%= alert %></p>
-      <% end %>
-    </div>
+  <%= render "shared/collection_area" do %>
+    <%= render "shared/notice" %>
 
     <%= turbo_stream_from "collection" %>
     <div class="m-2 h-full">
@@ -19,15 +13,15 @@
       <% elsif @collection %>
         <%= render @collection %>
       <% else %>
-      <div class="flex flex-col h-full w-full items-center align-middle">
-        <div class="flex flex-1 justify-center w-full items-center">
-          <div class="w-3/4 py-5 px-6">
-            <%= render "global_search_form", query: "" %>
-            <div id="global_search_results"></div>
+        <div class="flex flex-col h-full w-full items-center align-middle">
+          <div class="flex flex-1 justify-center w-full items-center">
+            <div class="w-3/4 py-5 px-6">
+              <%= render "global_search_form", query: "" %>
+              <div id="global_search_results"></div>
+            </div>
           </div>
         </div>
-      </div>
       <% end %>
     </div>
-  </div>
+  <% end %>
 </div>

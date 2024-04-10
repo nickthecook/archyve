@@ -15,7 +15,7 @@ module Search
       embedded_query = embedder.embed(query)
       response = chroma.query(collection_id, [embedded_query])
 
-      Rails.logger.info("ChromaDB response:\n#{response.to_json}")
+      Rails.logger.debug("ChromaDB response:\n#{response.to_json}")
 
       results = []
       response["ids"].first.each_with_index do |id, index|
@@ -32,6 +32,14 @@ module Search
       end
 
       results.sort_by(&:distance)
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+      broadcast_error("The ChromaDB server at #{chroma.url} refused the connection.")
+    rescue StandardError => e
+      Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+      broadcast_error(e)
     end
 
     private
@@ -39,6 +47,12 @@ module Search
     def broadcast_hit(hit)
       Turbo::StreamsChannel.broadcast_append_to(
         @channel, target: @dom_id, partial: @partial, locals: { chunk: hit.chunk, distance: hit.distance }
+      )
+    end
+
+    def broadcast_error(exception)
+      Turbo::StreamsChannel.broadcast_append_to(
+        @channel, target: @dom_id, partial: "shared/search_error", locals: { error: "An error occurred: #{exception}" }
       )
     end
 
