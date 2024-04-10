@@ -44,7 +44,7 @@ class TheIngestor
   end
 
   def parser
-    @parser ||= DocumentParser.new(@document)
+    @parser ||= Parsers.parser_for(@document.filename).new(@document)
   end
 
   def chonker
