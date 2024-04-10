@@ -19,6 +19,29 @@ User.find_or_create_by!(email: default_user)  do |user|
   user.admin = true
 end
 
+default_client = Client.find_by(name: "default")
+default_client_id = ENV["DEFAULT_CLIENT_ID"]
+default_api_key = ENV["DEFAULT_API_KEY"]
+
+if default_client_id.present? && default_api_key.present?
+  if default_client.nil?
+    puts("Creating default client based on DEFAULT_CLIENT_ID and DEFAULT_API_KEY...")
+    default_client = Client.create!(
+      name: "default",
+      client_id: default_client_id,
+      api_key: default_api_key,
+      user: User.first
+    )
+  elsif default_client.client_id != default_client_id || default_client.api_key != default_api_key
+    Rails.info.logger("Updating default client ID and API key based on DEFAULT_CLIENT_ID and DEFAULT_API_KEY...")
+    default_client.update!(client_id: default_client_id, api_key: default_api_key)
+  else
+    puts("Default client already exists with correct client ID and API key.")
+  end
+else
+  puts("DEFAULT_CLIENT_ID and DEFAULT_API_KEY not set; not creating or updating default client.")
+end
+
 if Rails.env == "development"
   ModelServer.find_or_create_by!(name: "localhost") do |ms|
     ms.url = model_endpoint
@@ -45,28 +68,19 @@ if Rails.env == "development"
     mc.embedding = true
   end
 
-  default_client = Client.find_by(name: "default")
+  if default_client
+      puts <<~TEXT
+      To authenticate with the default API client, set these headers:
 
-  if default_client.nil?
-    default_client = Client.create!(
-      name: "default",
-      client_id: Client.new_client_id,
-      api_key: Client.new_api_key,
-      user: User.first
-    )
+      Authorization: Bearer #{default_client.api_key}
+      X-Client-Id: #{default_client.client_id}
+
+      E.g.:
+
+      curl -v localhost:3300/v1/collections \\
+        -H "Accept: application/json" \\
+        -H "Authorization: Bearer #{default_client.api_key}" \\
+        -H "X-Client-Id: #{default_client.client_id}"
+    TEXT
   end
-
-  puts <<~TEXT
-    To authenticate with the default API client, set these headers:
-
-    Authorization: Bearer #{default_client.api_key}
-    X-Client-Id: #{default_client.client_id}
-
-    E.g.:
-
-    curl -v localhost:3300/v1/collections \\
-      -H "Accept: application/json" \\
-      -H "Authorization: Bearer #{default_client.api_key}" \\
-      -H "X-Client-Id: #{default_client.client_id}"
-  TEXT
 end

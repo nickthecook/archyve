@@ -59,27 +59,27 @@ ACTIVE_RECORD_ENCRYPTION="{
 
 ## API
 
+### Authentication
+
 Archyve provides a ReST API. To use it, you must have:
 
 1. a Client ID (goes in the `X-Client-Id` header in all API requests)
 2. an API key (goes in the `Authorization` header after `Bearer `)
 
-> TODO: add this to the UI
+> Ensure you have set up `ACTIVE_RECORD_ENCRYPTION` as described above!
 
-To get these values:
+_TODO: add this to the UI_
 
-1. ensure you have set up `ACTIVE_RECORD_ENCRYPTION` as described above
-2. run `docker compose exec archyve sh`
-3. from the shell inside the container, run `bin/rails c`
-4. from the Rails console, run this code:
+If you are running the app on your host, you can set the `DEFAULT_API_KEY` and `DEFAULT_CLIENT_ID` environment variables. On startup, Archyve will ensure that a client with these credentials exists.
 
-```ruby
-Client.create!(name: "default", client_id: Client.new_client_id, api_key: Client.new_api_key, user: User.first)
-"Client ID: #{Client.first.client_id}"
-"API Key:   #{Client.first.api_key}"
-```
+- `DEFAULT_API_KEY` must be a 48-byte value encoded in base64. Generate a key with `openssl rand -base64 48`.
+- `DEFAULT_CLIENT_ID` can be any string, but it should be unique to your app. A UUID is recommended.
 
-5. copy the values into your `local.env` file and restart the container
+> If you are running the app via `docker compose` or `podman compose`, set the above two environment variables in your `local.env` file and restart the containers.
+
+> If you are running the app on your host, set the two above environment variables and run `rails db:seed`.
+
+#### Sending authenticated requests
 
 You should be able to send API requests like this:
 

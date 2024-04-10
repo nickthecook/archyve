@@ -38,8 +38,8 @@ actions:
     command: >
       curl -v localhost:3300/$1 \
         -H "Accept: application/json" \
-        -H "Authorization: Bearer $API_KEY" \
-        -H "X-Client-id: $CLIENT_ID" | jq
+        -H "Authorization: Bearer $DEFAULT_API_KEY" \
+        -H "X-Client-id: $DEFAULT_CLIENT_ID" | jq
     load_secrets: true
 options:
   exec:
