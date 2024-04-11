@@ -34,6 +34,7 @@ module Search
       results.sort_by(&:distance)
     rescue StandardError => e
       raise if e.is_a?(Errno::ECONNREFUSED)
+      raise if @dom_id.nil?
 
       Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
@@ -45,12 +46,12 @@ module Search
     def embed(query)
       embedder.embed(query)
     rescue Errno::ECONNREFUSED => e
+      raise if @dom_id.nil?
+
       Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
       server_url = @collection.embedding_model.model_server.url
       broadcast_error("The embedding model server at #{server_url} refused the connection.")
-
-      raise
     end
 
     def chroma_response(collection_id, query)

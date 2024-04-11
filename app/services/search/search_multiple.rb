@@ -23,6 +23,8 @@ module Search
         )
       end
     rescue StandardError => e
+      raise if @dom_id.nil?
+
       Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
       broadcast_error(e)

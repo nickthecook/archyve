@@ -29,6 +29,8 @@ class ResponseStreamer
       yield message
     rescue Net::HTTPError => e
       raise NetworkError, "Error communicating with server: #{e.message}"
+    rescue Errno::ECONNREFUSED => e
+      raise NetworkError, "Connection refused: #{e.message}"
     end
 
     @on_finish&.call

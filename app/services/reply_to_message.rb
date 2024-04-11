@@ -38,6 +38,10 @@ class ReplyToMessage
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
     append("messages", "messages/error", { error: "#{e}: #{e.additional_info}" })
+  rescue Errno::ECONNREFUSED => e
+    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+    append("messages", "messages/error", { error: e })
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
@@ -60,7 +64,7 @@ class ReplyToMessage
         text_class: "text-xs",
         dom_id:,
         pre:,
-        summary:
+        summary:,
       }
     )
   end
@@ -111,7 +115,7 @@ class ReplyToMessage
       {
         endpoint: model_config.model_server.url,
         model: model_config.model,
-        provider: model_config.model_server.provider
+        provider: model_config.model_server.provider,
       },
       prompt
     )
