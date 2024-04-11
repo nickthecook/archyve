@@ -4,17 +4,17 @@
       <%= form_for @collection do |f| %>
         <%= f.text_field(
           :name,
-          class: "rounded-md dark:bg-secondary-800",
+          class: "rounded-md bg-secondary-50 dark:bg-secondary-800",
           value: @collection.name,
           placeholder: "name",
           onchange: "this.form.submit()"
         )%>
         <%
           if @collection.documents.any?
-            classes = "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-700 mr-2"
+            classes = "rounded-lg text-secondary-950 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-700 mr-2"
             disabled = true
           else
-            classes = "rounded-lg text-secondary-800 bg-secondary-300 dark:text-secondary-200 dark:bg-secondary-800 mr-2"
+            classes = "rounded-lg text-secondary-950 bg-secondary-300 dark:text-secondary-200 dark:bg-secondary-800 mr-2"
             disabled = false
           end
         %>

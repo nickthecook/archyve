@@ -1,5 +1,5 @@
-<% message_bg_class = message.author.is_a?(User) ? "dark:bg-secondary-800" : "dark:bg-secondary-900" %>
-<%= content_tag :div, id: dom_id(message), class: "flex justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 #{message_bg_class}" do %>
+<% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg" %>
+<%= content_tag :div, id: dom_id(message), class: "flex justify-start items-start px-6 py-5 my-3 rounded-md #{message_bg_class}" do %>
   <div class="overflow-x-auto flex-1 whitespace-prewrap" data-controller="markdown-text">
       <%= raw(message.content) %>
   </div>

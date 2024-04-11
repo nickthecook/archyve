@@ -1,9 +1,11 @@
 <div id="<%= dom_id(collection) %>">
-  <div class="container flex hover:bg-secondary-300 dark:hover:bg-secondary-700">
-    <div class="flex-1 px-2 py-1 text-sm rounded-lg">
-      <%= link_to "#{collection.name}", collection %>
-    </div>
-    <div class="px-2 text-secondary-300 dark:text-secondary-400">
+  <div class="container flex hover:bg-secondary-300 dark:hover:bg-secondary-700 rounded-md p-1">
+    <%= link_to collection, class: "flex-1" do %>
+      <div class="px-2 py-1 text-sm">
+        <%= collection.name %>
+      </div>
+    <% end %>
+    <div class="text-sm text-secondary-700 dark:text-secondary-400 px-2">
       <%= collection.documents.count %>
     </div>
     <div class="flex-none mx-1">
