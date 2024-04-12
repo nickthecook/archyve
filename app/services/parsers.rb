@@ -1,7 +1,9 @@
 module Parsers
 
   def self.parser_for(filename)
-    return Parsers::Pdf if filename.downcase.end_with?(".pdf")
+    name_locase = filename.downcase
+    return Parsers::Pdf if name_locase.end_with?(".pdf")
+    return Parsers::Text if name_locase.end_with?(".txt", ".html", ".md")
 
     raise StandardError, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end
