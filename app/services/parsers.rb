@@ -1,5 +1,4 @@
 module Parsers
-
   def self.parser_for(filename)
     name_locase = filename.downcase
     return Parsers::Pdf if name_locase.end_with?(".pdf")
