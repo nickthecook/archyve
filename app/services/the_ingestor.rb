@@ -48,7 +48,7 @@ class TheIngestor
   end
 
   def chonker
-    @chonker ||= Chonker.new(parser, @document.chunking_profile)
+    @chonker ||= Chonker.new(parser)
   end
 
   def embedder

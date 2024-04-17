@@ -9,19 +9,24 @@ class Chonker
     "pages" => :chunk_by_pages,
   }.freeze
 
-  def initialize(parser, profile)
+  def initialize(parser)
     @parser = parser
-    @profile = profile
   end
 
   def chunks
-    raise UnknownChunkingMethod, "Unknown chunking method '#{@profile.method}'" unless CHUNKING_METHODS[@profile.method]
+    raise UnknownChunkingMethod, "Unknown chunking method '#{chunking_method}'" unless CHUNKING_METHODS[chunking_method]
 
     begin
-      @parser.send(CHUNKING_METHODS[@profile.method], @profile)
+      @parser.send(CHUNKING_METHODS[chunking_method])
     rescue NoMethodError
       raise UnsupportedChunkingMethod,
-              "Parser (#{@parser.class.name}) doesn't support chunking method '#{@profile.method}'"
+              "Parser (#{@parser.class.name}) doesn't support chunking method '#{chunking_method}'"
     end
+  end
+
+  private
+
+  def chunking_method
+    @parser.profile.method
   end
 end
