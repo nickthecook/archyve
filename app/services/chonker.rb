@@ -1,8 +1,6 @@
 class Chonker
-  # implement basic text chunker until all parsers will be self-chunking
-  include Parsers::BasicTextChunker
-
   class UnknownChunkingMethod < StandardError; end
+  class UnsupportedChunkingMethod < StandardError; end
 
   CHUNKING_METHODS = {
     "bytes" => :chunk_by_bytes,
@@ -19,13 +17,11 @@ class Chonker
   def chunks
     raise UnknownChunkingMethod, "Unknown chunking method '#{@profile.method}'" unless CHUNKING_METHODS[@profile.method]
 
-    chunker = (@parser.is_a?(Parsers::SelfChunker) && @parser) || self
-    chunker.send(CHUNKING_METHODS[@profile.method], @profile)
-  end
-
-  private
-
-  def text
-    @text ||= @parser.text.dup
+    begin
+      @parser.send(CHUNKING_METHODS[@profile.method], @profile)
+    rescue NoMethodError
+      raise UnsupportedChunkingMethod,
+              "Parser (#{@parser.class.name}) doesn't support chunking method '#{@profile.method}'"
+    end
   end
 end

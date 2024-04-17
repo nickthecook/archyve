@@ -1,7 +1,5 @@
 module Parsers
   module BasicTextChunker
-    include SelfChunker
-
     def chunk_by_bytes(profile)
       chunk_size = profile.size
 

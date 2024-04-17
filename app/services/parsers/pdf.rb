@@ -1,5 +1,7 @@
 module Parsers
   class Pdf
+    include BasicTextChunker
+
     def initialize(document)
       @document = document
     end
