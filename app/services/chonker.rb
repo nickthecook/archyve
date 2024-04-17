@@ -27,6 +27,6 @@ class Chonker
   private
 
   def chunking_method
-    @parser.profile.method
+    @parser.chunking_profile.method
   end
 end

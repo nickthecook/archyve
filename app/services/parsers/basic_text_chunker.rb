@@ -1,23 +1,20 @@
 module Parsers
   module BasicTextChunker
     def chunk_by_bytes
-      chunk_size = profile.size
+      chunk_size = chunking_profile.size
 
       chunks = text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
 
       overlapped_chunks(chunks)
     end
 
-    def document
-      @document
-    end
-
-    def profile
-      document.chunking_profile
+    # The chunking profile used by the parser, based on the document it is parsing
+    def chunking_profile
+      @document.chunking_profile
     end
 
     def overlapped_chunks(chunks)
-      chunk_overlap = profile.overlap
+      chunk_overlap = chunking_profile.overlap
       overlapped_chunks = []
 
       chunks.each_with_index do |chunk, idx|
