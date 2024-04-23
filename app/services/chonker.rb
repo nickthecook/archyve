@@ -2,6 +2,8 @@ class Chonker
   class UnknownChunkingMethod < StandardError; end
   class UnsupportedChunkingMethod < StandardError; end
 
+  include Enumerable
+
   CHUNKING_METHODS = {
     "bytes" => :chunk_by_bytes,
     "sentences" => :chunk_by_sentences,
@@ -13,6 +15,16 @@ class Chonker
     @parser = parser
   end
 
+  def each(&block)
+    if block_given?
+      chunks.each(&block)
+    else
+      chunks.each
+    end
+  end
+
+  private
+
   def chunks
     raise UnknownChunkingMethod, "Unknown chunking method '#{chunking_method}'" unless CHUNKING_METHODS[chunking_method]
 
@@ -23,8 +35,6 @@ class Chonker
               "Parser (#{@parser.class.name}) doesn't support chunking method '#{chunking_method}'"
     end
   end
-
-  private
 
   def chunking_method
     @parser.chunking_profile.method
