@@ -8,8 +8,7 @@ class TheIngestor
     ensure_collection_exists
 
     @document.chunking!
-    index = 0
-    chonker.each do |c|
+    chonker.each_with_index do |c, index|
       if index.zero?
         # Temporary hack since parser is still a brute force chunker right now.
         @document.chunked!
@@ -23,10 +22,8 @@ class TheIngestor
       embedding = embedder.embed(chunk.content)
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
-
-      index += 1
     end
-    Rails.logger.info("Got #{index} chunks from #{@document.filename}.")
+    Rails.logger.info("Got chunks from #{@document.filename}.")
 
     @document.embedded!
   rescue StandardError => e

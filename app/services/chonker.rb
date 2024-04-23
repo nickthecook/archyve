@@ -2,6 +2,8 @@ class Chonker
   class UnknownChunkingMethod < StandardError; end
   class UnsupportedChunkingMethod < StandardError; end
 
+  include Enumerable
+
   CHUNKING_METHODS = {
     "bytes" => :chunk_by_bytes,
     "sentences" => :chunk_by_sentences,
