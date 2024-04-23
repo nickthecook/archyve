@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-04-10 17:34:20.219590000 Z
+file_version: 2024-04-22 16:50:04.313766000 Z
 resources:
 - name: collection
   preferences:
@@ -23,9 +23,16 @@ resources:
 configs:
 - key: header.links
   value:
-  - name: "⭐ Star on GitHub"
-    path: https://github.com/motor-admin/motor-admin-rails
-  updated_at: 2024-04-10 17:15:20.758465000 +00:00
+  - name: Reports
+    link_type: reports
+  - name: Forms
+    link_type: forms
+  - conditions: []
+    type: header
+    name: Back to app
+    path: "/collections"
+    link_type: header
+  updated_at: 2024-04-22 16:50:04.313766000 +00:00
 queries:
 - id: 1
   name: Users
