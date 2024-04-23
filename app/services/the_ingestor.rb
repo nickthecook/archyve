@@ -8,22 +8,26 @@ class TheIngestor
     ensure_collection_exists
 
     @document.chunking!
-    @chunks = chonker.chunks.map { |chunk| Chunk.new(document: @document, content: chunk) }
-    Rails.logger.info("Got #{@chunks.count} chunks from #{@document.filename}.")
+    index = 0
+    chonker.each do |c|
+      if index.zero?
+        # Temporary hack since parser is still a brute force chunker right now.
+        @document.chunked!
+        @document.embedding!
+      end
 
-    ## save all chunks to the db
-    @document.transaction do
-      @chunks.each(&:save!)
-    end
-    @document.chunked!
+      chunk = Chunk.new(document: @document, content: c)
+      chunk.save!
 
-    @document.embedding!
-    @chunks.each_with_index do |chunk, idx|
-      Rails.logger.info("Embedding chunk #{chunk.id} (#{idx}/#{@chunks.count})...")
+      Rails.logger.info("Embedding chunk #{chunk.id} (#{index})")
       embedding = embedder.embed(chunk.content)
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
+
+      index += 1
     end
+    Rails.logger.info("Got #{index} chunks from #{@document.filename}.")
+
     @document.embedded!
   rescue StandardError => e
     Rails.logger.error("Error ingesting document #{@document.id}\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
