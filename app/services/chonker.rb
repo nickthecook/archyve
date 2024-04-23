@@ -13,7 +13,6 @@ class Chonker
     @parser = parser
   end
 
-  # Yield each chunk
   def each(&block)
     if block_given?
       chunks.each(&block)
