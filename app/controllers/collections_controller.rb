@@ -20,7 +20,7 @@ class CollectionsController < ApplicationController
   def create
     @collection = Collection.new
     @collection.name ||= "New collection"
-    @collection.embedding_model = ModelConfig.embedding.last
+    @collection.embedding_model = ModelConfig.default_embedding_model
     @collection.save!
     @collection.generate_slug
 

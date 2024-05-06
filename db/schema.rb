@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_10_171443) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_06_125220) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -136,6 +136,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_10_171443) do
     t.datetime "updated_at", null: false
     t.integer "model_server_id", null: false
     t.boolean "embedding", default: false
+    t.boolean "default", default: false
     t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
