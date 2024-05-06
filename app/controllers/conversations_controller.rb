@@ -1,5 +1,5 @@
 class ConversationsController < ApplicationController
-  before_action :set_conversation, only: %i[show edit update destroy update_collections]
+  before_action :set_conversation, only: %i[show update destroy update_collections]
 
   # GET /conversations or /conversations.json
   def index
@@ -21,7 +21,7 @@ class ConversationsController < ApplicationController
   def create
     @conversation = Conversation.new
     @conversation.user = current_user
-    @conversation.model_config ||= ModelConfig.first
+    @conversation.model_config ||= ModelConfig.default_generation_model
     @conversation.title ||= "New conversation"
     @conversation.save!
 

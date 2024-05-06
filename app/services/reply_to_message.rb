@@ -140,7 +140,7 @@ class ReplyToMessage
 
   def search
     broadcast_event(
-      "Searching #{collections_to_search.map(&:name).join(', ')}...",
+      "Searching the Archyve...",
       "message_#{@message.id}-collections-event"
     )
     broadcast_event(
