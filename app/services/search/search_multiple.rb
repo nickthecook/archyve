@@ -15,12 +15,7 @@ module Search
       end.flatten.sort_by(&:distance)
 
       hits.first(@num_results).each do |hit|
-        Turbo::StreamsChannel.broadcast_append_to(
-          "collection",
-          target: @dom_id,
-          partial: @partial,
-          locals: { chunk: hit.chunk, distance: hit.distance }
-        )
+        broadcast_hit(hit)
       end
     rescue StandardError => e
       raise if @dom_id.nil?
@@ -34,13 +29,13 @@ module Search
 
     def broadcast_hit(hit)
       Turbo::StreamsChannel.broadcast_append_to(
-        "collection", target: @dom_id, partial: @partial, locals: { chunk: hit.chunk, distance: hit.distance }
+        "collections", target: @dom_id, partial: @partial, locals: { chunk: hit.chunk, distance: hit.distance }
       )
     end
 
     def broadcast_error(exception)
       Turbo::StreamsChannel.broadcast_append_to(
-        "collection", target: @dom_id, partial: "shared/search_error", locals: { error: "An error occurred: #{exception}" }
+        "collections", target: @dom_id, partial: "shared/search_error", locals: { error: "An error occurred: #{exception}" }
       )
     end
 

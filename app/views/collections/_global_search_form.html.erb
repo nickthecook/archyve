@@ -1,4 +1,4 @@
-<div id="global_search_form">
+<div id="<%= user_dom_id("global_search_form") %>">
   <%= form_with url: search_collections_path do |f| %>
     <div class="container flex flex-1 my-2">
       <%= f.text_field :query,

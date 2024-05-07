@@ -9,7 +9,6 @@ class CollectionsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("collection", partial: "collection") }
       format.html do
         @collections = current_user.collections
         render :index
@@ -64,7 +63,7 @@ class CollectionsController < ApplicationController
 
   def search
     query = params[:query]
-    dom_id = "search_results"
+    dom_id = user_dom_id("search_results")
 
     SearchJob.perform_async(@collection.id, query, dom_id)
 
@@ -93,7 +92,7 @@ class CollectionsController < ApplicationController
 
   def global_search
     query = params[:query]
-    dom_id = "global_search_results"
+    dom_id = user_dom_id("global_search_results")
     collection_ids = current_user.collections.select(:id).map(&:id)
 
     SearchMultipleJob.perform_async(collection_ids, query, dom_id)
@@ -103,11 +102,10 @@ class CollectionsController < ApplicationController
         render turbo_stream: [
           turbo_stream.replace(
             dom_id,
-            partial: "global_search_results",
-            locals: { query_id: dom_id }
+            partial: "global_search_results"
           ),
           turbo_stream.replace(
-            "global_search_form",
+            user_dom_id("global_search_form"),
             partial: "global_search_form",
             locals: { collection: @collection, query: }
           ),

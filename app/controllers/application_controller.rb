@@ -5,6 +5,10 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :set_current_user
 
+  def user_dom_id(id)
+    "#{current_user.id}_#{id}"
+  end
+
   private
 
   def render_not_found

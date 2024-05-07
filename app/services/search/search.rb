@@ -1,6 +1,6 @@
 module Search
   class Search < Base
-    def initialize(collection, dom_id: nil, partial: "shared/chunk", channel: :collection)
+    def initialize(collection, dom_id: nil, partial: "shared/chunk", channel: :collections)
       @collection = collection
       @dom_id = dom_id
       @partial = partial

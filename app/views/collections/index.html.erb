@@ -1,10 +1,11 @@
 <div class="flex">
+  <%= turbo_stream_from "collections" %>
+
   <%= render "shared/collection_list", collections: @collections %>
 
   <%= render "shared/collection_area" do %>
     <%= render "shared/notice" %>
 
-    <%= turbo_stream_from "collection" %>
     <div class="m-2 h-full">
       <% if @chunks %>
         <%= render "shared/chunks", chunks: @chunks, selected_id: @chunk.id %>
@@ -17,7 +18,7 @@
           <div class="flex flex-1 justify-center w-full items-center">
             <div class="w-3/4 py-5 px-6">
               <%= render "global_search_form", query: "" %>
-              <div id="global_search_results"></div>
+              <%= render "global_search_results" %>
             </div>
           </div>
         </div>
