@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-04-22 16:50:04.313766000 Z
+file_version: 2024-05-07 20:52:44.441475000 Z
 resources:
 - name: collection
   preferences:
@@ -20,6 +20,46 @@ resources:
         virtual: false
       name: embedding_model_id
   updated_at: 2024-04-10 17:34:20.219590000 +00:00
+- name: model_config
+  preferences:
+    actions:
+    - name: use_for_embedding
+      display_name: Use for embedding
+      action_type: method
+      preferences:
+        method_name: make_active_embedding_model
+    - name: use_for_summarization
+      display_name: Use for summarization
+      action_type: method
+      preferences:
+        method_name: make_active_summarization_model
+    - name: use_for_chat
+      display_name: Use for chat
+      action_type: method
+      preferences:
+        method_name: make_default_chat_model
+  updated_at: 2024-05-07 20:51:17.259051000 +00:00
+- name: setting
+  preferences:
+    columns:
+    - name: model
+      display_name: Model
+      column_type: reference
+      access_type: read_only
+      reference:
+        name: model
+        display_name: Model
+        model_name: model_config
+        reference_type: has_one
+        foreign_key: id
+        primary_key: value
+        options: {}
+        polymorphic: false
+        virtual: true
+      virtual: true
+      format: {}
+      validators: []
+  updated_at: 2024-05-07 20:52:44.441475000 +00:00
 configs:
 - key: header.links
   value:
@@ -33,6 +73,24 @@ configs:
     path: "/collections"
     link_type: header
   updated_at: 2024-04-22 16:50:04.313766000 +00:00
+- key: resources.model_config.actions.order
+  value:
+  - use_for_chat
+  - use_for_summarization
+  - use_for_embedding
+  - remove
+  - create
+  - edit
+  updated_at: 2024-05-07 20:46:51.428929000 +00:00
+- key: resources.setting.columns.order
+  value:
+  - id
+  - key
+  - value
+  - model
+  - updated_at
+  - created_at
+  updated_at: 2024-05-07 20:51:41.085043000 +00:00
 queries:
 - id: 1
   name: Users
