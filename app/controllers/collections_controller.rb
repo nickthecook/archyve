@@ -19,7 +19,7 @@ class CollectionsController < ApplicationController
   def create
     @collection = Collection.new
     @collection.name ||= "New collection"
-    @collection.embedding_model = ModelConfig.default_embedding_model
+    @collection.embedding_model = Setting.embedding_model
     @collection.save!
     @collection.generate_slug
 
@@ -94,6 +94,8 @@ class CollectionsController < ApplicationController
     query = params[:query]
     dom_id = user_dom_id("global_search_results")
     collection_ids = current_user.collections.select(:id).map(&:id)
+
+    return redirect_to(root_path, notice: "You don't have any collections yet.") if collection_ids.empty?
 
     SearchMultipleJob.perform_async(collection_ids, query, dom_id)
 

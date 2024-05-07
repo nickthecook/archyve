@@ -8,6 +8,8 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
+# USERS
+#
 default_user = ENV.fetch("USERNAME") { "admin@archyve.io" }
 default_password = ENV.fetch("PASSWORD") { "password" }
 model_endpoint = ENV.fetch("CHAT_ENDPOINT") { "http://localhost:11434" }
@@ -19,6 +21,8 @@ User.find_or_create_by!(email: default_user)  do |user|
   user.admin = true
 end
 
+# CLIENTS
+#
 default_client = Client.find_by(name: "default")
 default_client_id = ENV["DEFAULT_CLIENT_ID"]
 default_api_key = ENV["DEFAULT_API_KEY"]
@@ -42,6 +46,22 @@ else
   puts("DEFAULT_CLIENT_ID and DEFAULT_API_KEY not set; not creating or updating default client.")
 end
 
+# SETTINGS
+#
+Setting.find_or_create_by!(key: "chat_model") do |setting|
+  setting.value = ModelConfig.generation.default.last&.id
+end
+
+Setting.find_or_create_by!(key: "embedding_model") do |setting|
+  setting.value = ModelConfig.embedding.default.last&.id
+end
+
+Setting.find_or_create_by!(key: "summarization_model") do |setting|
+  setting.value = ModelConfig.generation.default.last&.id
+end
+
+# DEV
+#
 if Rails.env == "development"
   ModelServer.find_or_create_by!(name: "localhost") do |ms|
     ms.url = model_endpoint

@@ -19,9 +19,16 @@ class ConversationsController < ApplicationController
 
   # POST /conversations or /conversations.json
   def create
+    unless Setting.chat_model && Setting.embedding_model && Setting.summarization_model
+      return redirect_to(
+        conversations_path,
+        alert: "Please ask your admin to set the chat model, embedding model and summarization model in the admin UI."
+      )
+    end
+
     @conversation = Conversation.new
     @conversation.user = current_user
-    @conversation.model_config ||= ModelConfig.default_generation_model
+    @conversation.model_config ||= Setting.chat_model
     @conversation.title ||= "New conversation"
     @conversation.save!
 
