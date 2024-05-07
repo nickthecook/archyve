@@ -46,8 +46,6 @@ class ReplyToMessage
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
     append("messages", "messages/error", { error: "An internal error occurred" })
-  ensure
-    remove(reply_id, "messages/spinner") if @reply
   end
 
   private
@@ -105,8 +103,7 @@ class ReplyToMessage
     Turbo::StreamsChannel.broadcast_replace_to(target, partial:)
   end
 
-  def remove(target, locals = {})
-    locals.merge!({ message: @reply })
+  def remove(target)
     Turbo::StreamsChannel.broadcast_remove_to(target)
   end
 
