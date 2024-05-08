@@ -28,7 +28,7 @@ class SummarizeMessage
 
   def client
     @client ||= LlmClients::Client.client_class_for(@model_config.model_server.provider).new(
-      endpoint: Rails.configuration.summarization_endpoint,
+      endpoint: @model_config.model_server.url,
       model: @model_config.model,
       api_key: "todo"
     )
