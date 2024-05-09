@@ -6,6 +6,7 @@ class ModelConfig < ApplicationRecord
 
   scope :generation, -> { where(embedding: false) }
   scope :embedding, -> { where(embedding: true) }
+  scope :default, -> { where(default: true) }
 
   def description
     "#{name}@#{model_server.name}"
