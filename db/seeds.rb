@@ -7,6 +7,7 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+require 'json'
 
 # USERS
 #
@@ -60,34 +61,84 @@ Setting.find_or_create_by!(key: "summarization_model") do |setting|
   setting.value = ModelConfig.generation.default.last&.id
 end
 
+# PROVISIONING
+#
+devel_model_servers = [
+  {
+    name: "localhost",
+    provider: "ollama",
+  }
+]
+
+devel_model_configs = [
+  {
+    name: "mistral:instruct",
+    model_server: "localhost",
+    model: "mistral:instruct",
+    temperature: 0.1,
+  },
+  {
+    name: "gemma:7b",
+    model_server: "localhost",
+    model: "gemma:7b",
+    temperature: 0.2,
+  },
+  {
+    name: "all-minilm",
+    model_server: "localhost",
+    model: "all-minilm",
+    embedding: true,
+  },
+  {
+    name: "nomic-embed-text",
+    model_server: "localhost",
+    model: "nomic-embed-text",
+    embedding: true,
+  }
+]
+
+provisioned_model_servers = JSON.parse(ENV.fetch("PROVISIONED_MODEL_SERVERS") {
+  Rails.env == "development" ? JSON.generate(devel_model_servers) : '[]'
+})
+
+provisioned_model_configs = JSON.parse(ENV.fetch("PROVISIONED_MODEL_CONFIGS") {
+  Rails.env == "development" ? JSON.generate(devel_model_configs) : '[]'
+})
+
+
+provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }
+provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"] }
+
+ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(enabled: false, provisioned: false)
+ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(enabled: false, provisioned: false)
+
+provisioned_model_servers.each do |config|
+  puts "provisioning model server for `#{config["name"]}` ..."
+
+  ModelServer.find_or_create_by!(name: config["name"]).update(
+    url: config.fetch("url") { model_endpoint },
+    provider: config.fetch("provider"),
+    default: config.fetch("default") { false },
+    provisioned: true,
+  )
+end
+
+provisioned_model_configs.each do |config|
+  server = ModelServer.find_by(name: config.fetch("model_server", "localhost"))
+  puts "provisioning model configuration for `#{config["name"]}` ..."
+
+  ModelConfig.find_or_create_by!(name: config["name"], model_server: server).update(
+    model: config.fetch("model") { config["name"] },
+    temperature: config.fetch("temperature") { nil },
+    embedding: config.fetch("embedding") { false },
+    default: config.fetch("default") { false },
+    provisioned: true,
+  )
+end
+
 # DEV
 #
 if Rails.env == "development"
-  ModelServer.find_or_create_by!(name: "localhost") do |ms|
-    ms.url = model_endpoint
-    ms.provider = "ollama"
-  end
-
-  ModelConfig.find_or_create_by!(name: "mistral:instruct", model_server: ModelServer.first) do |mc|
-    mc.model = "mistral:instruct"
-    mc.temperature = 0.1
-  end
-
-  ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first) do |mc|
-    mc.model = "gemma:7b"
-    mc.temperature = 0.2
-  end
-
-  ModelConfig.find_or_create_by!(name: "all-minilm", model_server: ModelServer.first) do |mc|
-    mc.model = "all-minilm"
-    mc.embedding = true
-  end
-
-  ModelConfig.find_or_create_by!(name: "nomic-embed-text", model_server: ModelServer.first) do |mc|
-    mc.model = "nomic-embed-text"
-    mc.embedding = true
-  end
-
   if default_client
       puts <<~TEXT
       To authenticate with the default API client, set these headers:
