@@ -7,7 +7,6 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
-require 'json'
 
 # USERS
 #
@@ -65,7 +64,8 @@ end
 #
 dev_model_servers = [
   {
-    name: "localhost",
+    name: "ollama",
+    url: "localhost",
     provider: "ollama",
   }
 ]
@@ -73,19 +73,19 @@ dev_model_servers = [
 dev_model_configs = [
   {
     name: "mistral:instruct",
-    model_server: "localhost",
+    model_server: dev_model_servers.first["name"],
     model: "mistral:instruct",
     temperature: 0.1,
   },
   {
     name: "gemma:7b",
-    model_server: "localhost",
+    model_server: dev_model_servers.first["name"],
     model: "gemma:7b",
     temperature: 0.2,
   },
   {
     name: "nomic-embed-text",
-    model_server: "localhost",
+    model_server: dev_model_servers.first["name"],
     model: "nomic-embed-text",
     embedding: true,
   }
@@ -114,30 +114,21 @@ provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"]
 ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(available: false, provisioned: false)
 ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
 
-provisioned_model_servers.each do |config|
-  puts "provisioning model server for `#{config["name"]}` ..."
+provisioned_model_servers.each do |fields|
+  puts "provisioning model server for `#{fields["name"]}` ..."
 
-  ModelServer.find_or_create_by!(name: config["name"]).update(
-    url: config.fetch("url") { model_endpoint },
-    provider: config.fetch("provider"),
-    default: config.fetch("default") { false },
-    available: config.fetch("available") { true },
-    provisioned: true,
-  )
+  ModelServer.find_or_initialize_by(name: fields["name"])
+             .update!(**fields, provisioned: true)
 end
 
-provisioned_model_configs.each do |config|
-  server = ModelServer.find_by(name: config.fetch("model_server", "localhost"))
-  puts "provisioning model configuration for `#{config["name"]}` ..."
+provisioned_model_configs.each do |fields|
+  puts "provisioning model configuration for `#{fields["name"]}` ..."
 
-  ModelConfig.find_or_create_by!(name: config["name"], model_server: server).update(
-    model: config.fetch("model") { config["name"] },
-    temperature: config.fetch("temperature") { nil },
-    embedding: config.fetch("embedding") { false },
-    default: config.fetch("default") { false },
-    available: config.fetch("available") { true },
-    provisioned: true,
-  )
+  server = ModelServer.find_by(name: fields.fetch("model_server", "ollama"))
+  fields["model_server"] = server
+
+  ModelConfig.find_or_initialize_by(name: fields["name"], model_server: server)
+             .update!(**fields, provisioned: true)
 end
 
 # DEV
