@@ -111,8 +111,8 @@ end
 provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }
 provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"] }
 
-ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(enabled: false, provisioned: false)
-ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(enabled: false, provisioned: false)
+ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(available: false, provisioned: false)
+ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
 
 provisioned_model_servers.each do |config|
   puts "provisioning model server for `#{config["name"]}` ..."
@@ -121,6 +121,7 @@ provisioned_model_servers.each do |config|
     url: config.fetch("url") { model_endpoint },
     provider: config.fetch("provider"),
     default: config.fetch("default") { false },
+    available: config.fetch("available") { true },
     provisioned: true,
   )
 end
@@ -134,6 +135,7 @@ provisioned_model_configs.each do |config|
     temperature: config.fetch("temperature") { nil },
     embedding: config.fetch("embedding") { false },
     default: config.fetch("default") { false },
+    available: config.fetch("available") { true },
     provisioned: true,
   )
 end
