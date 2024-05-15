@@ -63,14 +63,14 @@ end
 
 # PROVISIONING
 #
-devel_model_servers = [
+dev_model_servers = [
   {
     name: "localhost",
     provider: "ollama",
   }
 ]
 
-devel_model_configs = [
+dev_model_configs = [
   {
     name: "mistral:instruct",
     model_server: "localhost",
@@ -84,12 +84,6 @@ devel_model_configs = [
     temperature: 0.2,
   },
   {
-    name: "all-minilm",
-    model_server: "localhost",
-    model: "all-minilm",
-    embedding: true,
-  },
-  {
     name: "nomic-embed-text",
     model_server: "localhost",
     model: "nomic-embed-text",
@@ -97,13 +91,21 @@ devel_model_configs = [
   }
 ]
 
-provisioned_model_servers = JSON.parse(ENV.fetch("PROVISIONED_MODEL_SERVERS") {
-  Rails.env == "development" ? JSON.generate(devel_model_servers) : '[]'
-})
+provisioned_model_servers = if ENV["PROVISIONED_MODEL_SERVERS"].present?
+  JSON.parse(ENV["PROVISIONED_MODEL_SERVERS"])
+elsif Rails.env == "development"
+  dev_model_servers
+else
+  []
+end
 
-provisioned_model_configs = JSON.parse(ENV.fetch("PROVISIONED_MODEL_CONFIGS") {
-  Rails.env == "development" ? JSON.generate(devel_model_configs) : '[]'
-})
+provisioned_model_configs = if ENV["PROVISIONED_MODEL_CONFIGS"].present?
+  JSON.parse(ENV["PROVISIONED_MODEL_CONFIGS"])
+elsif Rails.env == "development"
+  dev_model_configs
+else
+  []
+end
 
 
 provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }

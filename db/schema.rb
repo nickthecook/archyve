@@ -137,8 +137,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_07_181405) do
     t.integer "model_server_id", null: false
     t.boolean "embedding", default: false
     t.boolean "default", default: false
-    t.boolean "provisioned", default: false
-    t.boolean "enabled", default: true
     t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
@@ -147,8 +145,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_07_181405) do
     t.string "url"
     t.integer "provider"
     t.boolean "default"
-    t.boolean "provisioned", default: false
-    t.boolean "enabled", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
