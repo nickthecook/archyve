@@ -60,34 +60,80 @@ Setting.find_or_create_by!(key: "summarization_model") do |setting|
   setting.value = ModelConfig.generation.default.last&.id
 end
 
+# PROVISIONING
+#
+dev_model_servers = [
+  {
+    name: "ollama",
+    url: "localhost",
+    provider: "ollama",
+  }
+]
+
+dev_model_configs = [
+  {
+    name: "mistral:instruct",
+    model_server: dev_model_servers.first["name"],
+    model: "mistral:instruct",
+    temperature: 0.1,
+  },
+  {
+    name: "gemma:7b",
+    model_server: dev_model_servers.first["name"],
+    model: "gemma:7b",
+    temperature: 0.2,
+  },
+  {
+    name: "nomic-embed-text",
+    model_server: dev_model_servers.first["name"],
+    model: "nomic-embed-text",
+    embedding: true,
+  }
+]
+
+provisioned_model_servers = if ENV["PROVISIONED_MODEL_SERVERS"].present?
+  JSON.parse(ENV["PROVISIONED_MODEL_SERVERS"])
+elsif Rails.env == "development"
+  dev_model_servers
+else
+  []
+end
+
+provisioned_model_configs = if ENV["PROVISIONED_MODEL_CONFIGS"].present?
+  JSON.parse(ENV["PROVISIONED_MODEL_CONFIGS"])
+elsif Rails.env == "development"
+  dev_model_configs
+else
+  []
+end
+
+
+provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }
+provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"] }
+
+ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(available: false, provisioned: false)
+ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
+
+provisioned_model_servers.each do |fields|
+  puts "provisioning model server for `#{fields["name"]}` ..."
+
+  ModelServer.find_or_initialize_by(name: fields["name"])
+             .update!(**fields, provisioned: true)
+end
+
+provisioned_model_configs.each do |fields|
+  puts "provisioning model configuration for `#{fields["name"]}` ..."
+
+  server = ModelServer.find_by(name: fields.fetch("model_server", "ollama"))
+  fields["model_server"] = server
+
+  ModelConfig.find_or_initialize_by(name: fields["name"], model_server: server)
+             .update!(**fields, provisioned: true)
+end
+
 # DEV
 #
 if Rails.env == "development"
-  ModelServer.find_or_create_by!(name: "localhost") do |ms|
-    ms.url = model_endpoint
-    ms.provider = "ollama"
-  end
-
-  ModelConfig.find_or_create_by!(name: "mistral:instruct", model_server: ModelServer.first) do |mc|
-    mc.model = "mistral:instruct"
-    mc.temperature = 0.1
-  end
-
-  ModelConfig.find_or_create_by!(name: "gemma:7b", model_server: ModelServer.first) do |mc|
-    mc.model = "gemma:7b"
-    mc.temperature = 0.2
-  end
-
-  ModelConfig.find_or_create_by!(name: "all-minilm", model_server: ModelServer.first) do |mc|
-    mc.model = "all-minilm"
-    mc.embedding = true
-  end
-
-  ModelConfig.find_or_create_by!(name: "nomic-embed-text", model_server: ModelServer.first) do |mc|
-    mc.model = "nomic-embed-text"
-    mc.embedding = true
-  end
-
   if default_client
       puts <<~TEXT
       To authenticate with the default API client, set these headers:
