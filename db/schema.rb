@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_05_07_181405) do
+ActiveRecord::Schema[7.1].define(version: 2024_05_09_190359) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -137,6 +137,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_07_181405) do
     t.integer "model_server_id", null: false
     t.boolean "embedding", default: false
     t.boolean "default", default: false
+    t.boolean "provisioned", default: false
+    t.boolean "available", default: true
     t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
@@ -147,6 +149,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_05_07_181405) do
     t.boolean "default"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "provisioned", default: false
+    t.boolean "available", default: true
   end
 
   create_table "motor_alert_locks", force: :cascade do |t|
