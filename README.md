@@ -16,6 +16,25 @@ Archyve provides:
 
 ## Getting started
 
+### Dependencies
+
+1. On a Mac ensure you have [brew](https://brew.sh) installed
+2. Make sure you have `podman` or `docker` setup and a "machine" configured and ready to pull and run container images.
+3. Ensure you have [ops](https://github.com/nickthecook/crops?tab=readme-ov-file#installation) installed
+
+### Develop
+
+To start working / developing with Archyve locally, assuming dependencies are good:
+
+1. Install [Ollama](https://ollama.com/) and make sure you're running `ollama serve` and that you have the minimum models installed (see section on Ollama further below).
+2. Clone this repo
+3. `ops up`
+4. `ops rails db:setup`
+5. `ops rails server`
+6. Go to `http://127.0.0.1:3300/` and you can login using `admin@archyve.io` and `password` to get started.
+
+### Build
+
 To run Archyve, use `docker compose` or `podman compose`.
 
 1. Clone this repo
