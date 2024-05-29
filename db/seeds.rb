@@ -76,12 +76,12 @@ dev_model_configs = [
     model_server: dev_model_servers.first["name"],
     model: "nomic-embed-text",
     embedding: true,
+    default: true,
   },
   {
     name: "all-minilm",
     model_server: dev_model_servers.first["name"],
     model: "all-minilm",
-    default: true,
     embedding: true,
   }
 
