@@ -46,19 +46,6 @@ else
   puts("DEFAULT_CLIENT_ID and DEFAULT_API_KEY not set; not creating or updating default client.")
 end
 
-# SETTINGS
-#
-Setting.find_or_create_by!(key: "chat_model") do |setting|
-  setting.value = ModelConfig.generation.default.last&.id
-end
-
-Setting.find_or_create_by!(key: "embedding_model") do |setting|
-  setting.value = ModelConfig.embedding.default.last&.id
-end
-
-Setting.find_or_create_by!(key: "summarization_model") do |setting|
-  setting.value = ModelConfig.generation.default.last&.id
-end
 
 # PROVISIONING
 #
@@ -76,6 +63,7 @@ dev_model_configs = [
     model_server: dev_model_servers.first["name"],
     model: "mistral:instruct",
     temperature: 0.1,
+    default: true,
   },
   {
     name: "gemma:7b",
@@ -88,7 +76,15 @@ dev_model_configs = [
     model_server: dev_model_servers.first["name"],
     model: "nomic-embed-text",
     embedding: true,
+  },
+  {
+    name: "all-minilm",
+    model_server: dev_model_servers.first["name"],
+    model: "all-minilm",
+    default: true,
+    embedding: true,
   }
+
 ]
 
 provisioned_model_servers = if ENV["PROVISIONED_MODEL_SERVERS"].present?
@@ -107,7 +103,6 @@ else
   []
 end
 
-
 provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }
 provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"] }
 
@@ -115,20 +110,35 @@ ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_na
 ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
 
 provisioned_model_servers.each do |fields|
-  puts "provisioning model server for `#{fields["name"]}` ..."
+  puts "provisioning model server for `#{fields[:name]}` ..."
 
   ModelServer.find_or_initialize_by(name: fields["name"])
              .update!(**fields, provisioned: true)
 end
 
 provisioned_model_configs.each do |fields|
-  puts "provisioning model configuration for `#{fields["name"]}` ..."
+  puts "provisioning model configuration for `#{fields[:name]}` ..."
 
   server = ModelServer.find_by(name: fields.fetch("model_server", "ollama"))
   fields["model_server"] = server
 
   ModelConfig.find_or_initialize_by(name: fields["name"], model_server: server)
              .update!(**fields, provisioned: true)
+end
+
+
+# SETTINGS
+#
+Setting.find_or_create_by!(key: "chat_model") do |setting|
+  setting.value = ModelConfig.generation.default.last&.id
+end
+
+Setting.find_or_create_by!(key: "embedding_model") do |setting|
+  setting.value = ModelConfig.embedding.default.last&.id
+end
+
+Setting.find_or_create_by!(key: "summarization_model") do |setting|
+  setting.value = ModelConfig.generation.default.last&.id
 end
 
 # DEV
