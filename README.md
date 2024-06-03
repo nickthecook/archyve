@@ -132,11 +132,15 @@ You can select an embedding model separately for each Collection you create insi
 
 To make an embedding model available for use in Archyve, go to the ModelConfig page in the [admin UI](http://127.0.0.1:3300/admin), create a new ModelConfig, and set `embedding` to `true`. The new embedding model should be an option when creating a Collection, or viewing a Collection which has no Documents in it.
 
+> NOTE The default seeds setup `nomic-embed-text` as default embedding model.
+
 Make sure you pull the model in Ollama.
 
 ### Summarization model
 
 You can change summarization model by changing `SUMMARIZATION_ENDPOINT` and `SUMMARIZATION_MODEL` in your `local.env` file and restarting the server. If you change these values, make sure the new models are present in Ollama.
+
+> NOTE The default seeds setup `mistral:instruct` as default embedding model.
 
 ## Admin UI
 
