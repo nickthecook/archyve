@@ -78,7 +78,7 @@ class ReplyToMessage
 
   def convert_to_markdown
     Turbo::StreamsChannel.broadcast_append_to(
-      "conversations",
+      channel_name,
       target: reply_id,
       html: <<~HTML
         <script>
@@ -90,12 +90,12 @@ class ReplyToMessage
 
   def append(target, partial, locals = {})
     locals.merge!({ message: @reply })
-    Turbo::StreamsChannel.broadcast_append_to("conversations", target:, partial:, locals:)
+    Turbo::StreamsChannel.broadcast_append_to(channel_name, target:, partial:, locals:)
   end
 
   def prepend(target, partial, locals = {})
     locals.merge!({ message: @reply })
-    Turbo::StreamsChannel.broadcast_prepend_to("conversations", target:, partial:, locals:)
+    Turbo::StreamsChannel.broadcast_prepend_to(channel_name, target:, partial:, locals:)
   end
 
   def replace(target, partial, locals = {})

@@ -1,12 +1,13 @@
 class Message < ApplicationRecord
   belongs_to :conversation
   belongs_to :author, polymorphic: true
+  has_one :user, through: :conversation
 
   include Turbo::Broadcastable
 
   after_create_commit -> { 
     broadcast_append_to(
-      :conversations,
+      user_dom_id("conversations"),
       target: "messages",
       partial: "messages/message"
     )
@@ -14,10 +15,9 @@ class Message < ApplicationRecord
   }
   after_update_commit -> { 
     broadcast_replace_to(
-      :conversations,
+      user_dom_id("conversations"),
       target: "message_#{id}",
       partial: "messages/message"
     )
   }
-end
- 
+end 
