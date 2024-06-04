@@ -19,4 +19,4 @@ class Message < ApplicationRecord
       partial: "messages/message"
     )
   }
-end 
+end
