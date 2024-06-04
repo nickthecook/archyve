@@ -17,6 +17,7 @@ class MessagesController < ApplicationController
         render @message.conversation
       end
 
+      TitleSetterJob.perform_async(@conversation.id) if @conversation.messages.count == 1
       ReplyJob.perform_async(@message.id)
     end
   end
