@@ -174,7 +174,7 @@ Current state:
 
 - [x] collections/index: channel `collections` -> no change
   - [x] shared/collection_list: dom_id `collections` -> no change
-  - [ ] shared/collection_list_item: dom_id `dom_id(collection)` -> `"#{dom_id(collection)}-list_item`
+  - [x] shared/collection_list_item: dom_id `dom_id(collection)` -> `"#{dom_id(collection)}-list_item`
   - [ ] shared/collection_area: dom_id `collection_area` -> `user_dom_id("collection_area")`
     - [ ] shared/chunks
       - [ ] shared/chunk: dom_id `dom_id(chunk)`
