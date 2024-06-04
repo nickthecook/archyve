@@ -1,5 +1,5 @@
 <% collection ||= @collection %>
-<div id="<%= user_dom_id("search_form") %>">
+<div id="<%= dom_id(collection) + "_search_form" %>">
   <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex flex-1">
       <% 

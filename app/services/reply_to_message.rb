@@ -54,7 +54,7 @@ class ReplyToMessage
     return unless collections_to_search.any?
 
     Turbo::StreamsChannel.broadcast_append_to(
-      "conversations",
+      channel_name,
       target: "messages",
       partial: "shared/conversation_event",
       locals: {
@@ -158,5 +158,9 @@ class ReplyToMessage
 
   def reply_id
     @reply_id ||= "message_#{@reply.id}"
+  end
+
+  def channel_name
+    "#{@message.conversation.user.id}_conversations"
   end
 end

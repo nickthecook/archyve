@@ -1,7 +1,7 @@
 <div class="flex">
   <%= render "conversation_list", conversations: @conversations %>
 
-  <div id="conversation_area" class="overflow-y-scroll flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+  <div class="overflow-y-scroll flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
     <div class="container flex justify-center w-full align-center">
       <% if notice %>
         <p class="text-sm notice text-secondary-700"><%= notice %></p>
@@ -10,7 +10,7 @@
       <% end %>
     </div>
 
-    <%= turbo_stream_from "conversations" %>
+    <%= turbo_stream_from user_dom_id("conversations") %>
     <div class="m-2 h-full">
       <% if @conversation %>
         <%= render @conversation %>

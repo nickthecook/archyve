@@ -10,14 +10,14 @@ class Document < ApplicationRecord
 
   after_create_commit lambda {
     broadcast_append_to(
-      :collection,
+      :collections,
       target: "documents",
       partial: "shared/document"
     )
   }
   after_update_commit lambda {
     broadcast_replace_to(
-      :collection,
+      :collections,
       target: "document_#{id}",
       partial: "shared/document",
       document: @document
@@ -27,16 +27,10 @@ class Document < ApplicationRecord
       target: "document_#{id}-details",
       partial: "documents/document"
     )
-    broadcast_replace_to(
-      :collection,
-      target: "search_form",
-      partial: "collections/search_form",
-      locals: { collection:, query: "" }
-    )
   }
   after_destroy_commit lambda {
     broadcast_remove_to(
-      :collection,
+      :collections,
       target: "document_#{id}"
     )
   }
