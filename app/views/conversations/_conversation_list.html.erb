@@ -4,7 +4,7 @@
     <%= button_to "New conversation", conversations_path, class: "rounded-lg py-1 px-3 mb-4 my-2 text-center text-secondary-950 dark:text-secondary-950 block font-medium bg-primary-600 dark:bg-primary-400", data: { turbo: false } %>
     <div class="overflow-y-scroll flex-1 no-scrollbar">
       <% conversations.order(created_at: :desc).each do |conversation| %>
-        <%= render "conversation_list_item", conversation: %>
+        <%= render "conversation_list_item", conversation:, selected: %>
       <% end %>
     </div>
     <div class="w-full text-sm font-bold text-center my-1">

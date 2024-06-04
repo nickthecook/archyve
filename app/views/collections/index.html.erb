@@ -1,7 +1,8 @@
 <div class="flex">
   <%= turbo_stream_from "collections" %>
 
-  <%= render "shared/collection_list", collections: @collections %>
+  <% selected = @collection || @document&.collection || @chunk&.document&.collection %>
+  <%= render "shared/collection_list", collections: @collections, selected: %>
 
   <%= render "shared/collection_area" do %>
     <%= render "shared/notice" %>

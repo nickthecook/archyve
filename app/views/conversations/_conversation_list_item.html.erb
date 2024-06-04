@@ -1,5 +1,12 @@
 <div id="<%= dom_id(conversation) %>">
-  <div class="container flex hover:bg-secondary-300 dark:hover:bg-secondary-700 rounded-md p-1">
+  <%
+    bg_class = if selected.id == conversation.id
+      "bg-secondary-200 dark:bg-secondary-600 hover:bg-secondary-200 dark:hover:bg-secondary-500"
+    else
+      "hover:bg-secondary-300 dark:hover:bg-secondary-700"
+    end
+  %>
+  <div class="container flex rounded-md p-1 <%= bg_class %>">
     <%= link_to conversation, class: "flex-1" do %>
       <div class="px-2 py-1 text-sm">
         <%= conversation.title %>
