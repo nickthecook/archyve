@@ -41,7 +41,7 @@ class CollectionsController < ApplicationController
           render turbo_stream: turbo_stream.replace(
             "#{helpers.dom_id(@collection)}_list_item",
             partial: "shared/collection_list_item",
-            locals: { collection: @collection }
+            locals: { collection: @collection, selected: @collection }
           )
         end
         format.html { redirect_to collection_url(@collection) }

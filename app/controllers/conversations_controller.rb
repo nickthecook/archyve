@@ -51,7 +51,7 @@ class ConversationsController < ApplicationController
           render turbo_stream: turbo_stream.replace(
             helpers.dom_id(@conversation),
             partial: "conversation_list_item",
-            locals: { conversation: @conversation }
+            locals: { conversation: @conversation, selected: @conversation }
           )
         end
         format.html { redirect_to conversation_url(@conversation) }
