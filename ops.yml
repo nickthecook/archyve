@@ -3,6 +3,7 @@ dependencies:
     - overmind
   custom:
     - bundle config --local path vendor/bundle
+    - bundle config set --local build.pg ${PG_OPTS}
     - bundle
     - ops deps start
     - yarn
@@ -42,5 +43,8 @@ actions:
         -H "X-Client-id: $DEFAULT_CLIENT_ID" | jq
     load_secrets: true
 options:
+  environment:
+    HOMEBREW_PREFIX: $(brew --prefix)
+    PG_OPTS: ${PG_OPTS:- --with-pg-lib=/usr/lib --with-opt-dir="${HOMEBREW_PREFIX:-/usr/local}/opt/libpq"}
   exec:
     load_secrets: true
