@@ -151,3 +151,45 @@ There is a link to it in the bottom of the side bar.
 ## Jobs
 
 Archyve uses a jobs framework called Sidekiq. It has a web UI that you can access at http://127.0.0.1/sidekiq if you are logged in as an admin.
+
+## TurboStream design
+
+In general:
+
+- use a separate channel for each group of things that need to be independently authorized
+  - e.g. a user can see their own conversations but not the conversations of other users
+  - therefore, we need to use a separate `conversations` channel for each user
+  - using user-specific `dom_id`s is not enough: that would prevent User 1 from seeing User 2's updates in their browser, but User 2's data would still be sent to User 1, and viewable in dev tools
+  - all Users can see all Collections for now, so we don't need user-specific Collection-related channels
+- use helpers to generate channel IDs and dom IDs in case we need to change how it works at some point
+  - models: ApplicationRecord#channel_id, ApplicationRecord#dom_id
+  - views: ApplicationHelper#channel_id, ApplicationHelper#dom_id
+  - controllers: ApplcationController#channel_id, ApplicationController#dom_id
+
+
+
+### Streams
+
+Current state:
+
+- [x] collections/index: channel `collections` -> no change
+  - [x] shared/collection_list: dom_id `collections` -> no change
+  - [ ] shared/collection_list_item: dom_id `dom_id(collection)` -> `"#{dom_id(collection)}-list_item`
+  - [ ] shared/collection_area: dom_id `collection_area` -> `user_dom_id("collection_area")`
+    - [ ] shared/chunks
+      - [ ] shared/chunk: dom_id `dom_id(chunk)`
+    - [ ] shared/document: dom_id `dom_id(document)`
+    - [ ] collection/collection: dom_id `dom_id(collection)`, `dom_id(collection)-documents`
+      - [ ] collections/search_form: dom_id `user_dom_id("search_form")`
+      - [ ] shared/document (above)
+      - [ ] documents/form: dom_id `document_form`
+  - [ ] collections/global_search_form: `user_dom_id(global_search_form)`
+  - [ ] collections/global_search_results: `user_dom_id(global_search_results)`
+- [ ] conversations/index: channel `conversations`, dom_id `conversation_area`
+  - [ ] conversations/conversation_list: dom_id `conversations`
+    - [ ] conversations/conversation_list_item: dom_id `dom_id(conversation)`
+  - [ ] conversations/conversation: dom_id `conversation`, dom_id `messages`
+    - [ ] conversations/conversation_form
+    - [ ] messages/message: dom_id `dom_id(message)`
+    - [ ] messages/form
+  - [ ] conversations/no_conversation
