@@ -21,6 +21,7 @@ module LlmClients
     MODEL_TEMPLATE_MAP = {
       "^gemma:" => { prefix: "<start_of_turn>user\n", suffix: "<end_of_turn>\n<start_of_turn>model" },
       "^mi[xs]tral:" => { prefix: "<s>[INST]", suffix: "[/INST] " },
+      "^granite-code:" => { prefix: "<|user|>", suffix: "<|assistant|>" },
     }.freeze
     TIMEOUT_RETRIES = 3
 
