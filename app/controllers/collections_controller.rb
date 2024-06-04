@@ -40,7 +40,7 @@ class CollectionsController < ApplicationController
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
             helpers.dom_id(@collection),
-            partial: "collection_list_item",
+            partial: "shared/collection_list_item",
             locals: { collection: @collection }
           )
         end

@@ -7,7 +7,7 @@
           class: "rounded-md bg-secondary-50 dark:bg-secondary-800",
           value: @collection.name,
           placeholder: "name",
-          onchange: "this.form.submit()"
+          onchange: "this.form.requestSubmit()"
         )%>
         <%
           if @collection.documents.any?
@@ -20,7 +20,7 @@
         %>
         <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :name, {}, {
           class: classes,
-          onchange: "this.form.submit()",
+          onchange: "this.form.requestSubmit()",
           disabled: disabled
         })%>
         <%= f.submit "Update", hidden: true %>
