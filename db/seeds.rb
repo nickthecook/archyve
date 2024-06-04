@@ -52,7 +52,7 @@ end
 dev_model_servers = [
   {
     name: "ollama",
-    url: "localhost",
+    url: "http://localhost:11434",
     provider: "ollama",
   }
 ]
