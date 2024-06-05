@@ -104,6 +104,7 @@ module Chromadb
     end
 
     def get(path)
+      Rails.logger.info("[CHROMADB] GET #{path}")
       @last_response = HTTParty.get(url(path), headers: { "Content-Type" => "application/json" })
 
       unless @last_response.success?
@@ -114,6 +115,7 @@ module Chromadb
     end
 
     def post(path, body = {})
+      Rails.logger.info("[CHROMADB] POST #{path}")
       @last_response = HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
 
       unless @last_response.success?
@@ -124,6 +126,7 @@ module Chromadb
     end
 
     def delete(path)
+      Rails.logger.info("[CHROMADB] DELETE #{path}")
       @last_response = HTTParty.delete(url(path), headers: { "Content-Type" => "application/json" })
 
       unless @last_response.success?
