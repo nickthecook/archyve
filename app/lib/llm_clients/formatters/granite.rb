@@ -2,7 +2,7 @@ module LlmClients
   module Formatters
     class Granite
       def format(string)
-        string.gsub(/\n\s+```/, "")
+        string.gsub(/\s+```/, "")
       end
     end
   end
