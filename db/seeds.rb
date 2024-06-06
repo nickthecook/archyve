@@ -77,14 +77,7 @@ dev_model_configs = [
     model: "nomic-embed-text",
     embedding: true,
     default: true,
-  },
-  {
-    name: "all-minilm",
-    model_server: dev_model_servers.first["name"],
-    model: "all-minilm",
-    embedding: true,
   }
-
 ]
 
 provisioned_model_servers = if ENV["PROVISIONED_MODEL_SERVERS"].present?
