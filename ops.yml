@@ -1,6 +1,7 @@
 dependencies:
   brew:
     - overmind
+    - poppler
   custom:
     - bundle config --local path vendor/bundle
     - bundle config set --local build.pg ${PG_OPTS}
