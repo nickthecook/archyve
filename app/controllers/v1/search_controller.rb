@@ -4,7 +4,7 @@ module V1
       query = params[:q]
       return render json: { "error": "No query given" }, status: :bad_request if query.blank?
 
-      render json: { hits: Api::SearchMultiple.new(@client.collections, base_url: request.base_url).search(query) }
+      render json: { hits: Api::SearchMultiple.new(@client.collections, base_url:).search(query) }
     rescue StandardError => e
       Rails.logger.error "Error while searching for #{query}: #{e}"
 

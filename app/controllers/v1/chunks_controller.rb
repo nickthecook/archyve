@@ -1,6 +1,6 @@
 module V1
   class ChunksController < ApiController
-    before_action :set_chunk!
+    before_action :set_chunk!, only: :show
 
     def index
       @chunks = Chunk.all

@@ -49,5 +49,9 @@ module V1
       Rails.logger.info("oops")
       false
     end
+
+    def base_url
+      ENV["PUBLIC_URL_BASE"] || request.base_url
+    end
   end
 end
