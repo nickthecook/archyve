@@ -50,8 +50,8 @@ module V1
       false
     end
 
-    def base_url
-      ENV["PUBLIC_URL_BASE"] || request.base_url
+    def browser_base_url
+      ENV["BROWSER_BASE_URL"] || request.base_url
     end
   end
 end

@@ -4,9 +4,10 @@ module Api
 
     include Rails.application.routes.url_helpers
 
-    def initialize(collection, base_url: nil)
+    def initialize(collection, base_url: nil, browser_base_url: nil)
       @collection = collection
       @base_url = base_url
+      @browser_base_url = URI(browser_base_url)
     end
 
     def search(query)
@@ -81,7 +82,8 @@ module Api
         chunk.collection,
         chunk.document,
         chunk,
-        host: @base_url
+        host: @browser_base_url.host,
+        protocol: @browser_base_url.scheme
       )
     end
 
