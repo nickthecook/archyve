@@ -47,6 +47,7 @@ class Document < ApplicationRecord
     errored: 10,
   }
 
+  # rubocop:disable Metrics/BlockLength
   aasm column: :state, enum: true do
     state :created
     state :chunking
@@ -89,6 +90,7 @@ class Document < ApplicationRecord
       transitions to: :errored
     end
   end
+  # rubocop:enable Metrics/BlockLength
 
   def contents
     file.download
