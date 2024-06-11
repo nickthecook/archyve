@@ -83,7 +83,8 @@ module Api
         chunk.document,
         chunk,
         host: @browser_base_url.host,
-        protocol: @browser_base_url.scheme
+        protocol: @browser_base_url.scheme,
+        port: @browser_base_url.port
       )
     end
 
