@@ -43,6 +43,8 @@ class DocumentsController < ApplicationController
     DestroyJob.perform_async(@document.id)
 
     respond_to do |format|
+      # Document will take care of it
+      format.turbo_stream {}
       format.html { redirect_to collection_path(@collection) }
     end
   end
