@@ -27,7 +27,8 @@ module Archyve
     config.eager_load_paths << "#{root}/app/services"
     config.eager_load_paths << "#{root}/app/lib"
     config.autoload_paths << "#{root}/app/services"
-    config.autoload_paths << "#{root}/app/lib"
+    config.autoload_paths << Rails.root.join('app/lib')
+
 
     Sidekiq.strict_args!(false)
 

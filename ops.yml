@@ -11,6 +11,8 @@ dependencies:
     - yarn
   apt:
     - ruby-poppler
+  gem:
+    - rerun
 forwards:
   deps: deps
 actions:
@@ -48,6 +50,13 @@ actions:
   request_collections: ops request v1/collections
   request_docs: ops request v1/documents
   request_chunks: ops request v1/chunks
+  test:
+    command: bundle exec rspec
+    alias: t
+    load_secrets: true
+  test-watch:
+    command: rerun -qb ops test
+    alias: tw
 options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)
