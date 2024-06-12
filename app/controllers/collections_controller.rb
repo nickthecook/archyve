@@ -54,10 +54,11 @@ class CollectionsController < ApplicationController
   end
 
   def destroy
-    DestroyCollectionJob.perform_async(@collection.id)
+    @collection.destroy!
+
+    DestroyChromaCollectionJob.perform_async(@collection.slug)
 
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.remove(@collection) }
       format.html { redirect_to collections_url }
     end
   end

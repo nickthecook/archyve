@@ -1,9 +1,6 @@
 require "httparty"
 
 module Chromadb
-  class RequestError < StandardError; end
-  class ResponseError < StandardError; end
-
   class Client
     attr_reader :last_response
 
