@@ -101,3 +101,5 @@ gem "rubocop-rspec", "~> 2.28"
 gem "pagy", "~> 8.0"
 
 gem "motor-admin", "~> 0.4.26"
+
+gem "baran", "~> 0.1.12"
