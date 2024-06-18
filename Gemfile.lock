@@ -91,6 +91,7 @@ GEM
     audited (5.6.0)
       activerecord (>= 5.2, < 7.2)
       activesupport (>= 5.2, < 7.2)
+    baran (0.1.12)
     base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.6)
@@ -440,6 +441,7 @@ PLATFORMS
 DEPENDENCIES
   aasm (~> 5.5)
   activestorage (~> 7.1)
+  baran (~> 0.1.12)
   bootsnap
   capybara
   debug

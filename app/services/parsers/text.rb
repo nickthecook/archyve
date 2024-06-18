@@ -1,6 +1,7 @@
 module Parsers
+  # Plain text chunker that uses recursive text splitter
   class Text
-    include BasicTextChunker
+    include RecursiveTextChunker
 
     def initialize(document)
       @document = document
