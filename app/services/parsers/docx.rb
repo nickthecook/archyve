@@ -11,7 +11,7 @@ module Parsers
 
       Rails.logger.error("Error running '#{cmd}' on DOCX: #{@document.filename}\n#{serr}")
 
-      raise StandardError, "Error converting DPCX to markdown: #{@document.filename}'"
+      raise StandardError, "Error converting DOCX to markdown: #{@document.filename}'"
     end
   end
 end
