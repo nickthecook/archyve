@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-05-07 20:52:44.441475000 Z
+file_version: 2024-06-19 19:29:00.862401000 Z
 resources:
 - name: collection
   preferences:
@@ -39,6 +39,15 @@ resources:
       preferences:
         method_name: make_default_chat_model
   updated_at: 2024-05-07 20:51:17.259051000 +00:00
+- name: model_server
+  preferences:
+    actions:
+    - name: make_active
+      display_name: Make Active
+      action_type: method
+      preferences:
+        method_name: make_active
+  updated_at: 2024-06-19 19:29:00.862401000 +00:00
 - name: setting
   preferences:
     columns:
