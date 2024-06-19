@@ -8,18 +8,19 @@ class TheIngestor
     ensure_collection_exists
 
     @document.chunking!
-    chonker.each_with_index do |c, index|
+    chonker.each_with_index do |crec, index|
       if index.zero?
         # Temporary hack since parser is still a brute force chunker right now.
         @document.chunked!
         @document.embedding!
       end
 
-      chunk = Chunk.new(document: @document, content: c)
+      chunk = Chunk.new(document: @document, content: crec.content)
       chunk.save!
 
       Rails.logger.info("Embedding chunk #{chunk.id} (#{index})")
-      embedding = embedder.embed(chunk.content)
+      embedding = embedder.embed(crec.key)
+
       ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
       chunk.update!(vector_id: ids.first)
     end

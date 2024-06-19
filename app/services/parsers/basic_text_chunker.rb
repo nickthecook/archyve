@@ -32,7 +32,7 @@ module Parsers
           chunk = "#{chunk}#{beginning_of_next_chunk[1] if beginning_of_next_chunk}"
         end
 
-        overlapped_chunks << chunk
+        overlapped_chunks << ChunkRecord.new(content: chunk)
       end
 
       overlapped_chunks

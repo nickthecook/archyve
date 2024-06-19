@@ -12,7 +12,7 @@ module Parsers
                                                            separators: chunking_separators
 
       splitter.chunks(text).map do |c|
-        c[:text]
+        ChunkRecord.new(content: c[:text])
       end
     end
 
