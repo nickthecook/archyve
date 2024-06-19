@@ -51,32 +51,32 @@ end
 #
 dev_model_servers = [
   {
-    name: "ollama",
-    url: "http://localhost:11434",
-    provider: "ollama",
+    "name" => "ollama",
+    "url" => "http://localhost:11434",
+    "provider" => "ollama",
   }
 ]
 
 dev_model_configs = [
   {
-    name: "mistral:instruct",
-    model_server: dev_model_servers.first["name"],
-    model: "mistral:instruct",
-    temperature: 0.1,
-    default: true,
+    "name" => "mistral:instruct",
+    "model_server" => dev_model_servers.first["name"],
+    "model" => "mistral:instruct",
+    "temperature" => 0.1,
+    "default" => true,
   },
   {
-    name: "gemma:7b",
-    model_server: dev_model_servers.first["name"],
-    model: "gemma:7b",
-    temperature: 0.2,
+    "name" => "gemma:7b",
+    "model_server" => dev_model_servers.first["name"],
+    "model" => "gemma:7b",
+    "temperature" => 0.2,
   },
   {
-    name: "nomic-embed-text",
-    model_server: dev_model_servers.first["name"],
-    model: "nomic-embed-text",
-    embedding: true,
-    default: true,
+    "name" => "nomic-embed-text",
+    "model_server" => dev_model_servers.first["name"],
+    "model" => "nomic-embed-text",
+    "embedding" => true,
+    "default" => true,
   }
 ]
 
