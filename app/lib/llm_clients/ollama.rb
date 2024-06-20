@@ -54,10 +54,14 @@ module LlmClients
 
     def embed(prompt)
       response = with_retries do
-        HTTParty.post(uri(embedding_path), headers:, timeout: NETWORK_TIMEOUT, body: {
+        response = HTTParty.post(uri(embedding_path), headers:, timeout: NETWORK_TIMEOUT, body: {
           model: @embedding_model,
           prompt:,
         }.to_json)
+
+        raise RetryableError if response.code == 500
+
+        response
       end
 
       raise response_error_for(response) unless response.success?

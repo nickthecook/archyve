@@ -1,22 +1,4 @@
 module LlmClients
-  class ClientError < StandardError; end
-  class NetworkError < ClientError; end
-  class UnsupportedServerError < ClientError; end
-
-  class ResponseError < StandardError
-    attr_reader :additional_info
-
-    def initialize(message, additional_info)
-      @additional_info = additional_info
-
-      super(message)
-    end
-
-    def to_s
-      "#{self.class.name}: #{super}: #{additional_info.join("; ")}"
-    end
-  end
-
   # rubocop:disable Metrics/ClassLength
   class Client
     MODEL_TEMPLATE_MAP = {
@@ -142,10 +124,10 @@ module LlmClients
       while retries <= TIMEOUT_RETRIES
         begin
           return yield
-        rescue Net::OpenTimeout, Net::ReadTimeout => e
+        rescue Net::OpenTimeout, Net::ReadTimeout, RetryableError => e
           exception = e
           retries += 1
-          Rails.logger.warn("Attempt #{retries}/#{TIMEOUT_RETRIES} failed.")
+          Rails.logger.warn("Attempt #{retries}/#{TIMEOUT_RETRIES} failed: #{e.class.name}")
         end
       end
 
