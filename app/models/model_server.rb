@@ -8,6 +8,8 @@ class ModelServer < ApplicationRecord
 
   class << self
     def active_server
+      last.make_active if active.empty? && last.present?
+
       ModelServer.active.first
     end
   end

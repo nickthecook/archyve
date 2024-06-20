@@ -118,7 +118,7 @@ provisioned_model_configs.each do |fields|
   fields["model_server"] = server
 
   ModelConfig.find_or_initialize_by(name: fields["name"], model_server: server)
-             .update!(**fields, provisioned: true)
+    .update!(**fields, provisioned: true)
 end
 
 
