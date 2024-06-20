@@ -27,10 +27,14 @@ class SummarizeMessage
   end
 
   def client
-    @client ||= LlmClients::Client.client_class_for(@model_config.model_server.provider).new(
-      endpoint: @model_config.model_server.url,
+    @client ||= LlmClients::Client.client_class_for(active_server.provider).new(
+      endpoint: active_server.url,
       model: @model_config.model,
       api_key: "todo"
     )
+  end
+
+  def active_server
+    @active_server ||= ModelServer.active_server
   end
 end
