@@ -8,7 +8,7 @@
       onchange: "this.form.requestSubmit()",
       disabled: @conversation.messages.any? ? true : false
     )%>
-    <%= f.collection_select(:model_config_id, model_config_list, :id, :description, {}, {
+    <%= f.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
       class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
       onchange: "this.form.requestSubmit()",
       disabled: @conversation.messages.any? ? true : false

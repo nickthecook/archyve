@@ -1,12 +1,16 @@
 class ModelServer < ApplicationRecord
-  has_many :model_configs, dependent: :destroy
-
   scope :active, -> { where(active: true) }
 
   enum provider: {
     ollama: 1,
     openai: 2,
   }
+
+  class << self
+    def active_server
+      ModelServer.active.first
+    end
+  end
 
   def make_active
     active_servers = ModelServer.active

@@ -63,6 +63,8 @@ module LlmClients
       raise response_error_for(response) unless response.success?
 
       response.parsed_response
+    rescue SocketError
+      raise ResponseError.new("Unable to connect to the active server", [ModelServer.active_server.url])
     end
 
     private

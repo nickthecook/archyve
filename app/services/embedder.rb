@@ -20,6 +20,6 @@ class Embedder
   end
 
   def endpoint
-    @embedding_model.model_server.url
+    ModelServer.active_server.url
   end
 end

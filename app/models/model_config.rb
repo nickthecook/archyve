@@ -1,16 +1,11 @@
 class ModelConfig < ApplicationRecord
   class ModelTypeError < StandardError; end
 
-  belongs_to :model_server
   has_many :messages, as: :author, dependent: :destroy
 
   scope :generation, -> { where(embedding: false) }
   scope :embedding, -> { where(embedding: true) }
   scope :default, -> { where(default: true) }
-
-  def description
-    "#{name}@#{model_server.name}"
-  end
 
   def make_active_embedding_model
     raise ModelTypeError, "Model is not an embedding model" unless embedding?

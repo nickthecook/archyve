@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_19_195237) do
+ActiveRecord::Schema[7.1].define(version: 2024_06_20_133449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -134,11 +134,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_19_195237) do
     t.string "system_prompt"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "model_server_id", null: false
     t.boolean "embedding", default: false
     t.boolean "provisioned", default: false
     t.boolean "available", default: true
-    t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
   create_table "model_servers", force: :cascade do |t|
@@ -378,7 +376,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_19_195237) do
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
   add_foreign_key "messages", "conversations"
-  add_foreign_key "model_configs", "model_servers"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"
   add_foreign_key "motor_alerts", "motor_queries", column: "query_id"
   add_foreign_key "motor_note_tag_tags", "motor_note_tags", column: "tag_id"

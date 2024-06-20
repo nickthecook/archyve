@@ -109,7 +109,7 @@ provisioned_model_servers.each do |fields|
     .update!(**fields, provisioned: true)
 end
 
-ModelServer.last.make_active if ModelServer.active.empty?
+ModelServer.last.make_active if ModelServer.active_server.nil?
 
 provisioned_model_configs.each do |fields|
   puts "provisioning model configuration for `#{fields[:name]}` ..."

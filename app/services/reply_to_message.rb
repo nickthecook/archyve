@@ -1,5 +1,7 @@
 require "net/http"
 
+# TODO: fix this; disabled rubocop for now because I can't read the code with all the squigglies
+# rubocop:disable Metrics/ClassLength, Metrics/AbcSize
 class ReplyToMessage
   STATS = [:elapsed_ms, :tokens, :tokens_per_sec].freeze
 
@@ -37,7 +39,7 @@ class ReplyToMessage
   rescue LlmClients::ResponseError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: "#{e}: #{e.additional_info}" })
+    append("messages", "messages/error", { error: e })
   rescue Errno::ECONNREFUSED => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
@@ -110,9 +112,9 @@ class ReplyToMessage
   def streamer
     @streamer ||= ResponseStreamer.new(
       {
-        endpoint: model_config.model_server.url,
+        endpoint: ModelServer.active_server.url,
         model: model_config.model,
-        provider: model_config.model_server.provider,
+        provider: ModelServer.active_server.provider,
       },
       prompt
     )
@@ -164,3 +166,4 @@ class ReplyToMessage
     "#{@message.conversation.user.id}_conversations"
   end
 end
+# rubocop:enable Metrics/ClassLength, Metrics/AbcSize

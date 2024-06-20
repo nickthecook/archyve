@@ -17,6 +17,7 @@ module LlmClients
     end
   end
 
+  # rubocop:disable Metrics/ClassLength
   class Client
     MODEL_TEMPLATE_MAP = {
       "^gemma:" => { prefix: "<start_of_turn>user\n", suffix: "<end_of_turn>\n<start_of_turn>model" },
@@ -152,4 +153,5 @@ module LlmClients
       raise exception
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
