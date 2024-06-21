@@ -7,7 +7,9 @@ dependencies:
     - bundle config --local path vendor/bundle
     - bundle config set --local build.pg ${PG_OPTS}
     - bundle
-    - ops deps start
+    - containers:
+        up: ops deps start
+        down: ops deps stop
     - yarn
   apt:
     - ruby-poppler
