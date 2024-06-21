@@ -12,7 +12,7 @@ class Embedder
   private
 
   def client
-    @client ||= LlmClients::Ollama.new(
+    @client ||= LlmClients::Ollama::Client.new(
       endpoint:,
       api_key: "todo",
       embedding_model: @embedding_model.model

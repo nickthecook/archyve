@@ -68,10 +68,8 @@ class ResponseStreamer
   end
 
   def client_class_for(provider)
-    klass = LlmClients.const_get(provider.camelize)
+    return LlmClients::Ollama::Client if provider == "ollama"
 
-    raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'." unless klass
-
-    klass
+    raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
   end
 end

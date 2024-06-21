@@ -1,4 +1,4 @@
-RSpec.describe LlmClients::Ollama do
+RSpec.describe LlmClients::Ollama::Client do
   subject do
     described_class.new(
       endpoint:,

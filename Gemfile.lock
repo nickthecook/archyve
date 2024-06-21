@@ -128,6 +128,11 @@ GEM
     erubi (1.12.0)
     et-orbi (1.2.11)
       tzinfo
+    factory_bot (6.4.6)
+      activesupport (>= 5.0.0)
+    factory_bot_rails (6.4.3)
+      factory_bot (~> 6.4)
+      railties (>= 5.0.0)
     ffi (1.16.3)
     font-awesome-rails (4.7.0.8)
       railties (>= 3.2, < 8.0)
@@ -446,6 +451,7 @@ DEPENDENCIES
   capybara
   debug
   devise (~> 4.9)
+  factory_bot_rails
   font-awesome-rails (~> 4.7)
   fuubar
   httparty (~> 0.21.0)
