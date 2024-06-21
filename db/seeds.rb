@@ -60,23 +60,18 @@ dev_model_servers = [
 dev_model_configs = [
   {
     "name" => "mistral:instruct",
-    "model_server" => dev_model_servers.first["name"],
     "model" => "mistral:instruct",
     "temperature" => 0.1,
-    "default" => true,
   },
   {
     "name" => "gemma:7b",
-    "model_server" => dev_model_servers.first["name"],
     "model" => "gemma:7b",
     "temperature" => 0.2,
   },
   {
     "name" => "nomic-embed-text",
-    "model_server" => dev_model_servers.first["name"],
     "model" => "nomic-embed-text",
     "embedding" => true,
-    "default" => true,
   }
 ]
 
@@ -103,37 +98,32 @@ ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_na
 ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
 
 provisioned_model_servers.each do |fields|
-  puts "provisioning model server for `#{fields[:name]}` ..."
+  puts "provisioning model server for `#{fields["name"]}` ..."
 
-  ModelServer.find_or_initialize_by(name: fields["name"])
-    .update!(**fields, provisioned: true)
+  ModelServer.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
 end
 
 ModelServer.last.make_active if ModelServer.active_server.nil?
 
 provisioned_model_configs.each do |fields|
-  puts "provisioning model configuration for `#{fields[:name]}` ..."
+  puts "provisioning model configuration for `#{fields["name"]}` ..."
 
-  server = ModelServer.find_by(name: fields.fetch("model_server", "ollama"))
-  fields["model_server"] = server
-
-  ModelConfig.find_or_initialize_by(name: fields["name"], model_server: server)
-    .update!(**fields, provisioned: true)
+  ModelConfig.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
 end
 
 
 # SETTINGS
 #
 Setting.find_or_create_by!(key: "chat_model") do |setting|
-  setting.value = ModelConfig.generation.default.last&.id
+  setting.value = ModelConfig.generation.last&.id
 end
 
 Setting.find_or_create_by!(key: "embedding_model") do |setting|
-  setting.value = ModelConfig.embedding.default.last&.id
+  setting.value = ModelConfig.embedding.last&.id
 end
 
 Setting.find_or_create_by!(key: "summarization_model") do |setting|
-  setting.value = ModelConfig.generation.default.last&.id
+  setting.value = ModelConfig.generation.last&.id
 end
 
 # DEV
