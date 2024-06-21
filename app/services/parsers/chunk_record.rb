@@ -5,8 +5,6 @@ module Parsers
     attr_reader :content
 
     def initialize(content:, key: nil)
-      raise StandardError, "Content required" if content.nil? || content.blank?
-
       @content = content
       @key = key
     end
