@@ -59,17 +59,11 @@ class ResponseStreamer
   end
 
   def client
-    @client ||= client_class_for(@model.provider).new(
+    @client ||= LlmClients::Client.client_class_for(@model.provider).new(
       endpoint: @model.endpoint,
       api_key: @model.api_key,
       model: @model.model,
       batch_size: BATCH_SIZE
     )
-  end
-
-  def client_class_for(provider)
-    return LlmClients::Ollama::Client if provider == "ollama"
-
-    raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
   end
 end

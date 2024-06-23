@@ -15,8 +15,8 @@ module LlmClients
 
     class << self
       def client_class_for(provider)
-        LlmClients.const_get(provider.camelize)
-      rescue NameError
+        return LlmClients::Ollama::Client if provider == "ollama"
+
         raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
       end
     end
