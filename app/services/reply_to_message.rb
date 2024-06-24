@@ -27,27 +27,27 @@ class ReplyToMessage
       convert_to_markdown
     end
 
-    append("messages", "messages/stats", { stats: streamer.stats })
+    @reply.update!(statistics: streamer.stats)
   rescue ResponseStreamer::ResponseStreamerError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: e.to_s })
+    @reply.update!(error: { message: e.to_s })
   rescue ResponseStreamer::NetworkError
     Rails.logger.error("\nNetworkError: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: "A network error occurred: #{e.message}" })
+    @reply.update!(error: { message: "A network error occurred: #{e.message}" })
   rescue LlmClients::ResponseError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: e })
+    @reply.update!(error: { message: e })
   rescue Errno::ECONNREFUSED => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: e })
+    @reply.update!(error: { message: e })
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    append("messages", "messages/error", { error: "An internal error occurred" })
+    @reply.update!(error: { message: "An internal error occurred" })
   end
 
   private
@@ -90,19 +90,9 @@ class ReplyToMessage
     )
   end
 
-  def append(target, partial, locals = {})
-    locals.merge!({ message: @reply })
-    Turbo::StreamsChannel.broadcast_append_to(channel_name, target:, partial:, locals:)
-  end
-
   def prepend(target, partial, locals = {})
     locals.merge!({ message: @reply })
     Turbo::StreamsChannel.broadcast_prepend_to(channel_name, target:, partial:, locals:)
-  end
-
-  def replace(target, partial, locals = {})
-    locals.merge!({ message: @reply })
-    Turbo::StreamsChannel.broadcast_replace_to(target, partial:)
   end
 
   def remove(target)
