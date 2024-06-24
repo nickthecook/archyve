@@ -4,6 +4,7 @@ class Chonker
 
   include Enumerable
 
+  # Each chunking method returns an array of ChunkRecords
   CHUNKING_METHODS = {
     "bytes" => :chunk_by_bytes,
     "sentences" => :chunk_by_sentences,
