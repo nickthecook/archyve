@@ -16,3 +16,27 @@ ACTIVE_RECORD_ENCRYPTION="{
   \"deterministic_key\": \"...\",
   \"key_derivation_salt\": \"...\"
 }"
+PROVISIONED_MODEL_SERVERS="[
+  {
+    \"name\": \"ollama\",
+    \"url\": \"http://host.docker.internal:11434\",
+    \"provider\": \"ollama\"
+  }
+]"
+PROVISIONED_MODEL_CONFIGS="[
+  {
+    \"name\": \"mistral:instruct\",
+    \"model\": \"mistral:instruct\",
+    \"temperature\": 0.1
+  },
+  {
+    \"name\": \"gemma:7b\",
+    \"model\": \"gemma:7b\",
+    \"temperature\": 0.2
+  },
+  {
+    \"name\": \"nomic-embed-text\",
+    \"model\": \"nomic-embed-text\",
+    \"embedding\": true
+  }
+]"
