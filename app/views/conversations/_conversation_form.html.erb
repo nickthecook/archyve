@@ -1,17 +1,18 @@
-<div class="flex">
-  <%= form_for @conversation do |f| %>
+<% conversation ||= @conversation %>
+<div class="flex" id="conversation_form">
+  <%= form_for conversation do |f| %>
     <%= f.text_field(
       :title,
       class: "rounded-md bg-secondary-200 dark:bg-secondary-800 mx-1",
-      value: @conversation.title,
+      value: conversation.title,
       placeholder: "title",
       onchange: "this.form.requestSubmit()",
-      disabled: @conversation.messages.any? ? true : false
+      disabled: conversation.messages.any? ? true : false
     )%>
     <%= f.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
       class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
       onchange: "this.form.requestSubmit()",
-      disabled: @conversation.messages.any? ? true : false
+      disabled: conversation.messages.any? ? true : false
     })%>
     <label class="inline-flex items-center cursor-pointer mr-2 mb-1 px-2 align-middle border border-secondary-400 rounded-lg h-full dark:bg-secondary-800">
       <%= f.check_box :search_collections, value: "", class: "sr-only peer", onchange: "this.form.requestSubmit()" %>
@@ -22,16 +23,16 @@
   <% end %>
 
   <%= form_with url: conversation_collections_path, method: :post do |f|%>
-  <% selected_collection_id = @conversation.collections&.first&.id %>
-    <%= f.collection_select(:collection_ids, collection_list, :id, :name, {
+  <% selected_collection_id = conversation.collections&.first&.id %>
+    <%= f.collection_select(:collection_ids, collection_list(conversation.user), :id, :name, {
       selected: selected_collection_id,
       prompt: "All collections",
     }, {
       class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
       onchange: "this.form.requestSubmit()",
-      disabled: @conversation.messages.any? ? true : false
+      disabled: conversation.messages.any? ? true : false
     })%>
-    <%= f.text_field :conversation_id, value: @conversation.id, type: :hidden %>
+    <%= f.text_field :conversation_id, value: conversation.id, type: :hidden %>
     <%= f.submit "Update", hidden: true %>
   <% end %>
 </div>

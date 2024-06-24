@@ -3,7 +3,7 @@ module ConversationsHelper
     ModelConfig.generation
   end
 
-  def collection_list
-    current_user.collections.select(:id, :name)
+  def collection_list(user)
+    user.collections.select(:id, :name)
   end
 end
