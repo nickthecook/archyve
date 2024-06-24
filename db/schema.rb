@@ -57,6 +57,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_25_132106) do
     t.jsonb "embeddings"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "embedding_content"
     t.index ["document_id"], name: "index_chunks_on_document_id"
   end
 
