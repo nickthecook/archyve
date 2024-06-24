@@ -1,17 +1,18 @@
 module Parsers
-  # A chunk record has the content and its key, where the `key` is used to generate the
-  # embedding. If a chunk record is created without a key, the content is used as the key.
+  # A chunk record has the content and its "embedding content" which is used to generate the
+  # embedding. If a chunk record is created without a separately specific `embedding_content`,
+  # the `content`` is used instead.
   class ChunkRecord
     attr_reader :content
 
-    def initialize(content:, key: nil)
+    def initialize(content:, embedding_content: nil)
       @content = content
-      @key = key
+      @embedding_content = embedding_content
     end
 
-    def key
+    def embedding_content
       # Use content as the key for embedding if no separate key specified
-      @key || content
+      @embedding_content || content
     end
   end
 end
