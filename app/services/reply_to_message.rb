@@ -27,30 +27,19 @@ class ReplyToMessage
       convert_to_markdown
     end
 
-    @reply.update!(statistics: streamer.stats)
-  rescue ResponseStreamer::ResponseStreamerError => e
+    @reply.update!(statistics:)
+  rescue LlmClients::ResponseError, Errno::ECONNREFUSED, EOFError, ResponseStreamer::ResponseStreamerError,
+      ResponseStreamer::NetworkError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
-    @reply.update!(error: { message: e.to_s })
-  rescue ResponseStreamer::NetworkError
-    Rails.logger.error("\nNetworkError: #{e.message}#{e.backtrace.join("\n")}")
-
-    @reply.update!(error: { message: "A network error occurred: #{e.message}" })
-  rescue LlmClients::ResponseError => e
-    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-
-    @reply.update!(error: { message: e })
-  rescue Errno::ECONNREFUSED => e
-    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-
-    @reply.update!(error: { message: e })
-  rescue StandardError => e
-    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-
-    @reply.update!(error: { message: "An internal error occurred" })
+    active_message.update!(error: { message: e })
   end
 
   private
+
+  def active_message
+    @reply || @message
+  end
 
   def broadcast_event(event_content, dom_id, pre: false, summary: nil)
     return unless collections_to_search.any?

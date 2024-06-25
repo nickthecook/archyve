@@ -136,3 +136,6 @@ Style/FrozenStringLiteralComment:
 Rails/ApplicationController:
   Exclude:
     - app/controllers/v1/**/*
+Layout/ArrayAlignment:
+  EnforcedStyle: with_fixed_indentation
+  IndentationWidth: 4
