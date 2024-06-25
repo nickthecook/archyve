@@ -67,7 +67,7 @@ class ConversationsController < ApplicationController
   def destroy
     @conversation.destroy!
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.remove(@conversation) }
+      format.turbo_stream { redirect_to conversations_path, notice: "Conversation was successfully destroyed." }
       format.html { redirect_to conversations_url, notice: "Conversation was successfully destroyed." }
       format.json { head :no_content }
     end
