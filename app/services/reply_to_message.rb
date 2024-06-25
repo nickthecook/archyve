@@ -144,5 +144,9 @@ class ReplyToMessage
   def channel_name
     "#{@message.conversation.user.id}_conversations"
   end
+
+  def statistics
+    streamer.stats.merge({ server: ModelServer.active_server.name })
+  end
 end
 # rubocop:enable Metrics/ClassLength, Metrics/AbcSize
