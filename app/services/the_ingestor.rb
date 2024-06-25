@@ -6,14 +6,10 @@ class TheIngestor
 
   def ingest
     ensure_collection_exists
-
     @document.chunking!
-    chonker.each_with_index do |chunk_record, index|
-      prepare_and_embed_chunk(chunk_record, index)
-    end
-    Rails.logger.info("Got chunks from #{@document.filename}.")
-
+    prepare_and_embed(chonker.each)
     @document.embedded!
+    Rails.logger.info("Embedded chunks from #{@document.filename}.")
   rescue StandardError => e
     Rails.logger.error("Error ingesting document #{@document.id}\n#{exception_summary(e)}")
     @document.error!
@@ -27,19 +23,19 @@ class TheIngestor
     "#{err.class.name}: #{err.message}#{err.backtrace.join("\n")}"
   end
 
-  def document_embedding!
-    # Temporary hack since parser is still a brute force chunker right now.
+  def prepare_and_embed(chunk_records)
     @document.chunked!
     @document.embedding!
+    chunk_records.each do |chunk_record|
+      chunk = Chunk.new(
+        document: @document, content: chunk_record.content,
+        embedding_content: chunk_record.embedding_content)
+      chunk.save!
+      embed(chunk)
+    end
   end
 
-  def prepare_and_embed_chunk(chunk_record, index)
-    document_embedding! if index.zero?
-    chunk = Chunk.new(
-      document: @document, content: chunk_record.content,
-      embedding_content: chunk_record.embedding_content)
-    chunk.save!
-
+  def embed(chunk)
     embedding = embedder.embed(chunk.embedding_content)
     ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
     chunk.update!(vector_id: ids.first)
