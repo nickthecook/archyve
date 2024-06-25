@@ -10,6 +10,18 @@
         <p class="py-1 text-xs text-right text-secondary-500 dark:text-secondary-400"><%= time_ago_in_words(message.created_at) %> ago</p>
       </div>
     </div>
+
+    <% if message.prompt %>
+      <div class="text-sm text-secondary-600 dark:text-secondary-300 bg-primary-300 dark:bg-primary-900 bg-opacity-50 dark:bg-opacity-50 hover:bg-opacity-75 px-4 py-1 my-1 rounded-md">
+        <details>
+          <summary>Augmented prompt</summary>
+          <div class="whitespace-pre-line">
+            <%= message.prompt %>
+          </div>
+        </details>
+      </div>
+    <% end %>
+
     <% if message.statistics.present? %>
       <div class="flex justify-start w-full">
         <div class="text-xs text-secondary-500 dark:text-secondary-400">
