@@ -40,7 +40,6 @@ class TheIngestor
       embedding_content: chunk_record.embedding_content)
     chunk.save!
 
-    # Rails.logger.info("Embedding chunk #{chunk.id} (#{index})")
     embedding = embedder.embed(chunk.embedding_content)
     ids = chromadb.add_documents(@collection_id, [chunk.content], [embedding])
     chunk.update!(vector_id: ids.first)
