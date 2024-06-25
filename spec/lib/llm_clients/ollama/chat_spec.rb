@@ -8,8 +8,8 @@ RSpec.describe LlmClients::Ollama::Chat do
   it "returns a prompt with the user message" do
     expect(subject.prompt).to eq(
       {
-        "model": "mixalot:latest",
-        "messages": [
+        model: "mixalot:latest",
+        messages: [
           {
             role: "user",
             content: "Write a simple ruby program.",
@@ -21,8 +21,8 @@ RSpec.describe LlmClients::Ollama::Chat do
           {
             role: "user",
             content: "Not exactly what I meant.",
-          }
-        ]
+          },
+        ],
       }
     )
   end

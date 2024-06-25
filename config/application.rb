@@ -29,7 +29,6 @@ module Archyve
     config.autoload_paths << "#{root}/app/services"
     config.autoload_paths << Rails.root.join('app/lib')
 
-
     Sidekiq.strict_args!(false)
 
     active_record_encryption = JSON.parse(ENV["ACTIVE_RECORD_ENCRYPTION"] || "{}")

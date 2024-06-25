@@ -15,7 +15,7 @@ module Search
       embedded_query = embed(query)
       response = chroma_response(collection_id, embedded_query)
 
-      Rails.logger.debug("ChromaDB response:\n#{response.to_json}")
+      Rails.logger.debug { "ChromaDB response:\n#{response.to_json}" }
 
       results = []
       response["ids"].first.each_with_index do |id, index|

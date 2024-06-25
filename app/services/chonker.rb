@@ -16,9 +16,9 @@ class Chonker
     @parser = parser
   end
 
-  def each(&block)
+  def each(&)
     if block_given?
-      chunks.each(&block)
+      chunks.each(&)
     else
       chunks.each
     end
@@ -33,7 +33,7 @@ class Chonker
       @parser.send(CHUNKING_METHODS[chunking_method])
     rescue NoMethodError
       raise UnsupportedChunkingMethod,
-              "Parser (#{@parser.class.name}) doesn't support chunking method '#{chunking_method}'"
+        "Parser (#{@parser.class.name}) doesn't support chunking method '#{chunking_method}'"
     end
   end
 

@@ -7,9 +7,11 @@ module Parsers
     def chunk_by_bytes
       chunk_size = chunking_profile.size
       chunk_overlap = chunking_profile.overlap
-      splitter = Baran::RecursiveCharacterTextSplitter.new chunk_size:,
-                                                           chunk_overlap:,
-                                                           separators: chunking_separators
+      splitter = Baran::RecursiveCharacterTextSplitter.new(
+        chunk_size:,
+        chunk_overlap:,
+        separators: chunking_separators
+      )
 
       splitter.chunks(text).map do |c|
         ChunkRecord.new(content: c[:text])

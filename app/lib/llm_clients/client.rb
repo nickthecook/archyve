@@ -7,8 +7,8 @@ module LlmClients
       "^granite-code:" => { prefix: "<|user|>", suffix: "<|assistant|>" },
     }.freeze
     TIMEOUT_RETRIES = 3
-    FORMATTERS = { 
-      "^granite-code:" => Formatters::Granite
+    FORMATTERS = {
+      "^granite-code:" => Formatters::Granite,
     }
 
     attr_reader :stats

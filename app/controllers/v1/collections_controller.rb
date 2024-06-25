@@ -14,7 +14,7 @@ module V1
 
     def search
       query = params[:q]
-      return render json: { "error": "No query given" }, status: :bad_request if query.blank?
+      return render json: { error: "No query given" }, status: :bad_request if query.blank?
 
       render json: { hits: Api::Search.new(@collection, base_url: request.base_url).search(query) }
     end
@@ -24,7 +24,7 @@ module V1
     def set_collection!
       @collection = Collection.find_by(id: params[:id])
 
-      render json: { "error": "Collection not found" }, status: :not_found if @collection.nil?
+      render json: { error: "Collection not found" }, status: :not_found if @collection.nil?
     end
   end
 end

@@ -14,7 +14,7 @@ module Chromadb
       get("api/v1/version")
     end
 
-    def create_collection(name, metadata = nil, tenant = nil, database = nil)
+    def create_collection(name, metadata = nil, _tenant = nil, _database = nil)
       body = { name: }
       body[:metadata] = metadata if metadata
 

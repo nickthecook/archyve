@@ -2,7 +2,7 @@ module V1
   class SearchController < ApiController
     def search
       query = params[:q]
-      return render json: { "error": "No query given" }, status: :bad_request if query.blank?
+      return render json: { error: "No query given" }, status: :bad_request if query.blank?
 
       render json: {
         hits: Api::SearchMultiple.new(

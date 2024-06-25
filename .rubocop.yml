@@ -2,7 +2,7 @@ require:
   - rubocop-rspec
   - rubocop-rails
 AllCops:
-  NewCops: disable
+  NewCops: enable
   TargetRubyVersion: 3.1
   Exclude:
     - vendor/**/*
@@ -11,7 +11,7 @@ AllCops:
     - deps/**/*
     - node_modules/**/*
 Layout/IndentationStyle:
-  Enabled: false
+  Enabled: true
 Layout/IndentationWidth:
   Width: 2
 Style/Documentation:
@@ -72,13 +72,18 @@ Layout/SpaceAroundMethodCallOperator:
 Style/ExponentialNotation:
   Enabled: true
 Layout/ClosingParenthesisIndentation:
-  Enabled: false
+  Enabled: true
 Layout/MultilineMethodCallBraceLayout:
   Enabled: false
 Layout/ArgumentAlignment:
-  Enabled: false
+  Enabled: true
+  EnforcedStyle: "with_fixed_indentation"
 Layout/FirstArgumentIndentation:
-  Enabled: false
+  Enabled: true
+  EnforcedStyle: "consistent"
+Layout/FirstMethodArgumentLineBreak:
+  Enabled: true
+  AllowMultilineFinalElement: true
 Style/StringLiteralsInInterpolation:
   Enabled: false
 Style/ClassAndModuleChildren:
@@ -92,8 +97,14 @@ Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
 Layout/EndAlignment:
   EnforcedStyleAlignWith: variable
+Layout/LeadingCommentSpace:
+  Enabled: false
 Style/SymbolArray:
   MinSize: 4
+Style/QuotedSymbols:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
 Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 Metrics/BlockNesting:
@@ -101,6 +112,8 @@ Metrics/BlockNesting:
     - "config/initializers/*"
 Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
+Lint/RequireParentheses:
+  Enabled: true
 Style/NumericLiterals:
   Enabled: false
 RSpec/MultipleMemoizedHelpers:

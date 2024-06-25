@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :conversation do
-    model_config { build :model_config }
+    model_config { build(:model_config) }
     user { build(:user) }
     messages do
       [

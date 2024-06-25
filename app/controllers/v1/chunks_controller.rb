@@ -17,7 +17,7 @@ module V1
     def set_chunk!
       @chunk = Chunk.find_by(id: params[:id])
 
-      render json: { "error": "Chunk not found" }, status: :not_found if @chunk.nil?
+      render json: { error: "Chunk not found" }, status: :not_found if @chunk.nil?
     end
   end
 end

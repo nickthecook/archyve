@@ -88,7 +88,7 @@ module LlmClients
       def extract_message(response_string)
         response_hash = JSON.parse(response_string)
         message = response_hash["response"]
-        Rails.logger.debug("<== '#{message}'")
+        Rails.logger.debug { "<== '#{message}'" }
 
         message
       end

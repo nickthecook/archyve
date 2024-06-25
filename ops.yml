@@ -59,6 +59,10 @@ actions:
   test-watch:
     command: rerun --dir app,spec --no-notify -qb -- ops test
     alias: tw
+  lint: bundle exec rubocop
+  lint-watch:
+    command: rerun --dir app,spec --no-notify -qb -- ops lint
+    alias: lw
 options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)

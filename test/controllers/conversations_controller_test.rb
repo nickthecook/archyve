@@ -34,7 +34,8 @@ class ConversationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update conversation" do
-    patch conversation_url(@conversation), params: { conversation: { title: @conversation.title, user_id: @conversation.user_id } }
+    patch conversation_url(@conversation),
+      params: { conversation: { title: @conversation.title, user_id: @conversation.user_id } }
     assert_redirected_to conversation_url(@conversation)
   end
 
