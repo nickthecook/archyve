@@ -4,6 +4,7 @@ services:
     image: redis:alpine
     volumes:
       - "redis:/data"
+    restart: unless-stopped
   postgres:
     image: postgres:16-alpine
     volumes:
@@ -11,6 +12,7 @@ services:
     environment:
       POSTGRES_USER: archyve
       POSTGRES_PASSWORD: password
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U archyve"]
       interval: 5s
@@ -33,6 +35,7 @@ services:
     image: archyve:local
     build: .
     env_file: ./local.env
+    restart: unless-stopped
     volumes:
       - archyve_files:/rails/storage
     extra_hosts:
@@ -45,6 +48,7 @@ services:
   archyve-worker:
     image: archyve:local
     env_file: ./local.env
+    restart: unless-stopped
     volumes:
       - archyve_files:/rails/storage
     extra_hosts:

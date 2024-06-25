@@ -3,11 +3,35 @@ module LlmClients
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
-      # rubocop:disable all
-      def complete(prompt, &block)
-        @stats = new_stats
-        request = completion_request(prompt)
+      def complete(prompt, &)
+        request = helper.completion_request(prompt)
 
+        stream(request, &)
+      end
+
+      def chat(chat, &)
+        request = helper.chat_request(chat.chat_history)
+
+        stream(request, &)
+      end
+
+      def embed(content)
+        request = helper.embed_request(content)
+
+        request(request)
+      end
+
+      private
+
+      def helper
+        @helper ||= RequestHelper.new(@endpoint, @api_key, @embedding_model, @model, @temperature)
+      end
+
+      # rubocop:disable all
+      def stream(request, &block)
+        @stats = new_stats
+
+        Rails.logger.info("Sending request body:\n#{request.body}")
         # TODO: switch to HTTParty for this?
         Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
           stats[:start_time] = current_time
@@ -49,45 +73,36 @@ module LlmClients
           end
         end
       end
-      # rubocop:enable all
 
-      def embed(prompt)
+      def request(request)
         response = with_retries do
-          response = HTTParty.post(uri(embedding_path), headers:, timeout: NETWORK_TIMEOUT, body: {
-            model: @embedding_model,
-            prompt:,
-          }.to_json)
+          response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
+            http.request(request)
+          end
 
-          raise RetryableError if response.code == 500
+          # sometimes ollama just returns a 500 on an embed request when running locally, then is fine
+          raise RetryableError if response.code == "500"
 
           response
         end
 
-        raise response_error_for(response) unless response.success?
+        raise response_error_for(response) unless response.kind_of?(Net::HTTPSuccess)
 
-        response.parsed_response
+        parse_response(response)
       rescue SocketError
         raise ResponseError.new("Unable to connect to the active server", [ModelServer.active_server.url])
       end
+      # rubocop:enable all
 
-      private
-
-      def completion_request(prompt)
-        request = Net::HTTP::Post.new(uri(completion_path), **headers)
-        request.body = {
-          model: @model,
-          prompt:,
-          temperature: @temperature,
-          stream: true,
-          max_tokens: 200,
-        }.to_json
-
-        request
+      def parse_response(http_response)
+        JSON.parse(http_response.body)
+      rescue JSON::ParserError
+        http_response.body
       end
 
       def extract_message(response_string)
         response_hash = JSON.parse(response_string)
-        message = response_hash["response"]
+        message = response_hash["response"] || response_hash["message"]["content"]
         Rails.logger.debug { "<== '#{message}'" }
 
         message
@@ -101,14 +116,6 @@ module LlmClients
         end
 
         { prefix: "", suffix: "" }
-      end
-
-      def completion_path
-        "api/generate"
-      end
-
-      def embedding_path
-        "api/embeddings"
       end
 
       def formatter

@@ -76,7 +76,7 @@ class TheIngestor
 
   def initialize_collection
     # this causes chromadb to print a pretty big stack trace; use /collections instead
-    collection_id = chromadb.collection_id(collection_name)
+    collection_id = fetch_collection_id
 
     if collection_id.nil?
       response = chromadb.create_collection(collection_name, { creator: "archyve" })
@@ -89,6 +89,11 @@ class TheIngestor
   def reset_document
     TheDestroyor.new(@document).delete_embeddings
 
+    @collection_id = fetch_collection_id
     @document.reset!
+  end
+
+  def fetch_collection_id
+    chromadb.collection_id(collection_name)
   end
 end

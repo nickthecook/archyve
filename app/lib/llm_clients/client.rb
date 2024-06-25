@@ -41,17 +41,6 @@ module LlmClients
 
     private
 
-    def uri(path)
-      URI("#{@endpoint}#{"/" unless path.starts_with?("/") || @endpoint.ends_with?("/")}#{path}")
-    end
-
-    def headers
-      headers = { "Content-Type": "application/json" }
-      headers[:Authorization] = "Bearer #{@api_key}" if @api_key
-
-      headers
-    end
-
     def context(prompt, model)
       template = template_for(model)
 

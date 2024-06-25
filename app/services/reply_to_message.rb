@@ -7,20 +7,22 @@ class ReplyToMessage
 
   def initialize(message)
     @message = message
+    @conversation = @message.conversation
   end
 
   def execute
-    search if collections_to_search.any?
+    augment_message_prompt
+    chat.chat_history
 
     @reply = Message.create!(
       content: "",
-      author: @message.conversation.model_config,
-      conversation: @message.conversation
+      author: @conversation.model_config,
+      conversation: @conversation
     )
 
     prepend(reply_id, "messages/spinner")
 
-    streamer.stream do |message|
+    streamer.chat(chat) do |message|
       Rails.logger.info("Got back: #{message}")
       @reply.update!(content: @reply.content + message)
 
@@ -29,7 +31,7 @@ class ReplyToMessage
 
     @reply.update!(statistics:)
   rescue LlmClients::ResponseError, Errno::ECONNREFUSED, EOFError, ResponseStreamer::ResponseStreamerError,
-      ResponseStreamer::NetworkError => e
+         ResponseStreamer::NetworkError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
     active_message.update!(error: { message: e })
@@ -37,14 +39,20 @@ class ReplyToMessage
 
   private
 
+  def augment_message_prompt
+    return unless collections_to_search.any?
+
+    @message.update!(prompt: prompt_augmentor.prompt)
+  end
+
   def active_message
     @reply || @message
   end
 
   def collections_to_search
-    @collections_to_search ||= if @message.conversation.search_collections
-      message_collections = @message.conversation.collections
-      message_collections.any? ? message_collections : @message.conversation.user.collections
+    @collections_to_search ||= if @conversation.search_collections
+      message_collections = @conversation.collections
+      message_collections.any? ? message_collections : @conversation.user.collections
     else
       []
     end
@@ -68,43 +76,20 @@ class ReplyToMessage
   end
 
   def streamer
+    # TODO: add api_key to ModelServer
     @streamer ||= ResponseStreamer.new(
-      {
-        endpoint: ModelServer.active_server.url,
-        model: model_config.model,
-        provider: ModelServer.active_server.provider,
-      },
-      prompt || @message.content
+      endpoint: ModelServer.active_server.url,
+      model: model_config.model,
+      provider: ModelServer.active_server.provider
     )
   end
 
-  def search_hits
-    @search_hits ||= searcher.search(@message.content)
-  end
-
-  def prompt
-    return unless collections_to_search.any?
-
-    @prompt ||= begin
-      prompt = "Here is some context that may help you answer the following question:\n\n"
-      search_hits.each do |hit|
-        prompt << "#{hit.chunk.content}\n\n"
-      end
-
-      prompt << "Question: #{@message.content}"
-    end
-  end
-
-  def search
-    @message.update!(prompt:) if prompt.present?
-  end
-
   def searcher
-    @searcher ||= Search::SearchMultiple.new(collections_to_search, num_results: 10)
+    @searcher ||= Search::SearchMultiple.new(collections_to_search, num_results: 5)
   end
 
   def model_config
-    @message.conversation.model_config
+    @conversation.model_config
   end
 
   def reply_id
@@ -112,11 +97,23 @@ class ReplyToMessage
   end
 
   def channel_name
-    "#{@message.conversation.user.id}_conversations"
+    "#{@conversation.user.id}_conversations"
   end
 
   def statistics
     streamer.stats.merge({ server: ModelServer.active_server.name })
+  end
+
+  def chat
+    @chat ||= LlmClients::Ollama::Chat.new(@conversation.messages.sort)
+  end
+
+  def prompt_augmentor
+    @prompt_augmentor ||= begin
+      search_hits = searcher.search(@message.content)
+
+      PromptAugmentor.new(@message, search_hits)
+    end
   end
 end
 # rubocop:enable Metrics/AbcSize

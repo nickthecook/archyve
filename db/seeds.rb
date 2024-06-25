@@ -53,7 +53,7 @@ dev_model_servers = [
   {
     "name" => "ollama",
     "url" => "http://localhost:11434",
-    "provider" => "ollama",
+    "provider" => "localhost",
   }
 ]
 

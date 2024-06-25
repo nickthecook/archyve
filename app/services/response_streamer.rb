@@ -13,43 +13,43 @@ class ResponseStreamer
 
   BATCH_SIZE = 16
 
-  def initialize(model, prompt)
-    @model = OpenStruct.new(model)
-    @prompt = prompt
+  def initialize(endpoint:, model:, provider:, api_key: nil)
+    @endpoint = endpoint
+    @model = model
+    @provider = provider
+    @api_key = api_key
+
     @chunk = ""
   end
 
-  def stream
-    client.complete(@prompt) do |response|
-      @on_start&.call
-      @on_start = nil
-
-      message = processor.append(response)
-
-      yield message
-    rescue Net::HTTPError => e
-      raise NetworkError, "Error communicating with server: #{e.message}"
-    rescue Errno::ECONNREFUSED => e
-      raise NetworkError, "Connection refused: #{e.message}"
+  def complete(prompt, &)
+    client.complete(prompt) do |response|
+      handle(response, &)
     end
-
-    @on_finish&.call
   end
 
-  def on_start(&block)
-    @on_start = block
-  end
-
-  def on_finish(&block)
-    @on_finish = block
+  def chat(chat, &)
+    client.chat(chat) do |response|
+      handle(response, &)
+    end
   end
 
   private
 
+  def handle(response)
+    message = processor.append(response)
+
+    yield message
+  rescue Net::HTTPError => e
+    raise NetworkError, "Error communicating with server: #{e.message}"
+  rescue Errno::ECONNREFUSED => e
+    raise NetworkError, "Connection refused: #{e.message}"
+  end
+
   def headers
     headers = { "Content-Type": "application/json" }
 
-    headers[:Authorization] = "Bearer #{@model.api_key}" if @model.api_key
+    headers[:Authorization] = "Bearer #{@api_key}" if @api_key
 
     headers
   end
@@ -59,10 +59,10 @@ class ResponseStreamer
   end
 
   def client
-    @client ||= LlmClients::Client.client_class_for(@model.provider).new(
-      endpoint: @model.endpoint,
-      api_key: @model.api_key,
-      model: @model.model,
+    @client ||= LlmClients::Client.client_class_for(@provider).new(
+      endpoint: @endpoint,
+      api_key: @api_key,
+      model: @model,
       batch_size: BATCH_SIZE
     )
   end

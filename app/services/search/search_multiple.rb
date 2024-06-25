@@ -1,6 +1,6 @@
 module Search
   class SearchMultiple < Base
-    def initialize(collections, dom_id: nil, partial: "collections/search_chunk", num_results: 20)
+    def initialize(collections, dom_id: nil, partial: "collections/search_chunk", num_results: 10)
       @collections = collections
       @dom_id = dom_id
       @partial = partial
@@ -9,6 +9,7 @@ module Search
       super()
     end
 
+    # rubocop:disable Metrics/AbcSize
     def search(query)
       hits = searchers.map do |search|
         search.search(query)
@@ -24,6 +25,7 @@ module Search
 
       broadcast_error(e)
     end
+    # rubocop:enable Metrics/AbcSize
 
     private
 

@@ -5,11 +5,31 @@ RSpec.describe LlmClients::Ollama::Chat do
 
   let(:conversation) { build(:conversation) }
 
-  it "returns a prompt with the user message" do
-    expect(subject.prompt).to eq(
-      {
-        model: "mixalot:latest",
-        messages: [
+  it "returns a chat request body with all messages included" do
+    expect(subject.messages).to eq(
+      [
+        {
+          role: "user",
+          content: "Write a simple ruby program.",
+        },
+        {
+          role: "assistant",
+          content: "loop { puts 'HA' }",
+        },
+        {
+          role: "user",
+          content: "Not exactly what I meant.",
+        },
+      ]
+    )
+  end
+
+  context "when conversation is augmented" do
+    let(:conversation) { build(:augmented_conversation) }
+
+    it "returns a chat request body that uses the augmented prompt from only the last message" do
+      expect(subject.messages).to eq(
+        [
           {
             role: "user",
             content: "Write a simple ruby program.",
@@ -20,10 +40,13 @@ RSpec.describe LlmClients::Ollama::Chat do
           },
           {
             role: "user",
-            content: "Not exactly what I meant.",
+            content: <<~PROMPT,
+              Home directories are located a /home/username or /Users/username in a sane system.
+              Write a ruby program that lists the contents of the home directory for user 'bob'.
+            PROMPT
           },
-        ],
-      }
-    )
+        ]
+      )
+    end
   end
 end

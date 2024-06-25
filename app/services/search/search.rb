@@ -9,6 +9,7 @@ module Search
       super()
     end
 
+    # rubocop:disable all
     def search(query)
       raise SearchError, "No query given" if query.blank?
 
@@ -40,6 +41,7 @@ module Search
 
       broadcast_error(e)
     end
+    # rubocop:enable all
 
     private
 
