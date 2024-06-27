@@ -26,16 +26,16 @@ class Client < ApplicationRecord
   private
 
   def api_key_format
-    errors.add(:api_key, "is required") if api_key.blank?
+    return errors.add(:api_key, "is required") if api_key.nil?
 
     unless api_key.length == API_KEY_LENGTH_CHARACTERS
       errors.add(:api_key, "must be exactly #{API_KEY_LENGTH_CHARACTERS} base64 characters")
     end
 
     begin
-      errors.add(:api_key, "must be a valid base64 string") unless Base64.strict_decode64(api_key)
+      Base64.strict_decode64(api_key)
     rescue StandardError
-      false
+      errors.add(:api_key, "must be a valid base64 string")
     end
   end
 end
