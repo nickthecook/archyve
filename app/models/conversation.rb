@@ -8,17 +8,25 @@ class Conversation < ApplicationRecord
   include Turbo::Broadcastable
 
   after_update_commit lambda {
+    update_list_item
+    update_form
+  }
+
+  def update_list_item
     broadcast_replace_to(
       user_dom_id("conversations"),
       target: dom_id,
       partial: "conversations/conversation_list_item",
       locals: { selected: self }
     )
+  end
+
+  def update_form
     broadcast_replace_to(
       user_dom_id("conversations"),
       target: "conversation_form",
       partial: "conversations/conversation_form",
       current_user: user
     )
-  }
+  end
 end

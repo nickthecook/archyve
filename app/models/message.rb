@@ -11,6 +11,8 @@ class Message < ApplicationRecord
       target: "messages",
       partial: "messages/message"
     )
+
+    conversation.update_list_item
   }
   after_update_commit lambda {
     broadcast_replace_to(
