@@ -3,7 +3,7 @@ class ConversationsController < ApplicationController
 
   # GET /conversations or /conversations.json
   def index
-    @conversations = Conversation.all
+    @conversations = current_user.conversations
   end
 
   # GET /conversations/1 or /conversations/1.json
@@ -11,12 +11,13 @@ class ConversationsController < ApplicationController
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.replace("conversation", partial: "conversation") }
       format.html do
-        @conversations = Conversation.all
+        @conversations = current_user.conversations
         render :index
       end
     end
   end
 
+  # rubocop:disable Metrics/AbcSize
   # POST /conversations or /conversations.json
   def create
     unless Setting.chat_model && Setting.embedding_model && Setting.summarization_model
@@ -62,6 +63,7 @@ class ConversationsController < ApplicationController
       end
     end
   end
+  # rubocop:enable Metrics/AbcSize
 
   # DELETE /conversations/1 or /conversations/1.json
   def destroy
