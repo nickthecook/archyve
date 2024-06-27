@@ -1,20 +1,33 @@
 module V1
   class SearchController < ApiController
     def search
-      query = params[:q]
       return render json: { error: "No query given" }, status: :bad_request if query.blank?
 
-      render json: {
-        hits: Api::SearchMultiple.new(
-          @client.collections,
-          base_url: request.base_url,
-          browser_base_url:
-        ).search(query),
-      }
+      render json: { hits: }
     rescue StandardError => e
-      Rails.logger.error "Error while searching for #{query}: #{e}"
+      Rails.logger.error "Error while searching for #{query}: #{e}\n#{e.backtrace.join("\n")}"
 
       render json: { error: e.message }, status: :internal_server_error
+    end
+
+    private
+
+    def hits
+      Api::SearchMultiple.new(
+        @client.collections,
+        base_url: request.base_url,
+        browser_base_url:,
+        num_results:
+      ).search(query)
+    end
+
+    def query
+      @query ||= params[:q]
+    end
+
+    def num_results
+      num_results = params[:num_results].to_i if params.include?(:num_results)
+      num_results || Setting.get(:num_chunks_to_include) || 10
     end
   end
 end

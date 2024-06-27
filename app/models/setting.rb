@@ -1,5 +1,13 @@
 class Setting < ApplicationRecord
   class << self
+    def get(key)
+      find_by(key:)&.value
+    end
+
+    def set(key, value)
+      find_by(key:)&.update!(value:)
+    end
+
     def chat_model
       chat_model_id = find_by(key: 'chat_model')&.value
 

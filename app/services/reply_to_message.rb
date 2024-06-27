@@ -85,7 +85,10 @@ class ReplyToMessage
   end
 
   def searcher
-    @searcher ||= Search::SearchMultiple.new(collections_to_search, num_results: 5)
+    @searcher ||= Search::SearchMultiple.new(
+      collections_to_search,
+      num_results: Setting.get(:num_chunks_to_include)
+    )
   end
 
   def model_config

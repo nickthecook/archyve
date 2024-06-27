@@ -53,7 +53,7 @@ dev_model_servers = [
   {
     "name" => "localhost",
     "url" => "http://localhost:11434",
-    "provider" => "localhost",
+    "provider" => "ollama",
   }
 ]
 
@@ -124,6 +124,10 @@ end
 
 Setting.find_or_create_by!(key: "summarization_model") do |setting|
   setting.value = ModelConfig.generation.last&.id
+end
+
+Setting.find_or_create_by!(key: "num_chunks_to_include") do |setting|
+  setting.value = 5
 end
 
 # DEV
