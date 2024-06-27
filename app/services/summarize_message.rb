@@ -17,7 +17,8 @@ class SummarizeMessage
       @summary += response
     end
 
-    @summary.lines.first.gsub(/^\d\./, "")
+    Rails.logger.info("Got summary: #{@summary}")
+    @summary.lines.find(&:present?)&.gsub(/^\d\./, "")
   end
 
   private
