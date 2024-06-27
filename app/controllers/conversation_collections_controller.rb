@@ -9,6 +9,9 @@ class ConversationCollectionsController < ApplicationController
       ConversationCollection.create!(collection: @collection, conversation: @conversation)
     end
 
-    redirect_to conversation_path(@conversation)
+    respond_to do |format|
+      format.turbo_stream { @conversation.update_form }
+      format.html { redirect_to conversation_path(@conversation) }
+    end
   end
 end
