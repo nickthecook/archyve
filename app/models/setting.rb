@@ -5,7 +5,7 @@ class Setting < ApplicationRecord
     end
 
     def set(key, value, user = nil)
-      find_by(key:, user_id: user&.id)&.update!(value:)
+      find_or_create_by(key:, user_id: user&.id).update!(value:)
     end
 
     def chat_model

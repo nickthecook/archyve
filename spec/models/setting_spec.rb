@@ -27,13 +27,13 @@ RSpec.describe Setting do
     end
 
     context "when the setting does not exist" do
-      it "returns nil" do
-        expect(described_class.set("no_such_key", "abc")).to be_nil
+      it "returns true" do
+        expect(described_class.set("no_such_key", "abc")).to be true
       end
 
-      it "does not create a setting" do
+      it "creates the setting" do
         described_class.set("no_such_key", "abc")
-        expect(described_class.find_by(key: "no_such_key")).to be_nil
+        expect(described_class.find_by(key: "no_such_key").value).to eq("abc")
       end
     end
 
