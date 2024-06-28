@@ -35,6 +35,10 @@ class ReplyToMessage
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
     active_message.update!(error: { message: e })
+  rescue StandardError => e
+    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+
+    active_message.update!(error: { message: "An internal error occurred: #{e}" })
   end
 
   private

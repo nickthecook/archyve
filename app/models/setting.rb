@@ -1,11 +1,11 @@
 class Setting < ApplicationRecord
   class << self
-    def get(key)
-      find_by(key:)&.value
+    def get(key, user = nil)
+      find_by(key:, user_id: user&.id)&.value
     end
 
-    def set(key, value)
-      find_by(key:)&.update!(value:)
+    def set(key, value, user = nil)
+      find_by(key:, user_id: user&.id)&.update!(value:)
     end
 
     def chat_model
