@@ -1,9 +1,9 @@
 require 'factory_bot'
 
 RSpec.describe LlmClients::Ollama::Chat do
-  subject { described_class.new(conversation.messages) }
+  subject { described_class.new(conversation.messages.last) }
 
-  let(:conversation) { build(:conversation) }
+  let(:conversation) { create(:conversation) }
 
   it "returns a chat request body with all messages included" do
     expect(subject.chat_history).to eq(
@@ -25,7 +25,7 @@ RSpec.describe LlmClients::Ollama::Chat do
   end
 
   context "when conversation is augmented" do
-    let(:conversation) { build(:augmented_conversation) }
+    let(:conversation) { create(:augmented_conversation) }
 
     it "returns a chat request body that uses the augmented prompt from only the last message" do
       expect(subject.chat_history).to eq(

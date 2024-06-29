@@ -13,14 +13,7 @@ class ReplyToMessage
   def execute
     augment_message_prompt
     chat.chat_history
-
-    @reply = Message.create!(
-      content: "",
-      author: @conversation.model_config,
-      conversation: @conversation
-    )
-
-    prepend(reply_id, "messages/spinner")
+    create_reply
 
     streamer.chat(chat) do |message|
       Rails.logger.info("Got back: #{message}")
@@ -47,6 +40,16 @@ class ReplyToMessage
     return unless collections_to_search.any?
 
     @message.update!(prompt: prompt_augmentor.prompt)
+  end
+
+  def create_reply
+    @reply = Message.create!(
+      content: "",
+      author: @conversation.model_config,
+      conversation: @conversation
+    )
+
+    prepend(reply_id, "messages/spinner")
   end
 
   def active_message
@@ -112,7 +115,7 @@ class ReplyToMessage
   end
 
   def chat
-    @chat ||= LlmClients::Ollama::Chat.new(@conversation.messages.sort)
+    @chat ||= LlmClients::Ollama::Chat.new(@message)
   end
 
   def prompt_augmentor

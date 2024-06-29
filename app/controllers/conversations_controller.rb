@@ -31,7 +31,7 @@ class ConversationsController < ApplicationController
     @conversation.user = current_user
     @conversation.model_config ||= Setting.chat_model
     @conversation.title ||= "New conversation"
-    @conversation.search_collections = search_setting
+    @conversation.search_collections = Setting.get(:search_collections, user: current_user)
     @conversation.save!
 
     respond_to do |format|
@@ -99,18 +99,12 @@ class ConversationsController < ApplicationController
   end
 
   def update_user_settings
-    return if Setting.get(:search_collections, current_user) == search_param
+    return if Setting.get(:search_collections, user: current_user) == search_param
 
-    Setting.set(:search_collections, search_param, current_user)
+    Setting.set(:search_collections, search_param, user: current_user)
   end
 
   def search_param
     @search_param ||= conversation_params[:search_collections] == "1"
-  end
-
-  def search_setting
-    return "0" if Setting.get(:search_collections, current_user) == false
-
-    "1"
   end
 end

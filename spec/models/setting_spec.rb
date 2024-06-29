@@ -16,6 +16,36 @@ RSpec.describe Setting do
       it "returns nil" do
         expect(described_class.get("no_such_key")).to be_nil
       end
+
+      context "when a default is given" do
+        it "returns the default" do
+          expect(described_class.get("no_such_key", default: "default")).to eq("default")
+        end
+      end
+    end
+
+    context "when a default is given" do
+      it "returns the value of the existing setting" do
+        expect(described_class.get("key2", default: "default value")).to eq("value2")
+      end
+    end
+
+    context "when a user is specified" do
+      let(:user) { create(:user) }
+
+      before do
+        create(:setting, key: "key2", value: "user value", user:)
+      end
+
+      it "returns the value of the existing setting for that user" do
+        expect(described_class.get("key2", user:)).to eq("user value")
+      end
+
+      context "when no user is given" do
+        it "returns the global setting value" do
+          expect(described_class.get("key2")).to eq("value2")
+        end
+      end
     end
   end
 
@@ -27,8 +57,8 @@ RSpec.describe Setting do
     end
 
     context "when the setting does not exist" do
-      it "returns true" do
-        expect(described_class.set("no_such_key", "abc")).to be true
+      it "returns the setting value" do
+        expect(described_class.set("no_such_key", "abc")).to eq("abc")
       end
 
       it "creates the setting" do
