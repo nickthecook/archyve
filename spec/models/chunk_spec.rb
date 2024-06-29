@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Chunk, type: :model do
+RSpec.describe Chunk do
   subject { create(:chunk, content: "subject", embedding_content:) }
 
   let(:document) { create(:document) }

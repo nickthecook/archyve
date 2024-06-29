@@ -21,4 +21,12 @@ class Message < ApplicationRecord
       partial: "messages/message"
     )
   }
+
+  def previous(count = 1)
+    self.class.where(conversation:).where("id < ?", id).order(id: :asc).last(count)
+  end
+
+  def next(count = 1)
+    self.class.where(conversation:).where("id > ?", id).order(id: :asc).first(count)
+  end
 end
