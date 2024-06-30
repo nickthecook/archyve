@@ -5,6 +5,7 @@
     <%= chunk&.content || "Missing chunk!" %>
   </div>
   <div class="flex flex-col ms-4">
+    <p class="py-1 text-xs text-right text-muted"><%= chunk ? chunk.document.filename : "?" %></p>
     <% if distance %>
       <p class="py-1 text-xs text-right text-muted">distance: <%= distance.round(3) %></p>
     <% end %>
