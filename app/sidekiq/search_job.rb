@@ -8,6 +8,6 @@ class SearchJob
 
     collection = Collection.find(collection_id)
 
-    Search::Search.new(collection, dom_id:).search(query)
+    SearchBroadcaster.new([collection], dom_id).search(query)
   end
 end

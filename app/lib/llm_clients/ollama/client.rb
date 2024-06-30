@@ -79,6 +79,7 @@ module LlmClients
           response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
             http.request(request)
           end
+          Rails.logger.info("#{request.method} #{request.uri} ==> #{response.code}")
 
           # sometimes ollama just returns a 500 on an embed request when running locally, then is fine
           raise RetryableError if response.code == "500"
