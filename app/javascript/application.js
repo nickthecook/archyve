@@ -11,6 +11,6 @@ Turbo.StreamActions.scroll_to_bottom = function () {
   if (endOfConversation == null) {
     console.log("WARNING: could not find 'end-of-conversation' element.")
   } else {
-    endOfConversation.scrollIntoView();
+    endOfConversation.scrollIntoView({behaviour: "smooth"});
   }
 }
