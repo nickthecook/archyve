@@ -9,7 +9,8 @@ module LlmClients
     TIMEOUT_RETRIES = 3
     FORMATTERS = {
       "^granite-code:" => Formatters::Granite,
-    }
+      "^mistral:" => Formatters::Mistral,
+    }.freeze
 
     attr_reader :stats
 
