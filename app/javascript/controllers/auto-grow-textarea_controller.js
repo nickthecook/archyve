@@ -4,7 +4,6 @@ export default class extends Controller {
   static targets = ["input"];
 
   connect() {
-    console.log("auto-grow-text-area connected");
     this.inputTarget.style.resize = "none";
     this.inputTarget.style.minHeight = `${this.inputTarget.scrollHeight}px`;
     this.inputTarget.style.overflow = "hidden";
