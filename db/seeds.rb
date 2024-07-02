@@ -49,66 +49,72 @@ end
 
 # PROVISIONING
 #
-dev_model_servers = [
-  {
-    "name" => "localhost",
-    "url" => "http://localhost:11434",
-    "provider" => "ollama",
-  }
-]
+def provision_from_env(schema, env_var, identifier='name', &block)
+  known_columns = schema.column_names
+  unless ['available', 'provisioned'].all? { |required| known_columns.include? required }
+    return puts("WARNING: #{schema.table_name} does not support provisioning. Skipping...")
+  end
 
-dev_model_configs = [
-  {
-    "name" => "mistral:instruct",
-    "model" => "mistral:instruct",
-    "temperature" => 0.1,
-  },
-  {
-    "name" => "gemma:7b",
-    "model" => "gemma:7b",
-    "temperature" => 0.2,
-  },
-  {
-    "name" => "nomic-embed-text",
-    "model" => "nomic-embed-text",
-    "embedding" => true,
-  }
-]
+  provisioned_records = if ENV[env_var].present?
+    JSON.parse(ENV[env_var])
+  elsif Rails.env == "development" and block_given?
+    block.call
+  else
+    []
+  end
 
-provisioned_model_servers = if ENV["PROVISIONED_MODEL_SERVERS"].present?
-  JSON.parse(ENV["PROVISIONED_MODEL_SERVERS"])
-elsif Rails.env == "development"
-  dev_model_servers
-else
-  []
+  unless provisioned_records.is_a?(Array)
+    return puts("WARNING: The JSON value prodived by $#{env_var} is invalid for provisioning. Skipping...")
+  end
+  provisioned_records.select! do |record|
+    record.try(:keys).try(:include?, identifier)
+  end
+
+  provisioned_identifiers = provisioned_records.map { |mc| mc[identifier] }
+  schema.where(provisioned: true)
+        .where.not(name: provisioned_identifiers)
+        .update(available: false, provisioned: false)
+
+  provisioned_records.each do |fields|
+    puts "provisioning #{schema.table_name} with `#{fields[identifier]}` ..."
+  
+    schema.find_or_initialize_by(**{ identifier => fields[identifier] })
+          .update!(**fields.slice(*known_columns), provisioned: true)
+  end
+rescue JSON::ParserError => e
+  puts "WARNING: Failed to provision #{schema.table_name}\n#{e}"
 end
 
-provisioned_model_configs = if ENV["PROVISIONED_MODEL_CONFIGS"].present?
-  JSON.parse(ENV["PROVISIONED_MODEL_CONFIGS"])
-elsif Rails.env == "development"
-  dev_model_configs
-else
-  []
-end
-
-provisioned_model_servers_names = provisioned_model_servers.map { |ms| ms["name"] }
-provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"] }
-
-ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(available: false, provisioned: false)
-ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
-
-provisioned_model_servers.each do |fields|
-  puts "provisioning model server for `#{fields["name"]}` ..."
-
-  ModelServer.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
+provision_from_env ModelServer, "PROVISIONED_MODEL_SERVERS" do
+  [
+    {
+      "name" => "localhost",
+      "url" => "http://localhost:11434",
+      "provider" => "ollama",
+    }
+  ]
 end
 
 ModelServer.last.make_active if ModelServer.active_server.nil?
 
-provisioned_model_configs.each do |fields|
-  puts "provisioning model configuration for `#{fields["name"]}` ..."
-
-  ModelConfig.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
+provision_from_env ModelConfig, "PROVISIONED_MODEL_CONFIGS" do
+  [
+    {
+      "name" => "mistral:instruct",
+      "model" => "mistral:instruct",
+      "temperature" => 0.1,
+    },
+    {
+      "name" => "gemma:7b",
+      "model" => "gemma:7b",
+      "temperature" => 0.2,
+    },
+    {
+      "name" => "nomic-embed-text",
+      "model" => "nomic-embed-text",
+      "embedding" => true,
+    }
+  ]
 end
 
 
