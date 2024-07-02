@@ -10,6 +10,7 @@ export default class extends Controller {
     this.inputTarget.style.overflow = "hidden";
 
     this.inputTarget.addEventListener("keydown", this.handleKeyDown.bind(this));
+    this.inputTarget.addEventListener("input", this.scrollToBottom.bind(this));
   }
 
   resize(event) {
@@ -23,6 +24,17 @@ export default class extends Controller {
       const submitButton = form.querySelector("input[type='submit']");
       submitButton.click();
       event.preventDefault();
+
+    }
+  }
+
+  scrollToBottom() {
+    const endOfConversation = document.getElementById("end-of-conversation");
+
+    if (endOfConversation == null) {
+      console.log("WARNING: could not find 'end-of-conversation' element.")
+    } else {
+      endOfConversation.scrollIntoView();
     }
   }
 }
