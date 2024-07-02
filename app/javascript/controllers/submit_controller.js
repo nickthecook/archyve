@@ -9,11 +9,15 @@ export default class extends Controller {
   }
 
   handleKeyDown(event) {
-    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-      const form = this.element.closest('form')
-      const submitButton = form.querySelector("input[type='submit']")
-      submitButton.click()
-      event.preventDefault()
+    if (event.key === "Enter") {
+      if (event.shiftKey) {
+        event.preventDefault()
+      } else {
+        const form = this.element.closest('form')
+        const submitButton = form.querySelector("input[type='submit']")
+        submitButton.click()
+        event.preventDefault()
+      }
     }
   }
 }

@@ -1,11 +1,17 @@
 <%= form_with url: conversation_messages_path(@conversation), html: { id: "message_form", class: "my-5 w-full" } do |f| %>
   <div class="container flex">
     <div class="flex-1 pr-3">
-      <%= f.text_field :content,
+      <%= f.text_area :content,
         class: "form-control w-full rounded-lg bg-secondary-50 dark:bg-secondary-800",
         placeholder: "write a message",
         autofocus: true,
-        data: { controller: "submit", "submit-target": "input" },
+        rows: 1,
+        data: {
+          controller: "auto-grow-textarea",
+          "submit-target": "input",
+          action: 'input->auto-grow-textarea#resize',
+          "auto-grow-textarea-target": 'input'
+        },
         autocomplete: "off"
       %>
     </div>

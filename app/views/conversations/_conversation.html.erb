@@ -11,7 +11,9 @@
         <%= render @conversation.messages.order(:created_at) %>
       </div>
 
-      <%= render "messages/form" %>
+      <div class="pb-5">
+        <%= render "messages/form" %>
+      </div>
     </div>
   </div>
 </div>
