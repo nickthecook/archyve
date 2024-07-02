@@ -1,23 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
 
-function pasteIntoInput(el, text) {
-  el.focus();
-  if (
-    typeof el.selectionStart == "number" &&
-    typeof el.selectionEnd == "number"
-  ) {
-    var val = el.value;
-    var selStart = el.selectionStart;
-    el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
-    el.selectionEnd = el.selectionStart = selStart + text.length;
-  } else if (typeof document.selection != "undefined") {
-    var textRange = document.selection.createRange();
-    textRange.text = text;
-    textRange.collapse(false);
-    textRange.select();
-  }
-}
-
 export default class extends Controller {
   static targets = ["input"];
 
@@ -36,18 +18,11 @@ export default class extends Controller {
   }
 
   handleKeyDown(event) {
-    if (event.key === "Enter") {
-      console.log(1);
-      if (event.shiftKey) {
-        console.log(2);
-        pasteIntoInput(this, "\n");
-        event.preventDefault();
-      } else {
-        const form = this.element.closest("form");
-        const submitButton = form.querySelector("input[type='submit']");
-        submitButton.click();
-        event.preventDefault();
-      }
+    if (event.key === "Enter" && !event.shiftKey) {
+      const form = this.element.closest("form");
+      const submitButton = form.querySelector("input[type='submit']");
+      submitButton.click();
+      event.preventDefault();
     }
   }
 }
