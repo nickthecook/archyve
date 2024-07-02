@@ -20,6 +20,10 @@ class Message < ApplicationRecord
       target: "message_#{id}",
       partial: "messages/message"
     )
+    broadcast_action_to(
+      user_dom_id("conversations"),
+      action: "scroll_to_bottom"
+    )
   }
 
   def previous(count = 1)
