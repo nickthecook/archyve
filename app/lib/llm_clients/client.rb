@@ -127,7 +127,8 @@ module LlmClients
       raise exception
     end
 
-    def store_api_call(service_name, request, response)
+    def store_api_call(service_name, request, response, response_body = nil)
+      response.body = response_body if response_body
       ApiCall.from_net_http(service_name, request, response, @traceable).save!
     end
   end

@@ -108,6 +108,8 @@ module Chromadb
         raise ResponseError, @last_response.body
       end
 
+      store_api_call("chromadb", @last_response)
+
       @last_response.parsed_response
     end
 
@@ -118,6 +120,8 @@ module Chromadb
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end
+
+      store_api_call("chromadb", @last_response)
 
       @last_response.parsed_response
     end
@@ -130,7 +134,13 @@ module Chromadb
         raise ResponseError, @last_response.body
       end
 
+      store_api_call("chromadb", @last_response)
+
       @last_response.parsed_response
+    end
+
+    def store_api_call(service_name, response)
+      ApiCall.from_httparty(service_name, response).save!
     end
   end
 end

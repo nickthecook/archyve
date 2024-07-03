@@ -31,9 +31,12 @@ module LlmClients
       def stream(request, &block)
         @stats = new_stats
 
+        response_contents = ""
+
         Rails.logger.info("Sending request body:\n#{request.body}")
         # TODO: switch to HTTParty for this?
-        Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
+        # TODO: create ApiCall early and update response body after streaming is done
+        full_response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
           stats[:start_time] = current_time
           http.request(request) do |response|
             raise response_error_for(response) unless response.is_a?(Net::HTTPSuccess)
@@ -57,6 +60,7 @@ module LlmClients
 
               if current_batch_size == @batch_size
                 Rails.logger.debug "==> #{current_batch}"
+                response_contents << current_batch
                 yield current_batch
 
                 current_batch_size = 0
@@ -66,12 +70,17 @@ module LlmClients
 
             if current_batch_size > 0
               Rails.logger.debug "==> #{current_batch}"
+              response_contents << current_batch
               yield current_batch
             end
 
             calculate_stats
           end
         end
+
+        store_api_call("ollama", request, full_response, response_contents)
+
+        full_response
       end
 
       def request(request)
