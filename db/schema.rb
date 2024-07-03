@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_06_28_155852) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_03_173410) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,24 @@ ActiveRecord::Schema[7.1].define(version: 2024_06_28_155852) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "api_calls", force: :cascade do |t|
+    t.string "service_name"
+    t.integer "http_method"
+    t.string "url"
+    t.jsonb "headers"
+    t.jsonb "body"
+    t.integer "body_length"
+    t.integer "response_code"
+    t.jsonb "response_headers"
+    t.jsonb "response_body"
+    t.integer "response_length"
+    t.string "traceable_type"
+    t.bigint "traceable_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["traceable_type", "traceable_id"], name: "index_api_calls_on_traceable"
   end
 
   create_table "chunking_profiles", force: :cascade do |t|
