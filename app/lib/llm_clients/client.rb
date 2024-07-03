@@ -28,7 +28,8 @@ module LlmClients
       model: nil,
       embedding_model: nil,
       temperature: default_temperature,
-      batch_size: default_batch_size
+      batch_size: default_batch_size,
+      traceable: nil
     )
       @endpoint = endpoint
       @api_key = api_key
@@ -36,6 +37,7 @@ module LlmClients
       @embedding_model = embedding_model
       @temperature = temperature
       @batch_size = batch_size
+      @traceable = traceable
 
       @uri = URI(endpoint)
     end
@@ -123,6 +125,10 @@ module LlmClients
 
       Rails.logger.error("Retries exhausted (#{retries}/#{TIMEOUT_RETRIES})")
       raise exception
+    end
+
+    def store_api_call(service_name, request, response)
+      ApiCall.from_net_http(service_name, request, response, @traceable).save!
     end
   end
   # rubocop:enable Metrics/ClassLength

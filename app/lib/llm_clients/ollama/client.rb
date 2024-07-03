@@ -84,6 +84,7 @@ module LlmClients
           # sometimes ollama just returns a 500 on an embed request when running locally, then is fine
           raise RetryableError if response.code == "500"
 
+          store_api_call("ollama", request, response)
           response
         end
 
