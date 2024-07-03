@@ -27,10 +27,10 @@ class TheIngestor
     @document.chunked!
     @document.embedding!
     chunk_records.each do |chunk_record|
-      chunk = Chunk.new(
+      chunk = Chunk.create!(
         document: @document, content: chunk_record.content,
-        embedding_content: chunk_record.embedding_content)
-      chunk.save!
+        embedding_content: chunk_record.embedding_content
+      )
       embed(chunk)
     end
   end

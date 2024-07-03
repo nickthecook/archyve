@@ -3,8 +3,9 @@ FactoryBot.define do
     chunks { [] }
     user { association(:user) }
     collection { association(:collection) }
-    filename { Faker::File.file_name(ext: "pdf") }
+    filename { "gnu_manifesto.md" }
     state { :embedded }
     vector_id { nil } # TODO: we probably don't need this
+    chunking_profile { association(:chunking_profile) }
   end
 end
