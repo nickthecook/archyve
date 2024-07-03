@@ -59,7 +59,7 @@ class TheIngestor
   end
 
   def embedder
-    @embedder ||= Embedder.new(embedding_model)
+    @embedder ||= Embedder.new(embedding_model, traceable: @document)
   end
 
   def embedding_model
@@ -67,7 +67,7 @@ class TheIngestor
   end
 
   def chromadb
-    @chromadb ||= Chromadb::Client.new
+    @chromadb ||= Chromadb::Client.new(traceable: @document)
   end
 
   def collection_name

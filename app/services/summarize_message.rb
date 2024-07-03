@@ -6,8 +6,9 @@ class SummarizeMessage
     Always start your answer with an emoji relevant to the summary.
   ".freeze
 
-  def initialize(message)
+  def initialize(message, traceable: nil)
     @message = message
+    @traceable = traceable
     @model_config = Setting.summarization_model
     @summary = ""
   end
@@ -31,7 +32,8 @@ class SummarizeMessage
     @client ||= LlmClients::Client.client_class_for(active_server.provider).new(
       endpoint: active_server.url,
       model: @model_config.model,
-      api_key: "todo"
+      api_key: "todo",
+      traceable: @traceable
     )
   end
 

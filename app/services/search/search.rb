@@ -1,7 +1,8 @@
 module Search
   class Search < Base
-    def initialize(collection)
+    def initialize(collection, traceable: nil)
       @collection = collection
+      @traceable = traceable
 
       super()
     end
@@ -62,11 +63,11 @@ module Search
     end
 
     def embedder
-      @embedder ||= Embedder.new(@collection.embedding_model)
+      @embedder ||= Embedder.new(@collection.embedding_model, traceable: @traceable)
     end
 
     def chroma
-      @chroma ||= Chromadb::Client.new
+      @chroma ||= Chromadb::Client.new(traceable: @traceable)
     end
   end
 end

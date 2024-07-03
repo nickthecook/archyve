@@ -4,10 +4,11 @@ module Api
 
     include Rails.application.routes.url_helpers
 
-    def initialize(collection, base_url: nil, browser_base_url: nil)
+    def initialize(collection, base_url: nil, browser_base_url: nil, traceable: nil)
       @collection = collection
       @base_url = base_url
       @browser_base_url = URI(browser_base_url)
+      @traceable = traceable
     end
 
     def search(query)
@@ -103,7 +104,7 @@ module Api
     end
 
     def embedder
-      @embedder ||= Embedder.new(@collection.embedding_model)
+      @embedder ||= Embedder.new(@collection.embedding_model, traceable: @traceable)
     end
 
     def chroma

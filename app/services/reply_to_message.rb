@@ -87,14 +87,16 @@ class ReplyToMessage
     @streamer ||= ResponseStreamer.new(
       endpoint: ModelServer.active_server.url,
       model: model_config.model,
-      provider: ModelServer.active_server.provider
+      provider: ModelServer.active_server.provider,
+      traceable: @conversation
     )
   end
 
   def searcher
     @searcher ||= Search::SearchMultiple.new(
       collections_to_search,
-      num_results: Setting.get(:num_chunks_to_include)
+      num_results: Setting.get(:num_chunks_to_include),
+      traceable: @conversation
     )
   end
 

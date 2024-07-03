@@ -13,11 +13,12 @@ class ResponseStreamer
 
   BATCH_SIZE = 16
 
-  def initialize(endpoint:, model:, provider:, api_key: nil)
+  def initialize(endpoint:, model:, provider:, api_key: nil, traceable: nil)
     @endpoint = endpoint
     @model = model
     @provider = provider
     @api_key = api_key
+    @traceable = traceable
 
     @chunk = ""
   end
@@ -63,7 +64,8 @@ class ResponseStreamer
       endpoint: @endpoint,
       api_key: @api_key,
       model: @model,
-      batch_size: BATCH_SIZE
+      batch_size: BATCH_SIZE,
+      traceable: @traceable
     )
   end
 end

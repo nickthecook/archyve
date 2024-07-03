@@ -1,5 +1,5 @@
 class ApiCall < ApplicationRecord
-  belongs_to :traceable, optional: true
+  belongs_to :traceable, polymorphic: true, optional: true
 
   enum http_method: { get: 0, post: 1, put: 2, delete: 3, patch: 4, head: 5 }, _prefix: :http_method
 

@@ -2,6 +2,7 @@ class Message < ApplicationRecord
   belongs_to :conversation
   belongs_to :author, polymorphic: true
   has_one :user, through: :conversation
+  has_many :api_calls, as: :traceable, dependent: :destroy
 
   include Turbo::Broadcastable
 
@@ -19,10 +20,6 @@ class Message < ApplicationRecord
       user_dom_id("conversations"),
       target: "message_#{id}",
       partial: "messages/message"
-    )
-    broadcast_action_to(
-      user_dom_id("conversations"),
-      action: "scroll_to_bottom"
     )
   }
 

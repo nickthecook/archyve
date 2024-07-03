@@ -1,6 +1,7 @@
 class Embedder
-  def initialize(embedding_model)
+  def initialize(embedding_model, traceable: nil)
     @embedding_model = embedding_model
+    @traceable = traceable
   end
 
   def embed(text)
@@ -15,7 +16,8 @@ class Embedder
     @client ||= LlmClients::Ollama::Client.new(
       endpoint:,
       api_key: "todo",
-      embedding_model: @embedding_model.model
+      embedding_model: @embedding_model.model,
+      traceable: @traceable
     )
   end
 

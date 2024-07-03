@@ -4,9 +4,11 @@ module Chromadb
   class Client
     attr_reader :last_response
 
-    def initialize(host = nil, port = nil)
+    def initialize(host = nil, port = nil, traceable: nil)
       @host = host || ENV.fetch("CHROMADB_HOST") { "localhost" }
       @port = port || ENV.fetch("CHROMADB_PORT") { 8000 }
+      @traceable = traceable
+
       @url = "http://#{@host}:#{@port}"
     end
 
@@ -137,7 +139,7 @@ module Chromadb
     end
 
     def store_api_call(service_name, response)
-      ApiCall.from_httparty(service_name, response).save!
+      ApiCall.from_httparty(service_name, response, @traceable).save!
     end
   end
 end
