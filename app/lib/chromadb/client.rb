@@ -101,40 +101,37 @@ module Chromadb
     end
 
     def get(path)
-      Rails.logger.info("[CHROMADB] GET #{path}")
       @last_response = HTTParty.get(url(path), headers: { "Content-Type" => "application/json" })
+
+      store_api_call("chromadb", @last_response)
 
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end
-
-      store_api_call("chromadb", @last_response)
 
       @last_response.parsed_response
     end
 
     def post(path, body = {})
-      Rails.logger.info("[CHROMADB] POST #{path}")
       @last_response = HTTParty.post(url(path), headers: { "Content-Type" => "application/json" }, body: body.to_json)
+
+      store_api_call("chromadb", @last_response)
 
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end
-
-      store_api_call("chromadb", @last_response)
 
       @last_response.parsed_response
     end
 
     def delete(path)
-      Rails.logger.info("[CHROMADB] DELETE #{path}")
       @last_response = HTTParty.delete(url(path), headers: { "Content-Type" => "application/json" })
+
+      store_api_call("chromadb", @last_response)
 
       unless @last_response.success?
         raise ResponseError, @last_response.body
       end
-
-      store_api_call("chromadb", @last_response)
 
       @last_response.parsed_response
     end
