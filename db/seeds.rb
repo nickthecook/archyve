@@ -97,16 +97,20 @@ provisioned_model_config_names = provisioned_model_configs.map { |mc| mc["name"]
 ModelConfig.where(provisioned: true).where.not(name: provisioned_model_config_names).update(available: false, provisioned: false)
 ModelServer.where(provisioned: true).where.not(name: provisioned_model_servers_names).update(available: false, provisioned: false)
 
+model_server_fields = ModelServer.column_names
 provisioned_model_servers.each do |fields|
-  puts "provisioning model server for `#{fields["name"]}` ..."
+  fields.slice!(*model_server_fields)
+  puts "provisioning model server for `#{fields}` ..."
 
   ModelServer.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
 end
 
 ModelServer.last.make_active if ModelServer.active_server.nil?
 
+model_config_fields = ModelConfig.column_names
 provisioned_model_configs.each do |fields|
-  puts "provisioning model configuration for `#{fields["name"]}` ..."
+  fields.slice!(*model_config_fields)
+  puts "provisioning model configuration for `#{fields}` ..."
 
   ModelConfig.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
 end
