@@ -65,3 +65,7 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 end
+
+Sidekiq.configure_client do |config|
+  config.logger.level = :fatal
+end

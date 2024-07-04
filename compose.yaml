@@ -57,6 +57,8 @@ services:
     depends_on:
       - redis
       - postgres
+    environment:
+      RUN_SIDEKIQ: true
 
 volumes:
   redis:

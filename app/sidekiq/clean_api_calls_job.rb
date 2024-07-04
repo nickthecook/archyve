@@ -8,7 +8,7 @@ class CleanApiCallsJob
     oldest_creation_time = Time.zone.now - (max_age * 24 * 60 * 60)
 
     api_calls = ApiCall.where('created_at < ?', oldest_creation_time)
-    Rails.logger.info "CleanApiCallsJob: #{api_calls.count} API calls created before #{oldest_creation_time}"
+    Rails.logger.info "Cleaning #{api_calls.count} API calls created before #{oldest_creation_time}..."
     api_calls.delete_all
   end
 end

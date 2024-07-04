@@ -2,8 +2,6 @@ require_relative "boot"
 
 require "rails/all"
 
-require "sidekiq/web"
-
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -29,8 +27,6 @@ module Archyve
     config.autoload_paths << "#{root}/app/services"
     config.autoload_paths << Rails.root.join('app/lib')
 
-    Sidekiq.strict_args!(false)
-
     active_record_encryption = JSON.parse(ENV["ACTIVE_RECORD_ENCRYPTION"] || "{}")
     config.active_record.encryption.primary_key = active_record_encryption["primary_key"]
     config.active_record.encryption.deterministic_key = active_record_encryption["deterministic_key"]
@@ -41,6 +37,7 @@ module Archyve
     config.summarization_endpoint = ENV.fetch("SUMMARIZATION_ENDPOINT") { "http://localhost:11435" }
     config.summarization_model = ENV.fetch("SUMMARIZATION_MODEL") { "mistral:instruct" }
 
-    Sidekiq::Web.app_url = "/"
+    config.run_sidekiq = ENV.fetch("RUN_SIDEKIQ", "false") == "true"
+    Sidekiq.logger.class.include ActiveSupport::LoggerSilence
   end
 end
