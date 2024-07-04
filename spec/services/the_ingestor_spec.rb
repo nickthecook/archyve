@@ -34,7 +34,7 @@ RSpec.describe TheIngestor do
     it "ensures that the chromadb collection exists" do
       result
       expect(chromadb_double).to have_received(:create_collection).with(
-        document.collection.name.downcase,
+        document.collection.slug,
         { creator: "archyve" }
       )
     end
