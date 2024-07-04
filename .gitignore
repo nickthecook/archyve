@@ -46,3 +46,4 @@ config/dev
 local.env
 .DS_Store
 spec/examples.txt
+config/local/*

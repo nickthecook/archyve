@@ -57,6 +57,7 @@ services:
     depends_on:
       - redis
       - postgres
+      - archyve
     environment:
       RUN_SIDEKIQ: true
 
