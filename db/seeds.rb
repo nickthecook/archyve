@@ -64,11 +64,6 @@ dev_model_configs = [
     "temperature" => 0.1,
   },
   {
-    "name" => "gemma:7b",
-    "model" => "gemma:7b",
-    "temperature" => 0.2,
-  },
-  {
     "name" => "nomic-embed-text",
     "model" => "nomic-embed-text",
     "embedding" => true,

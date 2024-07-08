@@ -52,7 +52,6 @@ module LlmClients
               next unless current_chunk.ends_with?("\n") || current_chunk.ends_with?("}")
 
               message = extract_message(current_chunk)
-              message = formatter.format(current_chunk) if formatter
               current_batch << message
               current_chunk = ""
               stats[:tokens] += 1
@@ -127,10 +126,6 @@ module LlmClients
         end
 
         { prefix: "", suffix: "" }
-      end
-
-      def formatter
-        @formatter ||= FORMATTERS.find { |key, _value| key.match?(@model) ? value : nil }
       end
     end
   end
