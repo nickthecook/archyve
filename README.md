@@ -19,7 +19,7 @@ Archyve provides:
 ### Dependencies
 
 1. On a Mac ensure you have [brew](https://brew.sh) installed
-2. Make sure you have `podman` or `docker` setup and a "machine" configured and ready to pull and run container images.
+2. Make sure you have `docker` set up and a "machine" configured and ready to pull and run container images.
 3. Ensure you have [ops](https://github.com/nickthecook/crops?tab=readme-ov-file#installation) installed
 
 ### Develop
@@ -35,7 +35,9 @@ To start working / developing with Archyve locally, assuming dependencies are go
 
 ### Build
 
-To run Archyve, use `docker compose` or `podman compose`.
+To run Archyve, use `docker compose`.
+
+> Podman compose will work as well, if you edit the compose file so that Archyve can connect to ollama on `localhost`.
 
 1. Clone this repo
 2. `cp dotenv_template local.env`
@@ -48,33 +50,11 @@ docker compose up --build
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
 
-5. get a shell in the Archyve container with `docker compose exec archyve bash`
-6. run `bin/rails db:encryption:init` from within the container:
+5. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
 
-```bash
-$ rails db:encryption:init
-Running `bin/rails db:encryption:init` in environment 'dev'...
-Add this entry to the credentials of the target environment:
-
-active_record_encryption:
-  primary_key: PqxwHUF2E3MnPUW3qmOHUikIWJxhvY90
-  deterministic_key: wJi0qI8KftvGhqkNh42SaG2oh64ZKIGZ
-  key_derivation_salt: sE2nd5xn1rq2YdkDHHxQOuDhcOMfV5jr
-```
-
-7. put the values from the output into your `local.env` file
-
-```bash
-...
-ACTIVE_RECORD_ENCRYPTION="{
-  \"primary_key\": \"PqxwHUF2E3MnPUW3qmOHUikIWJxhvY90\",
-  \"deterministic_key\": \"wJi0qI8KftvGhqkNh42SaG2oh64ZKIGZ\",
-  \"key_derivation_salt\": \"sE2nd5xn1rq2YdkDHHxQOuDhcOMfV5jr\"
-}"
-```
-
-8. Restart the containers
-9. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
+> **WARNING**: The container will write a file with local encryption keys into `config/local`. **If you lose this file**, the application will not be able to decrypt sensitive data within the database (e.g. passwords or API keys), and the database will need to be reset, **losing all data**.
+>
+> If you want to migrate your database elsewhere, migrate this file along with it.
 
 ## Deploy
 
