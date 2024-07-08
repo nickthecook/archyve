@@ -38,6 +38,8 @@ services:
     restart: unless-stopped
     volumes:
       - archyve_files:/rails/storage
+      - ./config/local:/rails/config/local
+    # this needs to be edited to give podman access to host
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -51,6 +53,8 @@ services:
     restart: unless-stopped
     volumes:
       - archyve_files:/rails/storage
+      - ./config/local:/rails/config/local
+    # this needs to be edited to give podman access to host
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: ['/bin/bash', '-c', 'bin/rails db:seed && bundle exec sidekiq']

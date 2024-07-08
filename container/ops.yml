@@ -1,0 +1,18 @@
+actions:
+  start: docker compose up -d
+  stop: docker compose down
+  run: docker compose up
+  logs:
+    command: docker compose logs -f
+    alias: l
+  restart: docker compose restart
+  status:
+    command: docker compose ps
+    alias: ps
+  build:
+    command: docker compose build
+    load_secrets: true
+  rebuild:
+    command: docker compose up --build -d
+    load_secrets: true
+  clean_volumes: docker volume rm archyve_redis archyve_postgres archyve_chromadb archyve_archyve_files

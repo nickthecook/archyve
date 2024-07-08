@@ -24,15 +24,6 @@ actions:
   rails:
     command: bin/rails
     load_secrets: true
-  build:
-    command: docker compose build
-    load_secrets: true
-  rebuild:
-    command: docker compose up --build -d
-    load_secrets: true
-  container:
-    command: docker compose up
-    load_secrets: true
   shell:
     command: docker compose exec archyve bash
     alias: sh
@@ -64,6 +55,10 @@ actions:
   lint-watch:
     command: rerun --dir app,spec --no-notify -qb -- ops lint
     alias: lw
+  container:
+    command: cd container && ops
+    alias: c
+    load_secrets: true
 options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)
