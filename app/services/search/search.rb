@@ -48,7 +48,7 @@ module Search
       still_relevant = true
 
       hits.each do |hit|
-        if still_relevant && hit.distance_increase_ratio > DISTANCE_RATIO_THRESHOLD
+        if still_relevant && hit.distance_increase_ratio > distance_ratio_threshold
           still_relevant = false
         end
 
@@ -94,6 +94,10 @@ module Search
 
     def chroma
       @chroma ||= Chromadb::Client.new(traceable: @traceable)
+    end
+
+    def distance_ratio_threshold
+      @distance_ratio_threshold || Setting.get("distance_ratio_threshold", default: DISTANCE_RATIO_THRESHOLD)
     end
   end
 end
