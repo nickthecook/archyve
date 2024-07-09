@@ -21,7 +21,12 @@ class SearchBroadcaster
       "collections",
       target: @dom_id,
       partial: "collections/search_chunk",
-      locals: { chunk: hit.chunk, distance: hit.distance }
+      locals: {
+        chunk: hit.chunk,
+        distance: hit.distance,
+        distance_increase_ratio: hit.distance_increase_ratio,
+        relevant: hit.relevant,
+      }
     )
   end
 
@@ -34,6 +39,6 @@ class SearchBroadcaster
   end
 
   def search_multiple
-    @search_multiple ||= Search::SearchMultiple.new(@collections)
+    @search_multiple ||= Search::SearchMultiple.new(@collections, include_irrelevant: true)
   end
 end

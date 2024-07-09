@@ -1,8 +1,11 @@
 module Search
   class Search < Base
-    def initialize(collection, traceable: nil)
+    DISTANCE_RATIO_THRESHOLD = 0.2
+
+    def initialize(collection, traceable: nil, include_irrelevant: false)
       @collection = collection
       @traceable = traceable
+      @include_irrelevant = include_irrelevant
 
       super()
     end
@@ -11,10 +14,10 @@ module Search
       raise SearchError, "No query given" if query.blank?
 
       embedded_query = embed(query)
-      response = chroma_response(collection_id, embedded_query)
-      Rails.logger.debug { "ChromaDB response:\n#{response.to_json}" }
+      @response = chroma_response(collection_id, embedded_query)
+      Rails.logger.debug { "ChromaDB response:\n#{@response.to_json}" }
 
-      results = process_response(response)
+      results = process_response
       results.each do |result|
         yield result if block_given?
       end
@@ -25,17 +28,40 @@ module Search
 
     private
 
-    def process_response(response)
+    def process_response
       results = []
 
-      response["ids"].first.each_with_index do |id, index|
+      @response["ids"].first.each_with_index do |id, index|
         chunk = chunk_for(id)
         next if chunk.nil?
 
-        results << SearchHit.new(chunk, response["distances"].first[index])
+        results << SearchHit.new(chunk, distance_for(index), previous_distance_for(index))
       end
 
-      results.sort_by(&:distance)
+      results.sort_by!(&:distance)
+      mark_relevance(results)
+
+      @include_irrelevant ? results : results.filter(&:relevant)
+    end
+
+    def mark_relevance(hits)
+      still_relevant = true
+
+      hits.each do |hit|
+        if still_relevant && hit.distance_increase_ratio > DISTANCE_RATIO_THRESHOLD
+          still_relevant = false
+        end
+
+        hit.relevant = still_relevant
+      end
+    end
+
+    def distance_for(index)
+      @response["distances"].first[index]
+    end
+
+    def previous_distance_for(index)
+      distance_for(index - 1) if index.positive?
     end
 
     def embed(query)

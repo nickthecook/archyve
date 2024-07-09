@@ -1,4 +1,5 @@
-<%= content_tag :div, id: dom_id(chunk), class: "flex-col justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900" do %>
+<% classes = relevant ? "bg-secondary-200 dark:bg-secondary-900" : "bg-secondary-100 dark:bg-secondary-925 text-secondary-400" %>
+<%= content_tag :div, id: dom_id(chunk), class: "flex-col justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg #{classes}" do %>
   <%= link_to collection_document_chunk_path(chunk.collection, chunk.document, chunk),
     class: "flex justify-start items-center px-3 mb-4 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700 w-full" do %>
     <div class="flex-1 whitespace-prewrap">
@@ -14,9 +15,14 @@
     <div class="flex-1 text-xs text-center text-secondary-400 underline">
       <%= link_to chunk.document.filename, collection_document_path(chunk.collection, chunk.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" %>
     </div>
-    <div>
+    <div class="text-xs text-right text-secondary-400">
       <% if distance %>
-        <div class="text-xs text-right text-secondary-400">distance: <%= distance.round(3) %></div>
+        <div>
+          distance: <%= distance.round %>
+          <% if distance_increase_ratio.present? %>
+            (+<%= (distance_increase_ratio * 100).round %>%)
+          <% end %>
+        </div>
       <% end %>
     </div>
   </div>
