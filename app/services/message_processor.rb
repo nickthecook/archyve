@@ -4,13 +4,14 @@ class MessageProcessor
   def initialize
     @in_code_block = false
     @backticks = 0
+    @newline = false
     @input = ""
     @output = ""
   end
 
   # rubocop:disable all
   def append(str)
-    @input += str
+    @input += str.dup
     ret = ""
     str.each_char do |char|
       if char == "`"
@@ -25,8 +26,13 @@ class MessageProcessor
         @backticks = 0
         case char
         when " "
-          next if @newline && ! @in_code_block
-          ret += @in_code_block ? "&nbsp;" : " "
+          if @newline && ! @in_code_block
+            next
+          elsif @newline && @in_code_block
+            ret += "&nbsp;"
+          else
+            ret += " "
+          end
         when "\n"
           @newline = true
           ret += "<br>\n"
@@ -38,7 +44,7 @@ class MessageProcessor
     end
 
     @output += ret
-    ret
+    [ret, str]
   end
   # rubocop:enable all
 end

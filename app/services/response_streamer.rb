@@ -30,6 +30,7 @@ class ResponseStreamer
   end
 
   def chat(chat, &)
+    # stream the formatterd output so the user can see it as it comes in
     client.chat(chat) do |response|
       handle(response, &)
     end
@@ -38,9 +39,9 @@ class ResponseStreamer
   private
 
   def handle(response)
-    message = processor.append(response)
+    message, raw_message = processor.append(response)
 
-    yield message
+    yield message, raw_message
   rescue Net::HTTPError => e
     raise NetworkError, "Error communicating with server: #{e.message}"
   rescue Errno::ECONNREFUSED => e

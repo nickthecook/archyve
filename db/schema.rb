@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_03_173410) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -145,6 +145,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_03_173410) do
     t.jsonb "statistics"
     t.jsonb "error"
     t.string "prompt"
+    t.string "raw_content"
     t.index ["author_type", "author_id"], name: "index_messages_on_author"
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
   end

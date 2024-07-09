@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { marked } from "marked";
 import hljs from "highlight.js";
-// import { HighlightJS } from "highlight.js"
 
 // Connects to data-controller="markdown-text"
 export default class extends Controller {

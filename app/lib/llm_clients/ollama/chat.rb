@@ -16,7 +16,7 @@ module LlmClients
         chat_messages = messages[..-2].map do |message|
           {
             role: role_for_message(message),
-            content: message.content,
+            content: message.raw_content || message.content,
           }
         end
 
@@ -24,7 +24,7 @@ module LlmClients
         last_message = messages[-1]
         chat_messages << {
           role: role_for_message(last_message),
-          content: last_message.prompt || last_message.content,
+          content: last_message.prompt || last_message.content || last_message.raw_content,
         }
       end
 

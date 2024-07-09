@@ -15,9 +15,10 @@ class ReplyToMessage
     chat.chat_history
     create_reply
 
-    streamer.chat(chat) do |message|
+    streamer.chat(chat) do |message, raw_message|
       Rails.logger.info("Got back: #{message}")
-      @reply.update!(content: @reply.content + message)
+      Rails.logger.info("And raw:  #{raw_message}")
+      @reply.update!(content: @reply.content + message, raw_content: @reply.raw_content + raw_message)
 
       convert_to_markdown
     end
@@ -45,6 +46,7 @@ class ReplyToMessage
   def create_reply
     @reply = Message.create!(
       content: "",
+      raw_content: "",
       author: @conversation.model_config,
       conversation: @conversation
     )
