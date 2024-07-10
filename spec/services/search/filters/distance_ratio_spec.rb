@@ -5,11 +5,21 @@ RSpec.describe Search::Filters::DistanceRatio do
   let(:hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
-      Search::SearchHit.new(chunks[1], 220.0, 200.0),
-      Search::SearchHit.new(chunks[2], 400.0, 220.0),
-      Search::SearchHit.new(chunks[3], 450.0, 400.0),
-      Search::SearchHit.new(chunks[4], 500.0, 450.0),
+      Search::SearchHit.new(chunks[1], 220.0),
+      Search::SearchHit.new(chunks[2], 400.0),
+      Search::SearchHit.new(chunks[3], 450.0),
+      Search::SearchHit.new(chunks[4], 500.0),
     ]
+  end
+
+  it "sets the relevance on search hits" do
+    subject
+    expect(hits.map(&:relevant)).to eq([true, true, false, false, false])
+  end
+
+  it "sets previous_distance" do
+    subject
+    expect(hits.map(&:previous_distance)).to eq([nil, 200.0, 220.0, 400.0, 450.0])
   end
 
   describe "#filtered" do
@@ -18,10 +28,9 @@ RSpec.describe Search::Filters::DistanceRatio do
     end
   end
 
-  describe "relevance setting" do
-    it "sets the relevance on search hits" do
-      subject
-      expect(hits.map(&:relevant)).to eq([true, true, false, false, false])
+  describe "#all" do
+    it "returns all hits" do
+      expect(subject.all).to eq(hits)
     end
   end
 end
