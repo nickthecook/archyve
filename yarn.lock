@@ -89,6 +89,11 @@ source-map@^0.6.1:
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
 
+stimulus-clipboard@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/stimulus-clipboard/-/stimulus-clipboard-4.0.1.tgz#acc9212b479fedc633ecdec8f191a28c1d826a6b"
+  integrity sha512-dem+ihC3Q8+gbyGINdd+dK+9d5vUTnOwoH+n3KcDJvbxrFcq9lV8mWjyhEaDquGxYy3MmqSdz9FHQbG88TBqGg==
+
 sync-fetch@^0.3.0:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/sync-fetch/-/sync-fetch-0.3.1.tgz#62aa82c4b4d43afd6906bfd7b5f92056458509f0"

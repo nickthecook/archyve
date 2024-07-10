@@ -2,6 +2,7 @@
   "dependencies": {
     "highlight.js": "^11.9.0",
     "marked": "^12.0.1",
+    "stimulus-clipboard": "^4.0.1",
     "tailwind-highlightjs": "^2.0.1"
   }
 }
