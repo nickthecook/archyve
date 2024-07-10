@@ -1,5 +1,5 @@
 module Search
-  class SearchMultiple < Base
+  class SearchN < Base
     def initialize(collections, num_results: 10, traceable: nil, include_irrelevant: false)
       @collections = collections
       @num_results = num_results
@@ -13,6 +13,9 @@ module Search
       hits = searchers.map do |search|
         search.search(query)
       end.flatten.sort_by(&:distance)
+
+      filter = Filters::DistanceRatio.new(hits)
+      hits = @include_irrelevant ? filter.all : filter.filtered
 
       hits.first(@num_results).each(&)
     end

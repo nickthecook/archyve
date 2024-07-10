@@ -18,8 +18,7 @@ module Search
         yield result if block_given?
       end
 
-      filter = Filters::DistanceRatio.new(results)
-      @include_irrelevant ? filter.hits : filter.filtered
+      results
     end
 
     private

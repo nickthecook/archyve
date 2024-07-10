@@ -39,6 +39,6 @@ class SearchBroadcaster
   end
 
   def search_multiple
-    @search_multiple ||= Search::SearchMultiple.new(@collections, include_irrelevant: true)
+    @search_multiple ||= Search::SearchN.new(@collections, include_irrelevant: true)
   end
 end

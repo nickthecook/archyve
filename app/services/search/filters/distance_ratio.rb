@@ -3,12 +3,15 @@ module Search
     class DistanceRatio
       DISTANCE_RATIO_THRESHOLD = 0.2
 
-      attr_reader :hits
-
       def initialize(hits)
         @hits = hits
 
+        mark_previous_distances
         mark_relevance
+      end
+
+      def all
+        @hits
       end
 
       def filtered
@@ -16,6 +19,15 @@ module Search
       end
 
       private
+
+      def mark_previous_distances
+        previous = nil
+        @hits.each do |hit|
+          hit.previous_distance = previous
+
+          previous = hit.distance
+        end
+      end
 
       def mark_relevance
         still_relevant = true

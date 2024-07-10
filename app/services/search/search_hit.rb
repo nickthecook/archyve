@@ -1,7 +1,7 @@
 module Search
   class SearchHit
-    attr_reader :chunk, :distance, :previous_distance
-    attr_accessor :relevant
+    attr_reader :chunk, :distance
+    attr_accessor :relevant, :previous_distance
 
     def initialize(chunk, distance, previous_distance = nil)
       @chunk = chunk

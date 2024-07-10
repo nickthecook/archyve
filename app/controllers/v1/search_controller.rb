@@ -13,11 +13,12 @@ module V1
     private
 
     def hits
-      Api::SearchMultiple.new(
+      Api::GenerateSearchResults.new(
         @client.collections,
         base_url: request.base_url,
         browser_base_url:,
-        num_results:
+        num_results:,
+        traceable: @client
       ).search(query)
     end
 

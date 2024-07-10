@@ -95,7 +95,7 @@ class ReplyToMessage
   end
 
   def searcher
-    @searcher ||= Search::SearchMultiple.new(
+    @searcher ||= Search::SearchN.new(
       collections_to_search,
       num_results: Setting.get(:num_chunks_to_include),
       traceable: @conversation
