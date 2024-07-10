@@ -1,0 +1,29 @@
+{
+  "ids": [
+    [
+      "ede2c4ab-77a1-4e26-9575-3cfadc774ce8",
+      "62222c27-b496-4722-bc5a-9aa8e8495ed7",
+      "63b79d0b-482f-483a-8744-2f8f771b7fbb",
+      "d252939a-9f57-45e7-8265-78803eed786b",
+      "2ce77549-d65f-4a54-bc4b-45a8a17b49de"
+    ]
+  ],
+  "distances": [
+    [
+      200.0, 300.0, 400.0, 500.0, 600.0
+    ]
+  ],
+  "metadatas": [[null, null, null, null, null]],
+  "embeddings": null,
+  "documents": [
+    [
+      "this is document 0",
+      "this is document 1",
+      "this is document 2",
+      "this is document 3",
+      "this is document 4"
+    ]
+  ],
+  "uris": null,
+  "data": null
+}
