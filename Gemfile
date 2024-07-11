@@ -108,3 +108,8 @@ gem "pagy", "~> 8.0"
 gem "motor-admin", "~> 0.4.26"
 
 gem "baran", "~> 0.1.12"
+
+# error monitoring
+gem 'sentry-rails'
+gem 'sentry-ruby'
+gem 'sentry-sidekiq'

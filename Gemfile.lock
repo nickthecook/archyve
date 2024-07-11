@@ -383,6 +383,15 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    sentry-rails (5.18.1)
+      railties (>= 5.0)
+      sentry-ruby (~> 5.18.1)
+    sentry-ruby (5.18.1)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+    sentry-sidekiq (5.18.1)
+      sentry-ruby (~> 5.18.1)
+      sidekiq (>= 3.0)
     sidekiq (7.2.2)
       concurrent-ruby (< 2)
       connection_pool (>= 2.3.0)
@@ -485,6 +494,9 @@ DEPENDENCIES
   ruby-lsp (~> 0.14.6)
   sassc-rails
   selenium-webdriver
+  sentry-rails
+  sentry-ruby
+  sentry-sidekiq
   sidekiq (~> 7.2)
   sidekiq-cron (~> 1.12)
   sprockets-rails
