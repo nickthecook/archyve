@@ -126,7 +126,7 @@ class ReplyToMessage
     @prompt_augmentor ||= begin
       search_hits = searcher.search(@message.content)
 
-      PromptAugmentor.new(@message, search_hits)
+      PromptAugmentor.new(@message.content, search_hits)
     end
   end
 end

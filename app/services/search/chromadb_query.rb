@@ -1,8 +1,9 @@
 module Search
   class ChromadbQuery
-    def initialize(collection, query)
+    def initialize(collection, query, traceable: nil)
       @collection = collection
       @query = query
+      @traceable = traceable
     end
 
     def results

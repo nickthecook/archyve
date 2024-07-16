@@ -24,7 +24,7 @@ module Search
     private
 
     def chroma_results_for(query)
-      ChromadbQuery.new(@collection, query).results
+      ChromadbQuery.new(@collection, query, traceable: @traceable).results
     end
 
     def embedder

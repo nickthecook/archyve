@@ -1,5 +1,5 @@
 RSpec.describe PromptAugmentor do
-  subject { described_class.new(message, search_hits) }
+  subject { described_class.new(message.content, search_hits) }
 
   let(:message) { create(:message, content: "What tool should I use to install Ruby?", conversation:) }
   let(:conversation) { create(:conversation, messages: []) }

@@ -1,6 +1,6 @@
 class PromptAugmentor
-  def initialize(message, search_hits)
-    @message = message
+  def initialize(given_prompt, search_hits)
+    @given_prompt = given_prompt
     @search_hits = search_hits
   end
 
@@ -11,7 +11,7 @@ class PromptAugmentor
         prompt << "#{hit.chunk.content}\n\n"
       end
 
-      prompt << "Question: #{@message.content}\n"
+      prompt << "Question: #{@given_prompt}\n"
     end
   end
 end

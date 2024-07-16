@@ -36,7 +36,7 @@ module Api
       @prompt_augmentor ||= begin
         search_hits = searcher.search(@prompt)
 
-        PromptAugmentor.new(@message, search_hits)
+        PromptAugmentor.new(@prompt, search_hits)
       end
     end
 
