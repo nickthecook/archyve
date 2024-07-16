@@ -40,6 +40,7 @@ Rails.application.routes.draw do
 
     get "search", to: "search#search"
     get "chat", to: "chat#chat"
+    get "version", to: "version#show"
   end
 
   devise_for :users
