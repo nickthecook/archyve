@@ -25,7 +25,8 @@ module LlmClients
       embedding_model: nil,
       temperature: default_temperature,
       batch_size: default_batch_size,
-      traceable: nil
+      traceable: nil,
+      stream: true
     )
       @endpoint = endpoint
       @api_key = api_key
@@ -34,8 +35,13 @@ module LlmClients
       @temperature = temperature
       @batch_size = batch_size
       @traceable = traceable
+      @stream = stream
 
       @uri = URI(endpoint)
+    end
+
+    def clean_stats
+      @stats.slice(:elapsed_ms, :tokens, :tokens_per_sec, :time_to_first_token)
     end
 
     private

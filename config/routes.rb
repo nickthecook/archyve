@@ -39,6 +39,7 @@ Rails.application.routes.draw do
     end
 
     get "search", to: "search#search"
+    get "chat", to: "chat#chat"
   end
 
   devise_for :users

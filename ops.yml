@@ -44,6 +44,7 @@ actions:
   request_collections: ops request v1/collections
   request_docs: ops request v1/documents
   request_chunks: ops request v1/chunks
+  request_chat: ops request "v1/chat?prompt=how+do+i+install+ruby&model=phi3:latest"
   test:
     command: bundle exec rspec --tag "~skip"
     alias: t
