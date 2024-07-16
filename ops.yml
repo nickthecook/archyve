@@ -32,19 +32,15 @@ actions:
     load_secrets: true
     shell_expansion: true
   request:
-    param_expansion: true
-    command: >
-      curl -v localhost:3300/$1 \
-        -H "Accept: application/json" \
-        -H "Authorization: Bearer $DEFAULT_API_KEY" \
-        -H "X-Client-id: $DEFAULT_CLIENT_ID" | jq
+    command: bin/request
     load_secrets: true
-  request_search: ops request "v1/search?q=how+do+i+install+ruby"
-  request_search_3: ops request "v1/search?q=how+do+i+install+ruby&num_results=3"
-  request_collections: ops request v1/collections
-  request_docs: ops request v1/documents
-  request_chunks: ops request v1/chunks
-  request_chat: ops request "v1/chat?prompt=how+do+i+install+ruby&model=phi3:latest"
+    alias: r
+  request_search: ops request search q="how do i install ruby"
+  request_search_3: ops request search q="how do i install ruby" num_results=3
+  request_collections: ops request collections
+  request_docs: ops request documents
+  request_chunks: ops request chunks
+  request_chat: ops request chat prompt="how do i install ruby" model="phi3:latest"
   test:
     command: bundle exec rspec --tag "~skip"
     alias: t
@@ -64,5 +60,6 @@ options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)
     PG_OPTS: ${PG_OPTS:- --with-pg-lib=/usr/lib --with-opt-dir="${HOMEBREW_PREFIX:-/usr/local}/opt/libpq"}
+    API_BASE_URL: ${API_BASE_URL:-http://localhost:3300/v1}
   exec:
     load_secrets: true

@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+params = ARGV[1..-1].map do |arg|
+  name, value = arg.split('=')
+
+  if name.nil? || value.nil?
+    stderr.puts "Invalid argument: #{arg}"
+    exit(1)
+  end
+
+  [name, value]
+end
+path = ARGV[0]
+
+require 'uri'
+require 'httparty'
+require 'json'
+
+# set ENV vars in config and run this script with `ops`
+base_url = ENV['API_BASE_URL']
+param_string = URI.encode_www_form(params)
+url = "#{base_url}/#{path}?#{param_string}"
+headers = {
+  'Accept' => 'application/json',
+  'Authorization' => "Bearer #{ENV['DEFAULT_API_KEY']}",
+  'X-Client-Id'   => "#{ENV['DEFAULT_CLIENT_ID']}",
+}
+
+response = HTTParty.get(url, headers: headers)
+
+if response.success?
+  puts JSON.pretty_generate(response.parsed_response)
+else
+  STDERR.puts "Error: #{response}"
+  exit(2)
+end
