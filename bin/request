@@ -1,10 +1,28 @@
 #!/usr/bin/env ruby
 
+if ARGV.first == '-p'
+  method = :post
+  ARGV.shift
+  if ARGV.first == '-'
+    body = $stdin.read
+  else
+    body = ARGV.shift
+  end
+elsif ARGV.first == "-d"
+  method = :delete
+  ARGV.shift
+  body = nil
+end
+if method.nil?
+  method = :get
+  body = nil
+end
+
 params = ARGV[1..-1].map do |arg|
   name, value = arg.split('=')
 
   if name.nil? || value.nil?
-    stderr.puts "Invalid argument: #{arg}"
+    $stderr.puts "Invalid argument: #{arg}"
     exit(1)
   end
 
@@ -26,7 +44,7 @@ headers = {
   'X-Client-Id'   => "#{ENV['DEFAULT_CLIENT_ID']}",
 }
 
-response = HTTParty.get(url, headers: headers)
+response = HTTParty.send(method, url, headers: headers, body: body)
 
 if response.success?
   puts JSON.pretty_generate(response.parsed_response)
