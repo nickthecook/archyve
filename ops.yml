@@ -41,6 +41,7 @@ actions:
   request_docs: ops request documents
   request_chunks: ops request chunks
   request_chat: ops request chat prompt="how do i install ruby" model="phi3:latest" augment=true
+  request_model: ops request models/phi3
   test:
     command: bundle exec rspec --tag "~skip"
     alias: t

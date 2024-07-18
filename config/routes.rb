@@ -38,9 +38,11 @@ Rails.application.routes.draw do
       get "get", on: :member, to: "chunks#get"
     end
 
+    resources :settings, only: [:index, :show]
+    resources :models, only: [:index, :show]
+
     get "search", to: "search#search"
     get "chat", to: "chat#chat"
-    get "models", to: "models#index"
     get "version", to: "version#show"
   end
 
