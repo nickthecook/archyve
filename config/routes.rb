@@ -27,9 +27,10 @@ Rails.application.routes.draw do
 
   # API
   namespace :v1 do
-    resources :documents, only: [:index, :show]
     resources :collections, only: %i[create destroy index show] do
       get "search", on: :member, to: "collections#search"
+
+      resources :documents, only: [:index, :show]
     end
     resources :chunks do
       get "list", on: :collection, to: "chunks#list"
