@@ -13,6 +13,10 @@
 # it.
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+
+# load all shared contexts
+Dir['./spec/support/shared/**/*.rb'].each { |f| require f }
+
 RSpec.configure do |config|
   ENV["RAILS_ENV"] = "test"
 

@@ -40,6 +40,7 @@ Rails.application.routes.draw do
 
     get "search", to: "search#search"
     get "chat", to: "chat#chat"
+    get "models", to: "models#index"
     get "version", to: "version#show"
   end
 
