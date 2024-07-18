@@ -5,7 +5,11 @@ module Parsers
 
       chunks = text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
 
-      overlapped_chunks(chunks)
+      if chunking_profile.overlap.zero?
+        chunk_records(chunks)
+      else
+        overlapped_chunk_records(chunks)
+      end
     end
 
     # The chunking profile used by the parser, based on the document it is parsing
@@ -13,7 +17,9 @@ module Parsers
       @document.chunking_profile
     end
 
-    def overlapped_chunks(chunks)
+    private
+
+    def overlapped_chunk_records(chunks)
       chunk_overlap = chunking_profile.overlap
       overlapped_chunks = []
 
@@ -36,6 +42,10 @@ module Parsers
       end
 
       overlapped_chunks
+    end
+
+    def chunk_records(chunks)
+      chunks.map { |chunk| ChunkRecord.new(content: chunk) }
     end
   end
 end
