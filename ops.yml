@@ -35,13 +35,6 @@ actions:
     command: bin/request
     load_secrets: true
     alias: r
-  request_search: ops request search q="how do i install ruby"
-  request_search_3: ops request search q="how do i install ruby" num_results=3
-  request_collections: ops request collections
-  request_docs: ops request documents
-  request_chunks: ops request chunks
-  request_chat: ops request chat prompt="how do i install ruby" model="phi3:latest" augment=true
-  request_model: ops request models/phi3
   test:
     command: bundle exec rspec --tag "~skip"
     alias: t
