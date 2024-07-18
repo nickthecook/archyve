@@ -8,7 +8,7 @@ module V1
 
     def show
       render json: { model: helpers.model_response(model_config) }
-    rescue ActiveRecord::RecordNotFound => e
+    rescue ActiveRecord::RecordNotFound
       render json: { error: "No model with name, model string, or id '#{id_param}'." }, status: :not_found
     rescue StandardError => e
       render json: { error: e }, status: :internal_server_error
