@@ -5,6 +5,7 @@ RSpec.describe Chunk do
 
   let(:document) { create(:document) }
   let(:embedding_content) { nil }
+  let(:chunks) { document.chunks.sort }
 
   before do
     create(:chunk, document:)
@@ -18,35 +19,29 @@ RSpec.describe Chunk do
 
   describe "#previous" do
     it "returns the previous chunk" do
-      skip # flaky
-      expect(subject.previous).to contain_exactly(document.chunks[1])
+      expect(subject.previous).to contain_exactly(chunks[1])
     end
 
     it "returns multiple chunks" do
-      skip # flaky
-      expect(subject.previous(2)).to eq(document.chunks[0..1])
+      expect(subject.previous(2)).to eq(chunks[0..1])
     end
 
     it "stops at the beginning of the list" do
-      skip # flaky
-      expect(subject.previous(3)).to eq(document.chunks[0..1])
+      expect(subject.previous(3)).to eq(chunks[0..1])
     end
   end
 
   describe "#next" do
     it "returns the next chunk" do
-      skip # flaky
-      expect(subject.next).to contain_exactly(document.chunks[-2])
+      expect(subject.next).to contain_exactly(chunks[-2])
     end
 
     it "returns multiple chunks" do
-      skip # flaky
-      expect(subject.next(2)).to eq(document.chunks[3..4])
+      expect(subject.next(2)).to eq(chunks[3..4])
     end
 
     it "stops at the end of the list" do
-      skip # flaky
-      expect(subject.next(3)).to eq(document.chunks[3..4])
+      expect(subject.next(3)).to eq(chunks[3..4])
     end
   end
 
