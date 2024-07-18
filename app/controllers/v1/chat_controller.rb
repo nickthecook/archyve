@@ -11,7 +11,7 @@ module V1
     private
 
     def augment
-      chat_params[:augment]
+      chat_params[:augment] == "true"
     end
 
     def model
