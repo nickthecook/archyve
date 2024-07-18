@@ -21,7 +21,7 @@ RSpec.describe "V1::Settings" do
   end
 
   describe "GET /v1/settings/[:id]" do
-    let(:key) { "key_1" }
+    let(:key) { settings.first.key }
 
     before do
       get "/v1/settings/#{key}", headers:
@@ -29,7 +29,7 @@ RSpec.describe "V1::Settings" do
 
     it "returns the requested setting" do
       expect(response.parsed_body).to eq({
-        "setting" => { "key" => "key_1", "value" => "value_1" },
+        "setting" => { "key" => settings.first.key, "value" => settings.first.value },
       })
     end
 
