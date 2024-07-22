@@ -13,11 +13,9 @@ module Graph
         response = EntityExtractionResponse.new(line)
 
         if response.entity?
-          response_values = response.to_h
-          entity = Entity.find_or_create_by!(entity_type: response_values[:subtype], name: response_values[:name])
-          EntityDescription.create!(entity:, description: response_values[:desc])
+          handle_entity(response)
         elsif response.relationship?
-          puts "LATER!"
+          handle_relationship(response)
         else
           Rails.logger.warn("Unable to extract entity or relationship: #{line}")
         end
@@ -25,6 +23,22 @@ module Graph
     end
 
     private
+
+    def handle_entity(response)
+      response_values = response.to_h
+
+      unless entity_types.include?(response_values[:subtype])
+        Rails.logger.warn("Unrecognized entity type: #{response_values[:subtype]}")
+        return
+      end
+
+      entity = Entity.find_or_create_by!(entity_type: response_values[:subtype], name: response_values[:name])
+      EntityDescription.create!(entity:, description: response_values[:desc])
+    end
+
+    def handle_relationship(_response)
+      puts "LATER!"
+    end
 
     def entities_for(chunk)
       client.complete(prompt_for(chunk.content))
@@ -62,7 +76,7 @@ module Graph
     end
 
     def entity_types
-      %w[organization person geo event]
+      %w[organization person event concept technology mission location role]
     end
 
     def input_text

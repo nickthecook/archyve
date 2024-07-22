@@ -9,7 +9,7 @@ module Graph
     ENTITY_REGEX =
       /^\("(?'type'\w+)"\|"(?'name'[^"]+)"\|"(?'subtype'[^"]+)"\|"(?'desc'[^"]+)".*$/
     RELATIONSHIP_REGEX =
-      /^\("(?'type'relationship)"\|"(?'source'[^"]+)"\|"(?'dest'[^"]+)"\|"(?'desc'[^"]+)"(?:\|(?'strength'\d+))?.*$/
+      /^\("(?'type'relationship)"\|"(?'from'[^"]+)"\|"(?'to'[^"]+)"\|"(?'desc'[^"]+)"(?:\|(?'strength'\d+))?.*$/
 
     def initialize(text)
       @text = text.strip
