@@ -1,6 +1,9 @@
 class Chunk < ApplicationRecord
   belongs_to :document
   has_one :collection, through: :document
+  has_many :entity_descriptions, dependent: :destroy
+  has_many :relationships, dependent: :destroy
+  has_many :entities, through: :entity_descriptions
 
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)

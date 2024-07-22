@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_22_200809) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -147,6 +147,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "chunk_id", null: false
+    t.index ["chunk_id"], name: "index_entity_descriptions_on_chunk_id"
     t.index ["entity_id"], name: "index_entity_descriptions_on_entity_id"
   end
 
@@ -388,6 +390,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
     t.string "description", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "chunk_id", null: false
+    t.index ["chunk_id"], name: "index_relationships_on_chunk_id"
     t.index ["from_id"], name: "index_relationships_on_from_id"
     t.index ["to_id"], name: "index_relationships_on_to_id"
   end
@@ -426,6 +430,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
   add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
+  add_foreign_key "entity_descriptions", "chunks"
   add_foreign_key "entity_descriptions", "entities"
   add_foreign_key "messages", "conversations"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"
@@ -433,6 +438,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
   add_foreign_key "motor_note_tag_tags", "motor_note_tags", column: "tag_id"
   add_foreign_key "motor_note_tag_tags", "motor_notes", column: "note_id"
   add_foreign_key "motor_taggable_tags", "motor_tags", column: "tag_id"
+  add_foreign_key "relationships", "chunks"
   add_foreign_key "relationships", "entities", column: "from_id"
   add_foreign_key "relationships", "entities", column: "to_id"
   add_foreign_key "settings", "users"
