@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_22_143630) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -133,6 +133,21 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
+  end
+
+  create_table "entities", force: :cascade do |t|
+    t.string "name"
+    t.string "entity_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "entity_descriptions", force: :cascade do |t|
+    t.bigint "entity_id", null: false
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entity_id"], name: "index_entity_descriptions_on_entity_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -400,6 +415,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
   add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
+  add_foreign_key "entity_descriptions", "entities"
   add_foreign_key "messages", "conversations"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"
   add_foreign_key "motor_alerts", "motor_queries", column: "query_id"
