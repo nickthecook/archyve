@@ -13,9 +13,9 @@ module Graph
         response = EntityExtractionResponse.new(line)
 
         if response.entity?
-          handle_entity(response)
+          handle_entity(response.to_h)
         elsif response.relationship?
-          handle_relationship(response)
+          handle_relationship(response.to_h)
         else
           Rails.logger.warn("Unable to extract entity or relationship: #{line}")
         end
@@ -24,20 +24,26 @@ module Graph
 
     private
 
-    def handle_entity(response)
-      response_values = response.to_h
-
-      unless entity_types.include?(response_values[:subtype])
-        Rails.logger.warn("Unrecognized entity type: #{response_values[:subtype]}")
+    def handle_entity(values)
+      unless entity_types.include?(values[:subtype])
+        Rails.logger.warn("Unrecognized entity type: #{values[:subtype]}")
         return
       end
 
-      entity = Entity.find_or_create_by!(entity_type: response_values[:subtype], name: response_values[:name])
-      EntityDescription.create!(entity:, description: response_values[:desc])
+      entity = Entity.find_or_create_by!(entity_type: values[:subtype], name: values[:name])
+      EntityDescription.create!(entity:, description: values[:desc])
     end
 
-    def handle_relationship(_response)
-      puts "LATER!"
+    def handle_relationship(values)
+      from = Entity.find_by(name: values[:from])
+      to = Entity.find_by(name: values[:to])
+
+      unless from && to
+        Rails.logger.warn("Unable to find entities: #{values[:from]} (#{from}) and/or #{values[:to]} (#{to})")
+        return
+      end
+
+      Relationship.find_or_create_by!(from:, to:, strength: values[:strength], description: values[:desc])
     end
 
     def entities_for(chunk)

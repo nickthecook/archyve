@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_22_143630) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_22_193424) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -381,6 +381,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_143630) do
     t.index ["name"], name: "motor_tags_name_unique_index", unique: true
   end
 
+  create_table "relationships", force: :cascade do |t|
+    t.bigint "from_id", null: false
+    t.bigint "to_id", null: false
+    t.integer "strength"
+    t.string "description", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["from_id"], name: "index_relationships_on_from_id"
+    t.index ["to_id"], name: "index_relationships_on_to_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.string "key"
     t.jsonb "value"
@@ -422,5 +433,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_143630) do
   add_foreign_key "motor_note_tag_tags", "motor_note_tags", column: "tag_id"
   add_foreign_key "motor_note_tag_tags", "motor_notes", column: "note_id"
   add_foreign_key "motor_taggable_tags", "motor_tags", column: "tag_id"
+  add_foreign_key "relationships", "entities", column: "from_id"
+  add_foreign_key "relationships", "entities", column: "to_id"
   add_foreign_key "settings", "users"
 end
