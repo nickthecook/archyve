@@ -6,7 +6,7 @@ class DocumentsController < ApplicationController
 
   def show
     @collections = current_user.collections
-    @pagy, @chunks = pagy(@document.chunks)
+    @pagy, @chunks = pagy(@document.chunks.order(:id))
 
     return render "scrollable_list" if params[:page].present?
 
@@ -44,7 +44,6 @@ class DocumentsController < ApplicationController
 
     respond_to do |format|
       # Document will take care of it
-      format.turbo_stream {}
       format.html { redirect_to collection_path(@collection) }
     end
   end
