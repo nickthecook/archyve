@@ -30,11 +30,9 @@ Rails.application.routes.draw do
     resources :collections, only: %i[create destroy index show] do
       get "search", on: :member, to: "collections#search"
 
-      resources :documents, only: [:index, :show]
-    end
-    resources :chunks do
-      get "list", on: :collection, to: "chunks#list"
-      get "get", on: :member, to: "chunks#get"
+      resources :documents, only: [:index, :show] do
+        resources :chunks, only: [:index, :show]
+      end
     end
 
     resources :settings, only: [:index, :show]
