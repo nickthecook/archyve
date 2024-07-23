@@ -40,6 +40,7 @@ docker.env
 deps/redis
 node_modules
 deps/postgres
+deps/neo4j
 vendor
 deps/chroma-data
 config/dev
