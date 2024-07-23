@@ -87,7 +87,7 @@ module Graph
     end
 
     def entity_types
-      %w[organization person event concept technology mission location role]
+      %w[organization person event concept technology mission location role project]
     end
 
     def input_text

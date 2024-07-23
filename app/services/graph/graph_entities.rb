@@ -17,21 +17,29 @@ module Graph
 
       entity.relationships_from.each do |relationship|
         other_node = node(relationship.to)
-        relationship(node, other_node, relationship.attributes.slice(*relationship_attrs))
+        relationship(node, other_node, relationship)
       end
     end
 
     def node(entity)
-      Nodes::Entity.find_or_create_by!(entity.attributes.slice(*entity_attrs))
+      existing = Nodes::Entity.find_by(entity.attributes.slice(*entity_find_attrs))
+      return existing if existing.present?
+
+      node = Nodes::Entity.from_model(entity)
+      node.save!
+
+      node
     end
 
-    def relationship(from, to, attrs)
-      # relationship = Relationships::RelatesTo.find_by(from_node: from, to_node: to, **attrs)
-      # return relationship if relationship.present?
-      Relationships::RelatesTo.create!(from_node: from, to_node: to, **attrs)
+    def relationship(from, to, relationship)
+      Relationships::RelatesTo.create!(
+        from_node: from,
+        to_node: to,
+        **relationship.attributes.slice(*relationship_attrs)
+      )
     end
 
-    def entity_attrs
+    def entity_find_attrs
       %w[name entity_type summary collection collection_name]
     end
 
