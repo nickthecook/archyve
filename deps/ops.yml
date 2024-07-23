@@ -22,3 +22,7 @@ actions:
   shell:
     command: docker compose exec chat bash
     alias: sh
+options:
+  environment:
+    USER_ID: $(id -u)
+    GROUP_ID: $(id -g)

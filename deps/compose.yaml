@@ -29,7 +29,22 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
       interval: 30s
       timeout: 10s
       retries: 3
+  neo4j:
+    image: neo4j:5.21.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./neo4j/data:/data
+      # - ./neo4j/logs:/logs
+      # - ./neo4j/conf:/conf
+      # - ./neo4j/import:/import
+      #- ./metrics/server2:/metrics
+      #- ./licenses/server2:/licenses
+      #- ./ssl/server2:/ssl
+    environment:
+      - NEO4J_AUTH=neo4j/password

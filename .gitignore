@@ -41,6 +41,8 @@ deps/redis
 node_modules
 deps/postgres
 vendor/bundle
+deps/neo4j
+vendor
 deps/chroma-data
 config/dev
 local.env
