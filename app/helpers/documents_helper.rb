@@ -2,7 +2,7 @@ module DocumentsHelper
   def state_text_for(document)
     case document.state
     when "errored" then "Error"
-    else document.state.capitalize
+    else document.state.titleize
     end
   end
 

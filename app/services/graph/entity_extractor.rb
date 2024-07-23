@@ -40,8 +40,8 @@ module Graph
     end
 
     def handle_relationship(values, chunk)
-      from = Entity.find_by(name: values[:from])
-      to = Entity.find_by(name: values[:to])
+      from = Entity.find_by(name: values[:from], collection: chunk.collection)
+      to = Entity.find_by(name: values[:to], collection: chunk.collection)
 
       unless from && to
         Rails.logger.warn("Unable to find entities: #{values[:from]} (#{from}) and/or #{values[:to]} (#{to})")

@@ -43,6 +43,12 @@ class Document < ApplicationRecord
     embedded: 2,
     storing: 6,
     stored: 3,
+    extracting_entities: 11,
+    extracted_entities: 12,
+    summarizing_entities: 13,
+    summarized_entities: 14,
+    graphing_entities: 15,
+    graphed: 16,
     deleting: 7,
     errored: 10,
   }
@@ -54,6 +60,12 @@ class Document < ApplicationRecord
     state :chunked
     state :embedding
     state :embedded
+    state :extracting_entities
+    state :extracted_entities
+    state :summarizing_entities
+    state :summarized_entities
+    state :graphing_entities
+    state :graphed
     state :storing
     state :stored
     state :deleting
@@ -81,6 +93,15 @@ class Document < ApplicationRecord
     end
     event :store do
       transitions from: :storing, to: :stored
+    end
+    event :extract_entities do
+      transitions from: :embedded, to: :extracting_entities
+    end
+    event :summarize_entities do
+      transitions from: :extracted_entities, to: :summarizing_entities
+    end
+    event :graph_entities do
+      transitions from: :summarized_entities, to: :graphing_entities
     end
 
     event :deleting do

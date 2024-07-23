@@ -3,6 +3,7 @@ class Collection < ApplicationRecord
   has_many :conversation_collections, dependent: :destroy
   belongs_to :embedding_model, class_name: "ModelConfig"
   has_many :entities, dependent: :destroy
+  has_many :relationships, through: :entities
 
   after_create_commit lambda {
     broadcast_append_to(

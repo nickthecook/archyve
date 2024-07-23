@@ -27,7 +27,7 @@ module Graph
     end
 
     def chunks
-      @chunks ||= @document.chunks.order(:id).offset(@start_index)
+      @chunks ||= @document.chunks.order(:id).offset(@start_index).where(entities_extracted: false)
     end
   end
 end

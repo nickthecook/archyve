@@ -2,7 +2,7 @@ class DocumentsController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :set_collection
-  before_action :set_document, only: [:show, :destroy, :vectorize]
+  before_action :set_document, only: %i[show destroy vectorize graph]
 
   def show
     @collections = current_user.collections
@@ -13,6 +13,7 @@ class DocumentsController < ApplicationController
     render "show", locals: { document: @document }
   end
 
+  # rubocop:disable Metrics/AbcSize
   def create
     @chunking_profile = ChunkingProfile.find_or_create_by(chunking_params)
 
@@ -36,6 +37,7 @@ class DocumentsController < ApplicationController
       end
     end
   end
+  # rubocop:enable Metrics/AbcSize
 
   def destroy
     @document.deleting!
@@ -50,6 +52,10 @@ class DocumentsController < ApplicationController
 
   def vectorize
     IngestJob.perform_async(@document.id)
+  end
+
+  def graph
+    GraphDocumentJob.perform_async(@document.id)
   end
 
   private

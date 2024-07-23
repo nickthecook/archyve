@@ -4,18 +4,22 @@ class TheIngestor
     @chunks = []
   end
 
+  # rubocop:disable Metrics/AbcSize
   def ingest
     ensure_collection_exists
     @document.chunking!
     prepare_and_embed(chonker.each)
     @document.embedded!
     Rails.logger.info("Embedded chunks from #{@document.filename}.")
+
+    GraphDocumentJob.perform_async(@document.id)
   rescue StandardError => e
     Rails.logger.error("Error ingesting document #{@document.id}\n#{exception_summary(e)}")
     @document.error!
 
     raise e
   end
+  # rubocop:enable Metrics/AbcSize
 
   private
 
