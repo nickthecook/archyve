@@ -1,12 +1,13 @@
 module Graph
   class ExtractDocumentEntities
-    def initialize(document)
+    def initialize(document, start_index)
       @document = document
+      @start_index = start_index
     end
 
     def extract
       iteration = 1
-      @document.chunks.order(:id).each do |chunk|
+      chunks.each do |chunk|
         Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{iteration}/#{chunk_count})...")
 
         extractor.extract(chunk)
@@ -23,6 +24,10 @@ module Graph
 
     def chunk_count
       @chunk_count ||= @document.chunks.count
+    end
+
+    def chunks
+      @chunks ||= @document.chunks.order(:id).offset(@start_index)
     end
   end
 end
