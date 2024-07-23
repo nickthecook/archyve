@@ -8,9 +8,9 @@ module Graph
 
     def summarize
       iteration = 1
-      @collection.entities.each do |entity|
+      entities.each do |entity|
         Rails.logger.info("Summarizing entity '#{entity.name}' (#{iteration}/#{entity_count})...")
-        next if entity.summary.present? && @force_all == false
+        next if entity.summary.present? && entity.summary_outdated == false && @force_all == false
 
         summarizer.summarize(entity)
 
@@ -19,6 +19,14 @@ module Graph
     end
 
     private
+
+    def entities
+      @entities ||= if @force_all
+        @collection.entities
+      else
+        @collection.entities.where(summary: nil).or(@collection.entities.where(summary_outdated: true))
+      end
+    end
 
     def entity_count
       @entity_count ||= @collection.entities.count

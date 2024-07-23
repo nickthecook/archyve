@@ -10,7 +10,7 @@ module Graph
 
       response = client.complete(prompt.result(binding))
 
-      @entity.update!(summary: response)
+      @entity.update!(summary: response, summary_outdated: false)
     end
 
     private

@@ -36,6 +36,7 @@ module Graph
         collection: chunk.collection
       )
       EntityDescription.create!(entity:, description: values[:desc], chunk:)
+      entity.update!(summary_outdated: true)
     end
 
     def handle_relationship(values, chunk)

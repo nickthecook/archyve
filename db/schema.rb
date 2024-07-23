@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_23_112236) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_23_114944) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -142,6 +142,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_23_112236) do
     t.datetime "updated_at", null: false
     t.bigint "collection_id", null: false
     t.string "summary"
+    t.boolean "summary_outdated", default: false
     t.index ["collection_id"], name: "index_entities_on_collection_id"
   end
 
