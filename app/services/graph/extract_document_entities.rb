@@ -1,6 +1,6 @@
 module Graph
   class ExtractDocumentEntities
-    def initialize(document, start_index)
+    def initialize(document, start_index = 0)
       @document = document
       @start_index = start_index
     end

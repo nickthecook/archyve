@@ -1,5 +1,6 @@
 class Entity < ApplicationRecord
-  has_many :entity_descriptions, dependent: :destroy
-  has_many :relationships_from, dependent: :destroy, class_name: 'Relationship', foreign_key: :from_id
-  has_many :relationships_to, dependent: :destroy, class_name: 'Relationship', foreign_key: :to_id
+  has_many :descriptions, dependent: :destroy, class_name: 'EntityDescription'
+  has_many :relationships_from, dependent: :destroy, class_name: 'Relationship', inverse_of: :from
+  has_many :relationships_to, dependent: :destroy, class_name: 'Relationship', inverse_of: :to
+  belongs_to :collection
 end

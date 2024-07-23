@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_22_200809) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_23_105306) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -140,6 +140,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_200809) do
     t.string "entity_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "collection_id", null: false
+    t.index ["collection_id"], name: "index_entities_on_collection_id"
   end
 
   create_table "entity_descriptions", force: :cascade do |t|
@@ -430,6 +432,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_22_200809) do
   add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
+  add_foreign_key "entities", "collections"
   add_foreign_key "entity_descriptions", "chunks"
   add_foreign_key "entity_descriptions", "entities"
   add_foreign_key "messages", "conversations"

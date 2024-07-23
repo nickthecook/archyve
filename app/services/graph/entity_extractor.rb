@@ -30,7 +30,11 @@ module Graph
         return
       end
 
-      entity = Entity.find_or_create_by!(entity_type: values[:subtype], name: values[:name])
+      entity = Entity.find_or_create_by!(
+        entity_type: values[:subtype],
+        name: values[:name],
+        collection: chunk.collection
+      )
       EntityDescription.create!(entity:, description: values[:desc], chunk:)
     end
 
