@@ -113,3 +113,6 @@ gem "baran", "~> 0.1.12"
 gem 'sentry-rails'
 gem 'sentry-ruby'
 gem 'sentry-sidekiq'
+
+gem 'activegraph', '~> 11.4'
+gem 'neo4j-ruby-driver', ">= 4.4.1"
