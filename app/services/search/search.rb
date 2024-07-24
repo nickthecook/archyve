@@ -28,7 +28,7 @@ module Search
     end
 
     def embedder
-      @embedder ||= Embedder.new(@collection.embedding_model, traceable: @traceable)
+      @embedder ||= Embedder.new(model_config: @collection.embedding_model, traceable: @traceable)
     end
   end
 end
