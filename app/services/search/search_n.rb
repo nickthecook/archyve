@@ -14,17 +14,32 @@ module Search
         search.search(query)
       end.flatten.sort_by(&:distance)
 
-      filter = Filters::DistanceRatio.new(hits)
-      hits = @include_irrelevant ? filter.all : filter.filtered
+      filtered_hits = filter(hits)
+      hits = filtered_hits unless @include_irrelevant
 
       hits.first(@num_results).each(&)
     end
 
     private
 
+    def filter(hits)
+      filtered_list = hits
+
+      filter_classes.each do |filter_class|
+        filter = filter_class.new(filtered_list)
+        filtered_list = filter.filtered
+      end
+
+      filtered_list
+    end
+
+    def filter_classes
+      @filter_classes ||= [Filters::DistanceRatio, Filters::DistanceCeiling]
+    end
+
     def searchers
       @searchers ||= @collections.map do |collection|
-        Search.new(collection, traceable: @traceable, include_irrelevant: @include_irrelevant)
+        Search.new(collection, traceable: @traceable)
       end
     end
   end

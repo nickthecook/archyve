@@ -3,7 +3,7 @@
   <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex flex-1">
       <% 
-        if collection.documents.reload.any? { |doc| doc.embedded? }
+        if collection.documents.reload.any? { |doc| doc.embedded? || doc.graphed? || doc.graphing_entities? }
           placeholder = "Search your documents..."
           disabled = false
         else

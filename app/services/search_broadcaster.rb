@@ -5,8 +5,11 @@ class SearchBroadcaster
   end
 
   def search(query)
-    search_multiple.search(query) do |hit|
-      broadcast_hit(hit)
+    hits = search_multiple.search(query)
+    if hits.any?
+      hits.each { |hit| broadcast_hit(hit) }
+    else
+      broadcast_no_hits
     end
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
@@ -35,6 +38,14 @@ class SearchBroadcaster
       "collections",
       target: @dom_id,
       partial: "shared/search_error", locals: { error: "An error occurred: #{exception}" }
+    )
+  end
+
+  def broadcast_no_hits
+    Turbo::StreamsChannel.broadcast_append_to(
+      "collections",
+      target: @dom_id,
+      partial: "collections/no_hits"
     )
   end
 

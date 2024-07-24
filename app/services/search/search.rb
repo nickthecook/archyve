@@ -1,9 +1,8 @@
 module Search
   class Search < Base
-    def initialize(collection, traceable: nil, include_irrelevant: false)
+    def initialize(collection, traceable: nil)
       @collection = collection
       @traceable = traceable
-      @include_irrelevant = include_irrelevant
 
       super()
     end
