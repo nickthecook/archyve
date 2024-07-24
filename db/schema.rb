@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_24_034722) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -160,6 +160,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
     t.boolean "embedding", default: false
     t.boolean "provisioned", default: false
     t.boolean "available", default: true
+    t.string "api_version"
+    t.bigint "model_server_id"
+    t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
   create_table "model_servers", force: :cascade do |t|
@@ -171,6 +174,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
     t.datetime "updated_at", null: false
     t.boolean "provisioned", default: false
     t.boolean "available", default: true
+    t.string "api_key"
   end
 
   create_table "motor_alert_locks", force: :cascade do |t|
@@ -401,6 +405,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_08_192655) do
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
   add_foreign_key "messages", "conversations"
+  add_foreign_key "model_configs", "model_servers"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"
   add_foreign_key "motor_alerts", "motor_queries", column: "query_id"
   add_foreign_key "motor_note_tag_tags", "motor_note_tags", column: "tag_id"

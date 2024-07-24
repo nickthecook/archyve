@@ -1,10 +1,25 @@
 class ModelServer < ApplicationRecord
+  encrypts :api_key
+
   scope :active, -> { where(active: true) }
 
-  enum provider: {
+  enum :provider, {
     ollama: 1,
-    openai: 2,
-  }
+    openai_azure: 2,
+  }, prefix: :provider
+
+  # Require API key if ...
+  validates :api_key, presence: true, if: :api_key_required?
+
+  # Return true for providers that require an API key
+  def api_key_required?
+    provider_openai_azure?
+  end
+
+  # Return true for providers that require models to include an API version
+  def api_version_required?
+    provider_openai_azure?
+  end
 
   class << self
     def active_server
