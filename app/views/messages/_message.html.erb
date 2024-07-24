@@ -30,8 +30,8 @@
           elapsed: <%= message.statistics["elapsed_ms"] %>ms |
           tokens: <%= message.statistics["tokens"] %>ms |
           tokens/s: <%= message.statistics["tokens_per_sec"] %>ms |
-          time to first token: <%= message.statistics["time_to_first_token"] %>s
-          server: <%= message.statistics["server"] %>
+          time to first token: <%= message.statistics["time_to_first_token"] %>s |
+          server: <%= message.statistics["server"] %> / <%= message.statistics["provider"] %>
         </div>
       </div>
     <% end %>
