@@ -1,6 +1,6 @@
 module LlmClients
-  module Ollama
-    class Chat
+  module Openai
+    class ChatMessageHelper
       def initialize(message)
         @message = message
       end

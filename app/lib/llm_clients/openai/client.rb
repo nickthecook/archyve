@@ -1,77 +1,74 @@
-# rubocop:disable all
+require "openai"
+
 module LlmClients
   module Openai
-    class Client < Client
-      def call(prompt)
-        @stats = new_stats
-        request = request(prompt)
+    class Client < LlmClients::Client
+      include ChatRequestHelper
+      include EmbeddingRequestHelper
+      include CompletionRequestHelper
 
-        Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
-          http.request(request) do |response|
-            raise response_error_for(response) unless response.code.to_i >= 200 && response.code.to_i < 300
+      NETWORK_TIMEOUT = 8
 
-            stats[:start_time] = current_time
-            stats[:first_token_time] = current_time
-            body = response.read_body
-            content = ""
-            each_message(body) do |message|
-              @stats[:tokens] += 1
-              content += message if message
-            end
+      def complete(prompt, &)
+        complete_request(prompt, &)
+      end
 
-            yield content
+      def chat(message, &)
+        chat_request(ChatMessageHelper.new(message).chat_history, &)
+      end
 
-            calculate_stats
-          end
-        end
+      def embed(content)
+        embedding_request(content)
+      end
+
+      # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
+      def instrument(_name, env)
+        tmp = yield
+        (api_call_for env).save!
+        # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
+        tmp
       end
 
       private
 
-      def each_message(response_string)
-        response_string.scan(/^data: ({.*})$/).each do |match|
-          yield extract_message(match.first)
+      # Clean headers to remove API key
+      def clean_headers(headers)
+        if (apikey = headers["api-key"])
+          headers["api-key"] = "#{apikey.first(3)}*****"
         end
+        headers
       end
 
-      def extract_message(response_string)
-        response_hash = JSON.parse(response_string)
-        message = response_hash["choices"].first["delta"]["content"]
-        Rails.logger.info("<== '#{message}'")
-
-        message
+      # Create an ApiCall based on a Faraday environment for this client
+      def api_call_for(env)
+        ApiCall.from_faraday(
+          client_provider,
+          request: {
+            http_method: env[:method].downcase,
+            url: env[:url],
+            headers: clean_headers(env[:request_headers]),
+            body: env[:request_body],
+          },
+          response: {
+            headers: env[:response_headers],
+            status: env[:response].status,
+            body: env[:response].body,
+          },
+          traceable: @traceable
+        )
       end
 
-      def request(prompt)
-        request = Net::HTTP::Post.new(@uri, **headers)
-        request.body = {
-          model: @model,
-          messages: [
-            {
-              role: "system",
-              content: "You are an assistant that answers questions based on context extracted from documents."
-            },
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          stream: true
-        }.to_json
-
-        request
+      def client_provider
+        raise UnsupportedServerError, "Override to implement client provider name."
       end
 
-      def context(prompt, model)
-        template = template_for(model)
-
-        "#{template[:prefix]}#{prompt}#{template[:suffix]}"
+      def chat_client
+        raise UnsupportedServerError, "Override to implement client connection."
       end
 
-      def completion_path
-        "chat/completions"
+      def embed_client
+        raise UnsupportedServerError, "Override to implement client connection."
       end
     end
   end
-  # rubocop:enable All
 end

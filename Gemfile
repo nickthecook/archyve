@@ -113,3 +113,5 @@ gem "baran", "~> 0.1.12"
 gem 'sentry-rails'
 gem 'sentry-ruby'
 gem 'sentry-sidekiq'
+
+gem "ruby-openai", "~> 7.1"
