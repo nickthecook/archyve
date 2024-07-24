@@ -1,4 +1,6 @@
 class SummarizeMessage
+  include Helpers::ModelClient
+
   SUMMARY_PROMPT = "
     You are a summarization AI.
     You'll never answer a user's question directly, but instead summarize the user's request
@@ -7,9 +9,8 @@ class SummarizeMessage
   ".freeze
 
   def initialize(message, traceable: nil)
+    super(model_config: Setting.summarization_model, traceable:)
     @message = message
-    @traceable = traceable
-    @model_config = Setting.summarization_model
     @summary = ""
   end
 
@@ -26,18 +27,5 @@ class SummarizeMessage
 
   def message_content
     @message.content
-  end
-
-  def client
-    @client ||= LlmClients::Client.client_class_for(active_server.provider).new(
-      endpoint: active_server.url,
-      model: @model_config.model,
-      api_key: "todo",
-      traceable: @traceable
-    )
-  end
-
-  def active_server
-    @active_server ||= ModelServer.active_server
   end
 end

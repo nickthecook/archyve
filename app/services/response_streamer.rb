@@ -3,6 +3,8 @@ require "delegate"
 require_relative "message_processor"
 
 class ResponseStreamer
+  include Helpers::ModelClient
+
   class ResponseStreamerError < StandardError; end
   class NetworkError < ResponseStreamerError; end
   class UnsupportedServerError < ResponseStreamerError; end
@@ -13,26 +15,15 @@ class ResponseStreamer
 
   BATCH_SIZE = 16
 
-  def initialize(endpoint:, model:, provider:, api_key: nil, traceable: nil)
-    @endpoint = endpoint
-    @model = model
-    @provider = provider
-    @api_key = api_key
-    @traceable = traceable
-
-    @chunk = ""
-  end
-
   def complete(prompt, &)
     client.complete(prompt) do |response|
       handle(response, &)
     end
   end
 
-  def chat(chat, &)
-    # stream the formatterd output so the user can see it as it comes in
-    client.chat(chat) do |response|
-      handle(response, &)
+  def chat(message, &)
+    client.chat(message) do |response|
+      handle(response, &) unless response.nil?
     end
   end
 
@@ -40,7 +31,6 @@ class ResponseStreamer
 
   def handle(response)
     message, raw_message = processor.append(response)
-
     yield message, raw_message
   rescue Net::HTTPError => e
     raise NetworkError, "Error communicating with server: #{e.message}"
@@ -48,25 +38,7 @@ class ResponseStreamer
     raise NetworkError, "Connection refused: #{e.message}"
   end
 
-  def headers
-    headers = { "Content-Type": "application/json" }
-
-    headers[:Authorization] = "Bearer #{@api_key}" if @api_key
-
-    headers
-  end
-
   def processor
     @processor ||= MessageProcessor.new
-  end
-
-  def client
-    @client ||= LlmClients::Client.client_class_for(@provider).new(
-      endpoint: @endpoint,
-      api_key: @api_key,
-      model: @model,
-      batch_size: BATCH_SIZE,
-      traceable: @traceable
-    )
   end
 end
