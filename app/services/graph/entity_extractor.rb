@@ -7,6 +7,8 @@ module Graph
     end
 
     def extract(chunk)
+      chunk.entity_descriptions.destroy_all
+
       entities_for(chunk).each_line do |line|
         break if line =~ /########/
 

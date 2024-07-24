@@ -1,8 +1,14 @@
 module DocumentsHelper
   def state_text_for(document)
-    case document.state
+    text = case document.state
     when "errored" then "Error"
     else document.state.titleize
+    end
+
+    if document.current_step.present? && document.step_count.present?
+      "#{text} #{document.current_step}/#{document.step_count}"
+    else
+      text
     end
   end
 
