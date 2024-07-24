@@ -6,6 +6,7 @@ class ModelConfig < ApplicationRecord
   scope :generation, -> { where(embedding: false) }
   scope :embedding, -> { where(embedding: true) }
   scope :default, -> { where(default: true) }
+  scope :available, -> { where(available: true) }
 
   def make_active_embedding_model
     raise ModelTypeError, "Model is not an embedding model" unless embedding?
@@ -23,5 +24,13 @@ class ModelConfig < ApplicationRecord
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
     Setting.find_by(key: "summarization_model").update!(value: id)
+  end
+
+  def make_active_entity_extraction_model
+    raise ModelTypeError, "Model is an embedding model" if embedding?
+
+    Setting.find_or_create_by!(key: "entity_extraction_model") do |setting|
+      setting.value = id
+    end
   end
 end

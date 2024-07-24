@@ -33,7 +33,7 @@ module Graph
     end
 
     def summarizer
-      @summarizer ||= Graph::EntitySummarizer.new(Setting.chat_model, traceable: @traceable)
+      @summarizer ||= Graph::EntitySummarizer.new(Setting.entity_extraction_model, traceable: @traceable)
     end
   end
 end

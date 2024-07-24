@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-07-24 11:19:30.184990000 Z
+file_version: 2024-07-24 16:20:36.273408000 Z
 resources:
 - name: collection
   preferences:
@@ -28,17 +28,31 @@ resources:
       action_type: method
       preferences:
         method_name: make_active_embedding_model
+        show_on_table: false
     - name: use_for_summarization
       display_name: Use for summarization
       action_type: method
       preferences:
         method_name: make_active_summarization_model
+        show_on_table: false
     - name: use_for_chat
       display_name: Use for chat
       action_type: method
       preferences:
         method_name: make_default_chat_model
-  updated_at: 2024-05-07 20:51:17.259051000 +00:00
+        show_on_table: false
+    - name: use_for_entity_extraction
+      display_name: Use for entity extraction
+      action_type: method
+      preferences:
+        method_name: make_active_entity_extraction_model
+        show_on_table: false
+    columns:
+    - access_type: hidden
+      name: updated_at
+    - access_type: hidden
+      name: created_at
+  updated_at: 2024-07-24 16:20:36.273408000 +00:00
 - name: model_server
   preferences:
     actions:
@@ -100,10 +114,11 @@ configs:
   - use_for_chat
   - use_for_summarization
   - use_for_embedding
+  - use_for_entity_extraction
   - remove
   - create
   - edit
-  updated_at: 2024-05-07 20:46:51.428929000 +00:00
+  updated_at: 2024-07-24 16:19:35.626821000 +00:00
 - key: resources.setting.columns.order
   value:
   - id

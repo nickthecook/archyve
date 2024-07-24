@@ -26,7 +26,7 @@ module Graph
     private
 
     def extractor
-      @extractor ||= EntityExtractor.new(Setting.chat_model)
+      @extractor ||= EntityExtractor.new(Setting.entity_extraction_model)
     end
 
     def chunk_count

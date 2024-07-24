@@ -17,27 +17,26 @@ class Setting < ApplicationRecord
     end
 
     def chat_model
-      chat_model_id = find_by(key: 'chat_model')&.value
-
-      return if chat_model_id.nil?
-
-      ModelConfig.find(chat_model_id)
+      model_for("chat")
     end
 
     def embedding_model
-      embedding_model_id = find_by(key: 'embedding_model')&.value
-
-      return if embedding_model_id.nil?
-
-      ModelConfig.find(embedding_model_id)
+      model_for("embedding")
     end
 
     def summarization_model
-      summarization_model_id = find_by(key: 'summarization_model')&.value
+      model_for("summarization")
+    end
 
-      return if summarization_model_id.nil?
+    def entity_extraction_model
+      model_for("entity_extraction")
+    end
 
-      ModelConfig.find(summarization_model_id)
+    def model_for(role)
+      model_id = find_by(key: "#{role}_model")&.value
+      return if model_id.nil?
+
+      ModelConfig.find(model_id)
     end
   end
 end
