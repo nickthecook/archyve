@@ -1,7 +1,6 @@
 class Embedder
-  def initialize(embedding_model, traceable: nil)
-    @embedding_model = embedding_model
-    @traceable = traceable
+  def initialize(model_config:, traceable: nil)
+    @client_helper = Helpers::ModelClientHelper.new(model_config:, traceable:)
   end
 
   def embed(text)
@@ -13,15 +12,6 @@ class Embedder
   private
 
   def client
-    @client ||= LlmClients::Ollama::Client.new(
-      endpoint:,
-      api_key: "todo",
-      embedding_model: @embedding_model.model,
-      traceable: @traceable
-    )
-  end
-
-  def endpoint
-    ModelServer.active_server.url
+    @client_helper.client
   end
 end

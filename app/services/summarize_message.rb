@@ -7,9 +7,8 @@ class SummarizeMessage
   ".freeze
 
   def initialize(message, traceable: nil)
+    @client_helper = Helpers::ModelClientHelper.new(model_config: Setting.summarization_model, traceable:)
     @message = message
-    @traceable = traceable
-    @model_config = Setting.summarization_model
     @summary = ""
   end
 
@@ -24,20 +23,11 @@ class SummarizeMessage
 
   private
 
+  def client
+    @client_helper.client
+  end
+
   def message_content
     @message.content
-  end
-
-  def client
-    @client ||= LlmClients::Client.client_class_for(active_server.provider).new(
-      endpoint: active_server.url,
-      model: @model_config.model,
-      api_key: "todo",
-      traceable: @traceable
-    )
-  end
-
-  def active_server
-    @active_server ||= ModelServer.active_server
   end
 end

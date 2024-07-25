@@ -12,9 +12,14 @@ module LlmClients
 
     class << self
       def client_class_for(provider)
-        return LlmClients::Ollama::Client if provider == "ollama"
-
-        raise UnsupportedServerError, "Only 'ollama' is supported. You asked for '#{provider}'."
+        case provider
+        when "ollama"
+          LlmClients::Ollama::Client
+        when "openai_azure"
+          LlmClients::Openai::AzureClient
+        else
+          raise UnsupportedServerError, "LLM provider '#{provider}' is *not* supported."
+        end
       end
     end
 
@@ -22,6 +27,7 @@ module LlmClients
       endpoint:,
       api_key:,
       model: nil,
+      api_version: nil,
       embedding_model: nil,
       temperature: default_temperature,
       batch_size: default_batch_size,
@@ -30,6 +36,7 @@ module LlmClients
     )
       @endpoint = endpoint
       @api_key = api_key
+      @api_version = api_version
       @model = model
       @embedding_model = embedding_model
       @temperature = temperature

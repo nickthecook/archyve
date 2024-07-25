@@ -1,77 +1,137 @@
-# rubocop:disable all
+require "openai"
+
 module LlmClients
   module Openai
-    class Client < Client
-      def call(prompt)
-        @stats = new_stats
-        request = request(prompt)
+    class Client < LlmClients::Client
+      NETWORK_TIMEOUT = 8
 
-        Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
-          http.request(request) do |response|
-            raise response_error_for(response) unless response.code.to_i >= 200 && response.code.to_i < 300
+      def complete(prompt, &)
+        complete_request(prompt, &)
+      end
 
-            stats[:start_time] = current_time
-            stats[:first_token_time] = current_time
-            body = response.read_body
-            content = ""
-            each_message(body) do |message|
-              @stats[:tokens] += 1
-              content += message if message
-            end
+      def chat(message, &)
+        chat_request(ChatMessageHelper.new(message).chat_history, &)
+      end
 
-            yield content
+      def embed(content)
+        embedding_request(content)
+      end
 
-            calculate_stats
-          end
-        end
+      # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
+      def instrument(_name, env)
+        response = yield
+        (api_call_for env).save!
+        # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
+        response
       end
 
       private
 
-      def each_message(response_string)
-        response_string.scan(/^data: ({.*})$/).each do |match|
-          yield extract_message(match.first)
+      # Clean headers to remove API key
+      def clean_headers(headers)
+        if (apikey = headers["api-key"])
+          headers["api-key"] = "#{apikey.first(3)}*****"
         end
+        headers
       end
 
-      def extract_message(response_string)
-        response_hash = JSON.parse(response_string)
-        message = response_hash["choices"].first["delta"]["content"]
-        Rails.logger.info("<== '#{message}'")
-
-        message
+      # Create an ApiCall based on a Faraday environment for this client
+      def api_call_for(env)
+        ApiCall.from_faraday(
+          client_provider,
+          request: {
+            http_method: env[:method].downcase,
+            url: env[:url],
+            headers: clean_headers(env[:request_headers]),
+            body: env[:request_body],
+          },
+          response: {
+            headers: env[:response_headers],
+            status: env[:response].status,
+            body: env[:response].body,
+          },
+          traceable: @traceable
+        )
       end
 
-      def request(prompt)
-        request = Net::HTTP::Post.new(@uri, **headers)
-        request.body = {
-          model: @model,
-          messages: [
-            {
-              role: "system",
-              content: "You are an assistant that answers questions based on context extracted from documents."
-            },
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          stream: true
-        }.to_json
+      def chat_request(chat_history, &)
+        @stats = new_stats
+        stats[:start_time] = current_time
+        num_tokens = 0
 
-        request
+        current_batch = ""
+        current_batch_size = 0
+
+        resp = chat_connection.chat(
+          parameters: {
+            model: @model,
+            messages: chat_history, # Required.
+            temperature: @temperature,
+            stream: proc do |chunk|
+              if num_tokens.zero?
+                stats[:first_token_time] = current_time
+              end
+              num_tokens += 1
+              unless (str = chunk.dig("choices", 0, "delta", "content")).nil?
+                current_batch << str
+                current_batch_size += 1
+                if str.ends_with?("\n") || str.ends_with?("}") || current_batch_size >= @batch_size
+                  Rails.logger.debug { "==> #{current_batch}" }
+                  yield current_batch
+
+                  current_batch_size = 0
+                  current_batch = ""
+                end
+              end
+            end,
+          })
+
+        if current_batch_size.positive?
+          Rails.logger.debug { "==> #{current_batch}" }
+          yield current_batch
+        end
+
+        stats[:tokens] = num_tokens
+        calculate_stats
+
+        resp
       end
 
-      def context(prompt, model)
-        template = template_for(model)
+      def complete_request(prompt, &)
+        messages = []
+        messages << { role: "user", content: prompt }
 
-        "#{template[:prefix]}#{prompt}#{template[:suffix]}"
+        response = chat_connection.chat(
+          parameters: {
+            model: @model,
+            messages:,
+            temperature: @temperature,
+          })
+        yield response.dig("choices", 0, "message", "content")
+        response
       end
 
-      def completion_path
-        "chat/completions"
+      def embedding_request(content)
+        response = embed_connection.embeddings(
+          parameters: {
+            model: @embedding_model,
+            input: content,
+          }
+        )
+        { "embedding" => response.dig("data", 0, "embedding") }
+      end
+
+      def client_provider
+        raise UnsupportedServerError, "Override to implement client provider name."
+      end
+
+      def chat_connection
+        raise UnsupportedServerError, "Override to implement client connection."
+      end
+
+      def embed_connection
+        raise UnsupportedServerError, "Override to implement client connection."
       end
     end
   end
-  # rubocop:enable All
 end

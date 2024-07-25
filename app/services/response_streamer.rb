@@ -13,14 +13,8 @@ class ResponseStreamer
 
   BATCH_SIZE = 16
 
-  def initialize(endpoint:, model:, provider:, api_key: nil, traceable: nil)
-    @endpoint = endpoint
-    @model = model
-    @provider = provider
-    @api_key = api_key
-    @traceable = traceable
-
-    @chunk = ""
+  def initialize(model_config:, traceable: nil)
+    @client_helper = Helpers::ModelClientHelper.new(model_config:, traceable:)
   end
 
   def complete(prompt, &)
@@ -29,18 +23,28 @@ class ResponseStreamer
     end
   end
 
-  def chat(chat, &)
-    # stream the formatterd output so the user can see it as it comes in
-    client.chat(chat) do |response|
-      handle(response, &)
+  def chat(message, &)
+    client.chat(message) do |response|
+      handle(response, &) unless response.nil?
     end
+  end
+
+  def server_name
+    @client_helper.server_name
+  end
+
+  def provider
+    @client_helper.provider
   end
 
   private
 
+  def client
+    @client_helper.client
+  end
+
   def handle(response)
     message, raw_message = processor.append(response)
-
     yield message, raw_message
   rescue Net::HTTPError => e
     raise NetworkError, "Error communicating with server: #{e.message}"
@@ -48,25 +52,7 @@ class ResponseStreamer
     raise NetworkError, "Connection refused: #{e.message}"
   end
 
-  def headers
-    headers = { "Content-Type": "application/json" }
-
-    headers[:Authorization] = "Bearer #{@api_key}" if @api_key
-
-    headers
-  end
-
   def processor
     @processor ||= MessageProcessor.new
-  end
-
-  def client
-    @client ||= LlmClients::Client.client_class_for(@provider).new(
-      endpoint: @endpoint,
-      api_key: @api_key,
-      model: @model,
-      batch_size: BATCH_SIZE,
-      traceable: @traceable
-    )
   end
 end

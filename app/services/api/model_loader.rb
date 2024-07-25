@@ -19,7 +19,7 @@ module Api
     def client(provider)
       @client ||= LlmClients::Client.client_class_for(provider).new(
         endpoint: model_server.url,
-        api_key: nil,
+        api_key: model_server.api_key,
         model: model_config.model,
         traceable: @traceable
       )
@@ -28,7 +28,7 @@ module Api
     private
 
     def model_server
-      @model_server || ModelServer.active_server
+      model_config.model_server || ModelServer.active_server
     end
 
     def check_model

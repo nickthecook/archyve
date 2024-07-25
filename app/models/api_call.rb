@@ -44,6 +44,23 @@ class ApiCall < ApplicationRecord
     end
     # rubocop: enable Metrics/AbcSize
 
+    def from_faraday(service_name, request:, response:, traceable: nil)
+      api_call = new(
+        service_name:,
+        url: request[:url],
+        http_method: request[:http_method],
+        headers: request[:headers],
+        body: json_body(request[:body]),
+        body_length: request[:body].length,
+        response_headers: response[:headers],
+        response_code: response[:status],
+        response_body: json_body(response[:body]),
+        response_length: response[:body].length
+      )
+      api_call.traceable = traceable if traceable
+      api_call
+    end
+
     private
 
     def json_body(body)

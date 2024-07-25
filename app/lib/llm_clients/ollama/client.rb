@@ -9,8 +9,9 @@ module LlmClients
         stream(request, &)
       end
 
-      def chat(chat, &)
-        request = helper.chat_request(chat.chat_history)
+      def chat(message, &)
+        # Ollama chat protocol matches the one for OpenAI, so use the same helper
+        request = helper.chat_request(Openai::ChatMessageHelper.new(message).chat_history, &)
 
         stream(request, &)
       end

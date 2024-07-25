@@ -1,5 +1,5 @@
 RSpec.describe Api::ModelLoader do
-  subject { described_class.new(model:, traceable: ) }
+  subject { described_class.new(model:, traceable:) }
 
   let(:model) { "llama3" }
   let(:traceable) { nil }
@@ -64,7 +64,7 @@ RSpec.describe Api::ModelLoader do
       subject.client("ollama")
       expect(LlmClients::Ollama::Client).to have_received(:new).with({
         endpoint: model_server.url,
-        api_key: nil,
+        api_key: model_server.api_key,
         model: model_config.model,
         traceable: nil,
       })
@@ -77,7 +77,7 @@ RSpec.describe Api::ModelLoader do
         subject.client("ollama")
         expect(LlmClients::Ollama::Client).to have_received(:new).with({
           endpoint: model_server.url,
-          api_key: nil,
+          api_key: model_server.api_key,
           model: model_config.model,
           traceable:,
         })

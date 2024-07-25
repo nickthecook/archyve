@@ -94,5 +94,11 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 
+  # Exclude Azure OpenAI tests if an API key isn't specified
+  if ENV.fetch('AZURE_OPENAI_API_KEY', nil).nil? || ENV.fetch('AZURE_OPENAI_URI', nil).nil?
+    warn("WARNING! Excluding Azure OpenAI tests; set both AZURE_OPENAI_API_KEY and AZURE_OPENAI_URI env variables.")
+    config.filter_run_excluding az_openai: true
+  end
+
   require "rails_helper"
 end

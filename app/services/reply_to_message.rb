@@ -12,10 +12,9 @@ class ReplyToMessage
 
   def execute
     augment_message_prompt
-    chat.chat_history
     create_reply
 
-    streamer.chat(chat) do |message, raw_message|
+    streamer.chat(@message) do |message, raw_message|
       Rails.logger.info("Got back: #{message}")
       Rails.logger.info("And raw:  #{raw_message}")
       @reply.update!(content: @reply.content + message, raw_content: @reply.raw_content + raw_message)
@@ -87,11 +86,10 @@ class ReplyToMessage
   def streamer
     # TODO: add api_key to ModelServer
     @streamer ||= ResponseStreamer.new(
-      endpoint: ModelServer.active_server.url,
-      model: model_config.model,
-      provider: ModelServer.active_server.provider,
+      model_config:,
       traceable: @conversation
     )
+    @streamer
   end
 
   def searcher
@@ -115,11 +113,10 @@ class ReplyToMessage
   end
 
   def statistics
-    streamer.stats.merge({ server: ModelServer.active_server.name })
-  end
-
-  def chat
-    @chat ||= LlmClients::Ollama::Chat.new(@message)
+    streamer.stats.merge({
+      server: streamer.server_name,
+      provider: streamer.provider,
+    })
   end
 
   def prompt_augmentor

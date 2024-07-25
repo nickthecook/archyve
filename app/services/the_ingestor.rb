@@ -59,7 +59,7 @@ class TheIngestor
   end
 
   def embedder
-    @embedder ||= Embedder.new(embedding_model, traceable: @document)
+    @embedder ||= Embedder.new(model_config: embedding_model, traceable: @document)
   end
 
   def embedding_model

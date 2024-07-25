@@ -2,10 +2,18 @@ class ModelConfig < ApplicationRecord
   class ModelTypeError < StandardError; end
 
   has_many :messages, as: :author, dependent: :destroy
+  belongs_to :model_server, optional: true
 
   scope :generation, -> { where(embedding: false) }
   scope :embedding, -> { where(embedding: true) }
   scope :default, -> { where(default: true) }
+
+  # Require API version if ...
+  validates :api_version, presence: true, if: :api_version_required?
+
+  def api_version_required?
+    model_server&.api_version_required?
+  end
 
   def make_active_embedding_model
     raise ModelTypeError, "Model is not an embedding model" unless embedding?

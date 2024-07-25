@@ -1,8 +1,8 @@
 module Search
   class SearchN < Base
-    def initialize(collections, num_results: 10, traceable: nil, include_irrelevant: false)
+    def initialize(collections, num_results: nil, traceable: nil, include_irrelevant: false)
       @collections = collections
-      @num_results = num_results
+      @num_results = num_results || 10
       @traceable = traceable
       @include_irrelevant = include_irrelevant
 
