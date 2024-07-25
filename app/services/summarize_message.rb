@@ -1,6 +1,4 @@
 class SummarizeMessage
-  include Helpers::ModelClient
-
   SUMMARY_PROMPT = "
     You are a summarization AI.
     You'll never answer a user's question directly, but instead summarize the user's request
@@ -9,7 +7,7 @@ class SummarizeMessage
   ".freeze
 
   def initialize(message, traceable: nil)
-    super(model_config: Setting.summarization_model, traceable:)
+    @client_helper = Helpers::ModelClientHelper.new(model_config: Setting.summarization_model, traceable:)
     @message = message
     @summary = ""
   end
@@ -24,6 +22,10 @@ class SummarizeMessage
   end
 
   private
+
+  def client
+    @client_helper.client
+  end
 
   def message_content
     @message.content

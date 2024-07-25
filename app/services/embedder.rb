@@ -1,9 +1,17 @@
 class Embedder
-  include Helpers::ModelClient
+  def initialize(model_config:, traceable: nil)
+    @client_helper = Helpers::ModelClientHelper.new(model_config:, traceable:)
+  end
 
   def embed(text)
     response = client.embed(text)
 
     response["embedding"]
+  end
+
+  private
+
+  def client
+    @client_helper.client
   end
 end

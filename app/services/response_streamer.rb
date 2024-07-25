@@ -3,8 +3,6 @@ require "delegate"
 require_relative "message_processor"
 
 class ResponseStreamer
-  include Helpers::ModelClient
-
   class ResponseStreamerError < StandardError; end
   class NetworkError < ResponseStreamerError; end
   class UnsupportedServerError < ResponseStreamerError; end
@@ -14,6 +12,10 @@ class ResponseStreamer
   delegate :stats, to: :client
 
   BATCH_SIZE = 16
+
+  def initialize(model_config:, traceable: nil)
+    @client_helper = Helpers::ModelClientHelper.new(model_config:, traceable:)
+  end
 
   def complete(prompt, &)
     client.complete(prompt) do |response|
@@ -28,6 +30,10 @@ class ResponseStreamer
   end
 
   private
+
+  def client
+    @client_helper.client
+  end
 
   def handle(response)
     message, raw_message = processor.append(response)

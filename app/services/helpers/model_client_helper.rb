@@ -1,5 +1,5 @@
 module Helpers
-  module ModelClient
+  class ModelClientHelper
     BATCH_SIZE = 16
 
     def initialize(model_config:, traceable: nil)
@@ -27,8 +27,6 @@ module Helpers
     def embedding_model?
       @model_config.embedding?
     end
-
-    protected
 
     def client
       return @client if @client
