@@ -29,6 +29,14 @@ class ResponseStreamer
     end
   end
 
+  def server_name
+    @client_helper.server_name
+  end
+
+  def provider
+    @client_helper.provider
+  end
+
   private
 
   def client
