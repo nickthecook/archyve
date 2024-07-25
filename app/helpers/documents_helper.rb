@@ -35,6 +35,11 @@ module DocumentsHelper
     end
   end
 
+  def chunk_overlap(method)
+    Setting.get("#{method}_chunk_overlap", user: current_user) ||
+      Setting.get("#{method}_chunk_overlap", default: default_chunk_overlap(method))
+  end
+
   def default_chunk_overlap(method)
     case method
     when :bytes then 200

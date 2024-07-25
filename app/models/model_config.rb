@@ -29,8 +29,6 @@ class ModelConfig < ApplicationRecord
   def make_active_entity_extraction_model
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
-    Setting.find_or_create_by!(key: "entity_extraction_model") do |setting|
-      setting.value = id
-    end
+    Setting.find_or_create_by!(key: "entity_extraction_model").update!(value: id)
   end
 end

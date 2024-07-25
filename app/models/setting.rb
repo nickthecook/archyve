@@ -5,7 +5,7 @@ class Setting < ApplicationRecord
     def get(key, user: nil, default: nil)
       setting = find_by(key:, user_id: user&.id)
 
-      set(key, default, user:) if setting.nil?
+      set(key, default, user:) if setting.nil? || setting.value.nil?
 
       setting&.value || default
     end
