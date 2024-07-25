@@ -68,22 +68,22 @@ module LlmClients
             messages: chat_history, # Required.
             temperature: @temperature,
             stream: proc do |chunk|
-                      if num_tokens.zero?
-                        stats[:first_token_time] = current_time
-                      end
-                      num_tokens += 1
-                      unless (str = chunk.dig("choices", 0, "delta", "content")).nil?
-                        current_batch << str
-                        current_batch_size += 1
-                        if str.ends_with?("\n") || str.ends_with?("}") || current_batch_size >= @batch_size
-                          Rails.logger.debug { "==> #{current_batch}" }
-                          yield current_batch
+              if num_tokens.zero?
+                stats[:first_token_time] = current_time
+              end
+              num_tokens += 1
+              unless (str = chunk.dig("choices", 0, "delta", "content")).nil?
+                current_batch << str
+                current_batch_size += 1
+                if str.ends_with?("\n") || str.ends_with?("}") || current_batch_size >= @batch_size
+                  Rails.logger.debug { "==> #{current_batch}" }
+                  yield current_batch
 
-                          current_batch_size = 0
-                          current_batch = ""
-                        end
-                      end
-                    end,
+                  current_batch_size = 0
+                  current_batch = ""
+                end
+              end
+            end,
           })
 
         if current_batch_size.positive?
