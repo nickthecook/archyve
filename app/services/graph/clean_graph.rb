@@ -1,12 +1,12 @@
 module Graph
   class CleanGraph
-    def initialize(collection = nil)
-      @collection = collection
+    def initialize(collection_id = nil)
+      @collection_id = collection_id
     end
 
     def clean!
       Nodes::Entity.find_each do |entity|
-        entity.destroy if @collection.present? && entity.collection == @collection.id
+        entity.destroy if entity.collection == @collection_id
       end
     end
   end

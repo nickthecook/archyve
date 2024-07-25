@@ -26,7 +26,7 @@
 
               <div class="flex text-end">
                 <%= cp.label :chunk_overlap, class: "px-2" %>
-                <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-800 mx-1 text-right" %>
+                <%= cp.text_field :overlap, value: chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-800 mx-1 text-right" %>
               </div>
             <% end %>
 

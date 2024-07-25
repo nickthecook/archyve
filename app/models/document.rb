@@ -4,6 +4,7 @@ class Document < ApplicationRecord
   belongs_to :chunking_profile, optional: true
   has_one_attached :file
   has_many :chunks, dependent: :destroy
+  has_many :api_calls, as: :traceable
 
   include Turbo::Broadcastable
   include AASM

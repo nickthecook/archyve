@@ -54,7 +54,11 @@ module Graph
     end
 
     def entities_for(chunk)
-      client.complete(prompt_for(chunk.content))
+      entities = client.complete(prompt_for(chunk.content))
+
+      Rails.logger.debug { "Extracted entities:\n#{entities}" }
+
+      entities
     end
 
     def client

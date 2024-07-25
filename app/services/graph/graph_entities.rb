@@ -35,12 +35,15 @@ module Graph
       Relationships::RelatesTo.create!(
         from_node: from,
         to_node: to,
+        chunk: relationship.chunk.id,
+        document: relationship.chunk.document.id,
+        document_filename: relationship.chunk.document.filename,
         **relationship.attributes.slice(*relationship_attrs)
       )
     end
 
     def entity_find_attrs
-      %w[name entity_type summary collection collection_name]
+      %w[name entity_type collection collection_name]
     end
 
     def relationship_attrs

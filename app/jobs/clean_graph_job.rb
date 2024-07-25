@@ -3,8 +3,7 @@ class CleanGraphJob
 
   def perform(*args)
     collection_id = args.first
-    collection = Collection.find(collection_id)
 
-    Graph::CleanGraph.new(collection).clean!
+    Graph::CleanGraph.new(collection_id).clean!
   end
 end
