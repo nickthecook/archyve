@@ -19,7 +19,7 @@ module LlmClients
 
       def az_client(model_name)
         @az_client ||= OpenAI::Client.new(
-          access_token: @api_key, #ENV.fetch("AZURE_OPENAI_API_KEY"),
+          access_token: @api_key,
           uri_base: "#{@endpoint}/deployments/#{model_name}",
           api_version: @api_version,
           api_type: :azure
