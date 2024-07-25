@@ -19,10 +19,10 @@ module LlmClients
 
       # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
       def instrument(_name, env)
-        tmp = yield
+        response = yield
         (api_call_for env).save!
         # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
-        tmp
+        response
       end
 
       private
