@@ -1,6 +1,6 @@
 require 'factory_bot'
 
-RSpec.describe LlmClients::Ollama::Chat do
+RSpec.describe LlmClients::Openai::ChatMessageHelper do
   subject { described_class.new(conversation.messages.last) }
 
   let(:conversation) { create(:conversation) }
