@@ -62,7 +62,7 @@ module LlmClients
         current_batch = ""
         current_batch_size = 0
 
-        resp = chat_client.chat(
+        resp = chat_connection.chat(
           parameters: {
             model: @model,
             messages: chat_history, # Required.
@@ -101,7 +101,7 @@ module LlmClients
         messages = []
         messages << { role: "user", content: prompt }
 
-        response = chat_client.chat(
+        response = chat_connection.chat(
           parameters: {
             model: @model,
             messages:,
@@ -112,7 +112,7 @@ module LlmClients
       end
 
       def embedding_request(content)
-        response = embed_client.embeddings(
+        response = embed_connection.embeddings(
           parameters: {
             model: @embedding_model,
             input: content,
@@ -125,11 +125,11 @@ module LlmClients
         raise UnsupportedServerError, "Override to implement client provider name."
       end
 
-      def chat_client
+      def chat_connection
         raise UnsupportedServerError, "Override to implement client connection."
       end
 
-      def embed_client
+      def embed_connection
         raise UnsupportedServerError, "Override to implement client connection."
       end
     end

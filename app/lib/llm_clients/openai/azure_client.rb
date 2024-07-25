@@ -9,15 +9,15 @@ module LlmClients
         "openai_azure"
       end
 
-      def chat_client
-        az_client(@model)
+      def chat_connection
+        az_openai_connection(@model)
       end
 
-      def embed_client
-        az_client(@embedding_model)
+      def embed_connection
+        az_openai_connection(@embedding_model)
       end
 
-      def az_client(model_name)
+      def az_openai_connection(model_name)
         @az_client ||= OpenAI::Client.new(
           access_token: @api_key,
           uri_base: "#{@endpoint}/deployments/#{model_name}",
