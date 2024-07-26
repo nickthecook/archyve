@@ -10,6 +10,8 @@ module Relationships
     property :document_filename
     property :chunk, type: Integer
 
+    creates_unique on: [:description]
+
     validates :description, presence: true
   end
 end
