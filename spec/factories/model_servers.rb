@@ -4,5 +4,6 @@ FactoryBot.define do
     url { "http://localhost:9999" }
     provider { "ollama" }
     active { true }
+    api_key { nil }
   end
 end
