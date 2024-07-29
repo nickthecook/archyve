@@ -26,7 +26,7 @@ RSpec.describe Helpers::ModelClientHelper do
     end
 
     context "when ModelServer is available" do
-      it "raises an error" do
+      it "returns server URL" do
         expect(subject.endpoint).to eq(model_server.url)
       end
     end
@@ -42,7 +42,7 @@ RSpec.describe Helpers::ModelClientHelper do
     end
 
     context "when ModelServer is available" do
-      it "raises an error" do
+      it "returns server name" do
         expect(subject.server_name).to eq(model_server.name)
       end
     end
@@ -58,7 +58,7 @@ RSpec.describe Helpers::ModelClientHelper do
     end
 
     context "when ModelServer is available" do
-      it "raises an error" do
+      it "returns server provider" do
         expect(subject.provider).to eq(model_server.provider)
       end
     end
