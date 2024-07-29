@@ -32,7 +32,7 @@ module Helpers
       return @client if @client
 
       # either embedding or regular model, never both
-      emb_model = embedding_model? && model
+      emb_model = model if embedding_model?
       reg_model = emb_model ? nil : model
       @client = LlmClients::Client.client_class_for(provider).new(
         endpoint:,
