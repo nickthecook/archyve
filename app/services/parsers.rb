@@ -1,4 +1,6 @@
 module Parsers
+  class UnsupportedChunkingMethod < StandardError; end
+
   def self.parser_for(filename)
     name_locase = filename.downcase
 

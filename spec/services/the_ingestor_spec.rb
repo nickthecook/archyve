@@ -2,7 +2,7 @@ RSpec.describe TheIngestor do
   subject { described_class.new(document) }
 
   # TODO: when chunking_profile#method is renamed, we can let the factory create the chunking_profile
-  let(:chunking_profile) { create(:chunking_profile, method: "bytes") }
+  let(:chunking_profile) { create(:chunking_profile, method: "basic") }
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
   let(:file) { fixture_file_upload("small_doc.md", 'application/*') }
   let(:embedder_double) { instance_double(Embedder, embed: [2.0, 1.1, 0.2]) }
