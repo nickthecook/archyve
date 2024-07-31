@@ -6,5 +6,6 @@ FactoryBot.define do
     embedding { false }
     provisioned { false }
     available { true }
+    model_server { nil }
   end
 end
