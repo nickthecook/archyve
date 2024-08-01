@@ -43,13 +43,12 @@ module Chunkers
 
     attr_reader :chunking_profile, :chunking_separators
 
-    def initialize(chunking_profile, chunking_separators: nil)
-      @chunking_separators = chunking_separators || PLAINTEXT_SEPARATORS
+    def initialize(chunking_profile)
       @chunking_profile = chunking_profile
     end
 
-    def chunk(text)
-      raw_chunks_from(text).map do |c|
+    def chunk(text, text_type: InputType::PLAIN_TEXT)
+      raw_chunks_from(text, separators_for(text_type)).map do |c|
         ChunkRecord.new(content: c[:text])
       end
     end
@@ -57,16 +56,25 @@ module Chunkers
     private
 
     # Internal chunker returns array of chunks
-    def raw_chunks_from(text)
+    def raw_chunks_from(text, separators)
       chunk_size = chunking_profile.size
       chunk_overlap = chunking_profile.overlap
       splitter = Baran::RecursiveCharacterTextSplitter.new(
         chunk_size:,
         chunk_overlap:,
-        separators: chunking_separators
+        separators:
       )
 
       splitter.chunks(text)
+    end
+
+    def separators_for(text_type)
+      case text_type
+      when InputType::COMMON_MARK
+        COMMONMARK_SEPARATORS
+      else
+        PLAINTEXT_SEPARATORS
+      end
     end
   end
 end

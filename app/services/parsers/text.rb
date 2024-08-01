@@ -9,7 +9,7 @@ module Parsers
 
     # Enumerable chunk records
     def chunks
-      supported_chunker.chunk(text)
+      chunker.chunk(text, text_type:)
     end
 
     # Override to return more content-specific recursive chunking separators
@@ -24,26 +24,16 @@ module Parsers
 
     private
 
-    def chunking_method
-      chunking_profile.method
+    def text_type
+      Chunkers::InputType::PLAIN_TEXT
     end
 
     def chunking_profile
       document.chunking_profile
     end
 
-    def supported_chunker
-      @chunker ||= case chunking_method
-      when "basic"
-        Chunkers::BasicCharacterChunker.new(chunking_profile)
-      when "recursive_split"
-        Chunkers::RecursiveTextChunker.new(
-          chunking_profile,
-          chunking_separators: recursive_chunking_separators)
-      else
-        raise UnsupportedChunkingMethod,
-          "#{self.class} does not support chunking method '#{chunking_method}"
-      end
+    def chunker
+      Chunkers.chunker_for(chunking_profile.method, chunking_profile:)
     end
   end
 end

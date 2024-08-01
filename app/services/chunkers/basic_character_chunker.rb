@@ -7,7 +7,7 @@ module Chunkers
     end
 
     # Return Enumerable with chunks
-    def chunk(text)
+    def chunk(text, _text_type = InputType::PLAIN_TEXT)
       chunk_size = chunking_profile.size
 
       raw_chunks = text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
