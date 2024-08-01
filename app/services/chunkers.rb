@@ -13,7 +13,8 @@ module Chunkers
     { id: :basic, name: "Basic" },
   ].freeze
 
-  def self.chunker_for(chunking_method, chunking_profile:)
+  def self.chunker_for(chunking_profile)
+    chunking_method = chunking_profile.method
     chunker_class = case chunking_method.to_sym
     when :basic
       Chunkers::BasicCharacterChunker

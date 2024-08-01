@@ -28,12 +28,8 @@ module Parsers
       Chunkers::InputType::PLAIN_TEXT
     end
 
-    def chunking_profile
-      document.chunking_profile
-    end
-
     def chunker
-      Chunkers.chunker_for(chunking_profile.method, chunking_profile:)
+      Chunkers.chunker_for(document.chunking_profile)
     end
   end
 end
