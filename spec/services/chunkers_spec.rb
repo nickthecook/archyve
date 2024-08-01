@@ -11,30 +11,20 @@ RSpec.describe Chunkers do
     )
   end
 
+  shared_examples "supported_chunking_method" do |method, chunker_class|
+    context "with #{method} chunking method" do
+      let(:chunking_method) { method }
+
+      it "succeeds" do
+        expect(subject.chunker_for(chunking_profile)).to be_a(chunker_class)
+      end
+    end
+  end
+
   describe "#chunker_for" do
-    context "with a :basic chunking method" do
-      let(:chunking_method) { :basic }
-
-      it "succeeds" do
-        expect(subject.chunker_for(chunking_profile)).to be_a(Chunkers::BasicCharacterChunker)
-      end
-    end
-
-    context "with a :bytes chunking method" do
-      let(:chunking_method) { :bytes }
-
-      it "succeeds for backwards compatibility" do
-        expect(subject.chunker_for(chunking_profile)).to be_a(Chunkers::RecursiveTextChunker)
-      end
-    end
-
-    context "with a :recursive_split chunking method" do
-      let(:chunking_method) { :recursive_split }
-
-      it "succeeds" do
-        expect(subject.chunker_for(chunking_profile)).to be_a(Chunkers::RecursiveTextChunker)
-      end
-    end
+    include_examples "supported_chunking_method", :basic, Chunkers::BasicCharacterChunker
+    include_examples "supported_chunking_method", :bytes, Chunkers::RecursiveTextChunker
+    include_examples "supported_chunking_method", :recursive_split, Chunkers::RecursiveTextChunker
 
     context "with unknown chunking method" do
       let(:chunking_method) { :unknown_method }
