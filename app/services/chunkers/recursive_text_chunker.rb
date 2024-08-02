@@ -47,7 +47,7 @@ module Chunkers
       @chunking_profile = chunking_profile
     end
 
-    def chunk(text, text_type: InputType::PLAIN_TEXT)
+    def chunk(text, text_type = InputType::PLAIN_TEXT)
       raw_chunks_from(text, separators_for(text_type)).map do |c|
         ChunkRecord.new(content: c[:text])
       end

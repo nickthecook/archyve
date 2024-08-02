@@ -9,7 +9,7 @@ module Parsers
 
     # Enumerable chunk records
     def chunks
-      chonker.chunk(text, text_type:)
+      chonker.chunk(text, text_type)
     end
 
     # Override to return more content-specific recursive chunking separators
