@@ -9,7 +9,7 @@ module Parsers
 
     # Enumerable chunk records
     def chunks
-      chunker.chunk(text, text_type:)
+      chonker.chunk(text, text_type:)
     end
 
     # Override to return more content-specific recursive chunking separators
@@ -28,7 +28,7 @@ module Parsers
       Chunkers::InputType::PLAIN_TEXT
     end
 
-    def chunker
+    def chonker
       Chunkers.chunker_for(document.chunking_profile)
     end
   end
