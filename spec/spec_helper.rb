@@ -17,6 +17,9 @@
 # load all shared contexts
 Dir['./spec/support/shared/**/*.rb'].each { |f| require f }
 
+# load all shared examples
+Dir['./spec/support/shared_examples/**/*.rb'].each { |f| require f }
+
 RSpec.configure do |config|
   ENV["RAILS_ENV"] = "test"
 
