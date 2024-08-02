@@ -1,8 +1,10 @@
 module Parsers
   # Markdown text parser
   class CommonMark < Text
-    def recursive_chunking_separators
-      Chunkers::RecursiveTextChunker::COMMONMARK_SEPARATORS
+    private
+
+    def text_type
+      Chunkers::InputType::COMMON_MARK
     end
   end
 end

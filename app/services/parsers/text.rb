@@ -12,11 +12,6 @@ module Parsers
       chonker.chunk(text, text_type)
     end
 
-    # Override to return more content-specific recursive chunking separators
-    def recursive_chunking_separators
-      Chunkers::RecursiveTextChunker::PLAINTEXT_SEPARATORS
-    end
-
     # Override to return the document's text if any additional processing is needed
     def text
       @text ||= @document.contents
