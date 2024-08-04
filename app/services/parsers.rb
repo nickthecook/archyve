@@ -1,4 +1,6 @@
 module Parsers
+  class UnsupportedFileFormat < StandardError; end
+
   def self.parser_for(filename)
     name_locase = filename.downcase
 
@@ -7,6 +9,6 @@ module Parsers
     return CommonMark if name_locase.end_with?(".md")
     return Text if name_locase.end_with?(".txt", ".html")
 
-    raise StandardError, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
+    raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end
 end

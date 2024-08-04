@@ -1,11 +1,5 @@
 module Parsers
-  class Pdf
-    include BasicTextChunker
-
-    def initialize(document)
-      @document = document
-    end
-
+  class Pdf < Text
     def text
       # NOTE: Using -raw opt causes text to be broken up a lot; but not using raw
       #       may cause tables to be "pretty" in text which may not be ideal for chunking.

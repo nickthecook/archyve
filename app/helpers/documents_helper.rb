@@ -11,8 +11,8 @@ module DocumentsHelper
   end
 
   def chunking_method_options
-    Chonker::CHUNKING_METHODS.keys.map do |chunking_method|
-      [chunking_method, chunking_method]
+    Chunkers::CHUNKING_METHODS.map do |chunking_method|
+      [chunking_method[:id], chunking_method[:name]]
     end
   end
 

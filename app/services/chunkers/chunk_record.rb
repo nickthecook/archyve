@@ -1,4 +1,4 @@
-module Parsers
+module Chunkers
   # A chunk record has the content and its "embedding content" which is used to generate the
   # embedding. If a chunk record is created without a separately specific `embedding_content`,
   # the `content`` is used instead.

@@ -1,13 +1,12 @@
 class TheIngestor
   def initialize(document)
     @document = document
-    @chunks = []
   end
 
   def ingest
     ensure_collection_exists
     @document.chunking!
-    prepare_and_embed(chonker.each)
+    prepare_and_embed(parser.chunks.each)
     @document.embedded!
     Rails.logger.info("Embedded chunks from #{@document.filename}.")
   rescue StandardError => e
@@ -52,10 +51,6 @@ class TheIngestor
 
   def parser
     @parser ||= Parsers.parser_for(@document.filename).new(@document)
-  end
-
-  def chonker
-    @chonker ||= Chonker.new(parser)
   end
 
   def embedder
