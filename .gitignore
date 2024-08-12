@@ -40,7 +40,7 @@ docker.env
 deps/redis
 node_modules
 deps/postgres
-vendor
+vendor/bundle
 deps/chroma-data
 config/dev
 local.env
