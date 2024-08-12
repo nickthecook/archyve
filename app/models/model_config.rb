@@ -32,4 +32,10 @@ class ModelConfig < ApplicationRecord
 
     Setting.find_by(key: "summarization_model").update!(value: id)
   end
+
+  def make_active_entity_extraction_model
+    raise ModelTypeError, "Model is an embedding model" if embedding?
+
+    Setting.find_or_create_by!(key: "entity_extraction_model").update!(value: id)
+  end
 end

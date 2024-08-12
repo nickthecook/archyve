@@ -50,7 +50,13 @@ module Graph
         return
       end
 
-      GraphRelationship.find_or_create_by!(from:, to:, strength: values[:strength], description: values[:desc], chunk:)
+      GraphRelationship.find_or_create_by!(
+        from_entity: from,
+        to_entity: to,
+        strength: values[:strength],
+        description: values[:desc],
+        chunk:
+      )
     end
 
     def entities_for(chunk)
