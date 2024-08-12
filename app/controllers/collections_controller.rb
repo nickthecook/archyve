@@ -17,11 +17,7 @@ class CollectionsController < ApplicationController
   end
 
   def create
-    @collection = Collection.new
-    @collection.name ||= "New collection"
-    @collection.embedding_model = Setting.embedding_model
-    @collection.save!
-    @collection.generate_slug
+    @collection = new_collection
 
     respond_to do |format|
       if @collection.save
@@ -119,6 +115,16 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  def new_collection
+    collection = Collection.new
+    collection.name ||= "New collection"
+    collection.embedding_model = Setting.embedding_model
+    collection.save!
+    collection.generate_slug
+
+    collection
+  end
 
   def collection_params
     params.require(:collection).permit(:name, :slug, :embedding_model_id)
