@@ -61,7 +61,7 @@ module LlmClients
               if current_batch_size == @batch_size
                 Rails.logger.debug "==> #{current_batch}"
                 response_contents << current_batch
-                yield current_batch
+                yield current_batch if block_given?
 
                 current_batch_size = 0
                 current_batch = ""
@@ -71,7 +71,7 @@ module LlmClients
             if current_batch_size > 0
               Rails.logger.debug "==> #{current_batch}"
               response_contents << current_batch
-              yield current_batch
+              yield current_batch if block_given?
             end
 
             calculate_stats
@@ -80,7 +80,7 @@ module LlmClients
 
         store_api_call("ollama", request, full_response, response_contents)
 
-        full_response
+        full_response.body
       end
 
       def request(request)
