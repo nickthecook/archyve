@@ -1,0 +1,2 @@
+class GraphRelationship < ApplicationRecord
+end

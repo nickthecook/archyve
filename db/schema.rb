@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_24_034722) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_12_170551) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -76,6 +76,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_24_034722) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "embedding_content"
+    t.boolean "entities_extracted", default: false
     t.index ["document_id"], name: "index_chunks_on_document_id"
   end
 
@@ -133,6 +134,40 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_24_034722) do
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
+  end
+
+  create_table "graph_entities", force: :cascade do |t|
+    t.string "name"
+    t.string "entity_type"
+    t.bigint "collection_id", null: false
+    t.string "summary"
+    t.boolean "summary_outdated"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id"], name: "index_graph_entities_on_collection_id"
+  end
+
+  create_table "graph_entity_descriptions", force: :cascade do |t|
+    t.bigint "graph_entity_id", null: false
+    t.string "description"
+    t.bigint "chunk_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chunk_id"], name: "index_graph_entity_descriptions_on_chunk_id"
+    t.index ["graph_entity_id"], name: "index_graph_entity_descriptions_on_graph_entity_id"
+  end
+
+  create_table "graph_relationships", force: :cascade do |t|
+    t.bigint "from_entity_id", null: false
+    t.bigint "to_entity_id", null: false
+    t.bigint "chunk_id", null: false
+    t.integer "strength"
+    t.string "description", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chunk_id"], name: "index_graph_relationships_on_chunk_id"
+    t.index ["from_entity_id"], name: "index_graph_relationships_on_from_entity_id"
+    t.index ["to_entity_id"], name: "index_graph_relationships_on_to_entity_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -404,6 +439,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_24_034722) do
   add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
   add_foreign_key "documents", "users"
+  add_foreign_key "graph_entities", "collections"
+  add_foreign_key "graph_entity_descriptions", "chunks"
+  add_foreign_key "graph_entity_descriptions", "graph_entities"
+  add_foreign_key "graph_relationships", "chunks"
+  add_foreign_key "graph_relationships", "graph_entities", column: "from_entity_id"
+  add_foreign_key "graph_relationships", "graph_entities", column: "to_entity_id"
   add_foreign_key "messages", "conversations"
   add_foreign_key "model_configs", "model_servers"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"
