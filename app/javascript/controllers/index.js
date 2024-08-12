@@ -10,6 +10,5 @@ eagerLoadControllersFrom("controllers", application)
 // import { lazyLoadControllersFrom } from "@hotwired/stimulus-loading"
 // lazyLoadControllersFrom("controllers", application)
 
-import Clipboard from '@stimulus-components/clipboard'
-
+import Clipboard from "stimulus-clipboard"
 application.register('clipboard', Clipboard)

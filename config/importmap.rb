@@ -9,4 +9,4 @@ pin "trix"
 pin "@rails/actiontext", to: "actiontext.esm.js"
 pin "marked" # @12.0.1
 pin "highlight.js", to: "https://ga.jspm.io/npm:highlight.js@11.9.0/es/index.js"
-pin "@stimulus-components/clipboard", to: "@stimulus-components--clipboard.js" # @5.0.0
+pin "stimulus-clipboard" # @4.0.1
