@@ -122,6 +122,7 @@ class CollectionsController < ApplicationController
     collection.embedding_model = Setting.embedding_model
     collection.save!
     collection.generate_slug
+    collection.graphed = Setting.get("graph_enabled", default: false)
 
     collection
   end
