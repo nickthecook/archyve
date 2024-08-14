@@ -51,7 +51,7 @@ gem "image_processing", "~> 1.2"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[mri]
-  gem 'factory_bot_rails'
+  gem "factory_bot_rails"
   gem "timecop", "~> 0.9.10"
 end
 
@@ -66,13 +66,14 @@ group :development do
   # gem "spring"
 
   gem "ruby-lsp", "~> 0.14.6"
+  gem "ruby-lsp-rails", "~> 0.3.3"
 end
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "faker"
-  gem 'fuubar'
+  gem "fuubar"
   gem "rspec-uuid"
   gem "selenium-webdriver"
 end
@@ -110,8 +111,13 @@ gem "motor-admin", "~> 0.4.26"
 gem "baran", "~> 0.1.12"
 
 # error monitoring
-gem 'sentry-rails'
-gem 'sentry-ruby'
-gem 'sentry-sidekiq'
+gem "sentry-rails"
+gem "sentry-ruby"
+gem "sentry-sidekiq"
 
 gem "ruby-openai", "~> 7.1"
+
+# graph DB
+gem "activegraph", "11.5.0.beta.2"
+gem "async", "2.11.0"
+gem "neo4j-ruby-driver", "~> 4.4"

@@ -16,7 +16,7 @@ module Graph
       node = node(entity)
 
       entity.relationships_from.each do |relationship|
-        other_node = node(relationship.to)
+        other_node = node(relationship.to_entity)
         relationship(node, other_node, relationship)
       end
     end

@@ -39,5 +39,10 @@ module Archyve
 
     config.run_sidekiq = ENV.fetch("RUN_SIDEKIQ", "false") == "true"
     Sidekiq.logger.class.include ActiveSupport::LoggerSilence
+
+    require 'active_graph/railtie'
+    config.neo4j.driver.url = ENV.fetch('NEO4J_URL') { 'neo4j://localhost:7687' }
+    config.neo4j.driver.username = ENV.fetch('NEO4J_USERNAME') { 'neo4j' }
+    config.neo4j.driver.password = ENV.fetch('NEO4J_PASSWORD') { 'password' }
   end
 end

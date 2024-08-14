@@ -53,6 +53,7 @@ class CollectionsController < ApplicationController
     @collection.destroy!
 
     DestroyChromaCollectionJob.perform_async(@collection.slug)
+    CleanGraphJob.perform_async(@collection.id)
 
     respond_to do |format|
       format.html { redirect_to collections_url }

@@ -87,3 +87,29 @@ digraph ingest_pipeline {
   rank=same { GraphCollectionJob GraphCollectionEntities }
 }
 ```
+
+## Querying Neo4j
+
+To graph all nodes in the database:
+
+```neo4j
+match (n) return (n)
+```
+
+To graph nodes from one Archyve Collection, called "Greek Mythology":
+
+```neo4j
+match (n:`Nodes::Entity` {collection_name: "Greek Mythology"}) return (n)
+```
+
+To remove all nodes from the database:
+
+```neo4j
+match (n) detach delete (n)
+```
+
+To remove nodes from just one Collection:
+
+```neo4j
+match (n:`Nodes::Entity` {collection_name: "Greek Mythology"}) detach delete (n)
+```
