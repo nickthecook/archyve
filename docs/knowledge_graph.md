@@ -90,6 +90,8 @@ digraph ingest_pipeline {
 
 ## Querying Neo4j
 
+You can query the graph database directly from the Neo4j web UI. It's at [http://localhost:7474](http://localhost:7474) in dev.
+
 To graph all nodes in the database:
 
 ```neo4j
