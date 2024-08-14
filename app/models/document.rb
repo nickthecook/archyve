@@ -4,6 +4,7 @@ class Document < ApplicationRecord
   belongs_to :chunking_profile, optional: true
   has_one_attached :file
   has_many :chunks, dependent: :destroy
+  has_many :graph_entity_descriptions, dependent: :destroy, through: :chunks
 
   include Turbo::Broadcastable
   include AASM

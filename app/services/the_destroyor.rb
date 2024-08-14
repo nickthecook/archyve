@@ -30,6 +30,12 @@ class TheDestroyor
     @document.chunks.destroy_all
   end
 
+  def delete_graph_entities
+    @document.graph_entity_descriptions.destroy_all
+
+    Graph::CleanCollectionEntities.new(@document.collection).execute
+  end
+
   private
 
   def collection_id

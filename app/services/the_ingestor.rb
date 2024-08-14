@@ -100,6 +100,7 @@ class TheIngestor
     destroyor = TheDestroyor.new(@document)
     destroyor.delete_embeddings
     destroyor.delete_chunks
+    destroyor.delete_graph_entities
 
     @collection_id = fetch_collection_id
     @document.reset!
