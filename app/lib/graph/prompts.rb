@@ -6,7 +6,7 @@ module Graph
       Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
 
       -Steps-
-      1. Identify all entities. For each identified entity, extract the following information:
+      1. Identify all entities from the Real Data. Ignore the 3 examples below. For each identified entity, extract the following information:
       - entity_name: Name of the entity, capitalized
       - entity_type: One of the following types: [<%= entity_types %>]
       - entity_description: Comprehensive description of the entity's attributes and activities
@@ -20,7 +20,7 @@ module Graph
       - relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
       Format each relationship as ("relationship"<%= tuple_delimiter %><source_entity><%= tuple_delimiter %><target_entity><%= tuple_delimiter %><relationship_description><%= tuple_delimiter %><relationship_strength>)
 
-      3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **<%= record_delimiter %>** as the list delimiter.
+      3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **<%= record_delimiter %>** as the list delimiter. Do not include any entities from the given examples.
 
       4. When finished, output <%= completion_delimiter %>
 
