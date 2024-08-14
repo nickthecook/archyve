@@ -31,7 +31,7 @@
         <% end %>
         <% state_bg = collection.state == "errored" ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700" %>
         <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 <%= state_bg %>">
-          <%= state_text_for(collection) %>
+          <%= state_label_for(collection) %>
         </div>
       </div>
     </div>

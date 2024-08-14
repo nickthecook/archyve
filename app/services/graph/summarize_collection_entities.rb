@@ -3,18 +3,22 @@ module Graph
     def initialize(collection, force_all: false)
       @collection = collection
       @force_all = force_all
+
+      @collection.update!(process_steps: entity_count)
     end
 
     def execute
-      iteration = 1
-      entities.each do |entity|
-        Rails.logger.info("Summarizing entity '#{entity.name}' (#{iteration}/#{entity_count})...")
+      @collection.update!(state: :summarizing)
+
+      entities.each_with_index do |entity, index|
+        Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
+        @collection.update!(process_step: index)
         next if entity.summary.present? && entity.summary_outdated == false && @force_all == false
 
         summarizer.summarize(entity)
-
-        iteration += 1
       end
+
+      @collection.update!(state: :summarized)
     end
 
     private

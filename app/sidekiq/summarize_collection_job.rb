@@ -6,9 +6,7 @@ class SummarizeCollectionJob
   def perform(collection_id)
     collection = Collection.find(collection_id)
 
-    collection.update!(state: :summarizing)
     Graph::SummarizeCollectionEntities.new(collection).execute
-    collection.update!(state: :summarized)
 
     GraphCollectionJob.perform_async(collection_id)
   rescue StandardError => e

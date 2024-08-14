@@ -5,7 +5,12 @@ module Graph
     end
 
     def execute
-      @collection.graph_entities.each do |entity|
+      @collection.graphing!
+      @collection.update!(process_steps: @collection.graph_entities.count)
+
+      @collection.graph_entities.each_with_index do |entity, index|
+        @collection.update!(process_step: index)
+
         graph_node(entity)
       end
     end
