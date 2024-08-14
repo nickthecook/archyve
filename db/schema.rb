@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_13_174146) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_14_143240) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -133,6 +133,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_13_174146) do
     t.integer "state"
     t.string "vector_id"
     t.bigint "chunking_profile_id"
+    t.integer "process_step"
+    t.integer "process_steps"
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"

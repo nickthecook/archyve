@@ -1,8 +1,19 @@
 module DocumentsHelper
+  def state_label_for(document)
+    state_text = state_text_for(document)
+    return state_text unless state_text.end_with?("ing")
+
+    if document.process_step.present? && document.process_steps.present?
+      "#{state_text} (#{document.process_step}/#{document.process_steps})"
+    else
+      state_text
+    end
+  end
+
   def state_text_for(document)
     case document.state
     when "errored" then "Error"
-    else document.state.capitalize
+    else document.state.titleize
     end
   end
 
@@ -24,7 +35,6 @@ module DocumentsHelper
     case method
     when :bytes then 1000
     when "sentences" then 5
-    when "paragraphs" then 1
     else 1
     end
   end

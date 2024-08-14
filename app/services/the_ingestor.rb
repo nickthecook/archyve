@@ -4,6 +4,8 @@ class TheIngestor
   end
 
   def execute
+    @document.update!(process_steps: chunks.count)
+
     ensure_collection_exists
     chunk_and_embed
   rescue StandardError => e
@@ -16,8 +18,12 @@ class TheIngestor
   private
 
   def chunk_and_embed
+    # TODO: remove this state or re-work chunk/embed flow so chunking is a legit state again
     @document.chunking!
-    prepare_and_embed(parser.chunks.each)
+    @document.chunked!
+
+    @document.embedding!
+    prepare_and_embed(chunks.each)
     @document.embedded!
 
     Rails.logger.info("Embedded chunks from #{@document.filename}.")
@@ -28,9 +34,9 @@ class TheIngestor
   end
 
   def prepare_and_embed(chunk_records)
-    @document.chunked!
-    @document.embedding!
-    chunk_records.each do |chunk_record|
+    chunk_records.each.with_index do |chunk_record, index|
+      @document.update!(process_step: index)
+
       chunk = Chunk.create!(
         document: @document, content: chunk_record.content,
         embedding_content: chunk_record.embedding_content
@@ -56,6 +62,10 @@ class TheIngestor
 
   def parser
     @parser ||= Parsers.parser_for(@document.filename).new(@document)
+  end
+
+  def chunks
+    @chunks ||= parser.chunks
   end
 
   def embedder

@@ -4,20 +4,20 @@ module Graph
       @document = document
       @start_index = start_index
       @force_extraction = force_extraction
+
+      @document.update!(process_steps: chunk_count)
     end
 
     def execute
-      iteration = 1
-      chunks.each do |chunk|
-        Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{iteration}/#{chunk_count})...")
+      chunks.each_with_index do |chunk, index|
+        Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{index}/#{chunk_count})...")
+        @document.update!(process_step: index)
 
-        if chunk.entities_extracted == false || @force_extraction
-          chunk.update!(entities_extracted: false)
-          extractor.extract(chunk)
-          chunk.update!(entities_extracted: true)
-        end
+        next unless chunk.entities_extracted == false || @force_extraction
 
-        iteration += 1
+        chunk.update!(entities_extracted: false)
+        extractor.extract(chunk)
+        chunk.update!(entities_extracted: true)
       end
     end
 
