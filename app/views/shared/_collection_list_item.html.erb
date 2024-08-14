@@ -1,6 +1,7 @@
+<% collection ||= @collection %>
 <div id="<%= "#{dom_id(collection)}_list_item" %>">
   <%
-    bg_class = if selected&.id == collection.id
+    bg_class = if selected && selected.id == collection.id
       "bg-secondary-300 dark:bg-secondary-600 hover:bg-secondary-400 dark:hover:bg-secondary-500"
     else
       "hover:bg-secondary-300 dark:hover:bg-secondary-700"
@@ -12,7 +13,7 @@
         <%= collection.name %>
       </div>
     <% end %>
-    <% if collection.graphed? %>
+    <% if collection.graph_enabled %>
       <div class="w-4">
         <%= render "shared/icons/graph" %>
       </div>

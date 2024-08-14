@@ -1,9 +1,9 @@
-<% collection ||= @collection %>
+<% collection ||= @collection || locals[:collection] %>
 <div id="<%= dom_id(collection) + "_search_form" %>">
   <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex flex-1">
       <% 
-        if collection.documents.reload.any? { |doc| doc.embedded? }
+        if collection.documents.reload.any? { |doc| doc.past_state?(:embedded) }
           placeholder = "Search your documents..."
           disabled = false
         else
