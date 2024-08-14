@@ -10,8 +10,7 @@ class SummarizeCollectionJob
     Graph::SummarizeCollectionEntities.new(collection).execute
     collection.update!(state: :summarized)
 
-    # TODO: enable this when Neo4j is properly configured
-    #GraphCollectionJob.perform_async(collection_id)
+    GraphCollectionJob.perform_async(collection_id)
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 
