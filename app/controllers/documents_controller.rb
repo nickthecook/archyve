@@ -16,11 +16,7 @@ class DocumentsController < ApplicationController
   def create
     @chunking_profile = ChunkingProfile.find_or_create_by(chunking_params)
 
-    @document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
-    @document.filename = params[:file].original_filename
-    @document.collection = @collection
-    @document.user = current_user
-    @document.save!
+    @document = new_document
 
     IngestJob.perform_async(@document.id)
 
@@ -53,6 +49,16 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  def new_document
+    document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
+    document.filename = params[:file].original_filename
+    document.collection = @collection
+    document.user = current_user
+    document.save!
+
+    document
+  end
 
   def chunking_params
     params.require(:chunking_profile).permit(:method, :size, :overlap)

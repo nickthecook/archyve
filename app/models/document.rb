@@ -41,8 +41,8 @@ class Document < ApplicationRecord
     chunked: 1,
     embedding: 5,
     embedded: 2,
-    storing: 6,
-    stored: 3,
+    extracting: 6,
+    extracted: 3,
     deleting: 7,
     errored: 10,
   }
@@ -54,8 +54,8 @@ class Document < ApplicationRecord
     state :chunked
     state :embedding
     state :embedded
-    state :storing
-    state :stored
+    state :extracting
+    state :extracted
     state :deleting
     state :errored
 
@@ -76,11 +76,11 @@ class Document < ApplicationRecord
     event :embed do
       transitions from: :embedding, to: :embedded
     end
-    event :storing do
-      transitions from: :embedded, to: :storing
+    event :extract do
+      transitions from: :embedded, to: :extracting
     end
-    event :store do
-      transitions from: :storing, to: :stored
+    event :extracted do
+      transitions from: :extracting, to: :extracted
     end
 
     event :deleting do
@@ -94,5 +94,9 @@ class Document < ApplicationRecord
 
   def contents
     file.download
+  end
+
+  def past_state?(incoming_state)
+    Document.states[incoming_state] < Document.states[state]
   end
 end

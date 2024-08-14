@@ -6,7 +6,7 @@ module Graph
       @force_extraction = force_extraction
     end
 
-    def extract
+    def execute
       iteration = 1
       chunks.each do |chunk|
         Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{iteration}/#{chunk_count})...")

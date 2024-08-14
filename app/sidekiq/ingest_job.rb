@@ -6,6 +6,8 @@ class IngestJob
   def perform(*args)
     @document = Document.find(args.first)
 
-    TheIngestor.new(@document).ingest
+    TheIngestor.new(@document).execute
+
+    ExtractDocumentEntitiesJob.perform_async(@document.id) if @document.collection.graph_enabled?
   end
 end

@@ -1,12 +1,11 @@
 module Graph
   class SummarizeCollectionEntities
-    def initialize(collection, force_all: false, traceable: nil)
+    def initialize(collection, force_all: false)
       @collection = collection
       @force_all = force_all
-      @traceable = traceable
     end
 
-    def summarize
+    def execute
       iteration = 1
       entities.each do |entity|
         Rails.logger.info("Summarizing entity '#{entity.name}' (#{iteration}/#{entity_count})...")
@@ -33,7 +32,7 @@ module Graph
     end
 
     def summarizer
-      @summarizer ||= Graph::EntitySummarizer.new(Setting.entity_extraction_model, traceable: @traceable)
+      @summarizer ||= Graph::EntitySummarizer.new(Setting.entity_extraction_model, traceable: @collection)
     end
   end
 end

@@ -9,6 +9,7 @@ class TheDestroyor
     @document.deleting!
 
     delete_embeddings
+    delete_chunks
 
     @document.destroy!
   end
@@ -18,11 +19,15 @@ class TheDestroyor
       Rails.logger.info("Destroying batch of #{chunks.count} chunks...")
       chromadb.delete_documents(collection_id, chunks.map(&:vector_id))
 
-      Chunk.delete(chunks)
+      Chunk.destroy(chunks)
     rescue Chromadb::ResponseError => e
-      Rails.logger.error("Failed to delete batch of #{chunks.count} chunks: #{e}")
-      Rails.logger.error("Destruction of document #{@document.id} will continue, but chunks may remain in ChromaDB.")
+      Rails.logger.error("Failed to delete batch of #{chunks.count} chunks: #{e}\n
+        Destruction of document #{@document.id} will continue, but chunks may remain in ChromaDB.")
     end
+  end
+
+  def delete_chunks
+    @document.chunks.destroy_all
   end
 
   private

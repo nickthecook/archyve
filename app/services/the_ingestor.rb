@@ -3,12 +3,9 @@ class TheIngestor
     @document = document
   end
 
-  def ingest
+  def execute
     ensure_collection_exists
-    @document.chunking!
-    prepare_and_embed(parser.chunks.each)
-    @document.embedded!
-    Rails.logger.info("Embedded chunks from #{@document.filename}.")
+    chunk_and_embed
   rescue StandardError => e
     Rails.logger.error("Error ingesting document #{@document.id}\n#{exception_summary(e)}")
     @document.error!
@@ -17,6 +14,14 @@ class TheIngestor
   end
 
   private
+
+  def chunk_and_embed
+    @document.chunking!
+    prepare_and_embed(parser.chunks.each)
+    @document.embedded!
+
+    Rails.logger.info("Embedded chunks from #{@document.filename}.")
+  end
 
   def exception_summary(err)
     "#{err.class.name}: #{err.message}#{err.backtrace.join("\n")}"
@@ -82,7 +87,9 @@ class TheIngestor
   end
 
   def reset_document
-    TheDestroyor.new(@document).delete_embeddings
+    destroyor = TheDestroyor.new(@document)
+    destroyor.delete_embeddings
+    destroyor.delete_chunks
 
     @collection_id = fetch_collection_id
     @document.reset!
