@@ -6,6 +6,8 @@ class VectorizeCollectionSummariesJob
   def perform(collection_id)
     collection = Collection.find(collection_id)
 
-    VectorizeCollectionSummaries.new(collection).execute
+    Graph::VectorizeCollectionSummaries.new(collection).execute
+
+    GraphCollectionJob.perform_async(collection_id)
   end
 end

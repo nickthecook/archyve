@@ -8,7 +8,7 @@ class SummarizeCollectionJob
 
     Graph::SummarizeCollectionEntities.new(collection).execute
 
-    GraphCollectionJob.perform_async(collection_id)
+    VectorizeCollectionSummariesJob.perform_async(collection.id)
   rescue StandardError => e
     Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
 

@@ -7,11 +7,15 @@ module Graph
     def execute
       initialize_collection
 
-      @collection.graph_entities.map do |entity|
+      @collection.update!(state: "vectorizing", process_steps: entities.count)
+      entities.each_with_index do |entity, index|
+        @collection.update!(process_step: index)
+
         embedding = embedder.embed(entity.summary)
         id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
         entity.update!(vector_id: id)
       end
+      @collection.update!(state: "vectorized")
     end
 
     private
@@ -26,6 +30,10 @@ module Graph
       end
 
       @collection_id = collection_id
+    end
+
+    def entities
+      @entities ||= @collection.graph_entities
     end
 
     def chromadb

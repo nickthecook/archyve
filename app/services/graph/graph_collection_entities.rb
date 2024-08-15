@@ -13,6 +13,8 @@ module Graph
 
         graph_node(entity)
       end
+
+      @collection.graphed!
     end
 
     private

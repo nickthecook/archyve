@@ -27,8 +27,8 @@ class Collection < ApplicationRecord
     )
     broadcast_replace_to(
       :collections,
-      target: "collection_#{id}",
-      partial: "collections/collection",
+      target: "collection_#{id}_state_tags",
+      partial: "collections/state_tags",
       locals: {
         collection: self,
         selected: false,
@@ -46,8 +46,10 @@ class Collection < ApplicationRecord
     created: 0,
     summarizing: 1,
     summarized: 2,
-    graphing: 3,
-    graphed: 4,
+    vectorizing: 3,
+    vectorized: 4,
+    graphing: 5,
+    graphed: 6,
     deleting: 10,
     errored: 20,
   }

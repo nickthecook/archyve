@@ -32,7 +32,7 @@ module Graph
     end
 
     def entity_count
-      @entity_count ||= @collection.graph_entities.count
+      @entity_count ||= entities.count
     end
 
     def summarizer
