@@ -10,8 +10,8 @@ module Search
     end
 
     def search(query, &)
-      hits = searchers.map do |search|
-        search.search(query)
+      hits = searchers.map do |searcher|
+        searcher.search(query)
       end.flatten.sort_by(&:distance)
 
       filter = Filters::DistanceRatio.new(hits)

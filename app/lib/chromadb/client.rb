@@ -1,6 +1,7 @@
 require "httparty"
 
 module Chromadb
+  # rubocop:disable Metrics/ClassLength
   class Client
     attr_reader :last_response
 
@@ -35,6 +36,21 @@ module Chromadb
       else
         _collections
       end
+    end
+
+    # TODO: add_summary takes one item but add_documents takes many; odd?
+    # Also, there are going to be more of these. Establish a pattern when the third is added.
+    def add_entity_summary(collection_id, summary, embedding)
+      id = SecureRandom.uuid
+
+      post("api/v1/collections/#{collection_id}/add", {
+        ids: [id],
+        documents: [summary],
+        embeddings: [embedding],
+        metadatas: [{ type: "entity_summary" }],
+      })
+
+      id
     end
 
     def add_documents(collection_id, documents, embeddings)
@@ -142,4 +158,5 @@ module Chromadb
       ApiCall.from_httparty(service_name, response, @traceable).save!
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

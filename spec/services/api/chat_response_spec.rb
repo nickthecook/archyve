@@ -11,7 +11,7 @@ RSpec.describe Api::ChatResponse do
   let(:search_hits) do
     [
       Search::SearchHit.new("I like", 200.0, chunk: chunks[0]),
-      Search::SearchHit.new("no bugs", 210.0, chunk: chunks[1]),
+      Search::SearchHit.new("big chunks", 210.0, chunk: chunks[1]),
       Search::SearchHit.new("and I cannot lie", 220.0, chunk: chunks[2]),
     ]
   end
