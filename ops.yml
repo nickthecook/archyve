@@ -50,6 +50,10 @@ actions:
     command: cd container && ops
     alias: c
     load_secrets: true
+  repl:
+    command: rails r scripts/repl
+    load_secrets: true
+    shell_expansion: true
 options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)

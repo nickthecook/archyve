@@ -1,0 +1,22 @@
+puts "Loading REPL in Rails environment..."
+
+chromadb = Chromadb::Client.new
+embedder = Embedder.new(model_config: Setting.embedding_model)
+chat = Helpers::ModelClientHelper.new(model_config: Setting.chat_model)
+neo4j = Neo4j::Driver::GraphDatabase.driver(
+  ENV.fetch('NEO4J_URL', 'neo4j://localhost:7687'),
+  Neo4j::Driver::AuthTokens.basic(ENV.fetch('NEO4J_USERNAME', 'neo4j'), ENV.fetch('NEO4J_PASSWORD', 'password'))
+)
+
+puts <<~HELP
+  Available tools:
+
+  - chromadb: a ChromaDB client
+  - embedder: an Embedder instance
+  - chat: an Ollama client for the chat model
+  - neo4j: a Neo4j driver
+HELP
+
+binding.pry
+
+puts "Exiting REPL..."
