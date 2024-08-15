@@ -20,13 +20,8 @@ class SearchBroadcaster
     Turbo::StreamsChannel.broadcast_append_to(
       "collections",
       target: @dom_id,
-      partial: "collections/search_chunk",
-      locals: {
-        chunk: hit.chunk,
-        distance: hit.distance,
-        distance_increase_ratio: hit.distance_increase_ratio,
-        relevant: hit.relevant,
-      }
+      partial: "collections/search_hit",
+      locals: { hit: }
     )
   end
 

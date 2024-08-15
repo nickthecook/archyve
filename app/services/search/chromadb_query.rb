@@ -15,26 +15,38 @@ module Search
     def fetch_results
       results = []
 
-      response["ids"].first.each_with_index do |id, index|
-        chunk = chunk_for(id)
-        next if chunk.nil?
+      response["ids"].first.each_with_index do |_id, index|
+        reference = reference_for(index)
+        next if reference.nil?
 
-        results << SearchHit.new(chunk, distance_for(index), previous_distance_for(index))
+        results << SearchHit.new(reference, distance_for(index), previous_distance_for(index))
       end
 
       results
     end
 
-    def chunk_for(id)
-      chunk = Chunk.find_by(vector_id: id)
+    def reference_for(index)
+      vector_id = response.dig("ids", 0, index)
+      reference = reference_class_for_index(index).find_by(vector_id:)
 
-      if chunk.present?
-        Rails.logger.info("Got hit for chunk #{id} in collection #{@collection.slug}.")
+      if reference.present?
+        Rails.logger.info("Got hit for reference #{vector_id} in collection #{@collection.slug}.")
       else
-        Rails.logger.error("Could not find chunk with id #{id} while searching collection #{@collection.slug}.")
+        Rails.logger.error("Could not find reference with id #{vector_id} while searching collection #{@collection.slug}.")
       end
 
-      chunk
+      reference
+    end
+
+    def reference_class_for_index(index)
+      reference_class_name = response.dig("metadatas", 0, index, "type")
+
+      case reference_class_name
+      when "entity_summary"
+        GraphEntity
+      when nil
+        Chunk
+      end
     end
 
     def distance_for(index)

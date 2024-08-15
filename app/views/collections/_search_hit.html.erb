@@ -1,0 +1,28 @@
+<% classes = hit.relevant ? "bg-secondary-200 dark:bg-secondary-900" : "bg-secondary-100 dark:bg-secondary-925 text-secondary-400" %>
+<div class="flex-col justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg <%= classes %>">
+  <%= link_to link_for_reference(hit.reference),
+    class: "flex justify-start items-center px-3 mb-4 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700 w-full" do %>
+    <div class="flex-1 whitespace-prewrap">
+      <%= hit.content %>
+    </div>
+    <div class="flex flex-col ms-4"></div>
+  <% end %>
+  <div class="flex justify-space-between w-full px-3">
+    <div class="text-xs text-right text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
+      <%= link_to hit.collection.name, hit.collection %>
+    </div>
+    <div class="flex-1 text-xs text-center text-secondary-400 underline">
+      <%= link_to hit.document.filename, collection_document_path(hit.collection, hit.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" if hit.document.present? %>
+    </div>
+    <div class="text-xs text-right text-secondary-400">
+      <% if hit.distance %>
+        <div>
+          distance: <%= hit.distance.round %>
+          <% if hit.distance_increase_ratio.present? %>
+            (+<%= (hit.distance_increase_ratio * 100).round %>%)
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

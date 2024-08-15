@@ -7,8 +7,8 @@ class PromptAugmentor
   def prompt
     @prompt ||= begin
       prompt = "Here is some context that may help you answer the following question:\n\n"
-      @search_hits.sort_by { |hit| hit.chunk.id }.each do |hit|
-        prompt << "#{hit.chunk.content}\n\n"
+      @search_hits.each do |hit|
+        prompt << "#{hit.content}\n\n"
       end
 
       prompt << "Question: #{@given_prompt}\n"

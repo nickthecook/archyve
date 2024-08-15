@@ -1,20 +1,26 @@
 module Search
   class SearchHit
-    attr_reader :chunk, :distance
+    attr_reader :reference, :distance
     attr_accessor :relevant, :previous_distance
 
-    def initialize(chunk, distance, previous_distance = nil)
-      @chunk = chunk
+    def initialize(reference, distance, previous_distance = nil)
+      @reference = reference
       @distance = distance
       @previous_distance = previous_distance
     end
 
     def collection
-      @chunk.collection
+      @reference.collection
     end
 
     def document
-      @chunk.document
+      @reference.document if @reference.respond_to?(:document)
+    end
+
+    def content
+      return @reference.content if @reference.respond_to?(:content)
+
+      @reference.summary if @reference.respond_to?(:summary)
     end
 
     def distance_increase_ratio
