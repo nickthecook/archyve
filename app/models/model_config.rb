@@ -18,24 +18,24 @@ class ModelConfig < ApplicationRecord
   def make_active_embedding_model
     raise ModelTypeError, "Model is not an embedding model" unless embedding?
 
-    Setting.find_by(key: "embedding_model").update!(value: id)
+    Setting.set("embedding_model", id)
   end
 
   def make_default_chat_model
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
-    Setting.find_by(key: "chat_model").update!(value: id)
+    Setting.set("chat_model", id)
   end
 
   def make_active_summarization_model
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
-    Setting.find_by(key: "summarization_model").update!(value: id)
+    Setting.set("summarization_model", id)
   end
 
   def make_active_entity_extraction_model
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
-    Setting.find_or_create_by!(key: "entity_extraction_model").update!(value: id)
+    Setting.set("entity_extraction_model", id)
   end
 end
