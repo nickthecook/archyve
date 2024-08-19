@@ -37,28 +37,32 @@ RSpec.describe Graph::EntityExtractor do
   end
 
   describe "#extract" do
-    context "when response contains entities" do
-      let(:entity) { true }
-      let(:relationship) { false }
+    it "destroys the existing entity descriptions for that chunk" do
+      expect(chunk.graph_entity_descriptions).to contain_exactly(preexisting_desc)
+      subject.extract(chunk)
+      expect(chunk.graph_entity_descriptions).not_to include(preexisting_desc)
+    end
 
-      it "destroys the existing entity descriptions for that chunk" do
-        expect(chunk.graph_entity_descriptions).to contain_exactly(preexisting_desc)
+    it "creates the correct GraphEntityDescriptions" do
+      subject.extract(chunk)
+      expect(GraphEntityDescription.all.map(&:description)).to contain_exactly(
+        "Skippy is a boy who shares his pride in owning the barge with his father.",
+        "Minnie M. Baxter is the name of the barge owned by Skippy and his father."
+      )
+    end
+
+    it "creates the correction relationship" do
+      expect { subject.extract(chunk) }.to change(GraphRelationship, :count).from(0).to(1)
+      expect(GraphRelationship.first.from_entity.name).to eq("Skippy")
+      expect(GraphRelationship.first.to_entity.name).to eq("Minnie M. Baxter")
+    end
+
+    context "when traceable is set" do
+      let(:traceable) { "traceable!" }
+
+      it "passes the traceable to the LLM client" do
         subject.extract(chunk)
-        expect(chunk.graph_entity_descriptions).not_to include(preexisting_desc)
-      end
-
-      it "creates the correct GraphEntityDescriptions" do
-        subject.extract(chunk)
-        expect(GraphEntityDescription.all.map(&:description)).to contain_exactly(
-          "Skippy is a boy who shares his pride in owning the barge with his father.",
-          "Minnie M. Baxter is the name of the barge owned by Skippy and his father."
-        )
-      end
-
-      it "creates the correction relationship" do
-        expect { subject.extract(chunk) }.to change(GraphRelationship, :count).from(0).to(1)
-        expect(GraphRelationship.first.from_entity.name).to eq("Skippy")
-        expect(GraphRelationship.first.to_entity.name).to eq("Minnie M. Baxter")
+        expect(LlmClients::Ollama::Client).to have_received(:new).with(hash_including(traceable:))
       end
     end
   end
