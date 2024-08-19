@@ -1,7 +1,7 @@
 <% state_bg = collection.state == "errored" ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700" %>
 
 <div id="<%= dom_id(collection) %>_state_tags" class="flex justify-center items-center">
-  <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 ms-2 p-1 px-2 <%= state_bg %>">
+  <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 p-1 px-2 <%= state_bg %>">
     <%= state_label_for(collection) %>
   </div>
   <% if collection.graph_enabled %>

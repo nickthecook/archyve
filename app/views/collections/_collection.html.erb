@@ -1,6 +1,6 @@
 <% collection ||= @collection %>
 <div id="<%= dom_id(collection) %>" class="flex flex-col h-full">
-  <div class="flex">
+  <div class="flex flex-col">
     <div class="flex-1 pb-2">
       <div class="flex justify-center items-center">
         <%= form_for collection do |f| %>
@@ -22,6 +22,8 @@
           %>
           <%= f.submit "Update", hidden: true %>
         <% end %>
+      </div>
+      <div class="p-4">
         <%= render "collections/state_tags", collection: %>
       </div>
     </div>
