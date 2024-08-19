@@ -12,8 +12,7 @@ module Graph
 
       entities.each_with_index do |entity, index|
         Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
-        @collection.update!(process_step: index)
-        next if entity.summary.present? && entity.summary_outdated == false && @force_all == false
+        @collection.update!(process_step: index + 1)
 
         summarizer.summarize(entity)
       end

@@ -17,7 +17,6 @@ RSpec.describe Graph::EntityExtractor do
   end
   let(:traceable) { nil }
   let(:chunk) { create(:chunk, content: chunk_content) }
-  let(:llm_client) { instance_double(LlmClients::Ollama::Client, complete: completion) }
   let(:completion) do
     <<~COMPLETION
       ("entity"|"Minnie M. Baxter"|"organization"|"Minnie M. Baxter is the name of the barge owned by Skippy and his father.")##
@@ -33,7 +32,7 @@ RSpec.describe Graph::EntityExtractor do
   include_context "with default models"
 
   before do
-    allow(LlmClients::Ollama::Client).to receive(:new) { llm_client }
+    allow(llm_client).to receive(:complete).and_return(completion)
   end
 
   describe "#extract" do
