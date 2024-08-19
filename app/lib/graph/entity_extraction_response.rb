@@ -1,6 +1,6 @@
 module Graph
   class EntityExtractionResponse
-    #  ("entity"|"Minnie M. Baxter"|"organization"|"Minnie M. Baxter is a boat or organization, named in new and shining letters on it.")##
+    # ("entity"|"Minnie M. Baxter"|"organization"|"Minnie M. Baxter is a boat or organization, named in new and shining letters on it.")##
     # ("entity"|"Skippy"|"person"|"Skippy is the young boy who is wrestling with the tiller to keep the lumbering hulk (Minnie M. Baxter) head on.")##
     # ("location"|"Jersey Shore"|"geo"|"Jersey Shore is a location described as precipitous.")##
     # ("location"|"The great city"|"geo"|"The great city is a location with towering buildings and myriad windows across the river.")##

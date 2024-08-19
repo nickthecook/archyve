@@ -10,6 +10,7 @@ class TheDestroyor
 
     delete_embeddings
     delete_chunks
+    delete_graph_entities
 
     @document.destroy!
   end

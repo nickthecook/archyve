@@ -11,5 +11,6 @@ class ExtractDocumentEntitiesJob
     document.extracted!
 
     SummarizeCollectionJob.perform_async(document.collection.id)
+    CleanCollectionEntitiesJob.perform_async(document.collection.id)
   end
 end
