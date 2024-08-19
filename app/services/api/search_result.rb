@@ -55,7 +55,7 @@ module Api
     private
 
     def chunk
-      @chunk ||= @search_hit.chunk
+      @chunk ||= @search_hit.reference
     end
   end
 end

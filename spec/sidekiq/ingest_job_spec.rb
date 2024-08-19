@@ -6,7 +6,7 @@ RSpec.describe IngestJob, type: :job do
 
   before do
     allow(TheIngestor).to receive(:new).and_return(ingestor_double)
-    allow(ingestor_double).to receive(:ingest)
+    allow(ingestor_double).to receive(:execute)
   end
 
   describe "#perform" do
@@ -17,7 +17,7 @@ RSpec.describe IngestJob, type: :job do
 
     it "runs The Ingestor" do
       subject.perform(args)
-      expect(ingestor_double).to have_received(:ingest)
+      expect(ingestor_double).to have_received(:execute)
     end
   end
 end

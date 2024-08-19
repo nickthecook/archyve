@@ -25,7 +25,7 @@ RSpec.describe TheIngestor do
   end
 
   describe "#ingest" do
-    let(:result) { subject.ingest }
+    let(:result) { subject.execute }
 
     it "sets the document state to 'embedded'" do
       expect { result }.to change(document, :state).from("created").to("embedded")

@@ -6,8 +6,8 @@ RSpec.describe PromptAugmentor do
   let(:chunks) { create_list(:chunk, 2) }
   let(:search_hits) do
     [
-      Search::SearchHit.new(chunks[1], 200.0),
-      Search::SearchHit.new(chunks[0], 220.0),
+      Search::SearchHit.new(chunks[0], 200.0),
+      Search::SearchHit.new(chunks[1], 220.0),
     ]
   end
 
