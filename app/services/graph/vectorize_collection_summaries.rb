@@ -9,7 +9,7 @@ module Graph
 
       @collection.update!(state: "vectorizing", process_steps: entities.count)
       entities.each_with_index do |entity, index|
-        @collection.update!(process_step: index)
+        @collection.update!(process_step: index + 1)
 
         embedding = embedder.embed(entity.summary)
         id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
