@@ -11,16 +11,25 @@ module Graph
       @collection.update!(state: :summarizing)
 
       entities.each_with_index do |entity, index|
-        Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
-        @collection.update!(process_step: index + 1)
-
-        summarizer.summarize(entity)
+        process_entity(entity, index)
       end
 
       @collection.update!(state: :summarized)
+    rescue StandardError => e
+      Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+      @collection.update!(state: :error)
+
+      raise e
     end
 
     private
+
+    def process_entity(entity, index)
+      Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
+      @collection.update!(process_step: index + 1)
+
+      summarizer.summarize(entity)
+    end
 
     def entities
       @entities ||= if @force_all

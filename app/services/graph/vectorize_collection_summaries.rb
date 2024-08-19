@@ -7,6 +7,19 @@ module Graph
     def execute
       initialize_collection
 
+      vectorize_collection
+
+      @collection.update!(state: "vectorized")
+    rescue StandardError => e
+      Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+      @collection.update!(state: :error)
+
+      raise e
+    end
+
+    private
+
+    def vectorize_collection
       @collection.update!(state: "vectorizing", process_steps: entities.count)
       entities.each_with_index do |entity, index|
         @collection.update!(process_step: index + 1)
@@ -15,10 +28,7 @@ module Graph
         id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
         entity.update!(vector_id: id)
       end
-      @collection.update!(state: "vectorized")
     end
-
-    private
 
     def initialize_collection
       # this causes chromadb to print a pretty big stack trace; use /collections instead

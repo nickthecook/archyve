@@ -8,16 +8,25 @@ module Graph
       @collection.graphing!
       @collection.update!(process_steps: @collection.graph_entities.count)
 
+      graph_collection
+
+      @collection.graphed!
+    rescue StandardError => e
+      Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+      @collection.update!(state: :error)
+
+      raise e
+    end
+
+    private
+
+    def graph_collection
       @collection.graph_entities.each_with_index do |entity, index|
         @collection.update!(process_step: index)
 
         graph_node(entity)
       end
-
-      @collection.graphed!
     end
-
-    private
 
     def graph_node(entity)
       node = node(entity)

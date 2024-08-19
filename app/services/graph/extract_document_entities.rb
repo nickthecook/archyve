@@ -10,18 +10,27 @@ module Graph
 
     def execute
       chunks.each_with_index do |chunk, index|
-        Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{index}/#{chunk_count})...")
-        @document.update!(process_step: index + 1)
-
-        next unless chunk.entities_extracted == false || @force_extraction
-
-        chunk.update!(entities_extracted: false)
-        extractor.extract(chunk)
-        chunk.update!(entities_extracted: true)
+        process_chunk(chunk, index)
       end
+    rescue StandardError => e
+      Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+      @document.error!
+
+      raise e
     end
 
     private
+
+    def process_chunk(chunk, index)
+      Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{index}/#{chunk_count})...")
+      @document.update!(process_step: index + 1)
+
+      return unless chunk.entities_extracted == false || @force_extraction
+
+      chunk.update!(entities_extracted: false)
+      extractor.extract(chunk)
+      chunk.update!(entities_extracted: true)
+    end
 
     def extractor
       @extractor ||= EntityExtractor.new(entity_extraction_model, traceable: @document)
