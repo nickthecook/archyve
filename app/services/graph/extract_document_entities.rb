@@ -11,7 +11,7 @@ module Graph
     def execute
       chunks.each_with_index do |chunk, index|
         Rails.logger.info("Extracting entities from #{@document.filename}:#{chunk.id} (#{index}/#{chunk_count})...")
-        @document.update!(process_step: index)
+        @document.update!(process_step: index + 1)
 
         next unless chunk.entities_extracted == false || @force_extraction
 
