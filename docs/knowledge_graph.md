@@ -58,7 +58,7 @@ digraph ingest_pipeline {
   {
     node [color=red]
 
-    IngestJob ExtractDocumentEntitiesJob SummarizeCollectionJob GraphCollectionJob
+    IngestJob ExtractDocumentEntitiesJob SummarizeCollectionJob VectorizeCollectionSummariesJob GraphCollectionJob CleanCollectionEntitiesJob
   }
 
   {
@@ -69,6 +69,8 @@ digraph ingest_pipeline {
     TheIngestor -> TheIngestor [label="chunk and embed\ndocument content"]
     ExtractDocumentEntities -> ExtractDocumentEntities [label="extracts entity descriptions\nfrom document chunks"]
     SummarizeCollectionEntities -> SummarizeCollectionEntities [label="summarizes entities based\non extracted entity descriptions"]
+    CleanCollectionEntities -> CleanCollectionEntities [label="remove dangling entities"]
+    VectorizeCollectionSummaries -> VectorizeCollectionSummaries [label="stores entity summaries\nin the vector database"]
     GraphCollectionEntities -> GraphCollectionEntities [label="creates a graph of extracted\nentities and their relationships\nin Neo4j"]
   }
 
@@ -77,14 +79,20 @@ digraph ingest_pipeline {
   IngestJob -> ExtractDocumentEntitiesJob [label="  enqueue"]
   ExtractDocumentEntitiesJob -> ExtractDocumentEntities [label="execute"]
   ExtractDocumentEntitiesJob -> SummarizeCollectionJob [label="  enqueue"]
+  ExtractDocumentEntitiesJob -> CleanCollectionEntitiesJob [label="  enqueue"]
   SummarizeCollectionJob -> SummarizeCollectionEntities [label="execute"]
-  SummarizeCollectionJob -> GraphCollectionJob  [label="  enqueue"]
+  SummarizeCollectionJob -> VectorizeCollectionSummariesJob  [label="  enqueue"]
+  CleanCollectionEntitiesJob -> CleanCollectionEntities [label="execute"]
+  VectorizeCollectionSummariesJob -> VectorizeCollectionSummaries [label="execute"]
+  VectorizeCollectionSummariesJob -> GraphCollectionJob  [label="  enqueue"]
   GraphCollectionJob -> GraphCollectionEntities [label="execute"]
 
   rank=same { IngestJob TheIngestor }
   rank=same { ExtractDocumentEntitiesJob ExtractDocumentEntities }
   rank=same { SummarizeCollectionJob SummarizeCollectionEntities }
   rank=same { GraphCollectionJob GraphCollectionEntities }
+  rank=same { VectorizeCollectionSummariesJob VectorizeCollectionSummaries }
+  rank=same { CleanCollectionEntitiesJob CleanCollectionEntities }
 }
 ```
 
