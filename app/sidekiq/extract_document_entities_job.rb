@@ -1,7 +1,7 @@
 class ExtractDocumentEntitiesJob
   include Sidekiq::Job
 
-  sidekiq_options retry: 3
+  sidekiq_options retry: Rails.configuration.sidekiq_retries
 
   def perform(document_id)
     document = Document.find(document_id)

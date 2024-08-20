@@ -1,7 +1,7 @@
 class GraphCollectionJob
   include Sidekiq::Job
 
-  sidekiq_options retry: 3
+  sidekiq_options retry: Rails.configuration.sidekiq_retries
 
   def perform(collection_id)
     collection = Collection.find(collection_id)
