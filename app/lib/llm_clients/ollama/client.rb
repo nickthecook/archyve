@@ -3,23 +3,23 @@ module LlmClients
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
-      def complete(prompt, &)
+      def complete(prompt, traceable: nil, &block)
         request = helper.completion_request(prompt)
 
-        stream(request, &)
+        stream(request, traceable:, &block)
       end
 
-      def chat(message, &)
+      def chat(message, traceable: nil, &block)
         # Ollama chat protocol matches the one for OpenAI, so use the same helper
-        request = helper.chat_request(Openai::ChatMessageHelper.new(message).chat_history, &)
+        request = helper.chat_request(Openai::ChatMessageHelper.new(message).chat_history, &block)
 
-        stream(request, &)
+        stream(request, traceable:, &block)
       end
 
-      def embed(content)
+      def embed(content, traceable: nil)
         request = helper.embed_request(content)
 
-        request(request)
+        request(request, traceable:)
       end
 
       private
@@ -29,7 +29,7 @@ module LlmClients
       end
 
       # rubocop:disable all
-      def stream(request, &block)
+      def stream(request, traceable: nil, &block)
         @stats = new_stats
 
         response_contents = ""
@@ -78,12 +78,12 @@ module LlmClients
           end
         end
 
-        store_api_call("ollama", request, full_response, response_contents)
+        store_api_call("ollama", request, full_response, response_contents, traceable:)
 
         full_response.body
       end
 
-      def request(request)
+      def request(request, traceable: nil)
         response = with_retries do
           response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
             http.request(request)
@@ -93,7 +93,7 @@ module LlmClients
           # sometimes ollama just returns a 500 on an embed request when running locally, then is fine
           raise RetryableError if response.code == "500"
 
-          store_api_call("ollama", request, response)
+          store_api_call("ollama", request, response, traceable:)
           response
         end
 

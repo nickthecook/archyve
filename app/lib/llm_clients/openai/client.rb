@@ -2,25 +2,34 @@ require "openai"
 
 module LlmClients
   module Openai
+    #rubocop:disable Metrics/ClassLength
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
-      def complete(prompt, &)
-        complete_request(prompt, &)
+      def complete(prompt, traceable: nil, &)
+        @per_request_traceable = traceable
+
+        complete_request(prompt, traceable:, &)
       end
 
-      def chat(message, &)
+      def chat(message, traceable: nil, &)
+        @per_request_traceable = traceable
+
         chat_request(ChatMessageHelper.new(message).chat_history, &)
       end
 
-      def embed(content)
+      def embed(content, traceable: nil)
+        @per_request_traceable = traceable
+
         embedding_request(content)
       end
 
       # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
       def instrument(_name, env)
         response = yield
-        (api_call_for env).save!
+        api_call_for(env, traceable: @per_request_traceable || @traceable).save!
+        @per_request_traceable = nil
+
         # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
         response
       end
@@ -36,7 +45,7 @@ module LlmClients
       end
 
       # Create an ApiCall based on a Faraday environment for this client
-      def api_call_for(env)
+      def api_call_for(env, traceable:)
         ApiCall.from_faraday(
           client_provider,
           request: {
@@ -50,10 +59,11 @@ module LlmClients
             status: env[:response].status,
             body: env[:response].body,
           },
-          traceable: @traceable
+          traceable:
         )
       end
 
+      #rubocop:disable Metrics/AbcSize
       def chat_request(chat_history, &)
         @stats = new_stats
         stats[:start_time] = current_time
@@ -96,6 +106,7 @@ module LlmClients
 
         resp
       end
+      #rubocop:enable Metrics/AbcSize
 
       def complete_request(prompt, &)
         messages = []
@@ -133,5 +144,6 @@ module LlmClients
         raise UnsupportedServerError, "Override to implement client connection."
       end
     end
+    #rubocop:enable Metrics/ClassLength
   end
 end
