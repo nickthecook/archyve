@@ -1,5 +1,5 @@
 <% collection ||= @collection || locals[:collection] %>
-<div id="<%= dom_id(collection) + "_search_form" %>">
+<div id="<%= dom_id(collection) + "_search_form" %>" class="w-full">
   <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex flex-1">
       <% 
@@ -20,7 +20,7 @@
         data: { controller: "submit", "submit-target": "input" },
         autocomplete: "off"
       %>
-      <div class="flex">
+      <div class="flex items-center">
         <div>
           <%= link_to "Clear", collection_path(collection), class: "rounded-lg px-4 py-1 text-center text-white align-baseline dark:text-secondary-950 block font-medium bg-secondary-700 dark:bg-secondary-400 ml-2" %>
         </div>

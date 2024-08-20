@@ -10,11 +10,9 @@ module Graph
     def execute
       @collection.update!(state: :summarizing)
 
-      entities.each_with_index do |entity, index|
-        process_entity(entity, index)
-      end
+      process_entities
 
-      @collection.update!(state: :summarized)
+      @collection.update!(state: :summarized) unless @collection.stopped?
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
       @collection.update!(state: :error)
@@ -24,11 +22,17 @@ module Graph
 
     private
 
-    def process_entity(entity, index)
-      Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
-      @collection.update!(process_step: index + 1)
+    def process_entities
+      entities.each_with_index do |entity, index|
+        Rails.logger.info("Summarizing entity '#{entity.name}' (#{index}/#{entity_count})...")
+        @collection.update!(process_step: index + 1)
 
-      summarizer.summarize(entity)
+        summarizer.summarize(entity)
+        next unless @collection.reload.stop_jobs
+
+        @collection.update!(state: :stopped)
+        break
+      end
     end
 
     def entities

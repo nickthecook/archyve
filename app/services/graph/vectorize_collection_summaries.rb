@@ -9,7 +9,7 @@ module Graph
 
       vectorize_collection
 
-      @collection.update!(state: "vectorized")
+      @collection.update!(state: "vectorized") unless @collection.stopped?
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
       @collection.update!(state: :errored)
@@ -27,6 +27,11 @@ module Graph
         embedding = embedder.embed(entity.summary, traceable: entity)
         id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
         entity.update!(vector_id: id)
+
+        if @collection.reload.stop_jobs
+          @collection.update!(state: :stopped)
+          break
+        end
       end
     end
 

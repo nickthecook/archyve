@@ -54,6 +54,7 @@ class Collection < ApplicationRecord
     vectorized: 4,
     graphing: 5,
     graphed: 6,
+    stopped: 7,
     deleting: 10,
     errored: 20,
   }

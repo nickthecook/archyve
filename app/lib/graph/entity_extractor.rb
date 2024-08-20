@@ -56,6 +56,7 @@ module Graph
       to = GraphEntity.find_by(name: values[:to], collection: chunk.collection)
 
       unless from && to
+        # TODO: Add a new entity if it doesn't exist?
         Rails.logger.warn("Unable to find entities: #{values[:from]} (#{from}) and/or #{values[:to]} (#{to})")
         return
       end

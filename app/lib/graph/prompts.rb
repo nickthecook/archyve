@@ -30,7 +30,7 @@ module Graph
       ######################
       Example 1:
 
-      Entity_types: [person, technology, mission, organization, location]
+      Entity types: [person, technology, mission, organization, location]
       Text:
       while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
 
@@ -54,7 +54,7 @@ module Graph
       #############################
       Example 2:
 
-      Entity_types: [person, technology, mission, organization, location]
+      Entity types: [person, technology, mission, organization, location]
       Text:
       They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
 
@@ -71,7 +71,7 @@ module Graph
       #############################
       Example 3:
 
-      Entity_types: [person, role, technology, organization, event, location, concept]
+      Entity types: [person, role, technology, organization, event, location, concept]
       Text:
       their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
 
@@ -94,9 +94,9 @@ module Graph
       ("relationship"<%= tuple_delimiter %>"Control"<%= tuple_delimiter %>"Intelligence"<%= tuple_delimiter %>"The concept of Control is challenged by the Intelligence that writes its own rules."<%= tuple_delimiter %>7)<%= completion_delimiter %>
       #############################
       -Real Data-
-      Identify entities and relationships from the text below. Do not identify entites and relationships from the above examples.
+      Identify entities and relationships from the text below. Do not identify entites and relationships from the above examples. Do not surround names with "_" characters.
       ######################
-      Entity_types: <%= entity_types %>
+      Entity types: <%= entity_types %>
       Text: <%= input_text %>
       ######################
       Output:

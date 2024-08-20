@@ -1,7 +1,8 @@
 class CollectionsController < ApplicationController
   include ActionView::RecordIdentifier
 
-  before_action :set_collection, only: %i[show update destroy search]
+  before_action :set_collection, only: %i[show update destroy search reprocess stop start]
+  before_action :set_stop_jobs_false, only: %i[destroy reprocess start]
 
   def index
     @collections = current_user.collections
@@ -64,6 +65,16 @@ class CollectionsController < ApplicationController
       format.html { redirect_to collections_url }
     end
   end
+
+  def reprocess
+    ReprocessCollectionJob.perform_async(@collection.id)
+  end
+
+  def stop
+    @collection.update!(stop_jobs: true)
+  end
+
+  def start; end
 
   def search
     query = params[:query]
@@ -135,5 +146,9 @@ class CollectionsController < ApplicationController
 
   def set_collection
     @collection = Collection.find(params[:id] || params[:collection_id])
+  end
+
+  def set_stop_jobs_false
+    @collection.update!(stop_jobs: false)
   end
 end

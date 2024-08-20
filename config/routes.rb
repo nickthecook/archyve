@@ -23,6 +23,9 @@ Rails.application.routes.draw do
       resources :chunks, only: [:index, :show]
     end
 
+    post :stop, as: :stop
+    post :start, as: :start
+    post :reprocess, as: :reprocess
     post :search, as: :search
     post :search, as: :search, on: :collection, to: "collections#global_search"
   end

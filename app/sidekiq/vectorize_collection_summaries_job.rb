@@ -7,6 +7,10 @@ class VectorizeCollectionSummariesJob
     collection = Collection.find(collection_id)
 
     Graph::VectorizeCollectionSummaries.new(collection).execute
+    if collection.stop_jobs
+      collection.update!(stop_jobs: false)
+      return
+    end
 
     GraphCollectionJob.perform_async(collection_id)
   end

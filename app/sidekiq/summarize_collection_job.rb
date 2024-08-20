@@ -7,6 +7,10 @@ class SummarizeCollectionJob
     collection = Collection.find(collection_id)
 
     Graph::SummarizeCollectionEntities.new(collection).execute
+    if collection.reload.stop_jobs
+      collection.update!(stop_jobs: false)
+      return
+    end
 
     VectorizeCollectionSummariesJob.perform_async(collection.id)
   rescue StandardError => e
