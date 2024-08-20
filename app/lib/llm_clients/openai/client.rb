@@ -6,16 +6,16 @@ module LlmClients
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
-      def complete(prompt, traceable: nil, &)
+      def complete(prompt, traceable: nil, &block)
         @per_request_traceable = traceable
 
-        complete_request(prompt, traceable:, &)
+        complete_request(prompt, traceable:, &block)
       end
 
-      def chat(message, traceable: nil, &)
+      def chat(message, traceable: nil, &block)
         @per_request_traceable = traceable
 
-        chat_request(ChatMessageHelper.new(message).chat_history, &)
+        chat_request(ChatMessageHelper.new(message).chat_history, &block)
       end
 
       def embed(content, traceable: nil)
