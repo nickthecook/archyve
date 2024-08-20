@@ -45,6 +45,7 @@ class Document < ApplicationRecord
     extracting: 6,
     extracted: 3,
     deleting: 7,
+    stopped: 8,
     errored: 10,
   }
 
@@ -59,6 +60,7 @@ class Document < ApplicationRecord
     state :extracted
     state :deleting
     state :errored
+    state :stopped
 
     event :reset do
       # TODO: validate that there are no chunks in the db
@@ -89,6 +91,9 @@ class Document < ApplicationRecord
     end
     event :error do
       transitions to: :errored
+    end
+    event :stop do
+      transitions to: :stopped
     end
   end
   # rubocop:enable Metrics/BlockLength

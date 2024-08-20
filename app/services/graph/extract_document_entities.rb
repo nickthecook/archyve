@@ -11,9 +11,11 @@ module Graph
     def execute
       chunks.each_with_index do |chunk, index|
         process_chunk(chunk, index)
-        # rubocop:disable Rails/SkipsModelValidations
-        @document.collection.touch(:updated_at) # so Collections#show shows an updated entity count
-        # rubocop:enable Rails/SkipsModelValidations
+
+        next unless @document.reload.stop_jobs
+
+        @document.stop!
+        break
       end
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
@@ -33,6 +35,10 @@ module Graph
       chunk.update!(entities_extracted: false)
       extractor.extract(chunk)
       chunk.update!(entities_extracted: true)
+
+      # rubocop:disable Rails/SkipsModelValidations
+      @document.collection.touch(:updated_at) # so Collections#show shows an updated entity count
+      # rubocop:enable Rails/SkipsModelValidations
     end
 
     def extractor

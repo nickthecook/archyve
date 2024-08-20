@@ -2,7 +2,8 @@ class DocumentsController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :set_collection
-  before_action :set_document, only: [:show, :destroy, :vectorize]
+  before_action :set_document, only: %i[show destroy vectorize stop start]
+  before_action :set_stop_jobs_false, only: %i[destroy vectorize start]
 
   def show
     @collections = current_user.collections
@@ -48,6 +49,12 @@ class DocumentsController < ApplicationController
     IngestJob.perform_async(@document.id)
   end
 
+  def stop
+    @document.update!(stop_jobs: true)
+  end
+
+  def start; end
+
   private
 
   def new_document
@@ -74,5 +81,9 @@ class DocumentsController < ApplicationController
 
   def set_collection
     @collection = Collection.find(params[:collection_id])
+  end
+
+  def set_stop_jobs_false
+    @document.update!(stop_jobs: false)
   end
 end

@@ -8,6 +8,11 @@ class ExtractDocumentEntitiesJob
 
     document.extracting!
     Graph::ExtractDocumentEntities.new(document).execute
+    if document.stop_jobs
+      document.update!(stop_jobs: false)
+      return
+    end
+
     document.extracted!
 
     SummarizeCollectionJob.perform_async(document.collection.id)
