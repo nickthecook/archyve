@@ -11,6 +11,9 @@ module Graph
     def execute
       chunks.each_with_index do |chunk, index|
         process_chunk(chunk, index)
+        # rubocop:disable Rails/SkipsModelValidations
+        @document.collection.touch(:updated_at) # so Collections#show shows an updated entity count
+        # rubocop:enable Rails/SkipsModelValidations
       end
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
