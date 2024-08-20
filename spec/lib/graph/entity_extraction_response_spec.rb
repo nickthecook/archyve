@@ -3,7 +3,7 @@ RSpec.describe Graph::EntityExtractionResponse do
 
   context "when text is an entity" do
     let(:text) do
-      ' ("entity"|"Minnie M. Baxter"|"organization"|"Minnie M. Baxter is a boat with shining letters on it.")##'
+      ' ("entity" | "Minnie M. Baxter" | "organization" | "Minnie M. Baxter is a boat with shining letters on it.")##'
     end
 
     it "matches" do
@@ -30,7 +30,7 @@ RSpec.describe Graph::EntityExtractionResponse do
 
   context "when text is a relationship" do
     let(:text) do
-      '("relationship"|"Man"|"Minnie M. Baxter"|"The man is the proud owner of Minnie M. Baxter.")## '
+      '("relationship" | "Man" | "Minnie M. Baxter" | "The man is the proud owner of Minnie M. Baxter.")## '
     end
 
     it "matches" do

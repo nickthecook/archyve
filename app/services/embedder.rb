@@ -3,8 +3,8 @@ class Embedder
     @client_helper = Helpers::ModelClientHelper.new(model_config:, traceable:)
   end
 
-  def embed(text)
-    response = client.embed(text)
+  def embed(text, traceable: nil)
+    response = client.embed(text, traceable: traceable || @traceable)
 
     response["embedding"]
   end

@@ -48,9 +48,11 @@ RSpec.describe Graph::VectorizeCollectionSummaries do
       expect(Chromadb::Client).to have_received(:new).with(traceable: collection)
     end
 
-    it "uses the collection as the traceable for the Embedder" do
+    it "uses each entity as the traceable for the Embedder calls" do
       subject.execute
-      expect(Embedder).to have_received(:new).with(model_config: anything, traceable: collection)
+      expect(embedder).to have_received(:embed).with(entity_summaries[0], traceable: graph_entities[0])
+      expect(embedder).to have_received(:embed).with(entity_summaries[1], traceable: graph_entities[1])
+      expect(embedder).to have_received(:embed).with(entity_summaries[2], traceable: graph_entities[2])
     end
   end
 end

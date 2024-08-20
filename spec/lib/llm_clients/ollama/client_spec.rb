@@ -1,6 +1,7 @@
 RSpec.describe LlmClients::Ollama::Client do
   subject { described_class.new(endpoint:, api_key:, embedding_model:, model:, temperature:) }
 
+  # TODO: this probably shouldn't actually be hitting an LLM server
   let(:endpoint) { 'http://localhost:11434' }
   let(:api_key) { 'fake-api-key' }
   let(:embedding_model) { 'nomic-embed-text' }

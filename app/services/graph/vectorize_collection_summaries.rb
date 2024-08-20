@@ -12,7 +12,7 @@ module Graph
       @collection.update!(state: "vectorized")
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-      @collection.update!(state: :error)
+      @collection.update!(state: :errored)
 
       raise e
     end
@@ -51,7 +51,7 @@ module Graph
     end
 
     def embedder
-      @embedder ||= Embedder.new(model_config: embedding_model, traceable: @collection)
+      @embedder ||= Embedder.new(model_config: embedding_model)
     end
 
     def embedding_model
