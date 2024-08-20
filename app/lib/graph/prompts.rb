@@ -2,11 +2,11 @@
 module Graph
   module Prompts
     ENTITY_EXTRACTION_PROMPT = <<~PROMPT.freeze
-        -Goal-
-      Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+      -Goal-
+      Given some data and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
 
       -Steps-
-      1. Identify all entities from the Real Data. Ignore the 3 examples below. For each identified entity, extract the following information:
+      1. Identify all entities from the Real Data. Do not identify entities from the examples below. For each identified entity, extract the following information:
       - entity_name: Name of the entity, capitalized
       - entity_type: One of the following types: [<%= entity_types %>]
       - entity_description: Comprehensive description of the entity's attributes and activities
@@ -24,6 +24,7 @@ module Graph
 
       4. When finished, output <%= completion_delimiter %>
 
+      5. Do not identity entities or relationships from the examples. Only identify entities and relationships from the Real Data.
       ######################
       -Examples-
       ######################
@@ -93,6 +94,7 @@ module Graph
       ("relationship"<%= tuple_delimiter %>"Control"<%= tuple_delimiter %>"Intelligence"<%= tuple_delimiter %>"The concept of Control is challenged by the Intelligence that writes its own rules."<%= tuple_delimiter %>7)<%= completion_delimiter %>
       #############################
       -Real Data-
+      Identify entities and relationships from the text below. Do not identify entites and relationships from the above examples.
       ######################
       Entity_types: <%= entity_types %>
       Text: <%= input_text %>
