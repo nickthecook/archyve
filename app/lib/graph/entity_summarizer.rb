@@ -8,7 +8,7 @@ module Graph
     def summarize(entity)
       @entity = entity
 
-      response = client.complete(prompt.result(binding))
+      response = client.complete(prompt.result(binding), traceable: entity)
 
       @entity.update!(summary: response, summary_outdated: false)
     end

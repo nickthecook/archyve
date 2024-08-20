@@ -79,8 +79,6 @@ module Graph
       Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
 
       Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
-
-      The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
       #############
       Output:
       ("entity"<%= tuple_delimiter %>"Sam Rivera"<%= tuple_delimiter %>"person"<%= tuple_delimiter %>"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety.")<%= record_delimiter %>

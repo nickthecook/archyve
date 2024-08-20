@@ -24,7 +24,7 @@ module Graph
       entities.each_with_index do |entity, index|
         @collection.update!(process_step: index + 1)
 
-        embedding = embedder.embed(entity.summary)
+        embedding = embedder.embed(entity.summary, traceable: entity)
         id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
         entity.update!(vector_id: id)
       end

@@ -33,7 +33,7 @@ module Graph
     end
 
     def extractor
-      @extractor ||= EntityExtractor.new(entity_extraction_model, traceable: @document)
+      @extractor ||= EntityExtractor.new(entity_extraction_model)
     end
 
     def chunk_count

@@ -44,7 +44,7 @@ module Graph
     end
 
     def summarizer
-      @summarizer ||= Graph::EntitySummarizer.new(Setting.entity_extraction_model, traceable: @collection)
+      @summarizer ||= Graph::EntitySummarizer.new(Setting.entity_extraction_model)
     end
   end
 end
