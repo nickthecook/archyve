@@ -13,7 +13,11 @@
       <% elsif @document %>
         <%= render @document %>
       <% elsif @collection %>
-        <%= render @collection %>
+        <% if @collection.id.present? %>
+          <%= render @collection %>
+        <% else %>
+          <%= render "collections/new", collection: @collection %>
+        <% end %>
       <% else %>
         <div class="flex flex-col h-full w-full items-center align-middle">
           <div class="flex flex-1 justify-center w-full items-center">

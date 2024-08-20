@@ -16,16 +16,28 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def new
+    respond_to do |format|
+      format.html do
+        @collections = current_user.collections
+        @collection = Collection.new
+        render :index
+      end
+      format.json { render :new, status: :unprocessable_entity }
+    end
+  end
+
   def create
-    @collection = new_collection
+    @collection = collection_from_params(collection_params)
 
     respond_to do |format|
       if @collection.save
+        @collection.generate_slug
         format.html { redirect_to collection_url(@collection) }
-        format.json { render :show, status: :created, location: @collection }
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @collection.errors, status: :unprocessable_entity }
+        @collections = current_user.collections
+        flash[:error] = @collection.errors.full_messages
+        format.html { render :index, status: :unprocessable_entity }
       end
     end
   end
@@ -33,13 +45,6 @@ class CollectionsController < ApplicationController
   def update
     respond_to do |format|
       if @collection.update(collection_params)
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            "#{helpers.dom_id(@collection)}_list_item",
-            partial: "shared/collection_list_item",
-            locals: { collection: @collection, selected: @collection }
-          )
-        end
         format.html { redirect_to collection_url(@collection) }
         format.json { render :show, status: :ok, location: @collection }
       else
@@ -117,19 +122,15 @@ class CollectionsController < ApplicationController
 
   private
 
-  def new_collection
-    collection = Collection.new
-    collection.name ||= "New collection"
-    collection.embedding_model = Setting.embedding_model
-    collection.save!
-    collection.generate_slug
-    collection.graph_enabled = Setting.get("graph_enabled", default: false)
+  def collection_from_params(params)
+    @collection = Collection.new(params)
+    @collection.embedding_model = Setting.embedding_model
 
-    collection
+    @collection
   end
 
   def collection_params
-    params.require(:collection).permit(:name, :slug, :embedding_model_id)
+    params.require(:collection).permit(:name, :graph_enabled)
   end
 
   def set_collection

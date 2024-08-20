@@ -6,6 +6,8 @@ class Collection < ApplicationRecord
   has_many :graph_relationships_from, through: :graph_entities
   has_many :graph_relationships_to, through: :graph_entities
 
+  validates :name, presence: true
+
   after_create_commit lambda {
     broadcast_append_to(
       :collections,

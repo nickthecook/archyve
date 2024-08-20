@@ -3,7 +3,7 @@
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center">
       <%= link_to "ARCHYVE", root_path, class: "text-tertiary-700 dark:text-tertiary-400" %>
     </div>
-    <%= button_to "New collection", collections_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400", data: { turbo: false } %>
+    <%= link_to "New collection", new_collection_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
     <div id="collection_list_items" class="container overflow-y-scroll flex-1 no-scrollbar">
       <% collections.order(created_at: :desc).each do |collection| %>
         <%= render "shared/collection_list_item", collection:, selected: %>

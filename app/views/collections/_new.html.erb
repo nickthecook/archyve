@@ -1,0 +1,29 @@
+<% collection ||= @collection || locals[:collection] %>
+
+<div id="<%= dom_id(collection) %>" class="flex flex-col h-full justify-center items-center">
+  <div class="p-4">
+    <% flash[:error]&.each do |error| %><div class="rounded-lg px-2 p-1 bg-error-400 dark:bg-error-800"><%= error %></div><% end %>  
+  </div>
+  <%= form_for collection do |f| %>
+    <div class="flex p-2 items-center">
+      <%= f.text_field(
+        :name,
+        class: "rounded-md bg-secondary-50 dark:bg-secondary-800",
+        value: collection.name,
+        placeholder: "New collection name",
+      )%>
+      <div class="flex-1"></div>
+      <%= f.submit "Update", hidden: true %>
+    </div>
+    <div class="flex p-2 items-center">
+      <%= f.label :graph_enabled, "Enable Knowledge Graph", class: "px-2 text-sm" %>
+      <div class="flex-1"></div>
+      <%= f.check_box :graph_enabled %>
+    </div>
+    <div class="flex p-2 items-center">
+      <div class="flex-1"></div>
+      <%= f.submit "Create", class: "rounded-lg py-1 px-3 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+    </div>
+  <% end %>
+  
+</div>
