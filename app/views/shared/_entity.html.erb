@@ -6,6 +6,9 @@
       <div class="flex items-baseline">
         <div class="pb-4">
           <%= entity.name %>
+          <div class="text-sm text-secondary-700 dark:text-secondary-300">
+            <%= entity.entity_type %>
+          </div>
         </div>
         <% if entity.summary_outdated? %>
           <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 bg-error-400 dark:bg-error-800">
@@ -24,6 +27,8 @@
   <div class="flex flex-col ms-4">
     <p class="py-1 text-xs text-right"><%= entity.collection.name %></p>
     <p class="py-1 text-xs text-right"><%= time_ago_in_words(entity.created_at) %> ago</p>
+    <p class="py-1 text-xs text-right"><%= entity.relationship_count %> relationships</p>
+    <p class="py-1 text-xs text-right"><%= entity.descriptions.count %> descriptions</p>
     <div class="flex-none mx-1 text-right">
       <!-- TODO: add controller with #summarize action -->
       <% hover_text = entity.summary.present? ? "Regenerate summary" : "Generate summary" %>

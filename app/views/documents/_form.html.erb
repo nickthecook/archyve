@@ -8,7 +8,7 @@
           <%= f.file_field :file, class: "w-full p-2 rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:border-secondary-600" %>
 
           <%= fields_for :chunking_profile do |cp| %>
-            <div class="flex w-full justify-between">
+            <div class="flex w-full justify-between overflow-x-scroll">
               <div class="flex justify-start text-end">
                 <%= cp.label :chunking_method, class: "px-2" %>
                 <%= cp.collection_select(

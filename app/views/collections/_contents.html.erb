@@ -4,6 +4,7 @@
   base_classes = "inline-block p-4 rounded-t-lg"
   unselected_classes = "border-b-2 border-transparent  hover:text-secondary-400 hover:border-secondary-300 dark:hover:text-secondary-200"
   selected_classes = "text-secondary-800 border-b-2 border-secondary-800 active dark:text-secondary-200 dark:border-secondary-300"
+  num_entities_to_show = Setting.get("top_entity_show_count", default: 10)
 
   if @show == "entities"
     documents_classes = "#{ base_classes } #{ unselected_classes }"
@@ -17,22 +18,26 @@
 <div class="text-sm font-medium text-center text-secondary-800 dark:text-secondary-300 border-b border-secondary-400 dark:border-secondary-600">
   <ul class="flex flex-wrap -mb-px">
     <%= link_to "Documents", collection_path(@collection), class: documents_classes %>
-    <%= link_to "Entities", collection_path(@collection, params: { show: "entities" }), class: entities_classes %>
+    <%= link_to "Top #{num_entities_to_show} Entities by occurrences", collection_path(@collection, params: { show: "entities" }), class: entities_classes %>
   </ul>
 </div>
 
+<div class="h-full overflow-y-scroll">
+  <% if @show == "entities" %>
+    <div id="<%= dom_id(collection) %>_entities_by_desc_count" class="flex-1">
+      <% collection.graph_entities.by_description_count.first(num_entities_to_show).each do |entity| %>
+        <%= render "shared/entity", entity:  %>
+      <% end %>
+    </div>
+  <% else %>
+    <div id="<%= dom_id(collection) %>-documents" class="flex-1">
+      <% collection.documents.order(:created_at).each do |document| %>
+        <%= render "shared/document", document: %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
 
-<% if @show == "entities" %>
-  <div id="<%= dom_id(collection) %>-entities" class="flex-1">
-    <% collection.graph_entities.order(:created_at).each do |entity| %>
-      <%= render "shared/entity", entity:  %>
-    <% end %>
-  </div>
-<% else %>
-  <div id="<%= dom_id(collection) %>-documents" class="flex-1">
-    <% collection.documents.order(:created_at).each do |document| %>
-      <%= render "shared/document", document: %>
-    <% end %>
-  </div>
+<% if @show != "entities" %>
+  <%= render "documents/form", locals: { collection: } %>
 <% end %>
-
