@@ -11,8 +11,11 @@
     <div class="text-xs text-right text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
       <%= link_to hit.collection.name, hit.collection %>
     </div>
-    <div class="flex-1 text-xs text-center text-secondary-400 underline">
+    <div class="text-xs text-center text-secondary-400 underline">
       <%= link_to hit.document.filename, collection_document_path(hit.collection, hit.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" if hit.document.present? %>
+    </div>
+    <div class="flex-1 text-xs text-center text-secondary-400">
+      <%= hit.reference.name %>
     </div>
     <div class="text-xs text-right text-secondary-400">
       <% if hit.distance %>

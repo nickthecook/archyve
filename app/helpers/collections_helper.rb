@@ -20,4 +20,8 @@ module CollectionsHelper
     else collection.state.capitalize
     end
   end
+
+  def summary_label_for(entity)
+    entity.summary_outdated? ? "Summary outdated" : "Up to date"
+  end
 end

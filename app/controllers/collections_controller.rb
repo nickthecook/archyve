@@ -12,6 +12,8 @@ class CollectionsController < ApplicationController
     respond_to do |format|
       format.html do
         @collections = current_user.collections
+        @show = "entities" if params[:show] == "entities"
+
         render :index
       end
     end
