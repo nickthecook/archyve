@@ -113,7 +113,7 @@ module Graph
     end
 
     def entity_types
-      %w[organization person event concept technology mission location role project].join(" ")
+      %w[organization person event concept technology mission location role project object].join(" ")
     end
 
     def input_text
