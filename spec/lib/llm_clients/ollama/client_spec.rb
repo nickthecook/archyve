@@ -1,7 +1,7 @@
-# tests shouldn't be hitting a real server and waiting for responses; flakey and slow
-# flakiness example:
-#   expected " The sky looks blue because tiny bits of things called dust and gas reflect a special type of light called blue light back to our eyes." to include "scatter"
-RSpec.describe LlmClients::Ollama::Client, :skip do
+RSpec.describe LlmClients::Ollama::Client, skip: "tests shouldn't be hitting a real server and waiting for responses; flakey and slow" do
+  # flakiness example:
+  #   expected " The sky looks blue because tiny bits of things called dust and gas reflect a special type of light called blue light back to our eyes." to include "scatter"
+
   subject { described_class.new(endpoint:, api_key:, embedding_model:, model:, temperature:) }
 
   let(:endpoint) { 'http://localhost:11434' }
