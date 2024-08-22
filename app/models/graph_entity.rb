@@ -26,8 +26,16 @@ class GraphEntity < ApplicationRecord
   after_update_commit lambda {
     broadcast_replace_to(
       :collections,
-      target: "graph_entity_#{id}",
+      target: "graph_entity_#{id}-shared",
       partial: "shared/entity",
+      locals: {
+        entity: self,
+      }
+    )
+    broadcast_replace_to(
+      :collections,
+      target: "graph_entity_#{id}",
+      partial: "graph_entities/entity",
       locals: {
         entity: self,
       }

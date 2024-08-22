@@ -1,0 +1,31 @@
+<div id="<%= dom_id(entity) %>">
+  <div class="py-4 flex justify-between items-baseline">
+    <div class="flex flex-1 flex-col">
+      <div class="flex items-center">
+        <div class="text-xl font-bold text-secondary-900 dark:text-secondary-100">Entity: <%= entity.name %></div>
+        <% if entity.summary_outdated? %>
+            <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 bg-error-400 dark:bg-error-800">
+              <%= summary_label_for(entity) %>
+            </div>
+        <% end %>
+      </div>
+      <div class="text-sm text-secondary-700 dark:text-secondary-300"><%= entity.entity_type %></div>
+    </div>
+
+    <%= button_to "Regenerate summary",
+      collection_entity_summarize_path(entity.collection, entity),
+      class: "rounded-lg bg-secondary-700 dark:bg-secondary-400 text-secondary-100 dark:text-secondary-900 py-1 px-4 disabled:bg-opacity-40 mr-2"
+    %>
+    <%= link_to "Back to collection",
+      collection_path(entity.collection, params: { show: "entities" }),
+      class: "rounded-lg ml-auto py-1 mb-4 px-3 my-2 text-secondary-200 dark:text-secondary-950 font-medium bg-tertiary-600 dark:bg-tertiary-400"
+    %>
+  </div>
+  <div class="pb-10"><%= render "graph_entities/info", entity: %></div>
+  <div class="flex-1 flex flex-col">
+    <div class="text-lg text-secondary-925 dark:text-secondary-100 py-5">Descriptions</div>
+    <% entity.descriptions.each do |description| %>
+      <%= render "graph_entities/description", description:, entity: %>
+    <% end %>
+  </div>
+</div>

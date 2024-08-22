@@ -1,13 +1,15 @@
+<% entity ||= @entity %>
+
 <div class="flex flex-col items-center">
   <div class="flex w-full pb-5 justify-center text-sm">
-    <div class="px-3"><strong><%= time_ago_in_words(@entity.created_at) %></strong> old</div>
-    <div class="px-3"><strong><%= @entity.descriptions.count %></strong> Descriptions</div>
-    <div class="px-3"><strong><%= @entity.relationship_count %></strong> Relationships</div>
+    <div class="px-3"><strong><%= time_ago_in_words(entity.created_at) %></strong> old</div>
+    <div class="px-3"><strong><%= entity.descriptions.count %></strong> Descriptions</div>
+    <div class="px-3"><strong><%= entity.relationship_count %></strong> Relationships</div>
   </div>
   <div class="flex flex-col w-full">
     <div class="text-lg text-secondary-925 dark:text-secondary-100 py-5">Summary</div>
     <div class="rounded-lg bg-secondary-200 dark:bg-secondary-900 px-10 py-10">
-      <div class="whitespace-pre-wrap"><%= @entity.summary %></div>
+      <div class="whitespace-pre-wrap"><%= entity.summary %></div>
     </div>
   </div>
 </div>

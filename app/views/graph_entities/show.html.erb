@@ -4,24 +4,10 @@
   <div id="collection_area" class="overflow-y-scroll flex-1 h-screen bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
     <%= render "shared/notice" %>
 
-    <%= turbo_stream_from dom_id(@entity) %>
-      <div class="flex flex-col h-full w-full items-center align-middle">
-        <div class="w-3/4">
-          <div class="py-4 flex justify-between items-baseline">
-            <div class="flex flex-col">
-              <div class="text-xl font-bold text-secondary-900 dark:text-secondary-100">Entity: <%= @entity.name %></div>
-              <div class="text-sm text-secondary-700 dark:text-secondary-300"><%= @entity.entity_type %></div>
-            </div>
-            <%= link_to "Back to collection", collection_path(@entity.collection, params: { show: "entities" }), class: "rounded-lg ml-auto py-1 mb-4 px-3 my-2 text-secondary-200 dark:text-secondary-950 font-medium bg-tertiary-600 dark:bg-tertiary-400"%>
-          </div>
-          <div class="pb-10"><%= render "info" %></div>
-          <div class="flex-1 flex flex-col">
-            <div class="text-lg text-secondary-925 dark:text-secondary-100 py-5">Descriptions</div>
-            <% @entity.descriptions.each do |description| %>
-              <%= render "graph_entities/description", description: description %>
-            <% end %>
-          </div>
-        </div>
+    <%= turbo_stream_from :collections %>
+    <div class="flex flex-col h-full w-full items-center align-middle">
+      <div class="w-3/4">
+        <%= render "graph_entities/entity", entity: @entity %>
       </div>
     </div>
   </div>
