@@ -102,7 +102,8 @@ class Document < ApplicationRecord
     file.download
   end
 
+  # TODO: fix this. It's a bad idea, since the state ints are not ordered.
   def past_state?(incoming_state)
-    Document.states[incoming_state] < Document.states[state]
+    Document.states[incoming_state] <= Document.states[state]
   end
 end
