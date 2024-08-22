@@ -8,6 +8,9 @@ SUMMARIZATION_ENDPOINT=http://host.docker.internal:11434
 SUMMARIZATION_MODEL=mistral:instruct
 CHROMADB_HOST=chromadb
 CHROMADB_PORT=8000
+NEO4J_URL="neo4j://neo4j:7687"
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=password
 USERNAME=admin@archyve.io
 PASSWORD=password
 # run `rails db:encryption:init within the container` to get these values

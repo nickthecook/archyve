@@ -27,7 +27,7 @@ services:
       - IS_PERSISTENT=TRUE
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,16 +57,26 @@ services:
     # this needs to be edited to give podman access to host
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    command: ['/bin/bash', '-c', 'bin/rails db:seed && bundle exec sidekiq']
+    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq"]
     depends_on:
       - redis
       - postgres
       - archyve
     environment:
       RUN_SIDEKIQ: true
+  neo4j:
+    image: neo4j:5.21.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/password
 
 volumes:
   redis:
   postgres:
   chromadb:
   archyve_files:
+  neo4j_data:
