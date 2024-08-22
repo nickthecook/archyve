@@ -22,7 +22,7 @@ Rails.application.routes.draw do
 
       resources :chunks, only: [:index, :show]
     end
-    resources :entities, controller: :graph_entities, only: [:index, :show] do
+    resources :entities, controller: :graph_entities, only: [:show] do
       post :summarize, as: :summarize
     end
 

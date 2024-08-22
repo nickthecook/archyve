@@ -34,7 +34,9 @@
     <div class="flex-none mx-1 text-right">
       <!-- TODO: add controller with #summarize action -->
       <% hover_text = entity.summary.present? ? "Regenerate summary" : "Generate summary" %>
-      <i class="fa fa-refresh" title="<%= hover_text %>"></i>
+      <%= button_to collection_entity_summarize_path(entity.collection, entity) do %>
+        <i class="fa fa-refresh" title="<%= hover_text %>"></i>
+      <% end %>
     </div>
   </div>
 </div>

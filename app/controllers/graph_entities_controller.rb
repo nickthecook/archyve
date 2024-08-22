@@ -1,6 +1,6 @@
 class GraphEntitiesController < ApplicationController
-  before_action :set_collection
   before_action :set_entity, only: [:show, :summarize]
+  before_action :set_collection
 
   def index
     # TODO: later
@@ -15,13 +15,13 @@ class GraphEntitiesController < ApplicationController
   def summarize
     @entity.update!(summary_outdated: true)
 
-    Graph::EntitySummarizer.new(Setting.entity_extraction_model).execute
+    SummarizeEntityJob.perform_async(@entity.id)
   end
 
   private
 
   def set_entity
-    @entity = GraphEntity.find(params[:id])
+    @entity = GraphEntity.find(params[:entity_id] || params[:id])
   end
 
   def set_collection
