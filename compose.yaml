@@ -57,7 +57,12 @@ services:
     # this needs to be edited to give podman access to host
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq"]
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        'bin/rails db:seed && bin/rails "neo4j:generate_schema_migration[constraint,Nodes::Entity,uuid]" && bin/rails neo4j:migrate && bundle exec sidekiq',
+      ]
     depends_on:
       - redis
       - postgres
