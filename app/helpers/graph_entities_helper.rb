@@ -1,0 +1,2 @@
+module GraphEntitiesHelper
+end

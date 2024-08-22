@@ -8,16 +8,18 @@
     <div class="flex flex-col ms-4"></div>
   <% end %>
   <div class="flex justify-space-between w-full px-3">
-    <div class="text-xs text-right text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
+    <div class="flex-1 pr-4 text-xs text-left text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
       <%= link_to hit.collection.name, hit.collection %>
     </div>
-    <div class="text-xs text-center text-secondary-400 underline">
-      <%= link_to hit.document.filename, collection_document_path(hit.collection, hit.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" if hit.document.present? %>
+    <% if hit.document.present? %>
+      <div class="flex-1 px-4 text-xs text-center text-secondary-400 underline">
+        <%= link_to hit.document.filename, collection_document_path(hit.collection, hit.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" %>
+      </div>
+    <% end %>
+    <div class="flex-1 px-4 text-xs text-center text-secondary-400">
+      <%= hit.name %>
     </div>
-    <div class="flex-1 text-xs text-center text-secondary-400">
-      <%= hit.reference.name %>
-    </div>
-    <div class="text-xs text-right text-secondary-400">
+    <div class="flex-1 pl-4 text-xs text-right text-secondary-400">
       <% if hit.distance %>
         <div>
           distance: <%= hit.distance.round %>

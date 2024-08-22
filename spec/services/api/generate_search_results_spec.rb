@@ -4,14 +4,16 @@ RSpec.describe Api::GenerateSearchResults do
   let(:collections) { create_list(:collection, 2) }
   let(:base_url) { 'http://example.com' }
   let(:browser_base_url) { 'https://example.com' }
-  let(:num_results) { 2 }
+  let(:num_results) { 3 }
   let(:traceable) { nil }
 
   let(:searchn_double) { instance_double(Search::SearchN, search: hits) }
   let(:chunks) { create_list(:chunk, 5) }
+  let(:entity) { create(:graph_entity) }
   let(:hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
+      Search::SearchHit.new(entity, 215.0),
       Search::SearchHit.new(chunks[1], 220.0),
       Search::SearchHit.new(chunks[2], 400.0),
       Search::SearchHit.new(chunks[3], 450.0),
@@ -41,17 +43,27 @@ RSpec.describe Api::GenerateSearchResults do
           metadata: "",
           distance: hits.first.distance,
           vector_id: chunks.first.vector_id,
-          url: "http://example.com/v1/chunks/#{chunks.first.id}",
+          url: "http://example.com/v1/collections/#{chunks.first.collection.id}/documents/#{chunks.first.document.id}/chunks/#{chunks.first.id}",
           browser_url: "https://example.com/collections/#{chunks.first.document.collection.id}/documents/#{chunks.first.document.id}/chunks/#{chunks.first.id}",
+          relevant: true,
+        },
+        {
+          id: entity.id,
+          document: entity.summary,
+          metadata: "",
+          distance: hits.second.distance,
+          vector_id: entity.vector_id,
+          url: "http://example.com/v1/collections/#{entity.collection.id}/entities/#{entity.id}",
+          browser_url: "https://example.com/collections/#{entity.collection.id}/entities/#{entity.id}",
           relevant: true,
         },
         {
           id: chunks.second.id,
           document: chunks.second.content,
           metadata: "",
-          distance: hits.second.distance,
+          distance: hits.third.distance,
           vector_id: chunks.second.vector_id,
-          url: "http://example.com/v1/chunks/#{chunks.second.id}",
+          url: "http://example.com/v1/collections/#{chunks.second.collection.id}/documents/#{chunks.second.document.id}/chunks/#{chunks.second.id}",
           browser_url: "https://example.com/collections/#{chunks.second.document.collection.id}/documents/#{chunks.second.document.id}/chunks/#{chunks.second.id}",
           relevant: true,
         },

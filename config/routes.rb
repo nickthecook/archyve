@@ -22,6 +22,9 @@ Rails.application.routes.draw do
 
       resources :chunks, only: [:index, :show]
     end
+    resources :entities, controller: :graph_entities, only: [:index, :show] do
+      post :summarize, as: :summarize
+    end
 
     post :stop, as: :stop
     post :start, as: :start
@@ -38,6 +41,8 @@ Rails.application.routes.draw do
       resources :documents, only: [:index, :show] do
         resources :chunks, only: [:index, :show]
       end
+
+      resources :entities, only: [:show]
     end
 
     resources :settings, only: [:index, :show]

@@ -1,0 +1,13 @@
+<div id="<%= dom_id(description) %>">
+  <div class="flex px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-925">
+    <div class="flex-col px-5">
+      <%= description.id %>
+      <p class="py-1 text-xs text-right text-muted">
+        Entity: <%= link_to @entity.name, collection_entity_path(@entity.collection, @entity) %>
+      </p>
+    </div>
+    <div class="flex-1">
+      <p><%= description.description %></p>
+    </div>
+  </div>
+</div>

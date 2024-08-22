@@ -17,6 +17,12 @@ module Search
       @reference.document if @reference.respond_to?(:document)
     end
 
+    def name
+      return "#{@reference.name} (#{@reference.entity_type})" if @reference.respond_to?(:name)
+
+      "#{@reference.class.name} #{@reference.id}"
+    end
+
     def content
       return @reference.content if @reference.respond_to?(:content)
 
