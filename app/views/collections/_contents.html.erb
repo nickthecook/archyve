@@ -15,12 +15,14 @@
   end
 %>
 
-<div class="text-sm font-medium text-center text-secondary-800 dark:text-secondary-300 border-b border-secondary-400 dark:border-secondary-600">
-  <ul class="flex flex-wrap -mb-px">
-    <%= link_to "Documents", collection_path(@collection), class: documents_classes %>
-    <%= link_to "Top #{num_entities_to_show} Entities by occurrences", collection_path(@collection, params: { show: "entities" }), class: entities_classes %>
-  </ul>
-</div>
+<% if @collection.graph_enabled? %>
+  <div class="text-sm font-medium text-center text-secondary-800 dark:text-secondary-300 border-b border-secondary-400 dark:border-secondary-600">
+    <ul class="flex flex-wrap -mb-px">
+      <%= link_to "Documents", collection_path(@collection), class: documents_classes %>
+      <%= link_to "Top #{num_entities_to_show} Entities by occurrences", collection_path(@collection, params: { show: "entities" }), class: entities_classes %>
+    </ul>
+  </div>
+<% end %>
 
 <div class="h-full overflow-y-scroll">
   <% if @show == "entities" %>
