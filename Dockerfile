@@ -38,7 +38,6 @@ RUN yarn install --production
 
 # Copy application code
 COPY . .
-RUN bin/importmap pin stimulus-clipboard
 
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
