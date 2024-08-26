@@ -41,7 +41,7 @@ module DocumentsHelper
 
   def default_chunk_overlap(method)
     case method
-    when :bytes then Setting.get("chunk_bytes_overlap", default: 200)
+    when :bytes then Setting.get("chunk_bytes_overlap", default: 0)
     when "sentences" then 1
     when "paragraphs" then 0
     when "pages" then 0
