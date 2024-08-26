@@ -22,6 +22,7 @@ actions:
   shell:
     command: docker compose exec chat bash
     alias: sh
+  clean-volumes: rm -rf redis postgres chroma-data neo4j
 options:
   environment:
     USER_ID: $(id -u)
