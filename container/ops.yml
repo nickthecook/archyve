@@ -15,10 +15,13 @@ actions:
   rebuild:
     command: docker compose up --build -d
     load_secrets: true
+  start-with-logs:
+    command: ops start && ops logs
+    alias: sl
   clean-volumes:
     command: |-
       basedir=$(cd .. && basename "$PWD")
       echo "Removing containers for group '$basedir'..."
-      docker volume rm "$basedir"_redis "$basedir"_postgres "$basedir"_chromadb "$basedir"_archyve_files
+      docker volume rm "$basedir"_redis "$basedir"_postgres "$basedir"_chromadb "$basedir"_archyve_files "$basedir"_neo4j_data
     only_in_envs: dev
     shell_expansion: true
