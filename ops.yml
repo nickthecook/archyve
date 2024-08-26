@@ -24,6 +24,9 @@ actions:
   rails:
     command: bin/rails
     load_secrets: true
+  migrate:
+    command: bin/rails db:migrate && bin/rails neo4j:migrate
+    load_secrets: true
   shell:
     command: docker compose exec archyve bash
     alias: sh

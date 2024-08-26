@@ -14,13 +14,10 @@
 :constraints:
 - CREATE CONSTRAINT `constraint_af0384` FOR (n:`Nodes::Entity`) REQUIRE (n.`uuid`)
   IS UNIQUE
-- CREATE CONSTRAINT `constraint_c11d06c2` FOR (n:`Nodes::entity`) REQUIRE (n.`uuid`)
-  IS UNIQUE
 - CREATE CONSTRAINT `constraint_db82530b` FOR (n:`Entity`) REQUIRE (n.`uuid`) IS UNIQUE
 - CREATE CONSTRAINT `constraint_dbcee0a4` FOR (n:`ActiveGraph::Migrations::SchemaMigration`)
   REQUIRE (n.`migration_id`) IS UNIQUE
 :indexes: []
 :versions:
 - '20240723170834'
-- '20240723171655'
 - '20240723174748'
