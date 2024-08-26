@@ -32,11 +32,6 @@ module Archyve
     config.active_record.encryption.deterministic_key = active_record_encryption["deterministic_key"]
     config.active_record.encryption.key_derivation_salt = active_record_encryption["key_derivation_salt"]
 
-    config.embedding_endpoint = ENV.fetch("EMBEDDING_ENDPOINT") { "http://localhost:11434" }
-    config.embedding_model = ENV.fetch("EMBEDDING_MODEL") { "all-minilm" }
-    config.summarization_endpoint = ENV.fetch("SUMMARIZATION_ENDPOINT") { "http://localhost:11435" }
-    config.summarization_model = ENV.fetch("SUMMARIZATION_MODEL") { "mistral:instruct" }
-
     config.run_sidekiq = ENV.fetch("RUN_SIDEKIQ", "false") == "true"
     Sidekiq.logger.class.include ActiveSupport::LoggerSilence
     config.sidekiq_retries = 3

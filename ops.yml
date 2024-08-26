@@ -62,5 +62,7 @@ options:
     HOMEBREW_PREFIX: $(brew --prefix)
     PG_OPTS: ${PG_OPTS:- --with-pg-lib=/usr/lib --with-opt-dir="${HOMEBREW_PREFIX:-/usr/local}/opt/libpq"}
     API_BASE_URL: ${API_BASE_URL:-http://localhost:3300/v1}
+    REDIS_URL: ${REDIS_URL:-redis://localhost:6378/1}
+    PORT: ${PORT:-3300}
   exec:
     load_secrets: true

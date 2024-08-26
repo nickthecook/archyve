@@ -59,8 +59,13 @@ dev_model_servers = [
 
 dev_model_configs = [
   {
-    "name" => "mistral:instruct",
-    "model" => "mistral:instruct",
+    "name" => "llama3.1:8b",
+    "model" => "llama3.1:8b",
+    "temperature" => 0.1,
+  },
+  {
+    "name" => "phi3:latest",
+    "model" => "phi3:latest",
     "temperature" => 0.1,
   },
   {

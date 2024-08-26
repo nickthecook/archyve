@@ -1,11 +1,6 @@
 DATABASE_URL=postgres://archyve:password@postgres:5432/archyve?sslmode=disable
 REDIS_URL=redis://redis:6379
 SECRET_KEY_BASE=# run `openssl rand -hex 64` to generate this value
-CHAT_ENDPOINT=http://host.docker.internal:11434
-EMBEDDING_ENDPOINT=http://host.docker.internal:11434
-EMBEDDING_MODEL=all-minilm
-SUMMARIZATION_ENDPOINT=http://host.docker.internal:11434
-SUMMARIZATION_MODEL=mistral:instruct
 CHROMADB_HOST=chromadb
 CHROMADB_PORT=8000
 NEO4J_URL="neo4j://neo4j:7687"
@@ -13,12 +8,6 @@ NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=password
 USERNAME=admin@archyve.io
 PASSWORD=password
-# run `rails db:encryption:init within the container` to get these values
-ACTIVE_RECORD_ENCRYPTION="{
-  \"primary_key\": \"...\",
-  \"deterministic_key\": \"...\",
-  \"key_derivation_salt\": \"...\"
-}"
 PROVISIONED_MODEL_SERVERS="[
   {
     \"name\": \"ollama\",
