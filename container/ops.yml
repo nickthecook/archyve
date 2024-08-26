@@ -15,4 +15,10 @@ actions:
   rebuild:
     command: docker compose up --build -d
     load_secrets: true
-  clean_volumes: docker volume rm archyve_redis archyve_postgres archyve_chromadb archyve_archyve_files
+  clean-volumes:
+    command: |-
+      basedir=$(cd .. && basename "$PWD")
+      echo "Removing containers for group '$basedir'..."
+      docker volume rm "$basedir"_redis "$basedir"_postgres "$basedir"_chromadb "$basedir"_archyve_files
+    only_in_envs: dev
+    shell_expansion: true
