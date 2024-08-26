@@ -1,7 +1,7 @@
 <div class="flex">
   <%= render "shared/collection_list", collections: @collections, selected: @entity.collection %>
 
-  <div id="collection_area" class="overflow-y-scroll flex-1 h-screen bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+  <div id="collection_area" class="overflow-y-scroll no-scrollbar flex-1 h-screen bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
     <%= render "shared/notice" %>
 
     <%= turbo_stream_from :collections %>

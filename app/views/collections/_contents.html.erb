@@ -24,7 +24,7 @@
   </div>
 <% end %>
 
-<div class="h-full overflow-y-scroll">
+<div class="h-full overflow-y-scroll no-scrollbar">
   <% if @show == "entities" %>
     <div id="<%= dom_id(collection) %>_entities_by_desc_count" class="flex-1">
       <% collection.graph_entities.by_description_count.first(num_entities_to_show).each do |entity| %>
