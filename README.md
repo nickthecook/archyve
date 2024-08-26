@@ -182,6 +182,12 @@ Then the Collection will go through a few stages:
 6. Vectorization (vectorizing the summary using an embedding model and storing in ChromaDB)
 7. Graphing (pushing entities and relationships to Neo4j)
 
+### Viewing extracted entities
+
+Once you have a document in the `Extracted` state, you can view the most commonly references entities that were extracted from Documents in a Collection. Click the "Top 10 entities by occurrences" tab on the Collection page to see the 10 entities in that Collection that appeared more often in Documents than any others.
+
+> Relationships are not yet visible in the Archyve UI, although you are presented with a count of the number of relationships each entity has.
+
 ### Viewing the Knowledge Graph
 
 Once you have a Collection in the `Graphed` state, you can view the knowledge graph in the Neo4j web interface:
