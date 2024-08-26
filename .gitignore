@@ -42,8 +42,6 @@ node_modules
 deps/postgres
 vendor/bundle
 deps/neo4j
-vendor
-!/vendor/javascript
 deps/chroma-data
 config/dev
 local.env
