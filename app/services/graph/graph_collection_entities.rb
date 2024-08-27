@@ -38,7 +38,7 @@ module Graph
     end
 
     def node(entity)
-      existing = Nodes::Entity.find_by(entity.attributes.slice(*entity_find_attrs))
+      existing = Nodes::Entity.find_by(entity_find_attrs(entity))
       return existing if existing.present?
 
       node = Nodes::Entity.from_model(entity)
@@ -58,8 +58,12 @@ module Graph
       )
     end
 
-    def entity_find_attrs
-      %w[name entity_type collection collection_name]
+    def entity_find_attrs(entity)
+      {
+        name: entity.name,
+        entity_type: entity.entity_type,
+        collection: @collection.id,
+      }
     end
 
     def relationship_attrs

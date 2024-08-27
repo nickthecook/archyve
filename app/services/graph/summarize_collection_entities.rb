@@ -15,7 +15,7 @@ module Graph
       @collection.update!(state: :summarized) unless @collection.stopped?
     rescue StandardError => e
       Rails.logger.error("#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
-      @collection.update!(state: :error)
+      @collection.update!(state: :errored)
 
       raise e
     end

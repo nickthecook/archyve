@@ -28,12 +28,11 @@ module Graph
     end
 
     def client
-      @client ||= LlmClients::Client.client_class_for(ModelServer.active_server.provider).new(
-        endpoint: ModelServer.active_server.url,
-        model: @model_config.model,
-        api_key: "todo",
-        traceable: @traceable
-      )
+      @client ||= model_helper.client
+    end
+
+    def model_helper
+      @model_helper ||= Helpers::ModelClientHelper.new(model_config: @model_config, traceable: @traceable)
     end
   end
 end

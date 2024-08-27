@@ -9,7 +9,7 @@ module LlmClients
       def complete(prompt, traceable: nil, &block)
         @per_request_traceable = traceable
 
-        complete_request(prompt, traceable:, &block)
+        complete_request(prompt, &block)
       end
 
       def chat(message, traceable: nil, &block)
@@ -25,7 +25,7 @@ module LlmClients
       end
 
       # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
-      def instrument(_name, env)
+      def instrument(_name, env, &)
         begin
           response = yield
         # Faraday doesn't populate response code on errors...
@@ -33,6 +33,10 @@ module LlmClients
           api_call_for(env, traceable: @per_request_traceable || @traceable, status: 404).save!
 
           raise e
+        rescue Faraday::TooManyRequestsError
+          api_call_for(env, traceable: @per_request_traceable || @traceable, status: 429).save!
+
+          raise RetryableError if response.code == 429
         end
 
         api_call_for(env, traceable: @per_request_traceable || @traceable).save!
@@ -71,7 +75,7 @@ module LlmClients
         )
       end
 
-      #rubocop:disable Metrics/AbcSize
+      # rubocop:disable all
       def chat_request(chat_history, &)
         @stats = new_stats
         stats[:start_time] = current_time
@@ -80,7 +84,8 @@ module LlmClients
         current_batch = ""
         current_batch_size = 0
 
-        resp = chat_connection.chat(
+        resp = with_retries do
+          chat_connection.chat(
           parameters: {
             model: @model,
             messages: chat_history, # Required.
@@ -95,7 +100,7 @@ module LlmClients
                 current_batch_size += 1
                 if str.ends_with?("\n") || str.ends_with?("}") || current_batch_size >= @batch_size
                   Rails.logger.debug { "==> #{current_batch}" }
-                  yield current_batch
+                  yield current_batch if block_given?
 
                   current_batch_size = 0
                   current_batch = ""
@@ -103,10 +108,11 @@ module LlmClients
               end
             end,
           })
+        end
 
         if current_batch_size.positive?
           Rails.logger.debug { "==> #{current_batch}" }
-          yield current_batch
+          yield current_batch if block_given?
         end
 
         stats[:tokens] = num_tokens
@@ -114,29 +120,37 @@ module LlmClients
 
         resp
       end
-      #rubocop:enable Metrics/AbcSize
+      # rubocop:enable all
 
       def complete_request(prompt, &)
         messages = []
         messages << { role: "user", content: prompt }
 
-        response = chat_connection.chat(
-          parameters: {
-            model: @model,
-            messages:,
-            temperature: @temperature,
-          })
-        yield response.dig("choices", 0, "message", "content")
-        response
+        response = with_retries do
+          chat_connection.chat(
+            parameters: {
+              model: @model,
+              messages:,
+              temperature: @temperature,
+            }
+          )
+        end
+        reply = response.dig("choices", 0, "message", "content")
+
+        yield reply if block_given?
+
+        reply
       end
 
       def embedding_request(content)
-        response = embed_connection.embeddings(
-          parameters: {
-            model: @embedding_model,
-            input: content,
-          }
-        )
+        response = with_retries do
+          embed_connection.embeddings(
+            parameters: {
+              model: @embedding_model,
+              input: content,
+            }
+          )
+        end
         { "embedding" => response.dig("data", 0, "embedding") }
       end
 

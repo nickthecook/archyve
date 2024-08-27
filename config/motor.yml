@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-08-27 12:17:15.440817000 Z
+file_version: 2024-08-27 14:14:34.344515000 Z
 resources:
 - name: api_call
   preferences:
@@ -9,7 +9,30 @@ resources:
       name: updated_at
     - access_type: read_write
       name: created_at
-  updated_at: 2024-08-27 12:17:15.440817000 +00:00
+    scopes:
+    - visible: false
+      name: not_http_method_delete
+    - visible: false
+      name: not_http_method_get
+    - visible: false
+      name: not_http_method_head
+    - visible: false
+      name: not_http_method_patch
+    - visible: false
+      name: not_http_method_post
+    - visible: false
+      name: not_http_method_put
+    - name: errors
+      display_name: Errors
+      scope_type: filter
+      preferences:
+        filter:
+        - response_code:
+            gte: 400
+        sort:
+          key: created_at
+          order: desc
+  updated_at: 2024-08-27 13:20:36.742758000 +00:00
 - name: collection
   preferences:
     columns:
@@ -51,7 +74,7 @@ resources:
       action_type: method
       preferences:
         method_name: make_active_entity_extraction_model
-  updated_at: 2024-08-12 17:45:20.969096000 +00:00
+  updated_at: 2024-08-27 14:13:42.316928000 +00:00
 - name: model_server
   preferences:
     actions:
@@ -133,6 +156,23 @@ configs:
   - updated_at
   - created_at
   updated_at: 2024-08-27 12:16:10.842622000 +00:00
+- key: resources.api_call.scopes.order
+  value:
+  - successes
+  - errors
+  - http_method_delete
+  - http_method_get
+  - http_method_head
+  - http_method_patch
+  - http_method_post
+  - http_method_put
+  - not_http_method_delete
+  - not_http_method_get
+  - not_http_method_head
+  - not_http_method_patch
+  - not_http_method_post
+  - not_http_method_put
+  updated_at: 2024-08-27 13:19:42.973957000 +00:00
 - key: resources.model_config.actions.order
   value:
   - use_for_chat
@@ -143,6 +183,21 @@ configs:
   - create
   - edit
   updated_at: 2024-08-12 17:45:24.210138000 +00:00
+- key: resources.model_config.columns.order
+  value:
+  - id
+  - model_server_id
+  - name
+  - model
+  - embedding
+  - provisioned
+  - available
+  - temperature
+  - system_prompt
+  - api_version
+  - updated_at
+  - created_at
+  updated_at: 2024-08-27 14:14:34.344515000 +00:00
 - key: resources.setting.columns.order
   value:
   - id

@@ -78,19 +78,6 @@ module Graph
       entities
     end
 
-    def client
-      @client ||= LlmClients::Client.client_class_for(active_server.provider).new(
-        endpoint: active_server.url,
-        model: @model_config.model,
-        api_key: "todo",
-        traceable: @traceable
-      )
-    end
-
-    def active_server
-      @active_server ||= ModelServer.active_server
-    end
-
     def prompt_for(input_text)
       prompt = @prompt_template.result(binding)
       Rails.logger.info("Sending completion request:\n#{prompt}")
@@ -122,6 +109,14 @@ module Graph
 
     def minimum_chunk_size
       @minimum_chunk_size ||= Setting.get("minimum_chunk_size_for_extraction", default: 128)
+    end
+
+    def client
+      @client ||= model_helper.client
+    end
+
+    def model_helper
+      @model_helper ||= Helpers::ModelClientHelper.new(model_config: @model_config, traceable: @traceable)
     end
   end
 end

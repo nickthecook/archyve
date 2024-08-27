@@ -7,9 +7,9 @@ module Graph
     # ("relationship"|"Man"|"Minnie M. Baxter"|"The man is the proud owner of Minnie M. Baxter.")##
     # ("relationship"|"Skippy"|"Minnie M. Baxter"|"Skippy is working on the Minnie M. Baxter, trying to keep it heading in the right direction."|8)|COMPLETE
     ENTITY_REGEX =
-      /^\("(?'type'\w+)" \| "(?'name'[^"]+)" \| "(?'subtype'[^"]+)" \| "(?'desc'[^"]+)".*$/
+      /^#*\("(?'type'\w+)" \| "(?'name'[^"]+)" \| "(?'subtype'[^"]+)" \| "(?'desc'[^"]+)".*$/
     RELATIONSHIP_REGEX =
-      /^\("(?'type'relationship)" \| "(?'from'[^"]+)" \| "(?'to'[^"]+)" \| "(?'desc'[^"]+)"(?: \| (?'strength'\d+))?.*$/
+      /^#*\("(?'type'relationship)" \| "(?'from'[^"]+)" \| "(?'to'[^"]+)" \| "(?'desc'[^"]+)"(?: \| (?'strength'\d+))?.*$/
 
     def initialize(text)
       @text = text.strip
