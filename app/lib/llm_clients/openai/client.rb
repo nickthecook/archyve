@@ -78,7 +78,6 @@ module LlmClients
       # rubocop:disable all
       def chat_request(chat_history, &)
         @stats = new_stats
-        stats[:start_time] = current_time
         num_tokens = 0
 
         current_batch = ""
@@ -124,7 +123,6 @@ module LlmClients
 
       def complete_request(prompt, &)
         @stats = new_stats
-        stats[:start_time] = current_time
         messages = []
         messages << { role: "user", content: prompt }
 

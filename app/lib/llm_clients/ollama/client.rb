@@ -30,15 +30,13 @@ module LlmClients
 
       # rubocop:disable all
       def stream(request, traceable: nil, &block)
-        @stats = new_stats
-
         response_contents = ""
 
         Rails.logger.info("Sending request body:\n#{request.body}")
         # TODO: switch to HTTParty for this?
         # TODO: create ApiCall early and update response body after streaming is done
+        @stats = new_stats
         full_response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
-          stats[:start_time] = current_time
           http.request(request) do |response|
             raise response_error_for(response) unless response.is_a?(Net::HTTPSuccess)
 

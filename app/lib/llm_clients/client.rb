@@ -90,7 +90,7 @@ module LlmClients
 
     def new_stats
       {
-        start_time: nil,
+        start_time: current_time,
         end_time: nil,
         elapsed_ms: nil,
         tokens: 0,
