@@ -1,42 +1,43 @@
 module Api
   class ChatResponse
+    TITLE_LENGTH = 120
+
+    attr_reader :reply
+
     def initialize(prompt, model: nil, api_client: nil, augment: false, collections: nil)
       @prompt = prompt
       @model = model
       @api_client = api_client
       @augment = augment
       @collections = collections
-
-      @response = ""
     end
 
     def respond
-      generate_response
+      response
 
-      { reply: @response, augmented: @augment, statistics: client.clean_stats }
+      Message.create!(content: response, conversation:, author: @api_client.user, statistics: client.stats)
+
+      { reply: response, augmented: @augment, statistics: client.clean_stats }
     end
 
     private
 
-    def generate_response
+    def response
       # TODO: get the response all at once instead of streaming
-      if @augment
-        augment_prompt
-        client.complete(@augmented_prompt) { |text| @response << text }
-      else
-        client.complete(@prompt) { |text| @response << text }
-      end
-    end
+      @response ||= if @augment
+        prompt_augmentor.augment
 
-    def augment_prompt
-      @augmented_prompt = prompt_augmentor.prompt
+        client.complete(prompt_augmentor.prompt)
+      else
+        client.complete(@prompt)
+      end
     end
 
     def prompt_augmentor
       @prompt_augmentor ||= begin
         search_hits = searcher.search(@prompt)
 
-        PromptAugmentor.new(@prompt, search_hits)
+        PromptAugmentor.new(message, search_hits)
       end
     end
 
@@ -54,6 +55,23 @@ module Api
 
     def model_loader
       @model_loader ||= ModelLoader.new(model: @model, traceable: @api_client)
+    end
+
+    def message
+      @message ||= Message.create!(
+        content: @prompt,
+        conversation:,
+        author: @api_client.user
+      )
+    end
+
+    def conversation
+      @conversation ||= Conversation.create!(
+        user: @api_client.user,
+        title: @prompt.truncate(TITLE_LENGTH),
+        model_config: model_loader.model_config,
+        search_collections: @augment
+      )
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_20_193129) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_27_164433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -177,6 +177,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_20_193129) do
     t.index ["chunk_id"], name: "index_graph_relationships_on_chunk_id"
     t.index ["from_entity_id"], name: "index_graph_relationships_on_from_entity_id"
     t.index ["to_entity_id"], name: "index_graph_relationships_on_to_entity_id"
+  end
+
+  create_table "message_augmentations", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.string "augmentation_type", null: false
+    t.bigint "augmentation_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["augmentation_type", "augmentation_id"], name: "index_message_augmentations_on_augmentation"
+    t.index ["message_id"], name: "index_message_augmentations_on_message_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -454,6 +464,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_20_193129) do
   add_foreign_key "graph_relationships", "chunks"
   add_foreign_key "graph_relationships", "graph_entities", column: "from_entity_id"
   add_foreign_key "graph_relationships", "graph_entities", column: "to_entity_id"
+  add_foreign_key "message_augmentations", "messages"
   add_foreign_key "messages", "conversations"
   add_foreign_key "model_configs", "model_servers"
   add_foreign_key "motor_alert_locks", "motor_alerts", column: "alert_id"

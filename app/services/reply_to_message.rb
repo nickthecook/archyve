@@ -39,7 +39,7 @@ class ReplyToMessage
   def augment_message_prompt
     return unless collections_to_search.any?
 
-    @message.update!(prompt: prompt_augmentor.prompt)
+    prompt_augmentor.augment
   end
 
   def create_reply
@@ -123,7 +123,7 @@ class ReplyToMessage
     @prompt_augmentor ||= begin
       search_hits = searcher.search(@message.content)
 
-      PromptAugmentor.new(@message.content, search_hits)
+      PromptAugmentor.new(@message, search_hits)
     end
   end
 end

@@ -4,22 +4,22 @@ module LlmClients
       NETWORK_TIMEOUT = 8
 
       def complete(prompt, traceable: nil, &block)
-        request = helper.completion_request(prompt)
+        req = helper.completion_request(prompt)
 
-        stream(request, traceable:, &block)
+        stream(req, traceable:, &block)
       end
 
       def chat(message, traceable: nil, &block)
         # Ollama chat protocol matches the one for OpenAI, so use the same helper
-        request = helper.chat_request(Openai::ChatMessageHelper.new(message).chat_history, &block)
+        req = helper.chat_request(Openai::ChatMessageHelper.new(message).chat_history, &block)
 
-        stream(request, traceable:, &block)
+        stream(req, traceable:, &block)
       end
 
       def embed(content, traceable: nil)
-        request = helper.embed_request(content)
+        req = helper.embed_request(content)
 
-        request(request, traceable:)
+        request(req, traceable:)
       end
 
       private
@@ -29,15 +29,15 @@ module LlmClients
       end
 
       # rubocop:disable all
-      def stream(request, traceable: nil, &block)
+      def stream(req, traceable: nil, &block)
         response_contents = ""
 
-        Rails.logger.info("Sending request body:\n#{request.body}")
+        Rails.logger.info("Sending request body:\n#{req.body}")
         # TODO: switch to HTTParty for this?
         # TODO: create ApiCall early and update response body after streaming is done
         @stats = new_stats
         full_response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
-          http.request(request) do |response|
+          http.request(req) do |response|
             raise response_error_for(response) unless response.is_a?(Net::HTTPSuccess)
 
             stats[:first_token_time] = current_time
@@ -76,12 +76,14 @@ module LlmClients
           end
         end
 
-        store_api_call("ollama", request, full_response, response_contents, traceable:)
+        store_api_call("ollama", req, full_response, response_contents, traceable:)
 
         full_response.body
       end
 
       def request(request, traceable: nil)
+        @stats = new_stats
+
         response = with_retries do
           response = Net::HTTP.start(@uri.hostname, @uri.port, use_ssl: @uri.scheme == "https") do |http|
             http.request(request)
@@ -91,7 +93,10 @@ module LlmClients
           # sometimes ollama just returns a 500 on an embed request when running locally, then is fine
           raise RetryableError if response.code == "500"
 
+          stats[:first_token_time] = current_time
+          calculate_stats
           store_api_call("ollama", request, response, traceable:)
+
           response
         end
 

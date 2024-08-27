@@ -5,6 +5,7 @@ class Chunk < ApplicationRecord
   has_many :graph_relationships, dependent: :destroy
   has_many :graph_entities, through: :entity_descriptions
   has_many :api_calls, as: :traceable, dependent: :destroy
+  has_many :message_augmentations, as: :augmentation, dependent: :destroy
 
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)

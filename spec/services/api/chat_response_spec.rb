@@ -1,9 +1,9 @@
 RSpec.describe Api::ChatResponse do
-  subject { Api::ChatResponse.new(prompt, model:, api_client:, augment:, collections:) }
+  subject { described_class.new(prompt, model:, api_client:, augment:, collections:) }
 
   let(:prompt) { 'What do I like?' }
   let(:model) { "mixalot:99b" }
-  let(:api_client) { nil }
+  let(:api_client) { create(:client) }
   let(:augment) { false }
   let(:collections) { nil }
 
@@ -19,10 +19,10 @@ RSpec.describe Api::ChatResponse do
   let(:document) { create(:document, collection:) }
   let(:collection) { create(:collection, name: "90s rap") }
   let(:client_double) do
-    instance_double(LlmClients::Ollama::Client, clean_stats: "stats")
+    instance_double(LlmClients::Ollama::Client, clean_stats: "stats", stats: [])
   end
   let(:completion_response) { "You like no bugs." }
-  let(:prompt_augmentor) { instance_double(PromptAugmentor, prompt: augmented_prompt) }
+  let(:prompt_augmentor) { instance_double(PromptAugmentor, prompt: augmented_prompt, augment: nil) }
   let(:augmented_prompt) do
     <<~PROMPT
       Here is some context that may help you answer the following question:
@@ -40,7 +40,7 @@ RSpec.describe Api::ChatResponse do
   before do
     allow(Search::SearchN).to receive(:new) { search_double }
     allow(LlmClients::Ollama::Client).to receive(:new) { client_double }
-    allow(client_double).to receive(:complete).and_yield(completion_response)
+    allow(client_double).to receive(:complete).and_return(completion_response)
     allow(PromptAugmentor).to receive(:new) { prompt_augmentor }
 
     create(:model_config, name: "mixalot:99b")

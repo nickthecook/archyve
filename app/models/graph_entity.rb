@@ -4,6 +4,7 @@ class GraphEntity < ApplicationRecord
   has_many :relationships_to, dependent: :destroy, class_name: 'GraphRelationship', inverse_of: :to_entity
   belongs_to :collection
   has_one :user, through: :collection
+  has_many :message_augmentations, as: :augmentation, dependent: :destroy
 
   scope :by_description_count, lambda {
     joins(:descriptions).group("graph_entities.id").order(Arel.sql("count(*) desc"))

@@ -57,14 +57,15 @@ RSpec.describe Api::ModelLoader do
     end
 
     it "returns an instance of LlmClients::Client for the given provider" do
-      expect(subject.client("ollama")).to be_a(LlmClients::Ollama::Client)
+      expect(subject.client).to be_a(LlmClients::Ollama::Client)
     end
 
     it "configures the client correctly" do
-      subject.client("ollama")
+      subject.client
       expect(LlmClients::Ollama::Client).to have_received(:new).with({
         endpoint: model_server.url,
         api_key: model_server.api_key,
+        api_version: model_config.api_version,
         model: model_config.model,
         traceable: nil,
       })
@@ -74,10 +75,11 @@ RSpec.describe Api::ModelLoader do
       let(:traceable) { instance_double(Client) }
 
       it "passes the traceable to the client" do
-        subject.client("ollama")
+        subject.client
         expect(LlmClients::Ollama::Client).to have_received(:new).with({
           endpoint: model_server.url,
           api_key: model_server.api_key,
+          api_version: model_config.api_version,
           model: model_config.model,
           traceable:,
         })

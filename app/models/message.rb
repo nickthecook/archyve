@@ -3,6 +3,7 @@ class Message < ApplicationRecord
   belongs_to :author, polymorphic: true
   has_one :user, through: :conversation
   has_many :api_calls, as: :traceable, dependent: :destroy
+  has_many :augmentations, dependent: :destroy, class_name: "MessageAugmentation"
 
   include Turbo::Broadcastable
 

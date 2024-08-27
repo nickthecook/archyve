@@ -99,6 +99,7 @@ module LlmClients
       }
     end
 
+    # rubocop:disable Metrics/AbcSize
     def calculate_stats
       @stats[:end_time] = current_time
       elapsed_s = (@stats[:end_time] - @stats[:start_time])
@@ -106,6 +107,7 @@ module LlmClients
       @stats[:tokens_per_sec] = (@stats[:tokens] / elapsed_s).round(2)
       @stats[:time_to_first_token] = (@stats[:first_token_time] - @stats[:start_time]).round(3)
     end
+    # rubocop:enable Metrics/AbcSize
 
     def default_temperature
       0.1
