@@ -55,7 +55,7 @@ class ApiCall < ApplicationRecord
         response_headers: response[:headers],
         response_code: response[:status],
         response_body: json_body(response[:body]),
-        response_length: response[:body].length
+        response_length: response[:body]&.length || 0
       )
       api_call.traceable = traceable if traceable
       api_call

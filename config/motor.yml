@@ -1,136 +1,177 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-08-20 16:55:36.159542000 Z
+file_version: 2024-08-27 12:17:15.440817000 Z
 resources:
-  - name: collection
-    preferences:
-      columns:
-        - access_type: read_only
-          name: slug
-        - access_type: read_only
-          reference:
-            name: embedding_model
-            display_name: Embedding model
-            model_name: model_config
-            reference_type: belongs_to
-            foreign_key: embedding_model_id
-            primary_key: id
-            options: {}
-            polymorphic:
-            virtual: false
-          name: embedding_model_id
-    updated_at: 2024-04-10 17:34:20.219590000 +00:00
-  - name: model_config
-    preferences:
-      actions:
-        - name: use_for_embedding
-          display_name: Use for embedding
-          action_type: method
-          preferences:
-            method_name: make_active_embedding_model
-        - name: use_for_summarization
-          display_name: Use for summarization
-          action_type: method
-          preferences:
-            method_name: make_active_summarization_model
-        - name: use_for_chat
-          display_name: Use for chat
-          action_type: method
-          preferences:
-            method_name: make_default_chat_model
-        - name: use_for_entity_extraction
-          display_name: Use for entity extraction
-          action_type: method
-          preferences:
-            method_name: make_active_entity_extraction_model
-    updated_at: 2024-08-12 17:45:20.969096000 +00:00
-  - name: model_server
-    preferences:
-      actions:
-        - name: make_active
-          display_name: Make Active
-          action_type: method
-          preferences:
-            method_name: make_active
-    updated_at: 2024-06-19 19:29:00.862401000 +00:00
-  - name: setting
-    preferences:
-      columns:
-        - name: model
-          display_name: Model
-          column_type: reference
-          access_type: read_only
-          reference:
-            name: model
-            display_name: Model
-            model_name: model_config
-            reference_type: has_one
-            foreign_key: id
-            primary_key: value
-            options: {}
-            polymorphic: false
-            virtual: true
-          virtual: true
-          format: {}
-          validators: []
-    updated_at: 2024-05-07 20:52:44.441475000 +00:00
+- name: api_call
+  preferences:
+    columns:
+    - access_type: read_write
+      name: updated_at
+    - access_type: read_write
+      name: created_at
+  updated_at: 2024-08-27 12:17:15.440817000 +00:00
+- name: collection
+  preferences:
+    columns:
+    - access_type: read_only
+      name: slug
+    - access_type: read_only
+      reference:
+        name: embedding_model
+        display_name: Embedding model
+        model_name: model_config
+        reference_type: belongs_to
+        foreign_key: embedding_model_id
+        primary_key: id
+        options: {}
+        polymorphic:
+        virtual: false
+      name: embedding_model_id
+  updated_at: 2024-04-10 17:34:20.219590000 +00:00
+- name: model_config
+  preferences:
+    actions:
+    - name: use_for_embedding
+      display_name: Use for embedding
+      action_type: method
+      preferences:
+        method_name: make_active_embedding_model
+    - name: use_for_summarization
+      display_name: Use for summarization
+      action_type: method
+      preferences:
+        method_name: make_active_summarization_model
+    - name: use_for_chat
+      display_name: Use for chat
+      action_type: method
+      preferences:
+        method_name: make_default_chat_model
+    - name: use_for_entity_extraction
+      display_name: Use for entity extraction
+      action_type: method
+      preferences:
+        method_name: make_active_entity_extraction_model
+  updated_at: 2024-08-12 17:45:20.969096000 +00:00
+- name: model_server
+  preferences:
+    actions:
+    - name: make_active
+      display_name: Make Active
+      action_type: method
+      preferences:
+        method_name: make_active
+    columns:
+    - access_type: hidden
+      name: updated_at
+    - access_type: hidden
+      name: created_at
+    - access_type: write_only
+      name: api_key
+  updated_at: 2024-08-27 11:57:01.825078000 +00:00
+- name: relationship
+  preferences:
+    columns:
+    - access_type: hidden
+      name: created_at
+    - access_type: hidden
+      name: updated_at
+  updated_at: 2024-07-23 20:40:09.944641000 +00:00
+- name: setting
+  preferences:
+    columns:
+    - name: model
+      display_name: Model
+      column_type: reference
+      access_type: read_only
+      reference:
+        name: model
+        display_name: Model
+        model_name: model_config
+        reference_type: has_one
+        foreign_key: id
+        primary_key: value
+        options: {}
+        polymorphic: false
+        virtual: true
+      virtual: true
+      format: {}
+      validators: []
+  updated_at: 2024-05-07 20:52:44.441475000 +00:00
 configs:
-  - key: header.links
-    value:
-      - name: Reports
-        link_type: reports
-      - name: Forms
-        link_type: forms
-      - conditions: []
-        type: header
-        name: Back to app
-        path: "/collections"
-        link_type: header
-      - conditions: []
-        type: header
-        name: Sidekiq
-        path: "/sidekiq"
-        link_type: header
-    updated_at: 2024-08-20 16:55:36.159542000 +00:00
-  - key: resources.model_config.actions.order
-    value:
-      - use_for_chat
-      - use_for_summarization
-      - use_for_embedding
-      - use_for_entity_extraction
-      - remove
-      - create
-      - edit
-    updated_at: 2024-08-12 17:45:24.210138000 +00:00
-  - key: resources.setting.columns.order
-    value:
-      - id
-      - key
-      - value
-      - model
-      - updated_at
-      - created_at
-    updated_at: 2024-05-07 20:51:41.085043000 +00:00
+- key: header.links
+  value:
+  - name: Reports
+    link_type: reports
+  - name: Forms
+    link_type: forms
+  - conditions: []
+    type: header
+    name: Back to app
+    path: "/collections"
+    link_type: header
+  - conditions: []
+    type: header
+    name: Sidekiq
+    path: "/sidekiq"
+    link_type: header
+  updated_at: 2024-08-20 16:55:36.159542000 +00:00
+- key: resources.api_call.columns.order
+  value:
+  - id
+  - traceable_id
+  - service_name
+  - http_method
+  - response_code
+  - url
+  - headers
+  - body
+  - body_length
+  - response_headers
+  - response_body
+  - response_length
+  - traceable_type
+  - updated_at
+  - created_at
+  updated_at: 2024-08-27 12:16:10.842622000 +00:00
+- key: resources.model_config.actions.order
+  value:
+  - use_for_chat
+  - use_for_summarization
+  - use_for_embedding
+  - use_for_entity_extraction
+  - remove
+  - create
+  - edit
+  updated_at: 2024-08-12 17:45:24.210138000 +00:00
+- key: resources.setting.columns.order
+  value:
+  - id
+  - key
+  - value
+  - model
+  - updated_at
+  - created_at
+  updated_at: 2024-05-07 20:51:41.085043000 +00:00
 queries:
-  - id: 1
-    name: Users
-    sql_body: Select * from users;
-    description:
-    preferences:
-      query_type: sql
-      database: primary
-      visualization: table
-      visualization_options: {}
-      variables: []
-    tags: []
-    updated_at: 2024-04-10 17:24:22.348525000 +00:00
+- id: 1
+  name: Users
+  sql_body: Select * from users;
+  description:
+  preferences:
+    query_type: sql
+    database: primary
+    visualization: table
+    visualization_options: {}
+    variables: []
+  tags: []
+  updated_at: 2024-04-10 17:24:22.348525000 +00:00
 dashboards: []
 forms: []
 alerts: []
 api_configs:
-  - id: 1
-    name: origin
-    url: "/"
-    preferences: {}
-    description:
-    updated_at: 2024-04-10 17:15:20.793735000 +00:00
+- id: 1
+  name: origin
+  url: "/"
+  preferences: {}
+  description:
+  updated_at: 2024-04-10 17:15:20.793735000 +00:00

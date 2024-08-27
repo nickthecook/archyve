@@ -26,7 +26,15 @@ module LlmClients
 
       # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
       def instrument(_name, env)
-        response = yield
+        begin
+          response = yield
+        # Faraday doesn't populate response code on errors...
+        rescue Faraday::ResourceNotFound => e
+          api_call_for(env, traceable: @per_request_traceable || @traceable, status: 404).save!
+
+          raise e
+        end
+
         api_call_for(env, traceable: @per_request_traceable || @traceable).save!
         @per_request_traceable = nil
 
@@ -45,7 +53,7 @@ module LlmClients
       end
 
       # Create an ApiCall based on a Faraday environment for this client
-      def api_call_for(env, traceable:)
+      def api_call_for(env, traceable:, status: nil)
         ApiCall.from_faraday(
           client_provider,
           request: {
@@ -56,7 +64,7 @@ module LlmClients
           },
           response: {
             headers: env[:response_headers],
-            status: env[:response].status,
+            status: status || env[:response].status,
             body: env[:response].body,
           },
           traceable:
