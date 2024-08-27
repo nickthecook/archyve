@@ -1,0 +1,35 @@
+<% entity ||= @entity %>
+
+<div class="flex justify-start items-start px-6 py-5 my-2 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900">
+  <%= link_to collection_entity_path(entity.collection, entity), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700 px-3 py-1 rounded-lg" do %>
+    <div class="flex">
+      <div class="flex-1 whitespace-prewrap">
+        <div class="flex flex-col">
+          <div class="flex items-baseline">
+            <div class="pb-4">
+              <%= entity.name %>
+              <span class="text-xs text-secondary-700 dark:text-secondary-300">(<%= entity.entity_type %>)</span>
+            </div>
+          </div>
+          <div class="flex-1">
+            <div class="whitespace-pre-wrap"><%= entity.summary %></div>
+          </div>
+          <div class="flex">
+            <!-- buttons go here -->
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col ms-4">
+        <p class="py-1 text-xs text-right"><%= entity.collection.name %></p>
+        <% if distance %>
+          <p class="py-1 text-xs text-right text-muted">distance: <%= distance.round(1) %></p>
+        <% end %>
+        <p class="py-1 text-xs text-right"><%= time_ago_in_words(entity.created_at) %> ago</p>
+        <p class="py-1 text-xs text-right"><%= entity.descriptions.count %> descriptions</p>
+        <p class="py-1 text-xs text-right"><%= entity.relationship_count %> relationships</p>
+        <div class="flex-none mx-1 text-right">
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

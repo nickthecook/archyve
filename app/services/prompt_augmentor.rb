@@ -27,7 +27,7 @@ class PromptAugmentor
 
   def link_message_with_augmentations
     @search_hits.each do |hit|
-      MessageAugmentation.create!(message: @message, augmentation: hit.reference)
+      MessageAugmentation.create!(message: @message, augmentation: hit.reference, distance: hit.distance)
     end
   end
 end

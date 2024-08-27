@@ -6,4 +6,13 @@ module MessagesHelper
       message.author.name
     end
   end
+
+  def partial_for_augmentation(augmentation)
+    case augmentation.augmentation_type
+    when "Chunk"
+      "messages/chunk"
+    when "GraphEntity"
+      "messages/entity"
+    end
+  end
 end

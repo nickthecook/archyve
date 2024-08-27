@@ -16,10 +16,18 @@
     <% if message.prompt %>
       <div class="text-sm text-secondary-600 dark:text-secondary-300 bg-primary-300 dark:bg-primary-900 bg-opacity-50 dark:bg-opacity-50 hover:bg-opacity-75 px-4 py-1 my-1 rounded-md">
         <details>
-          <summary>Augmented prompt</summary>
-          <div class="whitespace-pre-line">
-            <%= message.prompt %>
+          <summary>Augmentations</summary>
+          <div id=<%= "#{dom_id(message)}-augmentations" %> class="flex flex-col">
+            <% message.augmentations.each do |augmentation| %>
+              <%= render partial_for_augmentation(augmentation), chunk: augmentation.augmentation, entity: augmentation.augmentation, distance: augmentation.distance %>
+            <% end %>
           </div>
+          <details>
+            <summary>Raw</summary>
+            <div class="whitespace-pre-line">
+              <%= message.prompt %>
+            </div>
+          </details>
         </details>
       </div>
     <% end %>
