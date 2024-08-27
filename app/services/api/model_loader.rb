@@ -16,10 +16,11 @@ module Api
       end
     end
 
-    def client(provider)
-      @client ||= LlmClients::Client.client_class_for(provider).new(
+    def client
+      @client ||= LlmClients::Client.client_class_for(model_server.provider).new(
         endpoint: model_server.url,
         api_key: model_server.api_key,
+        api_version: model_config.api_version,
         model: model_config.model,
         traceable: @traceable
       )

@@ -49,7 +49,7 @@ module Api
     end
 
     def client
-      @client ||= model_loader.client("ollama")
+      @client ||= model_loader.client
     end
 
     def model_loader

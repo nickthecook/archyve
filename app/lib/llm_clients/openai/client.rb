@@ -123,6 +123,8 @@ module LlmClients
       # rubocop:enable all
 
       def complete_request(prompt, &)
+        @stats = new_stats
+        stats[:start_time] = current_time
         messages = []
         messages << { role: "user", content: prompt }
 
@@ -135,9 +137,14 @@ module LlmClients
             }
           )
         end
+        stats[:first_token_time] = current_time
+
         reply = response.dig("choices", 0, "message", "content")
 
         yield reply if block_given?
+
+        stats[:tokens] = response.dig("usage", "total_tokens")
+        calculate_stats
 
         reply
       end
