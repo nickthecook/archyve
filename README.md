@@ -16,6 +16,13 @@ Archyve provides:
 - a built-in LLM chat UI, so the user can test the effectiveness of their documents with an LLM
 - an API, so the user can provide Archyve search results in dedicated LLM chat UIs
 
+For LLM servers, Archyve supports:
+
+- **Ollama**
+- **Azure OpenAI** (not plain OpenAI - yet)
+
+The Getting Started section will walk you through setting up Archyve for use with Ollama.
+
 ### Concepts
 
 - **Collections** are collections of documents that the user can search; use a separate Collection for each subject you want your LLM server to handle questions about
