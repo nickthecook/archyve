@@ -36,6 +36,8 @@ class CollectionsController < ApplicationController
     respond_to do |format|
       if @collection.save
         @collection.generate_slug
+        CreateCollectionJob.perform_async(@collection.id)
+
         format.html { redirect_to collection_url(@collection) }
       else
         @collections = current_user.collections
