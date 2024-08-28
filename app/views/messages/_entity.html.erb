@@ -27,6 +27,9 @@
         <p class="py-1 text-xs text-right"><%= time_ago_in_words(entity.created_at) %> ago</p>
         <p class="py-1 text-xs text-right"><%= entity.descriptions.count %> descriptions</p>
         <p class="py-1 text-xs text-right"><%= entity.relationship_count %> relationships</p>
+        <div class="text-right">
+          <%= render "shared/copy_button", content: entity.summary.strip %>
+        </div>
         <div class="flex-none mx-1 text-right">
         </div>
       </div>

@@ -6,6 +6,7 @@
       <div class="pb-4">Chunk #<%= chunk.id%></div>
       <div><%= chunk.content %></div>
     </div>
+    
   </div>
   <div class="flex flex-col ms-4">
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? chunk.document.filename : "?" %></p>
@@ -14,6 +15,9 @@
     <% end %>
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></p>
     <p class="py-1 text-xs text-right text-muted"><%= chunk ? time_ago_in_words(chunk.created_at) : "?" %> ago</p>
+    <div class="p-4 text-right">
+      <%= render "shared/copy_button", content: chunk.content.strip %>
+    </div>
   </div>
   <% end %>
 <% end %>
