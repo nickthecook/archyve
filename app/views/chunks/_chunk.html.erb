@@ -6,7 +6,7 @@
     <div class="pr-10 flex-col">
       <%= chunk.id %>
       <p class="py-1 text-xs text-right text-muted"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></p>
-    <%= render "shared/copy_button", content: chunk.content.strip %>
+      <%= render "shared/copy_button", content: chunk.content.strip %>
     </div>
     <div class="flex-1">
       <p><%= chunk.embedding_content %></p>

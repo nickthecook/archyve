@@ -1,12 +1,16 @@
 <% classes = hit.relevant ? "bg-secondary-200 dark:bg-secondary-900" : "bg-secondary-100 dark:bg-secondary-925 text-secondary-400" %>
 <div class="flex-col justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg <%= classes %>">
-  <%= link_to link_for_reference(hit.reference),
-    class: "flex justify-start items-center px-3 mb-4 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700 w-full" do %>
-    <div class="flex-1 whitespace-prewrap">
-      <%= hit.content %>
+  <div class="flex flex-1">
+    <%= link_to link_for_reference(hit.reference),
+      class: "flex justify-start items-center px-3 mb-4 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700 w-full" do %>
+      <div class="flex-1 whitespace-prewrap">
+        <%= hit.content %>
+      </div>
+    <% end %>
+    <div class="p-4">
+      <%= render "shared/copy_button", content: hit.content.strip %>
     </div>
-    <div class="flex flex-col ms-4"></div>
-  <% end %>
+  </div>
   <div class="flex justify-space-between w-full px-3">
     <div class="flex-1 pr-4 text-xs text-left text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
       <%= link_to hit.collection.name, hit.collection %>
