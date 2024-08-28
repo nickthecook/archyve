@@ -36,8 +36,6 @@ class Document < ApplicationRecord
       :collections,
       target: "document_#{id}"
     )
-
-    collection.touch(:updated_at)
   }
 
   enum state: {
