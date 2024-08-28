@@ -1,13 +1,15 @@
-<div class="pb-4">
-  <% flash[:notice]&.each do |notice| %>
-    <div class="rounded-lg bg-warning-400 dark:bg-warning-800 p-4 m-2">
-      <%= notice %>
-    </div>
-  <% end %>  
+<% if flash[:notice]&.any? || flash[:alert]&.any? %>
+  <div class="pb-4">
+    <% flash[:notice]&.each do |notice| %>
+      <div class="rounded-lg bg-warning-400 dark:bg-warning-800 p-4 m-2">
+        <%= notice %>
+      </div>
+    <% end %>  
 
-  <% flash[:alert]&.each do |alert| %>
-    <div class="rounded-lg bg-error-400 dark:bg-error-800 p-4 m-2">
-      <%= alert %>
-    </div>
-  <% end %>  
-</div>
+    <% flash[:alert]&.each do |alert| %>
+      <div class="rounded-lg bg-error-400 dark:bg-error-800 p-4 m-2">
+        <%= alert %>
+      </div>
+    <% end %>  
+  </div>
+<% end %>  
