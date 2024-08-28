@@ -214,6 +214,8 @@ You can query the graph using Cypher queries. E.g., for a Collection called "Gre
 
 ## API
 
+> See [archyve.io](https://archyve.io) for details on the ReST API.
+
 ### Authentication
 
 Archyve provides a ReST API. To use it, you must have:
