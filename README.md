@@ -78,7 +78,12 @@ If you want to develop Archyve you probably want the app runing directly on your
 
 1. Clone this repo
 2. `cp config/dev/config.sample.json config/dev/config.json`
-3. Edit `config/dev/config.json`, setting the values in it (if you're deploying this anywhere but dev, put secret values in `secrets.ejson` instead of `config.json`!)
+3. Edit `config/dev/config.json`, running the given commands and replacing them in the file with their output
+
+- only put secrets in this file for dev - use `config/dev/secrets.ejson` for any real environment
+- you can change the auto-configured models here if you want; model "name" is for display in Archyve, model "model" is what is sent to the LLM server when making a request
+- you must have at least one model with `embedding: true` and one without `embedding` set (or `embedding: false`)
+
 4. `ops up`
 5. `ops rails db:setup` (after the initial setup)
 6. `ops rails neo4j:migrate`
