@@ -1,0 +1,14 @@
+<% if @missing_models.present? %>
+  <div class="pb-2 mx-12">
+    <div class="rounded-lg bg-warning-400 dark:bg-warning-900 p-4 m-2 text-center">
+      <div class="text-secondary-600 dark:text-secondary-200">
+        There is no model configured for some roles: <span class="font-bold"><%= @missing_models.join(", ") %></span>.
+        <br>
+        <br>
+        Please create an embedding ModelConfig for these roles in
+        <%= link_to "Admin > ModelConfigs", href="/admin/data/model_configs", class: "text-secondary-700 dark:text-secondary-100 font-bold" %>
+        .
+      </div>
+    </div>
+  </div>
+<% end %>

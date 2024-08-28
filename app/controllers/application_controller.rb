@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   before_action :set_current_user
 
+  before_action :check_models
+
   def user_dom_id(id)
     "#{current_user.id}_#{id}"
   end
@@ -17,5 +19,9 @@ class ApplicationController < ActionController::Base
 
   def set_current_user
     @current_user = current_user
+  end
+
+  def check_models
+    @missing_models = CheckModelsService.new.execute
   end
 end

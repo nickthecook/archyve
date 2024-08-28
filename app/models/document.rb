@@ -28,12 +28,16 @@ class Document < ApplicationRecord
       target: "document_#{id}-details",
       partial: "documents/document"
     )
+
+    collection.touch(:updated_at) if past_state?("embedded")
   }
   after_destroy_commit lambda {
     broadcast_remove_to(
       :collections,
       target: "document_#{id}"
     )
+
+    collection.touch(:updated_at)
   }
 
   enum state: {

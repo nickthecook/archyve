@@ -1,4 +1,5 @@
 <% collection ||= @collection || locals[:collection] %>
+
 <div id="<%= dom_id(collection) + "_search_form" %>" class="w-full">
   <%= form_with url: collection_search_path(collection) do |f| %>
     <div class="container flex flex-1">
