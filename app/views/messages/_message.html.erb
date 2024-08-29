@@ -1,5 +1,5 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg" %>
-<%= content_tag :div, id: dom_id(message), class: "py-3 my-3 rounded-md #{message_bg_class} px-5" do %>
+<%= content_tag :div, id: dom_id(message), class: "px-6 py-3 my-3 rounded-md #{message_bg_class}" do %>
   <div>
     <div class="flex justify-start items-start">
       <div class="flex-1 whitespace-prewrap" data-controller="markdown-text">
