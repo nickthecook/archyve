@@ -28,22 +28,27 @@ module LlmClients
       def instrument(_name, env, &)
         begin
           response = yield
-        # Faraday doesn't populate response code on errors...
+        # Faraday doesn't populate response code on some errors...
         rescue Faraday::ResourceNotFound => e
           api_call_for(env, traceable: @per_request_traceable || @traceable, status: 404).save!
 
           raise e
-        rescue Faraday::TooManyRequestsError
-          api_call_for(env, traceable: @per_request_traceable || @traceable, status: 429).save!
-
-          raise RetryableError if response.code == 429
         end
 
         api_call_for(env, traceable: @per_request_traceable || @traceable).save!
-        @per_request_traceable = nil
 
         # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
         response
+      end
+
+      protected
+
+      def retry_wait_time
+        @retry_wait_time ||= Setting.get("openai_client_retry_wait_time_s", default: 15)
+      end
+
+      def timeout_retries
+        @timeout_retries ||= Setting.get("openai_llm_client_retry_attempts", default: 5)
       end
 
       private
@@ -83,8 +88,7 @@ module LlmClients
         current_batch = ""
         current_batch_size = 0
 
-        resp = with_retries do
-          chat_connection.chat(
+        resp = chat_connection.chat(
           parameters: {
             model: @model,
             messages: chat_history, # Required.
@@ -106,8 +110,8 @@ module LlmClients
                 end
               end
             end,
-          })
-        end
+          }
+        )
 
         if current_batch_size.positive?
           Rails.logger.debug { "==> #{current_batch}" }
@@ -116,6 +120,7 @@ module LlmClients
 
         stats[:tokens] = num_tokens
         calculate_stats
+        @per_request_traceable = nil
 
         resp
       end
@@ -123,18 +128,10 @@ module LlmClients
 
       def complete_request(prompt, &)
         @stats = new_stats
-        messages = []
-        messages << { role: "user", content: prompt }
+        messages = [{ role: "user", content: prompt }]
 
-        response = with_retries do
-          chat_connection.chat(
-            parameters: {
-              model: @model,
-              messages:,
-              temperature: @temperature,
-            }
-          )
-        end
+        response = fetch_complete_response(messages)
+
         stats[:first_token_time] = current_time
 
         reply = response.dig("choices", 0, "message", "content")
@@ -143,8 +140,23 @@ module LlmClients
 
         stats[:tokens] = response.dig("usage", "total_tokens")
         calculate_stats
+        @per_request_traceable = nil
 
         reply
+      end
+
+      def fetch_complete_response(messages)
+        with_retries do
+          chat_connection.chat(
+            parameters: {
+              model: @model,
+              messages:,
+              temperature: @temperature,
+            }
+          )
+        rescue Faraday::TooManyRequestsError
+          raise RetryableError
+        end
       end
 
       def embedding_request(content)
@@ -156,6 +168,9 @@ module LlmClients
             }
           )
         end
+
+        @per_request_traceable = nil
+
         { "embedding" => response.dig("data", 0, "embedding") }
       end
 

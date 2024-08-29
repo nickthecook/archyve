@@ -51,6 +51,16 @@ module LlmClients
       @stats.slice(:elapsed_ms, :tokens, :tokens_per_sec, :time_to_first_token)
     end
 
+    protected
+
+    def retry_wait_time
+      @retry_wait_time ||= Setting.get("llm_client_retry_wait_time_s", default: 3)
+    end
+
+    def timeout_retries
+      @timeout_retries ||= Setting.get("llm_client_retry_attempts", default: 3)
+    end
+
     private
 
     def context(prompt, model)
@@ -122,19 +132,20 @@ module LlmClients
     end
 
     def with_retries
-      retries = 0
+      attempts = 0
       exception = nil
-      while retries <= TIMEOUT_RETRIES
+      while attempts < timeout_retries
         begin
           return yield
         rescue Net::OpenTimeout, Net::ReadTimeout, RetryableError => e
           exception = e
-          retries += 1
-          Rails.logger.warn("Attempt #{retries}/#{TIMEOUT_RETRIES} failed: #{e.class.name}")
+          attempts += 1
+          Rails.logger.warn("Attempt #{attempts}/#{timeout_retries} failed: #{e.class.name}")
+          sleep(retry_wait_time) if attempts < timeout_retries
         end
       end
 
-      Rails.logger.error("Retries exhausted (#{retries}/#{TIMEOUT_RETRIES})")
+      Rails.logger.error("Retries exhausted (#{attempts}/#{timeout_retries})")
       raise exception
     end
 
