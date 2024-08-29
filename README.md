@@ -23,6 +23,12 @@ For LLM servers, Archyve supports:
 
 The Getting Started section will walk you through setting up Archyve for use with Ollama.
 
+### Screenshots
+
+|     |     |     |
+| --- | --- | --- |
+|     |     |     |
+
 ### Concepts
 
 - **Collections** are collections of documents that the user can search; use a separate Collection for each subject you want your LLM server to handle questions about
