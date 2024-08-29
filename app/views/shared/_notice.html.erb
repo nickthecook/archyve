@@ -1,15 +1,7 @@
-<% if flash[:notice]&.any? || flash[:alert]&.any? %>
-  <div class="pb-4">
-    <% flash[:notice]&.each do |notice| %>
-      <div class="rounded-lg bg-warning-400 dark:bg-warning-800 p-4 m-2">
-        <%= notice %>
-      </div>
-    <% end %>  
-
-    <% flash[:alert]&.each do |alert| %>
-      <div class="rounded-lg bg-error-400 dark:bg-error-800 p-4 m-2">
-        <%= alert %>
-      </div>
-    <% end %>  
-  </div>
-<% end %>  
+<div class="container flex justify-center w-full align-center">
+  <% if notice %>
+    <p class="text-sm notice text-secondary-700"><%= notice %></p>
+  <% elsif alert %>
+    <p class="text-sm alert text-tertiary-700"><%= alert %></p>
+  <% end %>
+</div>
