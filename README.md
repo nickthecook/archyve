@@ -26,7 +26,7 @@ The Getting Started section will walk you through setting up Archyve for use wit
 ## Screenshots
 
 ### Chat UI
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/a318b782-a097-4586-b061-0e93314a7be6">
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/748aed85-c43b-4d95-ae15-483746edb978">
 
 ### Documents UI
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/cde552eb-4c71-4741-966b-79c98ac46601">
