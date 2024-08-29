@@ -71,4 +71,8 @@ class Collection < ApplicationRecord
   def generate_slug
     update!(slug: "#{id}-#{name.parameterize}")
   end
+
+  def summarized?
+    graph_entities.where(summary: nil).none?
+  end
 end
