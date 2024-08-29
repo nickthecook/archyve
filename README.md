@@ -23,13 +23,18 @@ For LLM servers, Archyve supports:
 
 The Getting Started section will walk you through setting up Archyve for use with Ollama.
 
-### Screenshots
+## Screenshots
 
-|     |     |     |
-| --- | --- | --- |
-|     |     |     |
+### Chat UI
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/a318b782-a097-4586-b061-0e93314a7be6">
 
-### Concepts
+### Documents UI
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/cde552eb-4c71-4741-966b-79c98ac46601">
+
+### Graph database view
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/8f023566-43eb-4e8b-8fa7-6bb02a7c03e3">
+
+## Concepts
 
 - **Collections** are collections of documents that the user can search; use a separate Collection for each subject you want your LLM server to handle questions about
 - The **Knowledge Graph** is an in-progress feature of Archyve that extracts entities and relationships from documents, generates summaries of entities, and then provides those summaries as context for LLM prompts.
