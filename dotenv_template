@@ -17,14 +17,9 @@ PROVISIONED_MODEL_SERVERS="[
 ]"
 PROVISIONED_MODEL_CONFIGS="[
   {
-    \"name\": \"mistral:instruct\",
-    \"model\": \"mistral:instruct\",
+    \"name\": \"llama3.1:8b\",
+    \"model\": \"llama3.1:8b\",
     \"temperature\": 0.1
-  },
-  {
-    \"name\": \"gemma:7b\",
-    \"model\": \"gemma:7b\",
-    \"temperature\": 0.2
   },
   {
     \"name\": \"nomic-embed-text\",
