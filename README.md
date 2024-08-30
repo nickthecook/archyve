@@ -2,8 +2,6 @@
 
 Archyve is a web app that makes pretrained LLMs aware of a user's documents, while keeping those documents on the user's own devices and infrastructure.
 
-<img src="app/assets/images/archyve_font.svg" width=100>
-
 ## Overview
 
 Archyve enables Retrieval-Augmented Generation (RAG) by providing an API to query the user's docs for relevant context. The Archyve client provides Archyve with the prompt the user entered, and Archyve will return relevant text chunks that the client can include in its prompt to an LLM server.
