@@ -43,7 +43,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - 3300:3000
+      - 3300:3300
     depends_on:
       - redis
       - postgres
