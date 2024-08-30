@@ -1,4 +1,4 @@
-RSpec.describe LlmClients::Openai::AzureClient, :az_openai do
+RSpec.describe LlmClients::Openai::AzureClient, skip: "tests shouldn't be hitting a real server and waiting for responses; flakey and slow" do
   subject { described_class.new(endpoint:, api_key:, api_version:, embedding_model:, model:, temperature:) }
 
   let(:endpoint) { ENV.fetch('AZURE_OPENAI_URI', nil) }
