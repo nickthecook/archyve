@@ -132,13 +132,13 @@ module LlmClients
 
         response = fetch_complete_response(messages)
 
-        stats[:first_token_time] = current_time
+        @stats[:first_token_time] = current_time
 
         reply = response.dig("choices", 0, "message", "content")
 
         yield reply if block_given?
 
-        stats[:tokens] = response.dig("usage", "total_tokens")
+        @stats[:tokens] = response.dig("usage", "total_tokens")
         calculate_stats
         @per_request_traceable = nil
 
