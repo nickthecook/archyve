@@ -317,7 +317,7 @@ Archyve uses a jobs framework called Sidekiq. It has a web UI that you can acces
 
 Archyve has an **experimental** Knowledge Graph (KG) feature (a.k.a. "Graph RAG"). The user enables the feature per-Collection. It is safe to use, but will generate orders of magnitude more calls to your LLM server than not using it.
 
-> If you enable KG in any Collections, it is **highly recmmended** that you use `llama3.1` as your `entity_extraction_model`. Many other models are simply not able to extract entities in a meaningful way with the prompts used by Archyve.
+> If you enable KG in any Collections, it is **highly recommended** that you use `llama3.1` as your `entity_extraction_model`. Many other models are simply not able to extract entities in a meaningful way with the prompts used by Archyve.
 
 This feature is a work-in-progress, but it seems effective at providing relevant context at the moment. It will extract entities and the relationships between those entities from the text of your documents. It will then create a summary of each entity and store that in the vector database. These entity summaries will be returned by Archyve API `search` along with relevant chunks of your document.
 
