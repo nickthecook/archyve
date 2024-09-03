@@ -1,21 +1,29 @@
 #!/usr/bin/env ruby
 
-if ARGV.first == '-p'
-  method = :post
-  ARGV.shift
-  if ARGV.first == '-'
-    body = $stdin.read
+path_prefix = "v1"
+method = :get
+body = nil
+
+loop do
+  if ARGV.first == '-p'
+    method = :post
+    ARGV.shift
+    if ARGV.first == '-'
+      body = $stdin.read
+      ARGV.shift
+    else
+      body = File.read(ARGV.shift)
+    end
+  elsif ARGV.first == "-d"
+    method = :delete
+    ARGV.shift
+    body = nil
+  elsif ARGV.first == "-n"
+    path_prefix = nil
+    ARGV.shift
   else
-    body = ARGV.shift
+    break
   end
-elsif ARGV.first == "-d"
-  method = :delete
-  ARGV.shift
-  body = nil
-end
-if method.nil?
-  method = :get
-  body = nil
 end
 
 params = ARGV[1..-1].map do |arg|
@@ -36,6 +44,7 @@ require 'json'
 
 # set ENV vars in config and run this script with `ops`
 base_url = ENV['API_BASE_URL']
+base_url = "#{base_url}/#{path_prefix}" unless path_prefix.nil?
 param_string = URI.encode_www_form(params)
 url = "#{base_url}/#{path}?#{param_string}"
 headers = {
@@ -46,9 +55,16 @@ headers = {
 
 response = HTTParty.send(method, url, headers: headers, body: body)
 
-if response.success?
+def puts_response(response)
   puts JSON.pretty_generate(response.parsed_response)
+rescue
+  puts response.body
+end
+
+if response.success?
+  puts_response(response)
 else
-  STDERR.puts "Error: #{response}"
+  STDERR.puts "Error: #{response.code}"
+  puts_response(response)
   exit(2)
 end
