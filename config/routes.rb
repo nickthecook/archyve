@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     post "/api/generate", to: "opp/streaming#post"
     get "/", to: "opp/streaming#get"
 
+    # looks like ollama actually chunks just about everything; if we don't need these, remove them
     get "*path", to: "opp/opp#get"
     post "*path", to: "opp/opp#post"
   else
