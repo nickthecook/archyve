@@ -7,7 +7,7 @@ RSpec.describe LlmClients::Openai::AzureClient do
   let(:model) { "test-gpt-35" }
   let(:api_version) { "2024-02-15-preview" }
   let(:temperature) { 0.1 }
-  let(:openai) { instance_double(OpenAI::Client, chat: chat_response) }
+  let(:openai) { instance_double(OpenAI::Client, chat: chat_response, embeddings: embeddings_response) }
   let(:chat_response) do
     {
       "choices" => [
@@ -16,6 +16,15 @@ RSpec.describe LlmClients::Openai::AzureClient do
         },
       ],
       "usage" => { "total_tokens" => 1 },
+    }
+  end
+  let(:embeddings_response) do
+    {
+      "data" => [
+        {
+          "embedding" => [0.1, 0.2, 0.3],
+        },
+      ],
     }
   end
 
@@ -27,8 +36,8 @@ RSpec.describe LlmClients::Openai::AzureClient do
     let(:content) { "Any old content" }
     let(:result) { subject.embed(content) }
 
-    it "returns an embedding", :skip do
-      expect(result['embedding']).to be_a(Array)
+    it "returns an the" do
+      expect(result['embedding']).to eq([0.1, 0.2, 0.3])
     end
   end
 
@@ -44,8 +53,17 @@ RSpec.describe LlmClients::Openai::AzureClient do
         },
       }
     end
+    let(:streamed_result) do
+      response = ""
 
-    it "yields a string" do
+      subject.complete(content) do |tokens|
+        response << tokens
+      end
+
+      response
+    end
+
+    it "returns a string" do
       expect(result).to be_a(String)
     end
 
@@ -56,6 +74,10 @@ RSpec.describe LlmClients::Openai::AzureClient do
     it "calls the OpenAI client with the correct messages" do
       subject.complete(content)
       expect(openai).to have_received(:chat).with(expected_complete_params)
+    end
+
+    it "streams the same response as it returns" do
+      expect(result).to eq(streamed_result)
     end
 
     context "when it gets throttled by the server" do
@@ -72,27 +94,27 @@ RSpec.describe LlmClients::Openai::AzureClient do
     end
   end
 
-  describe "#chat", :skip do
-    response = nil
-    let(:result) { response } # lazy
-    let(:content) { 'Please explain why the sky is blue in a single sentence suitable for a child who is five years old.' }
-
+  describe "#chat" do
+    let(:message) { create(:message, content:, conversation:) }
+    let(:content) { "Any old content" }
     let(:conversation) { create(:conversation, messages: []) }
-
-    before do
-      msg = create(:message, content:, conversation:)
+    let(:result) { subject.chat(message).dig("choices", 0, "message", "content") }
+    let(:streamed_result) do
       response = ""
-      subject.chat(msg) do |str|
-        response << str
-      end
-    end
 
-    it "yields a non-empty string" do
-      expect(response.size).to be > 0
+      subject.complete(content) do |tokens|
+        response << tokens
+      end
+
+      response
     end
 
     it "identifies 'scatter' in the answer" do
-      expect(result).to include("scatter")
+      expect(result).to eq("Einstein")
+    end
+
+    it "streams the same response as it returns" do
+      expect(result).to eq(streamed_result)
     end
   end
 end

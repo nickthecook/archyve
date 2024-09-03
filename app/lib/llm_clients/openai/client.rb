@@ -88,6 +88,8 @@ module LlmClients
         current_batch = ""
         current_batch_size = 0
 
+        # setting this here in case it doesn't get set later, to avoid `nil` errors
+        stats[:first_token_time] = current_time
         resp = chat_connection.chat(
           parameters: {
             model: @model,
