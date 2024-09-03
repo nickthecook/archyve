@@ -71,7 +71,7 @@ response = HTTParty.send(method, url, headers: headers, body: body) do |chunk|
 end
 
 if response.success?
-  if response.headers["Transfer-Encoding"] != "chunked"
+  if port != 11337
     puts_response(response)
   end
 else
