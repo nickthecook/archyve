@@ -13,6 +13,10 @@ module Opp
       render json: response_body, status: @proxy.code
     end
 
+    def delete
+      render json: @proxy.delete, status: @proxy.code
+    end
+
     private
 
     def set_proxy

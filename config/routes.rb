@@ -5,11 +5,12 @@ Rails.application.routes.draw do
   if Rails.configuration.run_opp
     post "/api/generate", to: "opp/streaming#post"
     post "/api/chat", to: "opp/streaming#post"
+
     get "/", to: "opp/streaming#get"
 
-    # looks like ollama actually chunks just about everything; if we don't need these, remove them
+    delete "*path", to: "opp/opp#delete"
+    post "*path", to: "opp/streaming#post"
     get "*path", to: "opp/opp#get"
-    post "*path", to: "opp/opp#post"
   else
     authenticate :user, ->(u) { u.admin? } do
       mount Motor::Admin => '/admin'

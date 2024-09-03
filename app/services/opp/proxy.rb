@@ -16,6 +16,12 @@ module Opp
       stream(request, &)
     end
 
+    def delete
+      request = Net::HTTP::Delete.new(uri, **headers)
+      request.body = @request.raw_post
+      request(request)
+    end
+
     def code
       @last_response.code.to_i
     end
@@ -40,6 +46,14 @@ module Opp
       end
 
       response
+    end
+
+    def request(request)
+      @last_response = Net::HTTP.start(host, port) do |http|
+        http.request(request)
+      end
+
+      @last_response.read_body
     end
 
     def chunked?(response)
