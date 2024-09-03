@@ -5,11 +5,9 @@ module Opp
       @last_response = nil
     end
 
-    def get
+    def get(&)
       request = Net::HTTP::Get.new(url.to_s, **headers)
-      @last_response = Net::HTTP.start(host, port) do |http|
-        http.request(request)
-      end
+      stream(request, &)
     end
 
     def post(&)
@@ -42,14 +40,6 @@ module Opp
       end
 
       response
-    end
-
-    def request(request)
-      @last_response = Net::HTTP.start(host, port) do |http|
-        http.request(request)
-      end
-
-      @last_response.read_body
     end
 
     def chunked?(response)

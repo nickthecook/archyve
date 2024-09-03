@@ -3,9 +3,12 @@ require 'sidekiq/cron/web'
 
 Rails.application.routes.draw do
   if Rails.configuration.run_opp
+    get "/api/generate", to: "opp/streaming#get"
+    post "/api/generate", to: "opp/streaming#post"
+    get "/", to: "opp/streaming#get"
+
     get "*path", to: "opp/opp#get"
     post "*path", to: "opp/opp#post"
-    get "/", to: "opp/opp#get"
   else
     authenticate :user, ->(u) { u.admin? } do
       mount Motor::Admin => '/admin'
