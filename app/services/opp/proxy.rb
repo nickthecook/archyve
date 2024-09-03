@@ -12,14 +12,10 @@ module Opp
       end
     end
 
-    def post
+    def post(&)
       request = Net::HTTP::Post.new(uri, **headers)
       request.body = @request.raw_post
-      if incoming_request_body["stream"] == false
-        request(request)
-      else
-        stream(request)
-      end
+      stream(request, &)
     end
 
     def code
@@ -28,15 +24,20 @@ module Opp
 
     private
 
-    # TODO: when streaming to actual client, just send each chunk back as-is
     def stream(request)
       response = ""
 
       Net::HTTP.start(host, port) do |http|
         http.request(request) do |incoming_response|
           @last_response = incoming_response
-
-          response << incoming_response.read_body
+          if chunked?(incoming_response)
+            incoming_response.read_body do |chunk|
+              yield chunk if block_given?
+              response << chunk
+            end
+          else
+            response << incoming_response.read_body
+          end
         end
       end
 
@@ -49,6 +50,10 @@ module Opp
       end
 
       @last_response.read_body
+    end
+
+    def chunked?(response)
+      response["Transfer-Encoding"] == "chunked"
     end
 
     def method

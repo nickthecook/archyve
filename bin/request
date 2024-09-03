@@ -42,6 +42,12 @@ require 'uri'
 require 'httparty'
 require 'json'
 
+def puts_response(response)
+  puts JSON.pretty_generate(response.parsed_response)
+rescue
+  puts response.body
+end
+
 # set ENV vars in config and run this script with `ops`
 base_url = ENV['API_BASE_URL']
 base_url = "#{base_url}/#{path_prefix}" unless path_prefix.nil?
@@ -53,16 +59,12 @@ headers = {
   'X-Client-Id'   => "#{ENV['DEFAULT_CLIENT_ID']}",
 }
 
-response = HTTParty.send(method, url, headers: headers, body: body)
-
-def puts_response(response)
-  puts JSON.pretty_generate(response.parsed_response)
-rescue
-  puts response.body
-end
+response = HTTParty.send(method, url, headers: headers, body: body) { |chunk| puts chunk }
 
 if response.success?
-  puts_response(response)
+  if response.headers["Transfer-Encoding"] != "chunked"
+    puts_response(response)
+  end
 else
   STDERR.puts "Error: #{response.code}"
   puts_response(response)
