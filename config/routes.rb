@@ -3,8 +3,8 @@ require 'sidekiq/cron/web'
 
 Rails.application.routes.draw do
   if Rails.configuration.run_opp
-    get "/api/generate", to: "opp/streaming#get"
     post "/api/generate", to: "opp/streaming#post"
+    post "/api/chat", to: "opp/streaming#post"
     get "/", to: "opp/streaming#get"
 
     # looks like ollama actually chunks just about everything; if we don't need these, remove them
