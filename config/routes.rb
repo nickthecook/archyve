@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
     delete "*path", to: "opp/opp#delete"
     post "*path", to: "opp/streaming#post"
-    get "*path", to: "opp/opp#get"
+    get "*path", to: "opp/streaming#get"
   else
     authenticate :user, ->(u) { u.admin? } do
       mount Motor::Admin => '/admin'

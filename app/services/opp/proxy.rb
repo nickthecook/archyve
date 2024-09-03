@@ -1,5 +1,7 @@
 module Opp
   class Proxy
+    attr_reader :yielded
+
     def initialize(request)
       @request = request
       @last_response = nil
@@ -30,13 +32,19 @@ module Opp
 
     def stream(request)
       response = ""
+      @yielded = false
 
       Net::HTTP.start(host, port) do |http|
         http.request(request) do |incoming_response|
           @last_response = incoming_response
+
           if chunked?(incoming_response)
             incoming_response.read_body do |chunk|
-              yield chunk if block_given?
+              if block_given?
+                yield chunk
+                @yielded = true
+              end
+
               response << chunk
             end
           else
@@ -45,7 +53,7 @@ module Opp
         end
       end
 
-      response
+      response unless @yielded
     end
 
     def request(request)

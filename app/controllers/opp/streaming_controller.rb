@@ -2,15 +2,26 @@ module Opp
   class StreamingController < OppController
     include ActionController::Live
 
-    def post
-      if stream?
-        @proxy.post do |chunk|
-          response.stream.write chunk
-        end
+    def get
+      response_body = @proxy.get do |chunk|
+        response.stream.write chunk
+      end
 
+      if @proxy.yielded
         response.stream.close
       else
-        response_body = @proxy.post
+        render json: response_body, status: @proxy.code
+      end
+    end
+
+    def post
+      response_body = @proxy.post do |chunk|
+        response.stream.write chunk
+      end
+
+      if @proxy.yielded
+        response.stream.close
+      else
         render json: response_body, status: @proxy.code
       end
     end
