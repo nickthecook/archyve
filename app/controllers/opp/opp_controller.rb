@@ -1,5 +1,5 @@
 module Opp
-  class OppController < ApiController
+  class OppController < ActionController::Base
     include ActionController::Live
 
     def get
