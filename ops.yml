@@ -39,7 +39,7 @@ actions:
     load_secrets: true
     alias: r
   opp:
-    command: bin/request -n
+    command: bin/request -n -P 11337
     load_secrets: true
   test:
     command: bundle exec rspec --tag "~skip"
@@ -64,9 +64,10 @@ options:
   environment:
     HOMEBREW_PREFIX: $(brew --prefix)
     PG_OPTS: ${PG_OPTS:- --with-pg-lib=/usr/lib --with-opt-dir="${HOMEBREW_PREFIX:-/usr/local}/opt/libpq"}
-    API_BASE_URL: ${API_BASE_URL:-http://localhost:3300}
+    API_BASE_URL: ${API_BASE_URL:-http://localhost}
     REDIS_URL: ${REDIS_URL:-redis://localhost:6378/1}
     PORT: ${PORT:-3300}
     LLM_JOBS_CONCURRENCY: ${LLM_JOBS_CONCURRENCY:-5}
+    OPP_PORT: ${OPP_PORT:-11337}
   exec:
     load_secrets: true

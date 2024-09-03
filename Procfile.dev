@@ -2,3 +2,4 @@ web: bin/rails server
 css: bin/rails tailwindcss:watch
 jobs: RUN_SIDEKIQ=true bundle exec sidekiq -q default
 llmjobs: RUN_SIDEKIQ=true bundle exec sidekiq -q llm -c $LLM_JOBS_CONCURRENCY
+opp: RUN_OPP=true bin/rails server --pid `pwd`/tmp/pids/opp.pid -p "$OPP_PORT"
