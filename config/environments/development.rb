@@ -78,4 +78,9 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
   config.log_level = :debug
+
+  allowed_hosts = JSON.parse(ENV.fetch("ALLOWED_HOSTS") { "[]" })
+  if allowed_hosts.any?
+    config.hosts = config.hosts + allowed_hosts
+  end
 end
