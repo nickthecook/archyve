@@ -16,7 +16,7 @@ module Opp
     private
 
     def message_to_augment
-      @message_to_augment ||= conversation.messages.last
+      @message_to_augment ||= conversation.reload.messages.last
     end
 
     def conversation

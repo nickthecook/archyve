@@ -4,6 +4,21 @@ module Opp
     before_action :augment_prompt
     before_action :update_request
 
+    def post
+      full_response = ""
+      @proxy.post do |chunk|
+        full_response << JSON.parse(chunk).dig("message", "content")
+        response.stream.write chunk
+      end
+
+      MessageCreator.new(
+        @message.conversation,
+        @opp_request.model).create!({ "role" => "assistant", "content" => full_response }
+        )
+
+      response.stream.close
+    end
+
     protected
 
     def set_request

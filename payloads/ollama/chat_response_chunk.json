@@ -1,0 +1,6 @@
+{
+  "model": "llama3.1:latest",
+  "created_at": "2024-09-04T16:49:46.930578Z",
+  "message": { "role": "assistant", "content": "That" },
+  "done": false
+}

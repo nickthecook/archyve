@@ -10,6 +10,8 @@ module Opp
       return false if @message.author_type == "ModelConfig" && @chat_message["role"] != "assistant"
 
       false if @message.content != @chat_message["content"]
+
+      true
     end
   end
 end

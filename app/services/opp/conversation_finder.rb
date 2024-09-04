@@ -8,9 +8,14 @@ module Opp
     end
 
     def find_or_create
-      return create_convo if @chat_request.messages_with_content.empty?
+      binding.pry
+      if matching_convo
+        MessageCreator.new(matching_convo, @chat_request.model).create!(@chat_request.messages.last)
 
-      matching_convo || create_convo
+        return matching_convo
+      end
+
+      create_convo
     end
 
     private
@@ -18,39 +23,28 @@ module Opp
     def create_convo
       convo = Conversation.create!(
         user: @user,
-        title: "You down with OPP?",
+        title: "You down with OPP? #{rand(1000)}",
         search_collections: true,
         model_config: chat_model_config
       )
 
+      message_creator = MessageCreator.new(convo, @chat_request.model)
       @chat_request.messages_with_content.each do |chat_message|
-        Message.create!(
-          conversation: convo,
-          content: chat_message["content"],
-          author: author_for(chat_message)
-        )
+        message_creator.create!(chat_message)
       end
 
       convo
     end
 
-    def author_for(chat_message)
-      if chat_message["role"] == "user"
-        @user
-      else
-        chat_model_config
-      end
-    end
-
     def chat_model_config
       @chat_model_config ||= ModelConfig.find_or_create_by(model: @chat_request.model) do |model_config|
         model_config.name = @chat_request.model
-        model_config.available = false
+        model_config.available = true
       end
     end
 
     def matching_convo
-      convos_with_correct_message_count.find do |convo|
+      @matching_convo ||= convos_with_correct_message_count.find do |convo|
         all_messages_match?(convo)
       end
     end
@@ -68,7 +62,7 @@ module Opp
     end
 
     def convos_with_correct_message_count
-      recent_convos.joins(:messages).group("conversations.id").having("count(conversation_id) = ?", @message_count - 2)
+      recent_convos.joins(:messages).group("conversations.id").having("count(conversation_id) = ?", @message_count - 1)
     end
 
     def recent_convos
