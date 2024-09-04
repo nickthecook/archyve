@@ -37,6 +37,13 @@ module Archyve
     config.sidekiq_retries = 3
 
     config.run_opp = ENV.fetch("RUN_OPP", "false") == "true"
+    if config.run_opp
+      class Turbo::StreamsChannel
+        %i[broadcast_append_to broadcast_prepend_to broadcast_replace_to broadcast_remove_to].each do |method|
+          define_singleton_method(method) { |*_| nil }
+        end
+      end
+    end
 
     require 'active_graph/railtie'
     config.neo4j.driver.url = ENV.fetch('NEO4J_URL') { 'neo4j://localhost:7687' }

@@ -1,0 +1,17 @@
+{
+  "model": "llama3",
+  "messages": [
+    {
+      "role": "user",
+      "content": "why is the sky blue?"
+    },
+    {
+      "role": "assistant",
+      "content": "due to rayleigh scattering."
+    },
+    {
+      "role": "user",
+      "content": "how is that different than diffraction?"
+    }
+  ]
+}

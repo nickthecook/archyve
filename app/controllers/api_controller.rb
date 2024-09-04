@@ -45,7 +45,6 @@ class ApiController < ActionController::Base
     Base64.strict_decode64(value)
     true
   rescue StandardError
-    Rails.logger.info("oops")
     false
   end
 

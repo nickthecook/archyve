@@ -25,15 +25,5 @@ module Opp
         render json: response_body, status: @proxy.code
       end
     end
-
-    private
-
-    def stream?
-      parsed_post_body["stream"].nil? || parsed_post_body["stream"] == true
-    end
-
-    def parsed_post_body
-      @parsed_post_body ||= JSON.parse(request.raw_post)
-    end
   end
 end

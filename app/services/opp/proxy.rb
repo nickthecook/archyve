@@ -14,13 +14,13 @@ module Opp
 
     def post(&)
       request = Net::HTTP::Post.new(uri, **headers)
-      request.body = @request.raw_post
+      request.body = @request.body
       stream(request, &)
     end
 
     def delete
       request = Net::HTTP::Delete.new(uri, **headers)
-      request.body = @request.raw_post
+      request.body = @request.body
       request(request)
     end
 
@@ -69,7 +69,7 @@ module Opp
     end
 
     def method
-      @method ||= @request.request_method.downcase
+      @method ||= @request.method.downcase
     end
 
     def uri
@@ -85,7 +85,7 @@ module Opp
     end
 
     def host
-      "shard"
+      "localhost"
     end
 
     def port
@@ -98,7 +98,7 @@ module Opp
     end
 
     def incoming_request_body
-      JSON.parse(@request.raw_post)
+      JSON.parse(@request.body)
     rescue JSON::ParserError => e
       Rails.log.warning("Failed to parse request body: #{e}")
       {}
