@@ -9,12 +9,12 @@ module Opp
         response.stream.write(chunk)
       end
 
-      response.stream.close
-
       MessageCreator.new(
         @message.conversation,
         @opp_request.model
       ).create!("assistant", formatted_response, raw_response)
+    ensure
+      response.stream.close
     end
 
     protected
