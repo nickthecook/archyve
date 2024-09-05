@@ -25,7 +25,7 @@ module Opp
     def create_convo
       convo = Conversation.create!(
         user: @user,
-        title: "You down with OPP? #{rand(1000)}",
+        title: new_convo_title,
         search_collections: true,
         model_config: chat_model_config
       )
@@ -69,6 +69,10 @@ module Opp
 
     def recent_convos
       @user.conversations.order(updated_at: :desc).limit(num_recent_convos)
+    end
+
+    def new_convo_title
+      "(OPP) #{@chat_request.last_user_message["content"]}".truncate(num_title_chars)
     end
 
     def num_recent_convos
