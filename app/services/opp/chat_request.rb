@@ -1,5 +1,11 @@
 module Opp
   class ChatRequest < Request
+    def update_last_user_message(content)
+      last_user_message["content"] = content
+
+      @body = @parsed_body.to_json
+    end
+
     def model
       parsed_body["model"]
     end

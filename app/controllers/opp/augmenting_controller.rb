@@ -37,7 +37,7 @@ module Opp
     def update_request
       return if @opp_request.messages_with_content.empty?
 
-      @opp_request.last_user_message["content"] = @message.prompt
+      @opp_request.update_last_user_message(@message.prompt)
     end
   end
 end
