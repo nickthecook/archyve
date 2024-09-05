@@ -5,7 +5,7 @@ module Opp
     before_action :update_request
 
     def post
-      formatted_response, raw_response = chat_response_formatter.execute do |chunk|
+      formatted_response, raw_response = ChatResponseFormatter.new(@proxy).execute do |chunk|
         response.stream.write(chunk)
       end
 
@@ -24,10 +24,6 @@ module Opp
     end
 
     private
-
-    def chat_response_formatter
-      @chat_response_formatter ||= ChatResponseFormatter.new(@proxy)
-    end
 
     def return_if_no_messages
       head :no_content if @opp_request.messages_with_content.empty?

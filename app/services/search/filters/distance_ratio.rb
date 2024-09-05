@@ -1,8 +1,6 @@
 module Search
   module Filters
     class DistanceRatio
-      DISTANCE_RATIO_THRESHOLD = 0.2
-
       def initialize(hits)
         @hits = hits
 
@@ -42,7 +40,7 @@ module Search
       end
 
       def distance_ratio_threshold
-        @distance_ratio_threshold || Setting.get("distance_ratio_threshold", default: DISTANCE_RATIO_THRESHOLD)
+        @distance_ratio_threshold || Setting.get("distance_ratio_threshold", default: 0.2)
       end
     end
   end
