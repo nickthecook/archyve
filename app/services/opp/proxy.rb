@@ -77,19 +77,27 @@ module Opp
     end
 
     def url
-      "#{protocol}://#{host}:#{port}#{@request.path}"
+      "#{server_uri}#{@request.path}"
     end
 
     def protocol
-      "http"
+      server_uri.scheme
     end
 
     def host
-      "localhost"
+      server_uri.host
     end
 
     def port
-      11434
+      server_uri.port
+    end
+
+    def server_uri
+      @server_uri ||= URI(model_server.url)
+    end
+
+    def model_server
+      @model_server ||= ModelServer.active_server
     end
 
     def headers
