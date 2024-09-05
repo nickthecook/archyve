@@ -8,7 +8,6 @@ module Opp
     end
 
     def find_or_create
-      binding.pry
       if matching_convo
         MessageCreator.new(matching_convo, @chat_request.model).create!(@chat_request.messages.last)
 
@@ -66,7 +65,7 @@ module Opp
     end
 
     def recent_convos
-      @user.conversations.order(:updated_at).limit(num_recent_convos)
+      @user.conversations.order(updated_at: :desc).limit(num_recent_convos)
     end
 
     def num_recent_convos
