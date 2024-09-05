@@ -9,7 +9,10 @@ module Opp
 
     def find_or_create
       if matching_convo
-        MessageCreator.new(matching_convo, @chat_request.model).create!(@chat_request.messages.last)
+        MessageCreator.new(matching_convo, @chat_request.model).create!(
+          @chat_request.messages.last["role"],
+          @chat_request.messages.last["content"]
+        )
 
         return matching_convo
       end
@@ -29,7 +32,7 @@ module Opp
 
       message_creator = MessageCreator.new(convo, @chat_request.model)
       @chat_request.messages_with_content.each do |chat_message|
-        message_creator.create!(chat_message)
+        message_creator.create!(chat_message["role"], chat_message["content"])
       end
 
       convo

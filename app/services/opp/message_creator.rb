@@ -5,18 +5,19 @@ module Opp
       @chat_model = chat_model
     end
 
-    def create!(chat_message)
+    def create!(role, content, raw_content = nil)
       Message.create!(
         conversation: @conversation,
-        content: chat_message["content"],
-        author: author_for(chat_message)
+        content:,
+        raw_content:,
+        author: author_for(role)
       )
     end
 
     private
 
-    def author_for(chat_message)
-      if chat_message["role"] == "user"
+    def author_for(role)
+      if role == "user"
         # TODO: when we have a Client, use its User
         User.first
       else

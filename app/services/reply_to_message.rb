@@ -15,8 +15,6 @@ class ReplyToMessage
     create_reply
 
     streamer.chat(@message) do |message, raw_message|
-      Rails.logger.debug { "Got back: #{message}" }
-      Rails.logger.debug { "And raw:  #{raw_message}" }
       @reply.update!(content: @reply.content + message, raw_content: @reply.raw_content + raw_message)
 
       convert_to_markdown
