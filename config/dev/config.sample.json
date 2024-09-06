@@ -1,0 +1,31 @@
+{
+  "environment": {
+    "SECRET_KEY_BASE": "run 'openssl rand -hex 64' and put the value here",
+    "DEFAULT_API_KEY": "run 'openssl rand -base64 48' and put the value here",
+    "DEFAULT_CLIENT_ID": "86e695db-af13-4822-88c5-f457de1f7308",
+    "PROVISIONED_MODEL_SERVERS": [
+      {
+        "name": "localhost",
+        "url": "http://localhost:11434",
+        "provider": "ollama"
+      }
+    ],
+    "PROVISIONED_MODEL_CONFIGS": [
+      {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "temperature": 0.1
+      },
+      {
+        "name": "phi3:latest",
+        "model": "phi3:latest",
+        "temperature": 0.1
+      },
+      {
+        "name": "nomic-embed-text",
+        "model": "nomic-embed-text",
+        "embedding": true
+      }
+    ]
+  }
+}
