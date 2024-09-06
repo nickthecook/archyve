@@ -12,6 +12,8 @@
 
 ### Relevant Entity Search
 
+### Manage Job Parallelism
+
 ## OPP
 
 ### ~~Ollama Support~~
@@ -29,3 +31,7 @@
 ### KeyCloak Support?
 
 ### EntraID Support
+
+## RAG
+
+### Website scraping
