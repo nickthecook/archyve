@@ -11,12 +11,12 @@
       <%= render "shared/copy_button", content: hit.content.strip %>
     </div>
   </div>
-  <div class="flex justify-space-between w-full px-3">
-    <div class="flex-1 pr-4 text-xs text-left text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700 underline">
+  <div class="flex px-3 w-full justify-space-between">
+    <div class="flex-1 pr-4 text-xs text-left underline text-secondary-400 hover:bg-secondary-200 hover:dark:bg-secondary-700">
       <%= link_to hit.collection.name, hit.collection %>
     </div>
     <% if hit.document.present? %>
-      <div class="flex-1 px-4 text-xs text-center text-secondary-400 underline">
+      <div class="flex-1 px-4 text-xs text-center underline text-secondary-400">
         <%= link_to hit.document.filename, collection_document_path(hit.collection, hit.document), class: "hover:bg-secondary-200 hover:dark:bg-secondary-700" %>
       </div>
     <% end %>
@@ -26,7 +26,7 @@
     <div class="flex-1 pl-4 text-xs text-right text-secondary-400">
       <% if hit.distance %>
         <div>
-          distance: <%= hit.distance.round %>
+          distance: <%= distance_display_value(hit.distance) %>
           <% if hit.distance_increase_ratio.present? %>
             (+<%= (hit.distance_increase_ratio * 100).round %>%)
           <% end %>

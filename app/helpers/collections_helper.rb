@@ -24,4 +24,10 @@ module CollectionsHelper
   def summary_label_for(entity)
     entity.summary_outdated? ? "Summary outdated" : "Up to date"
   end
+
+  def distance_display_value(distance)
+    return distance.round if distance > 10
+
+    distance.round(2)
+  end
 end
