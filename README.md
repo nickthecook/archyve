@@ -6,13 +6,13 @@ Archyve is a web app that makes pretrained LLMs aware of a user's documents, whi
 
 Features go through these phases:
 
-- **In Development** (some of it might work)
-- **Experimental** (mostly functional, but results might not be great)
-- **Stable** (expect it to do a decent job)
+- 🚧 **In Development** (some of it might work)
+- 🧪 **Experimental** (mostly functional, but results might not be great)
+- ✅ **Stable** (expect it to do a decent job)
 
-| **KnowledgeGraph** | **OpenAI Support** | **Ollama/OpenAI Proxy Port** |
-| ------------------ | ------------------ | ---------------------------- |
-| Experimental       | Experimental       | In Development               |
+| **RAG**  | **KnowledgeGraph** | **OpenAI Support** | **Ollama/OpenAI Proxy Port** |
+| -------- | ------------------ | ------------------ | ---------------------------- |
+| ✅ Stable | 🧪 Experimental     | 🧪 Experimental     | 🚧 In Development             |
 
 ## Overview
 
