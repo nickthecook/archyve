@@ -17,7 +17,7 @@ Archyve provides:
 For LLM servers, Archyve supports:
 
 - **Ollama**
-- **Azure OpenAI** (not plain OpenAI - yet)
+- **OpenAI** (including the Azure variant)
 
 The Getting Started section will walk you through setting up Archyve for use with Ollama.
 
@@ -300,6 +300,70 @@ The summarization model is the model Archyve will use to summarize chats so it c
 ### Entity extraction model
 
 If you enable the Knowledge Graph for any Collections, Archyve will default to using `llama3.1:8b` as the entity extraction model. If you change this, you may get poor results from the KG. However, I'd be very interested to hear your experience if you do try another model!
+
+### OpenAI
+
+Archyve works with OpenAI, but you need to provision one ModelServer and one ModelConfig first.
+
+#### ModelServer
+
+Go to "Admin" using the button in the bottom left, then click "ModelServers". Click the "+" in the top right of the ModelServer list and enter this info:
+
+- Name: `OpenAI` (or whatever you want)
+- URL: `https://api.openai.com/v1`
+- Provider: `openai`
+- Api key: `sk-<the rest of your OpenAI API key>`
+
+Click "Save".
+
+#### ModelConfig
+
+From the Admin UI, click ModelConfigs on the left. Click the "+" in the top right of ModelConfig list and enter this info:
+
+- ModelServer: select "OpenAI" from the list (or whatever you named your ModelServer above)
+- Name: OpenAI GPT-4o (or whatever you want)
+- Model: `gpt-4o` (or any valid OpenAI model you can chat with - see [here](https://platform.openai.com/docs/models/model-endpoint-compatibility) for a list)
+- Temperature: 0.1 (or whatever you want)
+
+Leave "Embedding" unchecked - this is not an embedding model. Click "Save".
+
+You can now select this Model from the drop-down in a Conversation. To make this your default generation model, go to the ModelConfigs list in the Admin UI, click the three dots menu on the right side of your model config, then click "Use for chat".
+
+#### OpenAI embeddings
+
+These are not supported at the moment. Archyve needs to support the OpenAI embedding response format, and it needs to make it easy for users to use multiple embedding models at the same time, and make it clear what the limitations are of doing that.
+
+### Azure OpenAI
+
+Archyve works with OpenAI, but you need to provision one ModelServer and one ModelConfig first.
+
+#### ModelServer
+
+Go to "Admin" using the button in the bottom left, then click "ModelServers". Click the "+" in the top right of the ModelServer list and enter this info:
+
+- Name: `Azure OpenAI` (or whatever you want)
+- URL: the endpoint from the Azure portal
+- Provider: `openai_azure`
+- Api key: the API key from the Azure AI Workshop (or whatever they're calling it these days)
+
+Click "Save".
+
+#### ModelConfig
+
+From the Admin UI, click ModelConfigs on the left. Click the "+" in the top right of ModelConfig list and enter this info:
+
+- ModelServer: select "OpenAI" from the list (or whatever you named your ModelServer above)
+- Name: OpenAI GPT-4o (or whatever you want)
+- Model: `gpt-4o` (or any valid OpenAI model you can chat with - see [here](https://platform.openai.com/docs/models/model-endpoint-compatibility) for a list)
+- Temperature: 0.1 (or whatever you want)
+
+Leave "Embedding" unchecked - this is not an embedding model. Click "Save".
+
+You can now select this Model from the drop-down in a Conversation. To make this your default generation model, go to the ModelConfigs list in the Admin UI, click the three dots menu on the right side of your model config, then click "Use for chat".
+
+#### Azure OpenAI embeddings
+
+These are not supported at the moment. Archyve needs to support the OpenAI embedding response format, and it needs to make it easy for users to use multiple embedding models at the same time, and make it clear what the limitations are of doing that.
 
 ## Admin UI
 

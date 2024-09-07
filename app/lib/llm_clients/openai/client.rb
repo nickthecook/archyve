@@ -177,16 +177,21 @@ module LlmClients
       end
 
       def client_provider
-        raise UnsupportedServerError, "Override to implement client provider name."
+        "openai"
       end
 
-      def chat_connection
-        raise UnsupportedServerError, "Override to implement client connection."
+      def openai_connection
+        @openai_connection ||= OpenAI::Client.new(
+          access_token: @api_key,
+          uri_base: @endpoint,
+          api_version: @api_version
+        ) do |f|
+          f.request :instrumentation, name: 'req', instrumenter: self
+        end
       end
 
-      def embed_connection
-        raise UnsupportedServerError, "Override to implement client connection."
-      end
+      alias embed_connection openai_connection
+      alias chat_connection openai_connection
     end
     #rubocop:enable Metrics/ClassLength
   end

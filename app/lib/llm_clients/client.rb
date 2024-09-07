@@ -17,6 +17,8 @@ module LlmClients
           LlmClients::Ollama::Client
         when "openai_azure"
           LlmClients::Openai::AzureClient
+        when "openai"
+          LlmClients::Openai::Client
         else
           raise UnsupportedServerError, "LLM provider '#{provider}' is *not* supported."
         end

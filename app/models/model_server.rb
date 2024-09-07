@@ -6,6 +6,7 @@ class ModelServer < ApplicationRecord
   enum :provider, {
     ollama: 1,
     openai_azure: 2,
+    openai: 3,
   }, prefix: :provider
 
   # Require API key if ...
