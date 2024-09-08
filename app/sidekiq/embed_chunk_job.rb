@@ -3,10 +3,10 @@ class EmbedChunkJob
 
   sidekiq_options retry: Rails.configuration.sidekiq_retries, queue: "llm"
 
-  sidekiq_retries_exhausted do |job, _exception|
+  sidekiq_retries_exhausted do |job, exception|
     chunk = Chunk.find(job['args'].first)
 
-    chunk.document.update!(state: :errored)
+    chunk.document.update!(state: :errored, error_message: exception.to_s)
   end
 
   def perform(chunk_id)
