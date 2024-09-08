@@ -7,6 +7,9 @@ class Chunk < ApplicationRecord
   has_many :api_calls, as: :traceable, dependent: :destroy
   has_many :message_augmentations, as: :augmentation, dependent: :destroy
 
+  scope :embedded, -> { where.not(vector_id: nil) }
+  scope :extracted, ->  { where(entities_extracted: true) }
+
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)
   end

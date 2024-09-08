@@ -5,24 +5,20 @@
     <div class="flex flex-col">
       <div class="flex-1">
         <div class="flex items-baseline">
-          <div class="pb-4">
+          <div class="pb-4 mr-2">
             <%= link_to document.filename, collection_document_path(document.collection, document), format: :turbo_stream %>
           </div>
-          <% state_bg = state_error?(document) ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700" %>
-          <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 <%= state_bg %>">
-            <%= state_label_for(document) %>
-          </div>
-          <% if document.stop_jobs %>
-            <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mr-2 p-1 px-2 bg-error-400 dark:bg-error-800">
-              <%= button_to "Jobs stopping...", collection_document_start_path(document.collection, document) %>
-            </div>
-          <% end %>
+          <%= render "shared/document_state_badges", document: %>
         </div>
       </div>
       <div class="flex">
         <%= link_to "View", collection_document_path(document.collection, document), class: "rounded-lg bg-secondary-700 dark:bg-secondary-400 text-secondary-100 dark:text-secondary-900 py-1 px-4 disabled:bg-opacity-40 mr-2" %>
-        <%= button_to "Reprocess", collection_document_vectorize_path(document.collection, document), class: "rounded-lg px-4 py-1 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400 mr-2", data: { turbo: false } %>
-        <%= button_to "Stop jobs", collection_document_stop_path(document.collection, document), class: "rounded-lg px-4 py-1 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+        <%= button_to "Reprocess", collection_document_vectorize_path(document.collection, document), class: "rounded-lg px-4 py-1 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400 mr-2" %>
+        <% if document.stop_jobs %>
+          <%= button_to "Enable jobs", collection_document_start_path(document.collection, document), class: "rounded-lg px-4 py-1 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+        <% else %>
+          <%= button_to "Disable jobs", collection_document_stop_path(document.collection, document), class: "rounded-lg px-4 py-1 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+        <% end %>
       </div>
     </div>
   </div>

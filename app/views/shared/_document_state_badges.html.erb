@@ -1,0 +1,22 @@
+<div id="<%= dom_id(document) %>-state" class="flex">
+  <%
+    state_bg = state_error?(document) ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700"
+    total_chunks = document.chunks.count
+    embedded_chunks = document.chunks.embedded.count
+    extracted_chunks = document.chunks.extracted.count
+  %>
+  <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-1 p-1 px-2 <%= state_bg %>">
+    <%= state_label_for(document) %>
+  </div>
+  <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
+    Embedded<%= ": #{embedded_chunks}/#{total_chunks}" unless embedded_chunks == total_chunks %>
+  </div>
+  <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
+    Extracted<%= ": #{extracted_chunks}/#{total_chunks}" unless extracted_chunks == total_chunks %>
+  </div>
+  <% if document.stop_jobs %>
+    <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-error-400 dark:bg-error-800">
+      <%= button_to "Jobs disabled", collection_document_start_path(document.collection, document) %>
+    </div>
+  <% end %>
+</div>

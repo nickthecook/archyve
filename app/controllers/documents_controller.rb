@@ -19,7 +19,7 @@ class DocumentsController < ApplicationController
 
     @document = new_document
 
-    IngestJob.perform_async(@document.id)
+    ChunkDocumentJob.perform_async(@document.id)
 
     respond_to do |format|
       format.turbo_stream do
@@ -46,7 +46,7 @@ class DocumentsController < ApplicationController
   end
 
   def vectorize
-    IngestJob.perform_async(@document.id)
+    ChunkDocumentJob.perform_async(@document.id)
   end
 
   def stop

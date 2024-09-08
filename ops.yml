@@ -64,5 +64,6 @@ options:
     API_BASE_URL: ${API_BASE_URL:-http://localhost:3300/v1}
     REDIS_URL: ${REDIS_URL:-redis://localhost:6378/1}
     PORT: ${PORT:-3300}
+    LLM_JOBS_CONCURRENCY: ${LLM_JOBS_CONCURRENCY:-5}
   exec:
     load_secrets: true

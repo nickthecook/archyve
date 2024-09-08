@@ -21,7 +21,7 @@ class Document < ApplicationRecord
       :collections,
       target: "document_#{id}",
       partial: "shared/document",
-      document: @document
+      document: reload
     )
     broadcast_replace_to(
       :documents,
@@ -29,7 +29,7 @@ class Document < ApplicationRecord
       partial: "documents/document"
     )
 
-    collection.touch(:updated_at) if past_state?("embedded")
+    collection.touch(:updated_at)
   }
   after_destroy_commit lambda {
     broadcast_remove_to(
@@ -42,10 +42,6 @@ class Document < ApplicationRecord
     created: 0,
     chunking: 4,
     chunked: 1,
-    embedding: 5,
-    embedded: 2,
-    extracting: 6,
-    extracted: 3,
     deleting: 7,
     stopped: 8,
     errored: 10,
@@ -56,10 +52,6 @@ class Document < ApplicationRecord
     state :created
     state :chunking
     state :chunked
-    state :embedding
-    state :embedded
-    state :extracting
-    state :extracted
     state :deleting
     state :errored
     state :stopped
@@ -104,8 +96,11 @@ class Document < ApplicationRecord
     file.download
   end
 
-  # TODO: fix this. It's a bad idea, since the state ints are not ordered.
-  def past_state?(incoming_state)
-    Document.states[incoming_state] <= Document.states[state]
+  def embedded?
+    chunks.embedded.count == chunks.count
+  end
+
+  def extracted?
+    chunks.extracted.count == chunks.count
   end
 end
