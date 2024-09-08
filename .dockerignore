@@ -43,4 +43,5 @@ Dockerfile
 compose.yaml
 
 config/dev
+!config/dev/config.sample.json
 deps

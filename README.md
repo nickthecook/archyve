@@ -70,6 +70,10 @@ docker compose up --build
 
 > If you see "✘ archyve-worker Error", don't worry about it. Docker will build the image and run it.
 
+> If you see an error like "**failed to solve: error from sender: open /home/.../archyve/deps/postgres: permission denied**", it's because [Docker has a bug on linux](https://github.com/docker/cli/issues/3043) where it will still try to traverse directories under the build dir even if they're in the `.dockerignore` file.
+>
+> Work around this with `mv deps ../archyve-deps`. You'll need to `mv ../archyve-deps deps` when you want to run the app on your host again.
+
 5. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
 
 > **WARNING**: The container will write a file with local encryption keys into `config/local`. **If you lose this file**, the application will not be able to decrypt sensitive data within the database (e.g. passwords or API keys), and the database will need to be reset, **losing all data**.

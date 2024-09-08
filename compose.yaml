@@ -36,11 +36,11 @@ services:
     build: .
     env_file: ./local.env
     restart: unless-stopped
-    volumes:
+    volumes: &archyve-volumes
       - archyve_files:/rails/storage
       - ./config/local:/rails/config/local
     # this needs to be edited to give podman access to host
-    extra_hosts:
+    extra_hosts: &archyve-extra-hosts
       - "host.docker.internal:host-gateway"
     ports:
       - 3300:3300
@@ -51,17 +51,25 @@ services:
     image: archyve:local
     env_file: ./local.env
     restart: unless-stopped
-    volumes:
-      - archyve_files:/rails/storage
-      - ./config/local:/rails/config/local
+    volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq"]
-    depends_on:
+    extra_hosts: *archyve-extra-hosts
+    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q default"]
+    depends_on: &archyve-worker-dependencies
       - redis
       - postgres
       - archyve
+    environment:
+      RUN_SIDEKIQ: true
+  archyve-worker-llm:
+    image: archyve:local
+    env_file: ./local.env
+    restart: unless-stopped
+    volumes: *archyve-volumes
+    # this needs to be edited to give podman access to host
+    extra_hosts: *archyve-extra-hosts
+    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q llm -c $LLM_JOBS_CONCURRENCY"]
+    depends_on: *archyve-worker-dependencies
     environment:
       RUN_SIDEKIQ: true
   neo4j:

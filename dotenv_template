@@ -27,3 +27,4 @@ PROVISIONED_MODEL_CONFIGS="[
     \"embedding\": true
   }
 ]"
+LLM_JOBS_CONCURRENCY=5
