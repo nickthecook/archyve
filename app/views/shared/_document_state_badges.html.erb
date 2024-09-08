@@ -16,10 +16,10 @@
     </div>
   <% end %>
   <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
-    Embedded<%= ": #{embedded_chunks}/#{total_chunks}" unless embedded_chunks == total_chunks %>
+    <%= chunks_completed_label_for(total_chunks, embedded_chunks, "embedded") %>
   </div>
   <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
-    Extracted<%= ": #{extracted_chunks}/#{total_chunks}" unless extracted_chunks == total_chunks %>
+    <%= chunks_completed_label_for(total_chunks, extracted_chunks, "extracted") %>
   </div>
   <% if document.stop_jobs %>
     <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-error-400 dark:bg-error-800">

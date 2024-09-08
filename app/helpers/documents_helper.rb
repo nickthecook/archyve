@@ -6,6 +6,16 @@ module DocumentsHelper
     end
   end
 
+  def chunks_completed_label_for(total_chunks, completed_chunks, label_name)
+    if total_chunks.zero?
+      "Not #{label_name}"
+    elsif total_chunks == completed_chunks
+      label_name.titleize
+    else
+      "#{label_name.titleize}: #{completed_chunks}/#{total_chunks}"
+    end
+  end
+
   def state_error?(document)
     document.errored?
   end
