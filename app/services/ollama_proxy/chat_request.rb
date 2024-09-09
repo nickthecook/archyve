@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class ChatRequest < Request
     def model
       parsed_body["model"]

@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class Request
     attr_writer :body
 

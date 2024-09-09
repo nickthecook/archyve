@@ -1,2 +1,0 @@
-module Opp::OppHelper
-end

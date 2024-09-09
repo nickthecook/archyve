@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class MessageMatcher
     def initialize(message, chat_message)
       @message = message

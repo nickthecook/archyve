@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class BaseController < ActionController::Base
     protect_from_forgery with: :null_session
 

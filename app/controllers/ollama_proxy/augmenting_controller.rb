@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class AugmentingController < StreamingController
     before_action :return_if_no_messages
     before_action :augment_prompt

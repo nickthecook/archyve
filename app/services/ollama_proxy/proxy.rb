@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class Proxy
     attr_reader :yielded
 

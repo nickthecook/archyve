@@ -1,5 +1,5 @@
-module Opp
-  class StreamingController < OppController
+module OllamaProxy
+  class StreamingController < OllamaProxyController
     include ActionController::Live
 
     def get

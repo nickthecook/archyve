@@ -1,4 +1,4 @@
-RSpec.describe Opp::ChatRequest do
+RSpec.describe OllamaProxy::ChatRequest do
   subject { described_class.new(controller_request) }
 
   let(:controller_request) { double('controller request', raw_post:, request_method:, path:) }

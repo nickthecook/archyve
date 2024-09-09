@@ -1,7 +1,7 @@
-RSpec.describe Opp::ConversationFinder do
+RSpec.describe OllamaProxy::ConversationFinder do
   subject { described_class.new(chat_request, user) }
 
-  let(:chat_request) { Opp::ChatRequest.new(controller_request) }
+  let(:chat_request) { OllamaProxy::ChatRequest.new(controller_request) }
   let(:controller_request) { double('controller request', raw_post:, request_method:, path:) }
   let(:raw_post) do
     {

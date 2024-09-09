@@ -1,5 +1,5 @@
-module Opp
-  class OppController < Opp::BaseController
+module OllamaProxy
+  class OllamaProxyController < OllamaProxy::BaseController
     protect_from_forgery with: :null_session
 
     before_action :set_request
@@ -21,11 +21,11 @@ module Opp
     protected
 
     def set_request
-      @opp_request = Opp::Request.new(request)
+      @opp_request = OllamaProxy::Request.new(request)
     end
 
     def set_proxy
-      @proxy = Opp::Proxy.new(@opp_request)
+      @proxy = OllamaProxy::Proxy.new(@opp_request)
     end
   end
 end

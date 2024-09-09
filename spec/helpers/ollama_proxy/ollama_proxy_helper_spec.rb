@@ -1,15 +1,15 @@
 require 'rails_helper'
 
 # Specs in this file have access to a helper object that includes
-# the Opp::OppHelper. For example:
+# the OllamaProxy::OllamaProxyHelper. For example:
 #
-# describe Opp::OppHelper do
+# describe OllamaProxy::OllamaProxyHelper do
 #   describe "string concat" do
 #     it "concats two strings with spaces" do
 #       expect(helper.concat_strings("this","that")).to eq("this that")
 #     end
 #   end
 # end
-RSpec.describe Opp::OppHelper, type: :helper do
+RSpec.describe OllamaProxy::OllamaProxyHelper, type: :helper do
   pending "add some examples to (or delete) #{__FILE__}"
 end

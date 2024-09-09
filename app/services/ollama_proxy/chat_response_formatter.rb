@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class ChatResponseFormatter
     attr_reader :formatted_response, :raw_response
 

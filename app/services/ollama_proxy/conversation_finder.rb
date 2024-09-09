@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class ConversationFinder
     def initialize(chat_request, user)
       @chat_request = chat_request

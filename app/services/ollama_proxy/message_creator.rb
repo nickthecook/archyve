@@ -1,4 +1,4 @@
-module Opp
+module OllamaProxy
   class MessageCreator
     def initialize(conversation, chat_model)
       @conversation = conversation
