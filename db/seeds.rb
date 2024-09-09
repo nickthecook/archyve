@@ -37,7 +37,7 @@ if default_client_id.present? && default_api_key.present?
       user: User.first
     )
   elsif default_client.client_id != default_client_id || default_client.api_key != default_api_key
-    Rails.info.logger("Updating default client ID and API key based on DEFAULT_CLIENT_ID and DEFAULT_API_KEY...")
+    Rails.logger.info("Updating default client ID and API key based on DEFAULT_CLIENT_ID and DEFAULT_API_KEY...")
     default_client.update!(client_id: default_client_id, api_key: default_api_key)
   else
     puts("Default client already exists with correct client ID and API key.")
