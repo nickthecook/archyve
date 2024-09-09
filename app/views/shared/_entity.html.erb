@@ -18,7 +18,7 @@
           <% end %>
         </div>
         <div class="flex-1">
-          <div class="whitespace-pre-wrap"><%= entity.summary.truncate(750) %></div>
+          <div class="whitespace-pre-wrap"><%= entity.summary&.truncate(750) %></div>
         </div>
         <div class="flex">
           <!-- buttons go here -->
@@ -28,7 +28,7 @@
   </div>
   <div class="flex flex-col ms-4">
     <p class="py-1 text-xs text-right"><%= entity.collection.name %></p>
-    <p class="py-1 text-xs text-right"><%= number_to_human_size(entity.summary.size) %></p>
+    <p class="py-1 text-xs text-right"><%= number_to_human_size(entity.summary&.size || 0) %></p>
     <p class="py-1 text-xs text-right"><%= time_ago_in_words(entity.created_at) %> ago</p>
     <p class="py-1 text-xs text-right"><%= entity.descriptions.count %> descriptions</p>
     <p class="py-1 text-xs text-right"><%= entity.relationship_count %> relationships</p>
