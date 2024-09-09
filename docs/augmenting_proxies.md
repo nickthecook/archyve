@@ -9,8 +9,10 @@ Proxied requests are visible in the Conversation view in Archyve.
 TAP is compatible with any Ollama client that supports chunked responses (i.e. "streamed" responses). It has been tested, and works, with:
 
 - `ollama` CLI
+  - `OLLAMA_HOST=localhost:11337 ollama run llama3.1:latest`
 - OpenWebUI
 - `curl`, using ollama-compatible JSON payloads
+  - `ops opp -p payloads/ollama/chat.json api/chat`
 
 ## Transparency
 
