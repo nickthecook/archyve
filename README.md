@@ -10,9 +10,9 @@ Features go through these phases:
 - 🧪 **Experimental** (mostly functional, but results might not be great)
 - ✅ **Stable** (expect it to do a decent job)
 
-| **RAG**  | **KnowledgeGraph** | **OpenAI Support** | **Ollama/OpenAI Proxy Port** |
-| -------- | ------------------ | ------------------ | ---------------------------- |
-| ✅ Stable | 🧪 Experimental     | 🧪 Experimental     | 🚧 In Development             |
+| **RAG**   | **KnowledgeGraph** | **OpenAI Support** | [**Ollama/OpenAI Proxy Port**](docs/augmenting_proxies.md) |
+| --------- | ------------------ | ------------------ | ---------------------------------------------------------- |
+| ✅ Stable | 🧪 Experimental    | 🧪 Experimental    | 🚧 In Development                                          |
 
 ## Overview
 
@@ -36,12 +36,15 @@ The Getting Started section will walk you through setting up Archyve for use wit
 ## Screenshots
 
 ### Chat UI
+
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/748aed85-c43b-4d95-ae15-483746edb978">
 
 ### Documents UI
+
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/cde552eb-4c71-4741-966b-79c98ac46601">
 
 ### Graph database view
+
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/8f023566-43eb-4e8b-8fa7-6bb02a7c03e3">
 
 ## Concepts
