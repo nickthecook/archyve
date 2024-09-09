@@ -44,9 +44,35 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - 3300:3300
-    depends_on:
+    depends_on: &archyve-dependencies
       - redis
       - postgres
+  archyve-ollamaproxy:
+    image: archyve:local
+    build: .
+    env_file: ./local.env
+    restart: unless-stopped
+    volumes: *archyve-volumes
+    # this needs to be edited to give podman access to host
+    extra_hosts: *archyve-extra-hosts
+    ports:
+      - 11337:11337
+    depends_on: *archyve-dependencies
+    environment:
+      RUN_OPP: true
+      OPP_PORT: 11337
+      OPP_BIND_ADDRESS: "0.0.0.0"
+    command:
+      [
+        "bin/rails",
+        "server",
+        "--pid",
+        "/rails/tmp/pids/opp.pid",
+        "-p",
+        "$OPP_PORT",
+        "-b",
+        "$OPP_BIND_ADDRESS",
+      ]
   archyve-worker:
     image: archyve:local
     env_file: ./local.env
@@ -54,7 +80,8 @@ services:
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
     extra_hosts: *archyve-extra-hosts
-    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q default"]
+    command:
+      ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q default"]
     depends_on: &archyve-worker-dependencies
       - redis
       - postgres
@@ -68,7 +95,12 @@ services:
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
     extra_hosts: *archyve-extra-hosts
-    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q llm -c $LLM_JOBS_CONCURRENCY"]
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        "bin/rails db:seed && bundle exec sidekiq -q llm -c $LLM_JOBS_CONCURRENCY",
+      ]
     depends_on: *archyve-worker-dependencies
     environment:
       RUN_SIDEKIQ: true
