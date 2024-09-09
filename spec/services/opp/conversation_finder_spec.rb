@@ -58,12 +58,24 @@ RSpec.describe Opp::ConversationFinder do
       let(:model_config) { create(:model_config, model: "llama3") }
       let(:first_message_content) { "why is the sky blue?" }
       let(:second_message_content) { "due to rayleigh scattering." }
+      let(:first_message_raw_content) { first_message_content }
+      let(:second_message_raw_content) { second_message_content }
       let(:first_message_author) { user }
       let(:second_message_author) { model_config }
 
       before do
-        Message.create(conversation:, content: first_message_content, author: first_message_author)
-        Message.create(conversation:, content: second_message_content, author: second_message_author)
+        Message.create(
+          conversation:,
+          content: first_message_content,
+          raw_content: first_message_raw_content,
+          author: first_message_author
+        )
+        Message.create(
+          conversation:,
+          content: second_message_content,
+          raw_content: second_message_raw_content,
+          author: second_message_author
+        )
       end
 
       it "does not create a new conversation" do
@@ -95,6 +107,31 @@ RSpec.describe Opp::ConversationFinder do
 
         it "creates 3 messages" do
           expect { subject.find_or_create }.to change(Message, :count).by(3)
+        end
+      end
+
+      context "when the raw_content of a message does not match the content" do
+        let(:first_message_content) { "why is the sky blue?" }
+        let(:second_message_content) { "due to rayleigh scattering.<br>\n" }
+        let(:first_message_raw_content) { "why is the sky blue?" }
+        let(:second_message_raw_content) { "due to rayleigh scattering.\n" }
+        let(:raw_post) do
+          {
+            model: "llama3",
+            messages: [
+              { role: "user", content: "why is the sky blue?" },
+              { role: "assistant", content: "due to rayleigh scattering.\n" },
+              { role: "user", content: "how is that different than diffraction?" },
+            ],
+          }.to_json
+        end
+
+        it "does not create a new conversation" do
+          expect { subject.find_or_create }.not_to change(Conversation, :count)
+        end
+
+        it "creates only the new message" do
+          expect { subject.find_or_create }.to change(Message, :count).by(1)
         end
       end
     end

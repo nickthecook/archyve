@@ -32,7 +32,7 @@ module Opp
 
       message_creator = MessageCreator.new(convo, @chat_request.model)
       @chat_request.messages_with_content.each do |chat_message|
-        message_creator.create!(chat_message["role"], chat_message["content"])
+        message_creator.create!(chat_message["role"], chat_message["content"], chat_message["content"])
       end
 
       convo
@@ -54,6 +54,7 @@ module Opp
     def all_messages_match?(convo)
       match = true
 
+      binding.pry
       convo.messages.each_with_index do |message, index|
         match = MessageMatcher.new(message, @chat_request.messages_with_content[index]).match?
 
