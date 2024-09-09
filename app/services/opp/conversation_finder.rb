@@ -54,7 +54,6 @@ module Opp
     def all_messages_match?(convo)
       match = true
 
-      binding.pry
       convo.messages.each_with_index do |message, index|
         match = MessageMatcher.new(message, @chat_request.messages_with_content[index]).match?
 
