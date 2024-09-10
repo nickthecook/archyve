@@ -72,7 +72,7 @@ module OllamaProxy
     end
 
     def new_convo_title
-      "(OPP) #{@chat_request.last_user_message["content"]}".truncate(num_title_chars)
+      "(OPP) #{@chat_request.messages.first["content"]}".truncate(num_title_chars)
     end
 
     def num_recent_convos
