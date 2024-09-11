@@ -1,24 +1,33 @@
 <div id="<%= dom_id(conversation) %>">
   <%
     bg_class = if selected&.id == conversation.id
-      "bg-secondary-300 dark:bg-secondary-600 hover:bg-secondary-400 dark:hover:bg-secondary-500"
+      "bg-secondary-300 dark:bg-secondary-700 hover:bg-secondary-400 dark:hover:bg-secondary-500"
     else
       "hover:bg-secondary-300 dark:hover:bg-secondary-700"
     end
   %>
-  <div class="container flex rounded-md p-1 <%= bg_class %>">
-    <%= link_to conversation, class: "flex-1" do %>
-      <div class="px-2 py-1 text-sm">
-        <%= conversation.title %>
+    <div class="container flex overflow-hidden rounded-md w-full p-1 my-5 <%= bg_class %>">
+      <div class="flex justify-end pe-1">
+        <div class="flex flex-col place-content-center place-items-center">
+          <div class="text-xs text-secondary-700 dark:text-secondary-200 px-2 py-1 ms-1 bg-secondary-100 dark:bg-secondary-500 rounded-lg">
+            <%= conversation.source || "chat" %>
+          </div>
+        </div>
       </div>
-    <% end %>
-    <div class="text-sm text-secondary-700 dark:text-secondary-400 px-2 py-1">
-      <%= conversation.messages_count %>
-    </div>
-    <div class="flex-none mx-1">
-      <%= button_to conversation, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
-        <i class="fa fa-trash"></i>
+      <%= link_to conversation, class: "flex-1 w-full truncate" do %>
+        <div class="px-2 py-1">
+          <%= conversation.title %>
+        </div>
       <% end %>
+    <div class="flex justify-end">
+      <div class="text-sm text-secondary-700 dark:text-secondary-400 px-1 py-1">
+        <%= conversation.messages_count %>
+      </div>
+      <div class="flex-none mx-1 px-1">
+        <%= button_to conversation, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
+          <i class="fa fa-trash"></i>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>

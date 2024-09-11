@@ -1,6 +1,4 @@
 class SummarizeMessage
-  FALLBACK_SUMMARY_LENGTH = 80
-
   def initialize(message, traceable: nil)
     @client_helper = Helpers::ModelClientHelper.new(model_config: Setting.summarization_model, traceable:)
     @message = message
@@ -16,7 +14,7 @@ class SummarizeMessage
   rescue StandardError => e
     Rails.logger.error("#{e.class.name}: #{e.message}\n#{e.backtrace.join("\n")}")
 
-    @summary = @message.content.truncate(FALLBACK_SUMMARY_LENGTH)
+    @summary = @message.content
   end
 
   private
