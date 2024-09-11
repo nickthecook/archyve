@@ -13,7 +13,7 @@
       </div>
     <% end %>
     <div class="text-sm text-secondary-700 dark:text-secondary-400 px-2 py-1">
-      <%= conversation.messages.count %>
+      <%= conversation.messages_count %>
     </div>
     <div class="flex-none mx-1">
       <%= button_to conversation, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>

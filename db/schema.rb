@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_11_153820) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_11_190807) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -123,6 +123,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_11_153820) do
     t.datetime "updated_at", null: false
     t.integer "model_config_id", null: false
     t.boolean "search_collections", default: true
+    t.integer "messages_count"
     t.index ["model_config_id"], name: "index_conversations_on_model_config_id"
     t.index ["user_id"], name: "index_conversations_on_user_id"
   end

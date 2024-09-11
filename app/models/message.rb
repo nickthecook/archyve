@@ -1,5 +1,5 @@
 class Message < ApplicationRecord
-  belongs_to :conversation
+  belongs_to :conversation, counter_cache: true
   belongs_to :author, polymorphic: true
   has_one :user, through: :conversation
   has_many :api_calls, as: :traceable, dependent: :destroy
@@ -14,7 +14,7 @@ class Message < ApplicationRecord
       partial: "messages/message"
     )
 
-    # conversation.update_list_item
+    conversation.update_list_item
   }
   after_update_commit lambda {
     broadcast_replace_to(
