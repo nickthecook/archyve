@@ -1,4 +1,4 @@
-<%= content_tag :div, id: chunk ? dom_id(chunk) : "missing", class: "flex justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900" do %>
+<%= content_tag :div, id: chunk ? dom_id(chunk) : "missing", class: "flex justify-start items-start px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900 opacity-75" do %>
   <%= link_to collection_document_chunk_path(chunk.collection, chunk.document, chunk),
     class: "flex justify-start items-center px-3 py-1 rounded-lg hover:bg-secondary-200 hover:dark:bg-secondary-700 w-full" do %>
   <div class="flex-1 whitespace-prewrap">

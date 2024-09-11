@@ -22,7 +22,7 @@
   <% end %>
 
   <%= form_with url: conversation_collections_path, method: :post do |f|%>
-  <% selected_collection_id = conversation.collections&.first&.id %>
+    <% selected_collection_id = conversation.collections&.first&.id %>
     <%= f.collection_select(:collection_ids, collection_list(conversation.user), :id, :name, {
       selected: selected_collection_id,
       prompt: "All collections",
