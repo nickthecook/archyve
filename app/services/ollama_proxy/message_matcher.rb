@@ -6,11 +6,11 @@ module OllamaProxy
     end
 
     def match?
-      return false if @message.author_type == "User" && @chat_message["role"] != "user"
-      return false if @message.author_type == "ModelConfig" && @chat_message["role"] != "assistant"
+      return false if @message.author_type == "User" && @chat_message.role != "user"
+      return false if @message.author_type == "ModelConfig" && @chat_message.role != "assistant"
 
       content = @message.raw_content || @message.content
-      return false if content != @chat_message["content"]
+      return false if content != @chat_message.content
 
       true
     end

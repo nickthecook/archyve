@@ -2,18 +2,36 @@ RSpec.describe OllamaProxy::ChatRequest do
   subject { described_class.new(controller_request) }
 
   let(:controller_request) { double('controller request', raw_post:, request_method:, path:) }
-  let(:raw_post) do
-    {
-      model: "llama3",
-      messages: [
-        { role: "user", content: "why is the sky blue?" },
-        { role: "assistant", content: "due to rayleigh scattering." },
-        { role: "user", content: "" },
-      ],
-    }.to_json
-  end
   let(:request_method) { "POST" }
   let(:path) { "/api/chat" }
+
+  shared_context "messages are in Ollama format" do
+    let(:raw_post) do
+      {
+        model: "llama3",
+        messages: [
+          { role: "user", content: "why is the sky blue?" },
+          { role: "assistant", content: "due to rayleigh scattering." },
+          { role: "user", content: "" },
+        ],
+      }.to_json
+    end
+  end
+
+  shared_context "messages are in OpenAI format" do
+    let(:raw_post) do
+      {
+        model: "llama3",
+        messages: [
+          { role: "user", content: [{ type: "text", text: "why is the sky blue?" }] },
+          { role: "assistant", content: [{ type: "text", text: "due to rayleigh scattering." }] },
+          { role: "user", content: [{ type: "text", text: "" }] },
+        ],
+      }.to_json
+    end
+  end
+
+  include_context "messages are in Ollama format"
 
   describe "#model" do
     it "returns the model name from the request body" do
@@ -23,26 +41,61 @@ RSpec.describe OllamaProxy::ChatRequest do
 
   describe "#messages" do
     it "returns the messages from the request body" do
-      expect(subject.messages).to eq([
-        { "role" => "user", "content" => "why is the sky blue?" },
-        { "role" => "assistant", "content" => "due to rayleigh scattering." },
-        { "role" => "user", "content" => "" },
+      expect(subject.messages.map(&:content)).to eq([
+        "why is the sky blue?",
+        "due to rayleigh scattering.",
+        "",
       ])
+      expect(subject.messages.map(&:role)).to eq(%w[user assistant user])
+    end
+
+    context "when messages are in OpenAI format" do
+      include_context "messages are in OpenAI format"
+
+      it "returns the messages from the request body" do
+        expect(subject.messages.map(&:content)).to eq([
+          "why is the sky blue?",
+          "due to rayleigh scattering.",
+          "",
+        ])
+        expect(subject.messages.map(&:role)).to eq(%w[user assistant user])
+      end
     end
   end
 
   describe "#messages_with_content" do
     it "returns only messages with content" do
-      expect(subject.messages_with_content).to eq([
-        { "role" => "user", "content" => "why is the sky blue?" },
-        { "role" => "assistant", "content" => "due to rayleigh scattering." },
+      expect(subject.messages_with_content.map(&:content)).to eq([
+        "why is the sky blue?",
+        "due to rayleigh scattering.",
       ])
+    end
+
+    context "when messages are in OpenAI format" do
+      include_context "messages are in OpenAI format"
+
+      it "returns only messages with content" do
+        expect(subject.messages_with_content.map(&:content)).to eq([
+          "why is the sky blue?",
+          "due to rayleigh scattering.",
+        ])
+      end
     end
   end
 
   describe "#last_user_message" do
-    it "returns the last message with content from the user" do
-      expect(subject.last_user_message).to eq({ "role" => "user", "content" => "why is the sky blue?" })
+    it "returns the last message from the user" do
+      expect(subject.last_user_message.content).to eq("")
+      expect(subject.last_user_message.role).to eq("user")
+    end
+
+    context "when messages are in OpenAI format" do
+      include_context "messages are in OpenAI format"
+
+      it "returns the last message from the user" do
+        expect(subject.last_user_message.content).to eq("")
+        expect(subject.last_user_message.role).to eq("user")
+      end
     end
   end
 
@@ -51,15 +104,46 @@ RSpec.describe OllamaProxy::ChatRequest do
 
     it "updates the last user message with the new message content" do
       expect { subject.update_last_user_message(new_message) }
-        .to change(subject, :last_user_message)
-        .from({ "role" => "user", "content" => "why is the sky blue?" })
-        .to({ "role" => "user", "content" => "how is that different from diffraction?" })
+        .to change(subject.last_user_message, :content)
+        .from("")
+        .to("how is that different from diffraction?")
     end
 
     it "reflects the change in #body" do
       expect(subject.body).not_to match(/diffraction/)
       subject.update_last_user_message(new_message)
-      expect(subject.body).to match(/diffraction/)
+      expect(subject.body).to eq({
+        "model" => "llama3",
+        "messages" => [
+          { "role" => "user", "content" => "why is the sky blue?" },
+          { "role" => "assistant", "content" => "due to rayleigh scattering." },
+          { "role" => "user", "content" => "how is that different from diffraction?" },
+        ],
+      }.to_json)
+    end
+
+    context "when messages are in OpenAI format" do
+      include_context "messages are in OpenAI format"
+
+      it "updates the last user message with the new message content" do
+        expect { subject.update_last_user_message(new_message) }
+          .to change(subject.last_user_message, :content)
+          .from("")
+          .to("how is that different from diffraction?")
+      end
+
+      it "reflects the change in #body" do
+        expect(subject.body).not_to match(/diffraction/)
+        subject.update_last_user_message(new_message)
+        expect(subject.body).to eq({
+          "model" => "llama3",
+          "messages" => [
+            { "role" => "user", "content" => [{ "type" => "text", "text" => "why is the sky blue?" }] },
+            { "role" => "assistant", "content" => [{ "type" => "text", "text" => "due to rayleigh scattering." }] },
+            { "role" => "user", "content" => [{ "type" => "text", "text" => "how is that different from diffraction?" }] },
+          ],
+        }.to_json)
+      end
     end
   end
 end
