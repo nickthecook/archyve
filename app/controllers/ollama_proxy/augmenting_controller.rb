@@ -4,7 +4,7 @@ module OllamaProxy
     before_action :augment_prompt
     before_action :update_request
 
-    def post
+    def chat
       formatted_response, raw_response = ChatResponseFormatter.new(@proxy).execute do |chunk|
         response.stream.write(chunk)
       end

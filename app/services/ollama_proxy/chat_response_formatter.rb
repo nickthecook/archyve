@@ -26,7 +26,21 @@ module OllamaProxy
     private
 
     def extract_content(chunk)
-      JSON.parse(chunk).dig("message", "content")
+      response_hash = parse_chunk(chunk)
+
+      response_hash.dig("message", "content") || response_hash.dig("choices", 0, "delta", "content")
+    end
+
+    def parse_chunk(chunk)
+      # newlines will only appear after a value JSON object, and only in OpenAI compatibility endpoints
+      chunk = chunk.lines.first
+
+      # ollama does this for OpenAI-compatible endpoints
+      if chunk.start_with?("data: ")
+        chunk.gsub!(/^data: /, "")
+      end
+
+      JSON.parse(chunk)
     end
 
     def processor

@@ -4,7 +4,7 @@ FactoryBot.define do
     user { association(:user) }
     collection { association(:collection) }
     filename { "gnu_manifesto.md" }
-    state { :embedded }
+    state { :chunked }
     vector_id { nil } # TODO: we probably don't need this
     chunking_profile { association(:chunking_profile) }
   end

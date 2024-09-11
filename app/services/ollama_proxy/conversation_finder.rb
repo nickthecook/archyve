@@ -8,16 +8,15 @@ module OllamaProxy
     end
 
     def find_or_create
-      if matching_convo
-        MessageCreator.new(matching_convo, @chat_request.model).create!(
-          @chat_request.messages.last["role"],
-          @chat_request.messages.last["content"]
-        )
+      convo = matching_convo || create_convo
 
-        return matching_convo
-      end
+      most_recent_message = @chat_request.messages.last
+      MessageCreator.new(convo, @chat_request.model).create!(
+        most_recent_message.role,
+        most_recent_message.content
+      )
 
-      create_convo
+      convo
     end
 
     private
@@ -31,8 +30,8 @@ module OllamaProxy
       )
 
       message_creator = MessageCreator.new(convo, @chat_request.model)
-      @chat_request.messages_with_content.each do |chat_message|
-        message_creator.create!(chat_message["role"], chat_message["content"], chat_message["content"])
+      @chat_request.messages_with_content[..-2].each do |chat_message|
+        message_creator.create!(chat_message.role, chat_message.content, chat_message.content)
       end
 
       convo
@@ -72,7 +71,7 @@ module OllamaProxy
     end
 
     def new_convo_title
-      "(OPP) #{@chat_request.messages.first["content"]}".truncate(num_title_chars)
+      "(OPP) #{@chat_request.messages.first.content}".truncate(num_title_chars)
     end
 
     def num_recent_convos

@@ -3,7 +3,8 @@ require 'sidekiq/cron/web'
 
 Rails.application.routes.draw do
   if Rails.configuration.run_opp
-    post "/api/chat", to: "ollama_proxy/augmenting#post"
+    post "/api/chat", to: "ollama_proxy/augmenting#chat"
+    post "/v1/chat/completions", to: "ollama_proxy/augmenting#chat"
 
     get "/", to: "ollama_proxy/streaming#get"
     get "*path", to: "ollama_proxy/streaming#get"
