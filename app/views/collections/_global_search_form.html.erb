@@ -7,7 +7,9 @@
         hidden: false,
         value: query,
         data: { controller: "submit", "submit-target": "input" },
-        autocomplete: "off"
+        autocomplete: "off",
+        autofocus: true
+
       %>
       <div class="flex-col">
         <%= link_to "Clear", collections_path, class: "rounded-lg px-4 py-1 mb-2 text-center text-white align-baseline dark:text-secondary-950 block font-medium bg-secondary-700 dark:bg-secondary-400 ml-2" %>

@@ -1,7 +1,7 @@
 module Search
   class SearchHit
-    attr_reader :reference, :distance
-    attr_accessor :relevant, :previous_distance
+    attr_reader :reference
+    attr_accessor :distance, :relevant, :previous_distance
 
     def initialize(reference, distance, previous_distance = nil)
       @reference = reference

@@ -12,7 +12,9 @@ module Search
       raise SearchError, "No query given" if query.blank?
 
       embedded_query = embedder.embed(query)
-      results = chroma_results_for(embedded_query)
+      results = chroma_response_for(embedded_query)
+      Rails.logger.info("LOWEST DISTANCE #{results.map(&:distance).min}")
+      normalizer.normalize!(results)
 
       results.each do |result|
         yield result if block_given?
@@ -23,7 +25,11 @@ module Search
 
     private
 
-    def chroma_results_for(query)
+    def normalizer
+      @normalizer ||= DistanceNormalizer.new(@collection.embedding_model)
+    end
+
+    def chroma_response_for(query)
       ChromadbQuery.new(@collection, query, traceable: @traceable).results
     end
 

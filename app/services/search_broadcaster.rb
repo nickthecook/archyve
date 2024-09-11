@@ -9,7 +9,7 @@ class SearchBroadcaster
       broadcast_hit(hit)
     end
   rescue StandardError => e
-    Rails.logger.error("\n#{e.class.name}: #{e.message}#{e.backtrace.join("\n")}")
+    Rails.logger.error("\n#{e.class.name}: #{e.message}\n#{e.backtrace.join("\n")}")
 
     broadcast_error(e)
   end

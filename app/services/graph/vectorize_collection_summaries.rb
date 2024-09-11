@@ -23,16 +23,21 @@ module Graph
       @collection.update!(state: "vectorizing", process_steps: entities.count)
       entities.each_with_index do |entity, index|
         @collection.update!(process_step: index + 1)
+        next if entity.summary.nil?
 
-        embedding = embedder.embed(entity.summary, traceable: entity)
-        id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
-        entity.update!(vector_id: id)
+        process_entity(entity)
 
         if @collection.reload.stop_jobs
           @collection.update!(state: :stopped)
           break
         end
       end
+    end
+
+    def process_entity(entity)
+      embedding = embedder.embed(entity.summary, traceable: entity)
+      id = chromadb.add_entity_summary(@collection_id, entity.summary, embedding)
+      entity.update!(vector_id: id)
     end
 
     def initialize_collection

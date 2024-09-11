@@ -24,7 +24,7 @@ module Search
       end
 
       def distance_ceiling
-        Setting.get("search_distance_ceiling", default: 400)
+        Setting.get("normalized_search_distance_ceiling", default: 0.5)
       end
     end
   end

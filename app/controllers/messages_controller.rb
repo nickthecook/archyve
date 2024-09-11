@@ -3,9 +3,7 @@ class MessagesController < ApplicationController
   before_action :set_conversation
 
   def create
-    @message = Message.new(message_params)
-    @message.author = current_user
-    @message.save!
+    @message = create_message
 
     respond_to do |format|
       format.turbo_stream do
@@ -28,6 +26,14 @@ class MessagesController < ApplicationController
   end
 
   private
+
+  def create_message
+    message = Message.new(message_params)
+    message.author = current_user
+    message.save!
+
+    message
+  end
 
   def message_params
     params.permit(:content, :conversation_id)

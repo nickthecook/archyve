@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_08_165637) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_11_153820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -216,6 +216,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_08_165637) do
     t.boolean "available", default: true
     t.string "api_version"
     t.bigint "model_server_id"
+    t.float "distance_min"
+    t.float "distance_max"
     t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 
