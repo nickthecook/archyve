@@ -7,9 +7,9 @@
       "hover:bg-secondary-300 dark:hover:bg-secondary-700"
     end
   %>
-  <div class="container flex rounded-md p-1 items-center <%= bg_class %>">
-    <%= link_to collection, class: "flex-1" do %>
-      <div class="px-2 py-1 text-sm">
+  <div class="container flex rounded-md p-1 my-2 items-center <%= bg_class %> w-full" title="<%= collection.name %>">
+    <%= link_to collection, class: "flex-1 w-full truncate mx-2" do %>
+      <div class="px-2 py-1 truncate">
         <%= collection.name %>
       </div>
     <% end %>
