@@ -3,7 +3,7 @@
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center">
       <%= link_to "ARCHYVE", root_path, class: "text-tertiary-700 dark:text-tertiary-400" %>
     </div>
-    <%= link_to "New collection", new_collection_path, class: "rounded-lg py-1 mb-4 px-3 my-2 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+    <%= link_to "New collection", new_collection_path, class: "rounded-lg py-2 mb-4 px-4 my-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700" %>
     <div id="collection_list_items" class="container overflow-y-scroll flex-1 no-scrollbar">
       <% collections.order(created_at: :desc).each do |collection| %>
         <%= render "shared/collection_list_item", collection:, selected: %>
@@ -22,7 +22,7 @@
       <%= link_to "Chat", "/conversations", class: "rounded-lg py-1 px-3 my-1 text-center text-primary-900 block font-medium border border-primary-800 dark:text-secondary-100 dark:border-primary-400 hover:bg-secondary-100 hover:dark:bg-secondary-800", data: { turbo: false } %>
     </div>
     <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "w-full font-medium rounded-lg py-1 px-3 my-1 text-center text-secondary-200 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400 hover:bg-tertiary-700 dark:hover:bg-tertiary-500" %>
+      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-2 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium w-full hover:bg-secondary-100 hover:dark:bg-secondary-800" %>
     </div>
   </div>
 </div>

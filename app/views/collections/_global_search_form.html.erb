@@ -11,10 +11,8 @@
         autofocus: true
 
       %>
-      <div class="flex-col">
-        <%= link_to "Clear", collections_path, class: "rounded-lg px-4 py-1 mb-2 text-center text-white align-baseline dark:text-secondary-950 block font-medium bg-secondary-700 dark:bg-secondary-400 ml-2" %>
-        <%= f.submit "Search", class: "rounded-lg px-4 py-1 text-center text-white dark:text-secondary-950 block font-medium bg-tertiary-700 dark:bg-tertiary-400 ml-2" %>
-      </div>
+        <%= link_to "Clear", collections_path, class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
+        <%= f.submit "Search", class: "rounded-lg px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 ml-2 cursor-pointer" %>
     </div>
   <% end %>
 </div>
