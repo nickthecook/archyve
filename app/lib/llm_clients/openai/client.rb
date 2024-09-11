@@ -15,7 +15,13 @@ module LlmClients
       def chat(message, traceable: nil, &block)
         @per_request_traceable = traceable
 
-        chat_request(ChatMessageHelper.new(message).chat_history, &block)
+        chat_raw(ChatMessageHelper.new(message).chat_history, &block)
+      end
+
+      def chat_raw(chat_hash, traceable: nil, &block)
+        @per_request_traceable = traceable
+
+        chat_request(chat_hash, &block)
       end
 
       def embed(content, traceable: nil)
@@ -31,6 +37,10 @@ module LlmClients
         # Faraday doesn't populate response code on some errors...
         rescue Faraday::ResourceNotFound => e
           api_call_for(env, traceable: @per_request_traceable || @traceable, status: 404).save!
+
+          raise e
+        rescue Faraday::BadRequestError => e
+          api_call_for(env, traceable: @per_request_traceable || @traceable, status: 400).save!
 
           raise e
         end

@@ -16,6 +16,12 @@ module LlmClients
         stream(req, traceable:, &block)
       end
 
+      def chat_raw(message_list, traceable: nil, &block)
+        req = helper.raw_chat_request(message_list, &block)
+
+        stream(req, traceable:, &block)
+      end
+
       def embed(content, traceable: nil)
         req = helper.embed_request(content)
 

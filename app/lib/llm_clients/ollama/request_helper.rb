@@ -30,6 +30,15 @@ module LlmClients
         request
       end
 
+      def raw_chat_request(message_list)
+        chat = { model: @model, messages: message_list }
+
+        request = Net::HTTP::Post.new(uri(chat_path), **headers)
+        request.body = chat.to_json
+
+        request
+      end
+
       private
 
       def uri(path)
