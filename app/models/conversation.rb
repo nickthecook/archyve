@@ -6,6 +6,12 @@ class Conversation < ApplicationRecord
   has_many :collections, through: :conversation_collections, dependent: :destroy
   has_many :api_calls, as: :traceable, dependent: :destroy
 
+  enum source: {
+    chat: 0,
+    api: 1,
+    proxy: 2,
+  }
+
   include Turbo::Broadcastable
 
   after_update_commit lambda {

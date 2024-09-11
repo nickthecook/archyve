@@ -26,7 +26,8 @@ module OllamaProxy
         user: @user,
         title: new_convo_title,
         search_collections: true,
-        model_config: chat_model_config
+        model_config: chat_model_config,
+        source: :proxy
       )
 
       message_creator = MessageCreator.new(convo, @chat_request.model)
@@ -71,7 +72,7 @@ module OllamaProxy
     end
 
     def new_convo_title
-      "(OPP) #{@chat_request.messages.first.content}".truncate(num_title_chars)
+      @chat_request.messages_with_content.first.content.truncate(num_title_chars)
     end
 
     def num_recent_convos
@@ -79,7 +80,7 @@ module OllamaProxy
     end
 
     def num_title_chars
-      Setting.get(:opp_num_conversation_title_chars, default: 80)
+      Setting.get(:opp_num_conversation_title_chars, default: 60)
     end
   end
 end
