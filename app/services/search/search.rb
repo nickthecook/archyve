@@ -13,7 +13,6 @@ module Search
 
       embedded_query = embedder.embed(query)
       results = chroma_response_for(embedded_query)
-      Rails.logger.info("LOWEST DISTANCE #{results.map(&:distance).min}")
       normalizer.normalize!(results)
 
       results.each do |result|

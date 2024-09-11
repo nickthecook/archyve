@@ -5,6 +5,7 @@ class SummarizeMessage
     into a single short sentence of four words or less.
     Always start your answer with an emoji relevant to the summary.
   ".freeze
+  FALLBACK_SUMMARY_LENGTH = 80
 
   def initialize(message, traceable: nil)
     @client_helper = Helpers::ModelClientHelper.new(model_config: Setting.summarization_model, traceable:)
@@ -17,8 +18,11 @@ class SummarizeMessage
       @summary += response
     end
 
-    Rails.logger.info("Got summary: #{@summary}")
     @summary.lines.find(&:present?)&.gsub(/^\d\./, "")
+  rescue StandardError => e
+    Rails.logger.error("#{e.class.name}: #{e.message}\n#{e.backtrace.join("\n")}")
+
+    @summary = @message.content.truncate(FALLBACK_SUMMARY_LENGTH)
   end
 
   private
