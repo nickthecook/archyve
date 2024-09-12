@@ -45,7 +45,7 @@ The Getting Started section will walk you through setting up Archyve for use wit
 
 ### Graph database view
 
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/8f023566-43eb-4e8b-8fa7-6bb02a7c03e3">
+<img width="640" alt="image" src="docs/graph_screenshot.png">
 
 ## Concepts
 
