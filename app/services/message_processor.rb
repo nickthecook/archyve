@@ -12,9 +12,9 @@ class MessageProcessor
   # rubocop:disable all
   def append(str)
     @input += str.dup
-    str = CGI.escapeHTML(str)
+    escaped_str = CGI.escapeHTML(str)
     ret = ""
-    str.each_char do |char|
+    escaped_str.each_char do |char|
       if char == "`"
         @newline = false
         @backticks += 1
