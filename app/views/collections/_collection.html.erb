@@ -19,11 +19,9 @@
           <%= button_to "Reprocess", collection_reprocess_path(collection), class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
           <%= button_to "Stop jobs", collection_stop_path(collection), class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
       </div>
-      <% if collection.graph_enabled %>
-        <div class="pb-6">
-          <%= render "collections/state_tags", collection: %>
-        </div>
-      <% end %>
+      <div class="pb-6">
+        <%= render "collections/state_tags", collection: %>
+      </div>
     </div>
   </div>
 

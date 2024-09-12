@@ -1,10 +1,10 @@
-<% if collection.graph_enabled %>
-  <% state_bg = collection.state == "errored" ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700" %>
+<% state_bg = collection.state == "errored" ? "bg-error-400 dark:bg-error-800" : "bg-secondary-300 dark:bg-secondary-700" %>
 
-  <div id="<%= dom_id(collection) %>_state_tags" class="flex justify-center items-center">
-    <div class="px-2 py-1 rounded-lg text-xs bg-secondary-300 dark:bg-secondary-700 text-secondary-800 dark:text-secondary-200">
-      <%= collection.embedding_model.name %>
-    </div>
+<div id="<%= dom_id(collection) %>_state_tags" class="flex justify-center items-center">
+  <div class="px-2 py-1 rounded-lg text-xs bg-secondary-300 dark:bg-secondary-700 text-secondary-800 dark:text-secondary-200">
+    <%= collection.embedding_model.name %>
+  </div>
+  <% if collection.graph_enabled %>
     <div class="p-1 px-2 ms-2 rounded-lg text-xs text-secondary-800 dark:text-secondary-200 <%= state_bg %>">
       <%= state_label_for(collection) %>
     </div>
@@ -14,10 +14,10 @@
     <div class="px-2 py-1 ms-2 rounded-lg text-xs bg-secondary-300 dark:bg-secondary-700 text-secondary-800 dark:text-secondary-200">
       Entities: <%= collection.graph_entities.count %>
     </div>
-        <% if collection.reload.stop_jobs %>
-          <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 bg-error-400 dark:bg-error-800">
-            <%= button_to "Jobs stopping...", collection_start_path(collection) %>
-          </div>
-        <% end %>
-  </div>
-<% end %>
+    <% if collection.reload.stop_jobs %>
+      <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-2 p-1 px-2 bg-error-400 dark:bg-error-800">
+        <%= button_to "Jobs stopping...", collection_start_path(collection) %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
