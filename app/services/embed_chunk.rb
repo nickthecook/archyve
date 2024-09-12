@@ -5,6 +5,8 @@ class EmbedChunk
   end
 
   def execute
+    return if @document.stop_jobs
+
     initialize_collection
 
     embed
