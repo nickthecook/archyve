@@ -1,9 +1,17 @@
+<%
+  disable_form = @conversation.source == "proxy"
+  hover_text = disable_form ? "This conversation came in through the proxy API, and cannot be edited here." : ""
+  placeholder = disable_form ? "Chat via UI disabled" : "Enter a message"
+  button_classes = disable_form ? "bg-secondary-200 dark:bg-secondary-700 text-secondary-400 dark:text-secondary-400" : "text-secondary-100 dark:text-secondary-950 bg-primary-700 dark:bg-primary-500"
+%>
+
+
 <%= form_with url: conversation_messages_path(@conversation), html: { id: "message_form", class: "my-5 w-full" } do |f| %>
   <div class="container flex">
     <div class="flex-1 pr-3">
       <%= f.text_area :content,
-        class: "form-control w-full rounded-lg bg-secondary-50 dark:bg-secondary-800",
-        placeholder: "write a message",
+        class: "form-control w-full rounded-lg bg-secondary-50 dark:bg-secondary-900",
+        placeholder: placeholder,
         autofocus: true,
         rows: 1,
         data: {
@@ -12,11 +20,13 @@
           action: 'input->auto-grow-textarea#resize',
           "auto-grow-textarea-target": 'input'
         },
-        autocomplete: "off"
+        autocomplete: "off",
+        disabled: disable_form,
+        title: hover_text
       %>
     </div>
     <div>
-      <%= f.submit "Send", class: "rounded-lg px-2 py-1 text-center text-white dark:text-secondary-950 block font-medium bg-primary-700 dark:bg-primary-500" %>
+      <%= f.submit "Send", class: "rounded-lg px-2 py-2 text-center  block font-medium #{button_classes}", disabled: disable_form, title: hover_text %>
     </div>
   </div>
 <% end %>
