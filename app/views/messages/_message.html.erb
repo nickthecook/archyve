@@ -1,5 +1,5 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg dark:border dark:border-secondary-800" %>
-<%= content_tag :div, id: dom_id(message), class: "py-3 my-10 rounded-md #{message_bg_class}" do %>
+<%= content_tag :div, id: dom_id(message), class: "py-3 my-10 rounded-lg #{message_bg_class}" do %>
   <div>
     <div class="flex justify-start items-start px-5">
       <div class="flex-1 whitespace-prewrap w-full text-lg" data-controller="markdown-text">
@@ -14,7 +14,7 @@
     </div>
 
     <% if message.prompt %>
-      <div class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 hover:border-primary-500 px-4 py-2 my-1 rounded-md cursor-pointer">
+      <div class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 hover:border-primary-500 px-4 py-2 my-1 rounded-lg cursor-pointer">
         <details>
           <summary>Augmentations</summary>
           <div id=<%= "#{dom_id(message)}-augmentations" %> class="flex flex-col">
