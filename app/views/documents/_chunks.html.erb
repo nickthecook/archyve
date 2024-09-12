@@ -1,6 +1,6 @@
 <% chunk ||= @chunk %>
 <% document ||= @document %>
-<% chunk_range = [chunks.first.id, chunks.last.id] %>
+<% chunk_range = chunks.any? ? [chunks.first.id, chunks.last.id] : [] %>
 <div class="flex justify-center">
   <div class="flex flex-col w-3/4">
     <% chunks.each do |chunk| %>
