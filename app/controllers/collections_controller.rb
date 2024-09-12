@@ -33,17 +33,15 @@ class CollectionsController < ApplicationController
   def create
     @collection = collection_from_params(collection_params)
 
-    respond_to do |format|
-      if @collection.save
-        @collection.generate_slug
-        CreateCollectionJob.perform_async(@collection.id)
+    if @collection.save
+      @collection.generate_slug
+      CreateCollectionJob.perform_async(@collection.id)
 
-        format.html { redirect_to collection_url(@collection) }
-      else
-        @collections = current_user.collections
-        flash[:error] = @collection.errors.full_messages
-        format.html { render :index, status: :unprocessable_entity }
-      end
+      redirect_to collection_url(@collection)
+    else
+      @collections = current_user.collections
+      flash[:error] = @collection.errors.full_messages
+      render :index, status: :unprocessable_entity
     end
   end
 
@@ -118,34 +116,34 @@ class CollectionsController < ApplicationController
 
     SearchMultipleJob.perform_async(collection_ids, query, dom_id)
 
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.replace(
-            dom_id,
-            partial: "global_search_results"
-          ),
-          turbo_stream.replace(
-            user_dom_id("global_search_form"),
-            partial: "global_search_form",
-            locals: { collection: @collection, query: }
-          ),
-        ]
-      end
-    end
+    render turbo_stream: [
+      turbo_stream.replace(
+        dom_id,
+        partial: "global_search_results"
+      ),
+      turbo_stream.replace(
+        user_dom_id("global_search_form"),
+        partial: "global_search_form",
+        locals: { collection: @collection, query: }
+      ),
+    ]
   end
 
   private
 
   def collection_from_params(params)
     @collection = Collection.new(params)
-    @collection.embedding_model = Setting.embedding_model
+    @collection.embedding_model = if params[:embedding_model_id]
+      ModelConfig.find(params[:embedding_model_id])
+    else
+      Setting.embedding_model
+    end
 
     @collection
   end
 
   def collection_params
-    params.require(:collection).permit(:name, :graph_enabled)
+    params.require(:collection).permit(:name, :graph_enabled, :embedding_model_id)
   end
 
   def set_collection

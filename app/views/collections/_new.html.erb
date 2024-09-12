@@ -5,16 +5,21 @@
     <% flash[:error]&.each do |error| %><div class="rounded-lg px-2 p-1 bg-error-400 dark:bg-error-800"><%= error %></div><% end %>  
   </div>
   <%= form_for collection do |f| %>
-    <div class="flex p-2 items-center">
+    <div class="p-2 items-center flex">
       <%= f.text_field(
         :name,
-        class: "rounded-md bg-secondary-50 dark:bg-secondary-800",
+        class: "rounded-md bg-secondary-50 dark:bg-secondary-800 flex-1",
         value: collection.name,
         placeholder: "New collection name",
         autofocus: true
       )%>
-      <div class="flex-1"></div>
       <%= f.submit "Update", hidden: true %>
+    </div>
+    <div class="p-2 items-center">
+      <%= f.label "Embedding model" %>
+      <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :name, {}, {
+        class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2"
+      })%>
     </div>
     <div class="flex p-2 items-center justify-center">
       <label class="inline-flex items-center cursor-pointer mr-2 mb-1 p-2 align-middle rounded-lg">
