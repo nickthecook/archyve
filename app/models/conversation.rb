@@ -6,6 +6,7 @@ class Conversation < ApplicationRecord
   has_many :collections, through: :conversation_collections, dependent: :destroy
   has_many :api_calls, as: :traceable, dependent: :destroy
 
+  attribute :source, :integer
   enum source: {
     chat: 0,
     api: 1,
