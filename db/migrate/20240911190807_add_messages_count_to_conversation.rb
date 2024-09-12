@@ -1,4 +1,10 @@
 class AddMessagesCountToConversation < ActiveRecord::Migration[7.1]
+  Collection
+
+  class Collection < ApplicationRecord
+    attribute :source, :integer
+  end
+
   def change
     add_column :conversations, :messages_count, :integer
 
