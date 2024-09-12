@@ -1,7 +1,7 @@
 <% entity ||= @entity %>
 
-<%= link_to collection_entity_path(entity.collection, entity), class: "flex justify-start items-start px-6 py-5 my-2 rounded-md shadow-lg bg-primary-200 dark:bg-primary-900 hover:bg-primary-100 hover:dark:bg-primary-800 px-3 py-1 rounded-lg w-full" do %>
-  <div class="flex">
+<%= link_to collection_entity_path(entity.collection, entity), class: "flex justify-start items-start px-6 py-5 my-2 rounded-lg border border-secondary-300 dark:border-secondary-900 hover:bg-secondary-200 hover:dark:bg-secondary-900 px-3 py-1 rounded-lg w-full" do %>
+  <div class="flex w-full">
     <div class="flex-1 whitespace-prewrap">
       <div class="flex flex-col">
         <div class="flex items-baseline">
@@ -18,14 +18,14 @@
         </div>
       </div>
     </div>
-    <div class="flex flex-col ms-4">
-      <p class="py-1 text-xs text-right"><%= entity.collection.name %></p>
+    <div class="flex flex-col ms-4 text-xs text-right">
+      <p class="py-1"><%= entity.collection.name %></p>
       <% if distance %>
-        <p class="py-1 text-xs text-right text-muted">distance: <%= distance.round(1) %></p>
+        <p class="py-1 text-muted">distance: <%= distance.round(1) %></p>
       <% end %>
-      <p class="py-1 text-xs text-right"><%= time_ago_in_words(entity.created_at) %> ago</p>
-      <p class="py-1 text-xs text-right"><%= entity.descriptions.count %> descriptions</p>
-      <p class="py-1 text-xs text-right"><%= entity.relationship_count %> relationships</p>
+      <p class="py-1"><%= time_ago_in_words(entity.created_at) %> ago</p>
+      <p class="py-1"><%= entity.descriptions.count %> descriptions</p>
+      <p class="py-1"><%= entity.relationship_count %> relationships</p>
       <div class="text-right">
         <%= render "shared/copy_button", content: entity.summary.strip %>
       </div>
