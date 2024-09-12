@@ -24,7 +24,8 @@
         <%= conversation.messages_count %>
       </div>
       <div class="flex-none mx-1 px-1">
-        <%= button_to conversation, method: :delete, form: {data: {turbo_confirm: 'Are you sure?'}} do %>
+        <% data = conversation.messages_count.present? && conversation.messages_count.positive? ? { turbo_confirm: 'Are you sure?' } : nil %>
+        <%= button_to conversation, method: :delete, form: { data: } do %>
           <i class="fa fa-trash"></i>
         <% end %>
       </div>

@@ -1,7 +1,7 @@
 class Conversation < ApplicationRecord
   belongs_to :user
   belongs_to :model_config
-  has_many :messages, dependent: :destroy, counter_cache: true
+  has_many :messages, dependent: :destroy
   has_many :conversation_collections, dependent: :destroy
   has_many :collections, through: :conversation_collections, dependent: :destroy
   has_many :api_calls, as: :traceable, dependent: :destroy
