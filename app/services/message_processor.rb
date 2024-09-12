@@ -48,12 +48,4 @@ class MessageProcessor
     [ret, str]
   end
   # rubocop:enable all
-
-  def append_2(str)
-    @input += str.dup
-    ret = CGI.escapeHTML(str)
-
-    @output += ret
-    [ret, str]
-  end
 end
