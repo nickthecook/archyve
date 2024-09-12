@@ -5,7 +5,6 @@
       :title,
       class: "rounded-md bg-secondary-200 dark:bg-secondary-800 mx-1",
       value: conversation.title,
-      placeholder: "title",
       onchange: "this.form.requestSubmit()"
     )%>
     <%= f.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
@@ -27,7 +26,7 @@
       selected: selected_collection_id,
       prompt: "All collections",
     }, {
-      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2",
+      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 mr-2 w-64",
       onchange: "this.form.requestSubmit()",
       disabled: conversation.messages.any? ? true : false
     })%>
