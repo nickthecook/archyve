@@ -38,15 +38,6 @@ class Collection < ApplicationRecord
         selected: false,
       }
     )
-    broadcast_replace_to(
-      :collections,
-      target: "collection_#{id}_search_form",
-      partial: "collections/search_form",
-      locals: {
-        collection: self,
-        query: "",
-      }
-    )
   }
   after_destroy_commit lambda {
     broadcast_remove_to(
