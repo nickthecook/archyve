@@ -28,3 +28,4 @@ PROVISIONED_MODEL_CONFIGS="[
   }
 ]"
 LLM_JOBS_CONCURRENCY=5
+ALLOWED_HOSTS=[\"localhost\", \"host.docker.internal\"]
