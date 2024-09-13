@@ -60,8 +60,6 @@ The Getting Started section will walk you through setting up Archyve for use wit
 
 To run Archyve, use `docker compose`.
 
-> Podman compose will work as well, if you edit the compose file so that Archyve can connect to ollama on `localhost`.
-
 1. Clone this repo
 2. `cp dotenv_template local.env`
 3. Run `openssl rand -hex 64` and put the value in the `SECRET_KEY_BASE` variable in your `local.env` file
@@ -94,9 +92,6 @@ If you want to develop Archyve you probably want the app runing directly on your
 1. Ensure that you have [brew](https://brew.sh) installed
 2. Ensure that you have `docker` set up and a "machine" configured and ready to pull and run container images
 
-> You can use Docker Desktop, Podman Machine, Rancher Desktop, or anything else that provides OCI capability.
-> The `compose.yml` file in this repo assumes you're using Docker, but the only difference when using Podman is that you may need to use different YAML to make your Ollama port on the host available to the containers.
-
 3. Ensure you have [ops](https://github.com/nickthecook/crops?tab=readme-ov-file#installation) installed:
 
 `brew install nickthecook/crops/ops`
@@ -105,7 +100,7 @@ If you want to develop Archyve you probably want the app runing directly on your
 
 #### Installing dependencies on Linux
 
-1. Ensure that you have Docker or Podman and the appropriate `compose` plugins installed
+1. Ensure that you have Docker and the appropriate `compose` plugins installed
 2. Ensure you have [ops](https://github.com/nickthecook/crops?tab=readme-ov-file#installation) installed (download the binary for your platform).
 3. Install [Ollama](https://ollama.com/) and make sure you're running `ollama serve` and that you have the minimum models installed (see section on Ollama further below).
 
@@ -199,7 +194,7 @@ If you are running the app on your host, you can set the `DEFAULT_API_KEY` and `
 - `DEFAULT_API_KEY` must be a 48-byte value encoded in base64. Generate a key with `openssl rand -base64 48`.
 - `DEFAULT_CLIENT_ID` can be any string, but it should be unique to your app. A UUID is recommended.
 
-> If you are running the app via `docker compose` or `podman compose`, set the above two environment variables in your `local.env` file and restart the containers.
+> If you are running the app via `docker compose`, set the above two environment variables in your `local.env` file and restart the containers.
 
 > If you are running the app on your host, set the two above environment variables in `config/dev/config.json` and run `rails db:seed`.
 
