@@ -69,9 +69,9 @@ services:
         "--pid",
         "/rails/tmp/pids/opp.pid",
         "-p",
-        "$OPP_PORT",
+        "11337",
         "-b",
-        "$OPP_BIND_ADDRESS",
+        "0.0.0.0",
       ]
   archyve-worker:
     image: archyve:local
@@ -99,7 +99,7 @@ services:
       [
         "/bin/bash",
         "-c",
-        "bin/rails db:seed && bundle exec sidekiq -q llm -c $LLM_JOBS_CONCURRENCY",
+        "bin/rails db:seed && bundle exec sidekiq -q llm -c 5",
       ]
     depends_on: *archyve-worker-dependencies
     environment:
