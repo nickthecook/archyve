@@ -49,3 +49,5 @@ local.env
 .DS_Store
 spec/examples.txt
 config/local/*
+app/assets/images/backgrounds/dark/*
+app/assets/images/backgrounds/light/*
