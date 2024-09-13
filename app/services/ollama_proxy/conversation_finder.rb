@@ -10,7 +10,7 @@ module OllamaProxy
     def find_or_create
       convo = matching_convo || create_convo
 
-      most_recent_message = @chat_request.messages.last
+      most_recent_message = @chat_request.messages_with_content.last
       MessageCreator.new(convo, @chat_request.model).create!(
         most_recent_message.role,
         most_recent_message.content
