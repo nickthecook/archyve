@@ -22,10 +22,10 @@
               <% end %>
 
               <div class="actions">
-                <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-tertiary-700 dark:bg-tertiary-500" %>
+                <%= f.submit "Sign in", class: "w-full rounded-lg py-1 px-3 my-2 text-center text-white dark:text-secondary-950 block font-medium bg-tertiary-700 dark:bg-tertiary-500 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 cursor-pointer" %>
               </div>
               <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
-                <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-xs text-slate-600" %><br />
+                <%= link_to "Forgot your password?", new_password_path(resource_name), class: "text-xs text-slate-600" %><br/>
               <% end %>
             <% end %>
           </div>
