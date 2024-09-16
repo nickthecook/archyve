@@ -53,7 +53,7 @@ module OllamaProxy
         end
       end
 
-      ApiCall.from_net_http(service_name, request, full_response, nil).save!
+      store_api_call(service_name, request, full_response, response)
 
       response unless @yielded
     end
@@ -63,7 +63,7 @@ module OllamaProxy
         http.request(request)
       end
 
-      ApiCall.from_net_http(service_name, request, @last_response, nil).save!
+      store_api_call(service_name, request, full_response, response)
 
       @last_response.read_body
     end
