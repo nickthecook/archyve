@@ -5,14 +5,18 @@ module OllamaProxy
     before_action :update_request
 
     def chat
+      response_body = ""
       formatted_response, raw_response = ChatResponseFormatter.new(@proxy).execute do |chunk|
         response.stream.write(chunk)
+        response_body << chunk
       end
 
       MessageCreator.new(
         @message.conversation,
         @opp_request.model
       ).create!("assistant", formatted_response, raw_response)
+
+      store_api_call(response_body)
     ensure
       response.stream.close
     end
@@ -24,6 +28,16 @@ module OllamaProxy
     end
 
     private
+
+    def store_api_call(response_body)
+      logger.silence do
+        proxy_response(response_body).api_call.save!
+      end
+    end
+
+    def proxy_response(response_body)
+      ProxyResponse.new(request, 200, response.headers, response_body, response_body.length)
+    end
 
     def return_if_no_messages
       head :no_content if @opp_request.messages_with_content.empty?

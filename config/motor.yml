@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-08-27 17:36:50.580740000 Z
+file_version: 2024-09-16 20:07:53.231558000 Z
 resources:
 - name: api_call
   preferences:
@@ -9,6 +9,9 @@ resources:
       name: updated_at
     - access_type: read_write
       name: created_at
+    - default_value:
+      virtual: true
+      name: incoming
     scopes:
     - visible: false
       name: not_http_method_delete
@@ -32,7 +35,7 @@ resources:
         sort:
           key: created_at
           order: desc
-  updated_at: 2024-08-27 13:20:36.742758000 +00:00
+  updated_at: 2024-09-16 20:07:37.760873000 +00:00
 - name: collection
   preferences:
     columns:
@@ -51,6 +54,18 @@ resources:
         virtual: false
       name: embedding_model_id
   updated_at: 2024-04-10 17:34:20.219590000 +00:00
+- name: message
+  preferences:
+    associations:
+    - name: augmentations
+      display_name: Augmentations
+      model_name: message_augmentation
+      foreign_key: message_id
+      primary_key: id
+      virtual: true
+      polymorphic: false
+      slug: augmentations
+  updated_at: 2024-08-27 17:36:50.580740000 +00:00
 - name: model_config
   preferences:
     actions:
@@ -143,6 +158,7 @@ configs:
   - id
   - traceable_id
   - service_name
+  - incoming
   - http_method
   - response_code
   - url
@@ -155,7 +171,7 @@ configs:
   - traceable_type
   - updated_at
   - created_at
-  updated_at: 2024-08-27 12:16:10.842622000 +00:00
+  updated_at: 2024-09-16 20:07:53.231558000 +00:00
 - key: resources.api_call.scopes.order
   value:
   - successes
