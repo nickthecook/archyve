@@ -30,7 +30,7 @@ class ApiCall < ApplicationRecord
         service_name:,
         http_method: request.method.downcase,
         url: request.uri.to_s,
-        headers: request.to_hash,
+        headers: headers_from_request(request),
         body: json_body(request.body),
         body_length: request.body.length,
         response_code: response.code,
@@ -62,6 +62,17 @@ class ApiCall < ApplicationRecord
     end
 
     private
+
+    def headers_from_request(request)
+      hash = request.to_hash
+      hash.each do |key, value|
+        hash[key] = if value.is_a?(Array)
+          value.join(", ")
+        else
+          value
+        end
+      end
+    end
 
     def json_body(body)
       return if body.nil?

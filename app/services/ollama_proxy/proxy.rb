@@ -34,7 +34,7 @@ module OllamaProxy
       response = ""
       @yielded = false
 
-      Net::HTTP.start(host, port) do |http|
+      full_response = Net::HTTP.start(host, port) do |http|
         http.request(request) do |incoming_response|
           @last_response = incoming_response
 
@@ -53,6 +53,8 @@ module OllamaProxy
         end
       end
 
+      ApiCall.from_net_http(service_name, request, full_response, nil).save!
+
       response unless @yielded
     end
 
@@ -61,7 +63,14 @@ module OllamaProxy
         http.request(request)
       end
 
+      ApiCall.from_net_http(service_name, request, @last_response, nil).save!
+
       @last_response.read_body
+    end
+
+    def store_api_call(service_name, request, response, response_body = nil, traceable: nil)
+      response.body = response_body if response_body
+      ApiCall.from_net_http(service_name, request, response, traceable || @traceable).save!
     end
 
     def chunked?(response)
@@ -110,6 +119,10 @@ module OllamaProxy
     rescue JSON::ParserError => e
       Rails.log.warning("Failed to parse request body: #{e}")
       {}
+    end
+
+    def service_name
+      "ollama_proxy"
     end
   end
 end
