@@ -53,7 +53,7 @@ class ApiCall < ApplicationRecord
         headers: request[:headers],
         body: json_body(request[:body]),
         body_length: request[:body].length,
-        response_headers: response[:headers],
+        response_headers: headers_from_net_http_request(response),
         response_code: response[:status],
         response_body: json_body(response[:body]),
         response_length: response[:body]&.length || 0
@@ -72,7 +72,7 @@ class ApiCall < ApplicationRecord
         body: json_body(body),
         body_length: body.length,
         response_code: response.code,
-        response_headers: response.to_hash,
+        response_headers: headers_from_net_http_request(response),
         response_body: json_body(response.body),
         response_length: response.body&.length || 0
       )
