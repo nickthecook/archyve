@@ -6,7 +6,7 @@ module OllamaProxy
     end
 
     def handle(&)
-      response = @proxy.execute(&)
+      response = @proxy.send(@request.method.downcase, &)
 
       save_api_calls
 

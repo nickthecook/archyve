@@ -4,23 +4,16 @@ module OllamaProxy
 
     def initialize(request, traceable: nil)
       @incoming_request = request
-      @last_response = nil
       @traceable = traceable
     end
 
-    def execute(&)
-      case @incoming_request.method
-      when "get"
-        get(&)
-      when "post"
-        post(&)
-      when "delete"
-        delete
-      end
+    def head
+      @http_request = Net::HTTP::Head.new(uri, **headers)
+      request
     end
 
     def get(&)
-      @http_request = Net::HTTP::Get.new(url.to_s, **headers)
+      @http_request = Net::HTTP::Get.new(uri, **headers)
       stream(&)
     end
 
@@ -37,7 +30,7 @@ module OllamaProxy
     end
 
     def code
-      @last_response.code.to_i
+      @response.code.to_i
     end
 
     def api_call
@@ -58,20 +51,22 @@ module OllamaProxy
       response unless @yielded
     end
 
-    def request(request)
-      @last_response = Net::HTTP.start(host, port) do |http|
-        http.request(request)
+    def request
+      @response = Net::HTTP.start(host, port) do |http|
+        http.request(@http_request)
       end
 
-      store_api_call(service_name, request, full_response, response)
+      # last_response is the last chunk in case of a streaming request; response is always the complete response object
+      # we need to set response here too
+      Rails.logger.silence { api_call.save! }
 
-      @last_response.read_body
+      @response.read_body
     end
 
     def stream_request(&)
       Net::HTTP.start(host, port) do |http|
         http.request(@http_request) do |incoming_response|
-          @last_response = incoming_response
+          # @response = incoming_response
 
           if chunked?(incoming_response)
             incoming_response.read_body do |chunk|

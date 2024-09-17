@@ -5,7 +5,7 @@ module OllamaProxy
     before_action :set_content_type_header
 
     def get
-      response_body = @proxy.get do |chunk|
+      response_body = @handler.handle do |chunk|
         response.stream.write chunk
       end
 
@@ -17,7 +17,7 @@ module OllamaProxy
     end
 
     def post
-      response_body = @proxy.post do |chunk|
+      response_body = @handler.handle do |chunk|
         response.stream.write chunk
       end
 

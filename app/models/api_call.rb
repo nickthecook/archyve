@@ -37,7 +37,7 @@ class ApiCall < ApplicationRecord
         response_code: response.code,
         response_headers: response.to_hash,
         response_body: json_body(response.body),
-        response_length: response.body.length
+        response_length: response.body&.length || 0
       )
 
       api_call.traceable = traceable if traceable
@@ -74,7 +74,7 @@ class ApiCall < ApplicationRecord
         response_code: response.code,
         response_headers: response.to_hash,
         response_body: json_body(response.body),
-        response_length: response.body.length
+        response_length: response.body&.length || 0
       )
       api_call.traceable = traceable if traceable
       api_call

@@ -2,7 +2,7 @@ module OllamaProxy
   class ProxyResponse
     attr_reader :request, :code, :body, :length
 
-    def initialize(net_http_request, net_http_response, traceable:)
+    def initialize(net_http_request, net_http_response, traceable: nil)
       @request = net_http_request
       @response = net_http_response
       @traceable = traceable

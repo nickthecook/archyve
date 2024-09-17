@@ -4,21 +4,25 @@ module OllamaProxy
 
     before_action :set_request
     before_action :set_proxy
+    before_action :set_handler
 
     def get
-      render json: @proxy.get, status: @proxy.code
+      render json: @handler.handle, status: @proxy.code
     end
 
     def post
-      response_body = @proxy.post
-      render json: response_body, status: @proxy.code
+      render json: @handler.handle, status: @proxy.code
     end
 
     def delete
-      render json: @proxy.delete, status: @proxy.code
+      render json: @handler.handle, status: @proxy.code
     end
 
     protected
+
+    def set_handler
+      @handler = OllamaProxy::RequestHandler.new(@opp_request, @proxy)
+    end
 
     def set_request
       @opp_request = OllamaProxy::Request.new(request)
