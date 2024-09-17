@@ -1,13 +1,15 @@
 module OllamaProxy
   class ChatRequestHandler < RequestHandler
     def handle(&)
+      chat_augmentor.execute
+      @request.update_last_user_message(message.prompt)
+
       formatted_response, raw_response = FormattedChatResponse.new(@proxy).generate(&)
 
       MessageCreator.new(
         message.conversation,
         @request.model
       ).create!("assistant", formatted_response, raw_response)
-      @request.update_last_user_message(message.prompt)
 
       save_api_calls
 
