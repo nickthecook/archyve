@@ -8,6 +8,17 @@ module OllamaProxy
       @traceable = traceable
     end
 
+    def execute(&)
+      case @incoming_request.method
+      when "get"
+        get(&)
+      when "post"
+        post(&)
+      when "delete"
+        delete
+      end
+    end
+
     def get(&)
       @http_request = Net::HTTP::Get.new(url.to_s, **headers)
       stream(&)
@@ -116,14 +127,6 @@ module OllamaProxy
 
     def headers
       { "Content-Type": "application/json" }
-      # headers[:Authorization] = "Bearer #{@api_key}" if @api_key
-    end
-
-    def incoming_request_body
-      JSON.parse(@incoming_request.body)
-    rescue JSON::ParserError => e
-      Rails.log.warning("Failed to parse request body: #{e}")
-      {}
     end
   end
 end

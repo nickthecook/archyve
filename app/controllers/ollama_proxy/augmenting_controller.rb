@@ -3,7 +3,7 @@ module OllamaProxy
     before_action :return_if_no_messages
 
     def chat
-      RequestHandler.new(@opp_request, @proxy).handle do |chunk|
+      ChatRequestHandler.new(@opp_request, @proxy).handle do |chunk|
         response.stream.write(chunk)
       end
     ensure
