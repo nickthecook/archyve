@@ -1,5 +1,5 @@
 module OllamaProxy
-  class ChatResponseFormatter
+  class FormattedChatResponse
     attr_reader :formatted_response, :raw_response
 
     def initialize(proxy)
@@ -9,8 +9,9 @@ module OllamaProxy
       @raw_response = ""
     end
 
-    def execute(&)
+    def generate(&)
       @proxy.post do |chunk|
+        # yield the content the server sent, exactly as the server sent it
         yield chunk
 
         content = extract_content(chunk)
@@ -20,6 +21,7 @@ module OllamaProxy
         @raw_response << raw_message
       end
 
+      # return the complete response, in formatted and unformatted forms
       [@formatted_response, @raw_response]
     end
 

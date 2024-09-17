@@ -45,7 +45,7 @@ module LlmClients
           raise e
         end
 
-        api_call_for(env, traceable: @per_request_traceable || @traceable).save!
+        Rails.logger.silence { api_call_for(env, traceable: @per_request_traceable || @traceable).save! }
 
         # TODO: - with streaming enabled, unable to retrieve response body via instrumentation callback
         response

@@ -155,7 +155,9 @@ module Chromadb
     end
 
     def store_api_call(service_name, response)
-      ApiCall.from_httparty(service_name, response, @traceable).save!
+      Rails.logger.silence do
+        ApiCall.from_httparty(service_name, response, @traceable).save!
+      end
     end
   end
   # rubocop:enable Metrics/ClassLength

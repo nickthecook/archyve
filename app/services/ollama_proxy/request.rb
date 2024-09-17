@@ -1,6 +1,7 @@
 module OllamaProxy
   class Request
     attr_writer :body
+    attr_reader :controller_request
 
     def initialize(controller_request)
       @controller_request = controller_request

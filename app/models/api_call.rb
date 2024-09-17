@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class ApiCall < ApplicationRecord
   belongs_to :traceable, polymorphic: true, optional: true
 
@@ -61,6 +62,24 @@ class ApiCall < ApplicationRecord
       api_call
     end
 
+    def from_controller_request(service_name, request, response, traceable: nil)
+      body = request.body.read
+      api_call = new(
+        service_name:,
+        url: request.url,
+        http_method: request.method.downcase,
+        headers: headers_from_controller_request(request),
+        body: json_body(body),
+        body_length: body.length,
+        response_code: response.code,
+        response_headers: response.to_hash,
+        response_body: json_body(response.body),
+        response_length: response.body.length
+      )
+      api_call.traceable = traceable if traceable
+      api_call
+    end
+
     private
 
     def headers_from_net_http_request(request)
@@ -72,6 +91,20 @@ class ApiCall < ApplicationRecord
           value
         end
       end
+    end
+
+    def headers_from_controller_request(request)
+      http_headers = request.headers.to_h.select do |key, _value|
+        key.start_with?("HTTP_")
+      end
+      http_headers.transform_keys! { |key| key.gsub(/^HTTP_/, "").downcase }
+
+      content_headers = request.headers.to_h.select do |key, _value|
+        key.start_with?("CONTENT_")
+      end
+      content_headers.transform_keys!(&:downcase)
+
+      http_headers.merge!(content_headers)
     end
 
     def json_body(body)
@@ -87,3 +120,4 @@ class ApiCall < ApplicationRecord
     end
   end
 end
+# rubocop:enable Metrics/ClassLength

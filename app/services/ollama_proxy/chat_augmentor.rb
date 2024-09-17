@@ -13,14 +13,14 @@ module OllamaProxy
       message_to_augment
     end
 
+    def conversation
+      @conversation ||= ConversationFinder.new(@chat_request, @user).find_or_create
+    end
+
     private
 
     def message_to_augment
       @message_to_augment ||= conversation.reload.messages.last
-    end
-
-    def conversation
-      @conversation ||= ConversationFinder.new(@chat_request, @user).find_or_create
     end
   end
 end
