@@ -84,8 +84,9 @@ class ApiCall < ApplicationRecord
 
     def headers_from_net_http_request(request)
       hash = request.to_hash
-      hash.each do |key, value|
-        hash[key] = if value.is_a?(Array)
+
+      hash.transform_values do |value|
+        if value.is_a?(Array)
           value.join(", ")
         else
           value

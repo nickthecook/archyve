@@ -5,26 +5,26 @@ module OllamaProxy
     before_action :set_content_type_header
 
     def get
-      response_body = @handler.handle do |chunk|
+      http_response = @handler.handle do |chunk|
         response.stream.write chunk
       end
 
       if @proxy.yielded
         response.stream.close
       else
-        render json: response_body, status: @proxy.code
+        render json: http_response.body, status: @proxy.code
       end
     end
 
     def post
-      response_body = @handler.handle do |chunk|
+      http_response = @handler.handle do |chunk|
         response.stream.write chunk
       end
 
       if @proxy.yielded
         response.stream.close
       else
-        render json: response_body, status: @proxy.code
+        render json: http_response, status: @proxy.code
       end
     end
 

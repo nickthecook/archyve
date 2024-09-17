@@ -48,7 +48,7 @@ module OllamaProxy
       @response.body = @response_body
       Rails.logger.silence { api_call.save! }
 
-      response unless @yielded
+      @response unless @yielded
     end
 
     def request
@@ -60,7 +60,7 @@ module OllamaProxy
       # we need to set response here too
       Rails.logger.silence { api_call.save! }
 
-      @response.read_body
+      @response
     end
 
     def stream_request(&)
