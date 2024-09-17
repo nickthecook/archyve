@@ -2,8 +2,6 @@ module OllamaProxy
   class StreamingController < OllamaProxyController
     include ActionController::Live
 
-    before_action :set_content_type_header
-
     def get
       http_response = @handler.handle do |chunk|
         response.stream.write chunk
@@ -26,12 +24,6 @@ module OllamaProxy
       else
         render json: http_response, status: @proxy.code
       end
-    end
-
-    protected
-
-    def set_content_type_header
-      response.headers['Content-Type'] = 'application/json'
     end
   end
 end

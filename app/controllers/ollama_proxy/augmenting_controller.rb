@@ -6,8 +6,12 @@ module OllamaProxy
       ChatRequestHandler.new(@opp_request, @proxy).handle do |chunk|
         response.stream.write(chunk)
       end
-    ensure
-      response.stream.close
+
+      if @proxy.yielded
+        response.stream.close
+      else
+        render json: @proxy.response.body, status: @proxy.code
+      end
     end
 
     protected

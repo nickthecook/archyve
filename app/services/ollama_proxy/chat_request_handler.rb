@@ -10,6 +10,8 @@ module OllamaProxy
       @request.update_last_user_message(message.prompt)
 
       save_api_calls
+
+      @proxy.response
     end
 
     private
