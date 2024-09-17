@@ -44,7 +44,7 @@ RSpec.describe MessageProcessor do
           <br>
           ```ruby<br>
           def hello<br>
-          &nbsp;&nbsp;puts "Hello, World!"<br>
+          &nbsp;&nbsp;puts &quot;Hello, World!&quot;<br>
           end<br>
           <br>
           hello<br>
