@@ -33,7 +33,7 @@ class ApiCall < ApplicationRecord
         url: request.uri.to_s,
         headers: headers_from_net_http_request(request),
         body: json_body(request.body),
-        body_length: request.body.length,
+        body_length: request.body&.length || 0,
         response_code: response.code,
         response_headers: response.to_hash,
         response_body: json_body(response.body),
