@@ -13,9 +13,10 @@ module Api
     end
 
     def respond
+      message
       response
 
-      Message.create!(content: response, conversation:, author: @api_client.user, statistics: client.stats)
+      Message.create!(content: response, conversation:, author: model_loader.model_config, statistics: client.stats)
 
       { reply: response, augmented: @augment, statistics: client.clean_stats }
     end
@@ -70,7 +71,8 @@ module Api
         user: @api_client.user,
         title: @prompt.truncate(TITLE_LENGTH),
         model_config: model_loader.model_config,
-        search_collections: @augment
+        search_collections: @augment,
+        source: :api
       )
     end
   end
