@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["reply", "augmented", "statistics"],
+  "properties": {
+    "reply": { "type": "string" },
+    "augmented": { "type": "boolean" },
+    "statistics": {
+      "type": "object",
+      "required": [
+        "elapsed_ms",
+        "tokens",
+        "tokens_per_sec",
+        "time_to_first_token"
+      ],
+      "properties": {
+        "elapsed_ms": { "type": "integer" },
+        "tokens": { "type": "integer" },
+        "tokens_per_sec": { "type": "float" },
+        "time_to_first_token": { "type": "float" }
+      }
+    }
+  }
+}
