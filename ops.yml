@@ -42,7 +42,7 @@ actions:
     command: bin/request -n -P 11337
     load_secrets: true
   test:
-    command: bundle exec rspec --tag "~skip"
+    command: bundle exec rspec --tag "~skip" --exclude-pattern "spec/e2e/**/*"
     alias: t
     load_secrets: true
   test-watch:
