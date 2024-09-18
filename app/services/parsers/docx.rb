@@ -1,3 +1,5 @@
+require 'open3'
+
 module Parsers
   # DOCX parser converts word documents into commonmark (with tables) markdown
   class Docx < CommonMark
