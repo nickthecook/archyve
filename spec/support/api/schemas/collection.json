@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": ["collection"],
+  "allow_additional": false,
+  "properties": {
+    "collection": {
+      "type": "object",
+      "required": ["id", "name", "slug", "embedding_model_id"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "embedding_model_id": { "type": "integer" }
+      }
+    }
+  }
+}

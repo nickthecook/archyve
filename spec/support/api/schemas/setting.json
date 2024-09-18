@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["setting"],
+  "allow_additional": false,
+  "properties": {
+    "setting": {
+      "type": "object",
+      "required": ["key", "value"],
+      "properties": {
+        "key": { "type": "string" },
+        "value": { "type": "any" }
+      }
+    }
+  }
+}

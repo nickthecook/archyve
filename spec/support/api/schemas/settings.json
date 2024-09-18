@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "required": ["settings"],
+  "allow_additional": false,
+  "properties": {
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "value"],
+        "properties": {
+          "key": { "type": "string" },
+          "value": { "type": "any" }
+        }
+      }
+    }
+  }
+}

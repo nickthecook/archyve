@@ -1,0 +1,25 @@
+{
+  "type": "array",
+  "items": {
+    "required": [
+      "id",
+      "document_id",
+      "vector_id",
+      "content",
+      "embedding_content",
+      "embeddings",
+      "entities_extracted"
+    ],
+    "properties": {
+      "id": { "type": "integer" },
+      "document_id": { "type": "integer" },
+      "vector_id": { "type": "string" },
+      "content": { "type": "string" },
+      "embedding_content": { "type": "string" },
+      "embeddings": { "type": "null" },
+      "entities_extracted": { "type": "boolean" },
+      "created_at": { "type": "string", "format": "date-time" },
+      "updated_at": { "type": "string", "format": "date-time" }
+    }
+  }
+}

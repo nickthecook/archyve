@@ -74,6 +74,7 @@ group :test do
   gem "capybara"
   gem "faker"
   gem "fuubar"
+  gem "json-schema"
   gem "rspec-uuid"
   gem "selenium-webdriver"
 end

@@ -97,5 +97,9 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 
-  require "rails_helper"
+  if ENV.fetch("TEST_E2E", false)
+    require "e2e_helper"
+  else
+    require "rails_helper"
+  end
 end

@@ -51,7 +51,7 @@ Rails.application.routes.draw do
           resources :chunks, only: [:index, :show]
         end
 
-        resources :entities, only: [:show]
+        resources :entities, only: [:index, :show]
       end
 
       resources :settings, only: [:index, :show]

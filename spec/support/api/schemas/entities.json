@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "required": ["entities"],
+  "allow_additional": false,
+  "properties": {
+    "entities": {
+      "type": "array",
+      "items": {
+        "required": [
+          "id",
+          "name",
+          "entity_type",
+          "collection_id",
+          "summary",
+          "summary_outdated",
+          "vector_id",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "entity_type": { "type": "string" },
+          "collection_id": { "type": "integer" },
+          "summary": { "type": "string" },
+          "summary_outdated": { "type": "boolean" },
+          "vector_id": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

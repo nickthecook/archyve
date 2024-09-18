@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": ["hits"],
+  "allow_additional": false,
+  "properties": {
+    "hits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "metadata",
+          "document",
+          "distance",
+          "vector_id",
+          "url",
+          "browser_url",
+          "relevant"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "metadata": { "type": "string" },
+          "document": { "type": "string" },
+          "distance": { "type": "float" },
+          "vector_id": { "type": "string", "format": "uuid" },
+          "url": { "type": "string" },
+          "browser_url": { "type": "string" },
+          "relevant": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

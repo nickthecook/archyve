@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": ["models"],
+  "allow_additional": false,
+  "properties": {
+    "models": {
+      "type": "array",
+      "items": {
+        "required": ["id", "name", "model", "temperature"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "model": { "type": "string" },
+          "temperature": { "type": ["float", "null"] }
+        }
+      }
+    }
+  }
+}

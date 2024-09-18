@@ -48,6 +48,13 @@ actions:
   test-watch:
     command: rerun --dir app,spec --no-notify -qb -- ops test
     alias: tw
+  test-e2e:
+    command: TEST_E2E=true bundle exec rspec --tag "~skip" spec/e2e
+    alias: e2e
+    load_secrets: true
+  test-e2e-watch:
+    command: rerun --dir app,spec --no-notify -qb --pattern "**/*.{rb,js,json,yml,html,ru}" -- ops test-e2e
+    alias: ew
   lint: bundle exec rubocop
   lint-watch:
     command: rerun --dir app,spec --no-notify -qb -- ops lint

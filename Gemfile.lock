@@ -197,6 +197,8 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     json (2.7.2)
+    json-schema (5.0.0)
+      addressable (~> 2.8)
     kaminari (1.2.2)
       activesupport (>= 4.1.0)
       kaminari-actionview (= 1.2.2)
@@ -535,6 +537,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
+  json-schema
   motor-admin (~> 0.4.26)
   neo4j-ruby-driver (~> 4.4)
   pagy (~> 8.0)

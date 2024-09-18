@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "required": ["documents"],
+  "allow_additional": false,
+  "properties": {
+    "documents": {
+      "type": "array",
+      "items": {
+        "required": [
+          "id",
+          "collection_id",
+          "user_id",
+          "filename",
+          "state",
+          "vector_id",
+          "chunking_profile_id"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "collection_id": { "type": "integer" },
+          "user_id": { "type": "integer" },
+          "filename": { "type": "string" },
+          "state": { "type": "string" },
+          "vector_id": { "type": ["integer", "null"] },
+          "chunking_profile_id": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
