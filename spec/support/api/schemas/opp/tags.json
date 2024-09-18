@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "required": ["models"],
+  "allow_additional": false,
+  "properties": {
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "model",
+          "modified_at",
+          "size",
+          "digest",
+          "details"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "model": { "type": "string" },
+          "modified_at": { "type": "string" },
+          "size": { "type": "integer" },
+          "digest": { "type": "string" },
+          "details": {
+            "type": "object",
+            "required": [
+              "parent_model",
+              "format",
+              "family",
+              "families",
+              "parameter_size",
+              "quantization_level"
+            ],
+            "properties": {
+              "parent_model": { "type": "string" },
+              "format": { "type": "string" },
+              "family": { "type": "string" },
+              "families": {
+                "type": ["array", "null"],
+                "items": { "type": "string" }
+              },
+              "parameter_size": { "type": "string" },
+              "quantization_level": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

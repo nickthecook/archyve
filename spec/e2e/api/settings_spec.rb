@@ -1,5 +1,5 @@
 RSpec.describe "settings", type: :system do
-  let(:call) { get("/v1/settings") }
+  let(:call) { api_get("/v1/settings") }
 
   it "returns 200" do
     expect(call.code).to eq(200)
@@ -14,9 +14,9 @@ RSpec.describe "settings", type: :system do
   end
 
   describe "/v1/setting/:key" do
-    let(:setting_key) { get("/v1/settings").parsed_body["settings"].first["key"] }
+    let(:setting_key) { api_get("/v1/settings").parsed_body["settings"].first["key"] }
 
-    let(:call) { get("/v1/settings/#{setting_key}") }
+    let(:call) { api_get("/v1/settings/#{setting_key}") }
 
     it "returns 200" do
       expect(call.code).to eq(200)

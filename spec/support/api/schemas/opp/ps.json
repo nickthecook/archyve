@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "required": ["models"],
+  "properties": {
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "model",
+          "expires_at",
+          "size_vram",
+          "size",
+          "digest",
+          "details"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "model": { "type": "string" },
+          "size": { "type": "integer" },
+          "digest": { "type": "string" },
+          "expires_at": { "type": "string" },
+          "size_vram": { "type": "integer" },
+          "details": {
+            "type": "object",
+            "required": [
+              "parent_model",
+              "format",
+              "family",
+              "families",
+              "parameter_size",
+              "quantization_level"
+            ],
+            "properties": {
+              "parent_model": { "type": "string" },
+              "format": { "type": "string" },
+              "family": { "type": "string" },
+              "families": {
+                "type": ["array", "null"],
+                "items": { "type": "string" }
+              },
+              "parameter_size": { "type": "string" },
+              "quantization_level": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

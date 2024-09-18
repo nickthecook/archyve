@@ -1,6 +1,6 @@
 RSpec.describe "collections", type: :system do
   describe "/v1/collections" do
-    let(:call) { get("/v1/collections") }
+    let(:call) { api_get("/v1/collections") }
 
     it "returns 200" do
       expect(call.code).to eq(200)
@@ -16,9 +16,9 @@ RSpec.describe "collections", type: :system do
   end
 
   describe "/v1/collections/:id" do
-    let(:collection_id) { get("/v1/collections").parsed_body["collections"].last["id"] }
+    let(:collection_id) { api_get("/v1/collections").parsed_body["collections"].last["id"] }
 
-    let(:call) { get("/v1/collections/#{collection_id}") }
+    let(:call) { api_get("/v1/collections/#{collection_id}") }
 
     it "returns 200" do
       expect(call.code).to eq(200)
@@ -29,7 +29,7 @@ RSpec.describe "collections", type: :system do
     end
 
     describe "/v1/collections/:id/documents" do
-      let(:call) { get("/v1/collections/#{collection_id}/documents") }
+      let(:call) { api_get("/v1/collections/#{collection_id}/documents") }
 
       it "returns 200" do
         expect(call.code).to eq(200)
@@ -45,9 +45,9 @@ RSpec.describe "collections", type: :system do
     end
 
     describe "/v1/collections/:id/documents/:id" do
-      let(:document_id) { get("/v1/collections/#{collection_id}/documents").parsed_body["documents"].last["id"] }
+      let(:document_id) { api_get("/v1/collections/#{collection_id}/documents").parsed_body["documents"].last["id"] }
 
-      let(:call) { get("/v1/collections/#{collection_id}/documents/#{document_id}") }
+      let(:call) { api_get("/v1/collections/#{collection_id}/documents/#{document_id}") }
 
       it "returns 200" do
         expect(call.code).to eq(200)
@@ -58,7 +58,7 @@ RSpec.describe "collections", type: :system do
       end
 
       describe "/v1/collections/:id/documents/:id/chunks" do
-        let(:call) { get("/v1/collections/#{collection_id}/documents/#{document_id}/chunks") }
+        let(:call) { api_get("/v1/collections/#{collection_id}/documents/#{document_id}/chunks") }
 
         it "returns 200" do
           expect(call.code).to eq(200)
@@ -75,7 +75,7 @@ RSpec.describe "collections", type: :system do
     end
 
     describe "/v1/collections/:id/entities" do
-      let(:call) { get("/v1/collections/#{collection_id}/entities") }
+      let(:call) { api_get("/v1/collections/#{collection_id}/entities") }
 
       it "returns 200" do
         expect(call.code).to eq(200)
@@ -90,9 +90,9 @@ RSpec.describe "collections", type: :system do
       end
 
       describe "/v1/collections/:id/entities/:id" do
-        let(:entity_id) { get("/v1/collections/#{collection_id}/entities").parsed_body["entities"].last["id"] }
+        let(:entity_id) { api_get("/v1/collections/#{collection_id}/entities").parsed_body["entities"].last["id"] }
 
-        let(:call) { get("/v1/collections/#{collection_id}/entities/#{entity_id}") }
+        let(:call) { api_get("/v1/collections/#{collection_id}/entities/#{entity_id}") }
 
         it "returns 200" do
           expect(call.code).to eq(200)
@@ -105,7 +105,7 @@ RSpec.describe "collections", type: :system do
     end
 
     describe "/v1/collections/:id/search", :slow do
-      let(:call) { get("/v1/collections/#{collection_id}/search?q=test") }
+      let(:call) { api_get("/v1/collections/#{collection_id}/search?q=test") }
 
       it "returns 200" do
         expect(call.code).to eq(200)

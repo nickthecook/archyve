@@ -1,5 +1,5 @@
 RSpec.describe "/v1/version", type: :system do
-  let(:call) { get("/v1/version") }
+  let(:call) { api_get("/v1/version") }
 
   it "returns 200" do
     expect(call.code).to eq(200)

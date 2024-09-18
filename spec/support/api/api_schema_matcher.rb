@@ -24,11 +24,13 @@ RSpec::Matchers.define :match_response_schema do |schema|
   match do |response|
     schema_directory = "#{Dir.pwd}/spec/support/api/schemas"
     schema_path = "#{schema_directory}/#{schema}.json"
+    body = response.respond_to?(:body) ? response.body : response
+    parsed_body = body.is_a?(String) ? JSON.parse(body) : body
 
-    JSON::Validator.validate!(schema_path, response.body, strict: true)
+    JSON::Validator.validate!(schema_path, body, strict: true)
   rescue JSON::Schema::ValidationError => e
     puts e
-    puts "Offending value: #{content_for_exception(response.parsed_body, e.fragments)}"
+    puts "Offending value: #{content_for_exception(parsed_body, e.fragments)}"
     raise RSpec::Expectations::ExpectationNotMetError, "Response does not match schema #{schema}: #{e}"
   end
 end

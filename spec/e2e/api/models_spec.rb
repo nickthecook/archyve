@@ -1,6 +1,6 @@
 RSpec.describe "models", type: :system do
   describe "/v1/models" do
-    let(:call) { get("/v1/models") }
+    let(:call) { api_get("/v1/models") }
 
     it "returns 200" do
       expect(call.code).to eq(200)
@@ -15,9 +15,9 @@ RSpec.describe "models", type: :system do
     end
 
     describe "/v1/models/:id" do
-      let(:model_id) { get("/v1/models").parsed_body["models"].last["id"] }
+      let(:model_id) { api_get("/v1/models").parsed_body["models"].last["id"] }
 
-      let(:call) { get("/v1/models/#{model_id}") }
+      let(:call) { api_get("/v1/models/#{model_id}") }
 
       it "returns 200" do
         expect(call.code).to eq(200)
