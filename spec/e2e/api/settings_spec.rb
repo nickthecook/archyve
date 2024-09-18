@@ -1,4 +1,4 @@
-RSpec.describe "settings", type: :system do
+RSpec.describe "settings", :api, type: :system do
   let(:call) { api_get("/v1/settings") }
 
   it "returns 200" do

@@ -1,4 +1,4 @@
-RSpec.describe "/v1/chat", :llm, :slow, type: :system do
+RSpec.describe "/v1/chat", :api, :llm, :slow, type: :system do
   let(:call) { api_get("/v1/chat?prompt=hello") }
 
   it "returns 200" do

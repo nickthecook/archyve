@@ -1,4 +1,4 @@
-RSpec.describe "models", type: :system do
+RSpec.describe "models", :api, type: :system do
   describe "/v1/models" do
     let(:call) { api_get("/v1/models") }
 

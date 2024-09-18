@@ -49,6 +49,7 @@ actions:
     command: rerun --dir app,spec --no-notify -qb -- ops test
     alias: tw
   test-e2e:
+    # tags are: opp, api, slow, llm, chat
     command: TEST_E2E=true bundle exec rspec --tag "~skip" spec/e2e
     alias: e2e
     load_secrets: true

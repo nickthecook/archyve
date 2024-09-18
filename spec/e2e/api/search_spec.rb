@@ -1,4 +1,4 @@
-RSpec.describe "search", :llm, :slow, type: :system do
+RSpec.describe "search", :api, :llm, :slow, type: :system do
   describe "/v1/search" do
     let(:call) { api_get("/v1/search?q=skippy+dare") }
 
