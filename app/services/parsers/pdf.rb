@@ -1,5 +1,3 @@
-require 'open3'
-
 module Parsers
   class Pdf < Text
     def text

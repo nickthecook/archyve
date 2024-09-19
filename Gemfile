@@ -122,3 +122,5 @@ gem "ruby-openai", "~> 7.1"
 gem "activegraph", "11.5.0.beta.2"
 gem "async", "2.11.0"
 gem "neo4j-ruby-driver", "~> 4.4"
+
+gem "open3", "~> 0.2.1"
