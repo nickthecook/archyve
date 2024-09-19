@@ -17,10 +17,6 @@ RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
   # this one is so slow I've crammed all these assertions into one example
   it "returns a chat response" do
     expect(call.code).to eq(200)
-    parsed_response_chunks = call.body.lines.map { |l| JSON.parse(l) }
-    last_chunk = parsed_response_chunks.pop
-
-    expect(parsed_response_chunks).to all(match_response_schema("opp/chat_chunk"))
-    expect(last_chunk).to match_response_schema("opp/last_chat_chunk")
+    expect(call).to have_chunks_matching_schema("opp/chat_chunk", "opp/last_chat_chunk")
   end
 end
