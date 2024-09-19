@@ -2,11 +2,7 @@ unless ENV.include?("DEFAULT_CLIENT_ID") && ENV.include?("DEFAULT_API_KEY")
   raise StandardError, "To run end-to-end tests, please set DEFAULT_CLIENT_ID and DEFAULT_API_KEY"
 end
 
-RSpec.configure do |config|
-  config.fail_fast = true
-end
-
-require 'httparty'
+equire 'httparty'
 require 'pry'
 
 Dir.glob('spec/support/api/**/*.rb').each do |f|
