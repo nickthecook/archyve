@@ -267,6 +267,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.2-x86_64-linux)
       racc (~> 1.4)
+    open3 (0.2.1)
     orm_adapter (0.5.0)
     pagy (8.0.1)
     parallel (1.24.0)
@@ -540,6 +541,7 @@ DEPENDENCIES
   json-schema
   motor-admin (~> 0.4.26)
   neo4j-ruby-driver (~> 4.4)
+  open3 (~> 0.2.1)
   pagy (~> 8.0)
   pdf-reader (~> 2.12)
   pg
