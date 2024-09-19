@@ -10,7 +10,7 @@ module OllamaProxy
     end
 
     def generate(&)
-      @proxy.post do |chunk|
+      response = @proxy.post do |chunk|
         # yield the content the server sent, exactly as the server sent it
         yield chunk
 
@@ -19,6 +19,11 @@ module OllamaProxy
 
         @formatted_response << formatted_message
         @raw_response << raw_message
+      end
+
+      unless @proxy.yielded
+        content = extract_content(response.body)
+        @formatted_response, @raw_response = processor.append(content)
       end
 
       # return the complete response, in formatted and unformatted forms
@@ -30,7 +35,9 @@ module OllamaProxy
     def extract_content(chunk)
       response_hash = parse_chunk(chunk)
 
-      response_hash.dig("message", "content") || response_hash.dig("choices", 0, "delta", "content")
+      response_hash.dig("message", "content") ||
+        response_hash.dig("choices", 0, "delta", "content") ||
+        response_hash.dig("choices", 0, "message", "content")
     end
 
     def parse_chunk(chunk)

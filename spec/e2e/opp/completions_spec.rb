@@ -12,7 +12,6 @@ RSpec.describe "opp/v1/chat/completions", :chat, :llm, :opp, :slow, type: :syste
             content: "Tell me about Skippy Dare.",
           },
         ],
-        max_tokens: 50,
       }
     end
 

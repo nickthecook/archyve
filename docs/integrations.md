@@ -45,6 +45,6 @@ Ollama Clients include:
 - Client/API
   - all routes (`ops e2e`)
 - OllamaClient
-  - Ollama CLI list/ps/version/chat (`ops e2e --tag opp`)
-  - Open WebUI chat (going with `ops e2e --tag opp` unless I find the requests substantially different)
-  - Huggingface ChatUI chat (manual)
+  - Ollama CLI list/ps/version/chat (`ops e2e`)
+  - Open WebUI chat (going with `ops e2e` unless I find the requests substantially different)
+  - Huggingface ChatUI chat (`ops e2e`)

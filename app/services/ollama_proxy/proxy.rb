@@ -66,8 +66,6 @@ module OllamaProxy
     def stream_request(&)
       Net::HTTP.start(host, port) do |http|
         http.request(@http_request) do |incoming_response|
-          # @response = incoming_response
-
           if chunked?(incoming_response)
             incoming_response.read_body do |chunk|
               if block_given?
