@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "model",
+    "object",
+    "choices",
+    "created",
+    "system_fingerprint"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "model": { "type": "string" },
+    "object": { "type": "string" },
+    "choices": {
+      "type": "array",
+      "items": { "type": "object" },
+      "required": ["index", "message", "finish_reason"],
+      "properties": {
+        "index": { "type": "integer" },
+        "message": {
+          "type": "object",
+          "required": ["role", "content"],
+          "properties": {
+            "role": { "type": "string" },
+            "content": { "type": "string" }
+          }
+        },
+        "finish_reason": { "type": "string" }
+      }
+    },
+    "created": { "type": "integer" },
+    "system_fingerprint": { "type": "string" }
+  }
+}
