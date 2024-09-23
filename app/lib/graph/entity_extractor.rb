@@ -75,7 +75,7 @@ module Graph
 
       Rails.logger.debug { "Extracted entities:\n#{entities}" }
 
-      entities || []
+      entities || ""
     end
 
     def prompt_for(input_text)
