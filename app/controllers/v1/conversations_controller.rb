@@ -1,14 +1,14 @@
 module V1
   class ConversationsController < ApiController
-    include Pagy::Backend
+    include Pageable
 
     before_action :set_conversation!, only: [:show]
 
     def index
       all_conversations = Conversation.order(updated_at: :desc)
-      @pagy, @conversations = pagy(all_conversations, items: count)
+      @pagy, @conversations = pagy(all_conversations, items:, page:)
 
-      render json: { conversations: @conversations.map { |c| hash_for(c) } }, status: :ok
+      render json: { conversations: @conversations.map { |c| hash_for(c) }, page: page_data }, status: :ok
     end
 
     def show
@@ -16,14 +16,6 @@ module V1
     end
 
     private
-
-    def count
-      if params[:count]
-        params[:count].to_i
-      else
-        20
-      end
-    end
 
     def hash_for(conversation)
       {

@@ -4,13 +4,12 @@ module V1
     before_action :set_document!
     before_action :set_collection!
 
-    include Pagy::Backend
+    include Pageable
 
     def index
-      @chunks = @document.chunks.order(:id)
-      @pagy, @posts = pagy(@chunks, items: count)
+      @pagy, @chunks = pagy(@document.chunks.order(:id), items:, page:)
 
-      render json: @posts.to_json
+      render json: { chunks: @chunks.map { |c| body_for(c) }, page: page_data }
     end
 
     def show
@@ -19,12 +18,11 @@ module V1
 
     private
 
-    def count
-      if params[:count]
-        params[:count].to_i
-      else
-        20
-      end
+    def body_for(chunk)
+      body = chunk.attributes.to_h.slice(*render_attributes)
+      remove_id_suffix_from("document", body)
+
+      body
     end
 
     def set_chunk!
@@ -43,6 +41,10 @@ module V1
       @collection = Collection.find_by(id: params[:collection_id])
 
       render json: { error: "Collection not found" }, status: :not_found if @collection.nil?
+    end
+
+    def render_attributes
+      %w[id document_id content embedding_content entities_extracted vector_id created_at updated_at]
     end
   end
 end

@@ -12,8 +12,8 @@ RSpec.describe "Documents" do
     end
 
     it "returns the list of documents" do
-      expect(response.parsed_body).to eq({
-        "documents" => [
+      expect(response.parsed_body["documents"]).to eq(
+        [
           {
             "id" => document.id,
             "collection_id" => collection.id,
@@ -23,12 +23,22 @@ RSpec.describe "Documents" do
             "vector_id" => document.vector_id,
             "chunking_profile_id" => document.chunking_profile_id,
           },
-        ],
-      })
+        ]
+      )
     end
 
     it "returns ok" do
       expect(response).to have_http_status(:ok)
+    end
+
+    it "includes paging info" do
+      expect(response.parsed_body["page"]).to eq({
+        "page" => 1,
+        "items" => 20,
+        "total" => 1,
+        "pages" => 1,
+        "in" => 1,
+      })
     end
 
     context "when the collection does not exist" do

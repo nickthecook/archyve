@@ -72,10 +72,11 @@ RSpec.describe "V1::Messages" do
 
       it "includes paging info" do
         expect(response.parsed_body["page"]).to eq({
-          "total" => 10,
-          "items" => params[:count],
           "page" => 1,
+          "items" => 5,
+          "total" => 10,
           "pages" => 2,
+          "in" => 5,
         })
       end
     end

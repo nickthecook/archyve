@@ -5,7 +5,7 @@ RSpec.describe "V1::Conversations" do
 
   let(:params) { nil }
 
-  context "when there are less than a page of conversations" do
+  context "when there are fewer than a page of conversations" do
     let(:conversation_one) { create(:conversation, title: "hello", model_config: create(:model_config), messages: []) }
     let(:conversation_two) { create(:conversation, title: "hello again", model_config: create(:model_config), messages: []) }
 
@@ -19,21 +19,29 @@ RSpec.describe "V1::Conversations" do
 
     describe "GET /v1/conversations" do
       it "returns a list of conversations, most recent first" do
-        expect(response.parsed_body).to eq({
-          "conversations" => [
-            {
-              "id" => conversation_two.id,
-              "title" => conversation_two.title,
-              "message_count" => 2,
-              "model" => conversation_two.model_config_id,
-            },
-            {
-              "id" => conversation_one.id,
-              "title" => conversation_one.title,
-              "message_count" => 1,
-              "model" => conversation_one.model_config_id,
-            },
-          ],
+        expect(response.parsed_body["conversations"]).to eq([
+          {
+            "id" => conversation_two.id,
+            "title" => conversation_two.title,
+            "message_count" => 2,
+            "model" => conversation_two.model_config_id,
+          },
+          {
+            "id" => conversation_one.id,
+            "title" => conversation_one.title,
+            "message_count" => 1,
+            "model" => conversation_one.model_config_id,
+          },
+        ])
+      end
+
+      it "includes paging info" do
+        expect(response.parsed_body["page"]).to eq({
+          "page" => 1,
+          "items" => 20,
+          "total" => 2,
+          "pages" => 1,
+          "in" => 2,
         })
       end
     end

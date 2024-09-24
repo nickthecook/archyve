@@ -3,7 +3,7 @@ module V1
     include Pagy::Backend
 
     def page_data
-      { page:, items:, total: @pagy.count, pages: @pagy.pages }
+      { page:, items:, total: @pagy.count, pages: @pagy.pages, in: @pagy.in }
     end
 
     def page

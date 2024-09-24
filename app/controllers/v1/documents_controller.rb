@@ -1,10 +1,13 @@
 module V1
   class DocumentsController < ApiController
+    include Pageable
+
     before_action :set_collection!
     before_action :set_document!, only: [:show]
 
     def index
-      render json: { documents: @collection.documents.map { |d| d.attributes.slice(*render_attributes) } }
+      @pagy, @documents = pagy(@collection.documents, items:, page:)
+      render json: { documents: @documents.map { |d| d.attributes.slice(*render_attributes) }, page: page_data }
     end
 
     def show
