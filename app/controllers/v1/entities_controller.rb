@@ -15,7 +15,7 @@ module V1
 
     def body_for(entity)
       body = entity.attributes.to_h.slice(*render_attributes)
-      body["collection"] = entity.collection.id
+      remove_id_suffix_from("collection", body)
 
       body
     end
@@ -33,7 +33,7 @@ module V1
     end
 
     def render_attributes
-      %w[id name entity_type collection summary summary_outdated vector_id created_at updated_at]
+      %w[id name entity_type collection_id summary summary_outdated vector_id created_at updated_at]
     end
   end
 end

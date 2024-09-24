@@ -51,4 +51,10 @@ class ApiController < ActionController::Base
   def browser_base_url
     ENV["BROWSER_BASE_URL"] || request.base_url
   end
+
+  def remove_id_suffix_from(field, body)
+    field_with_id = "#{field}_id"
+    body[field] = body[field_with_id]
+    body.delete(field_with_id)
+  end
 end
