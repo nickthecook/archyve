@@ -1,10 +1,14 @@
 module V1
   class EntitiesController < ApiController
+    include Pageable
+
     before_action :set_collection!
     before_action :set_entity!, only: [:show]
 
     def index
-      render json: { entities: @collection.graph_entities.map { |e| body_for(e) } }
+      @pagy, @entities = pagy(@collection.graph_entities, items:, page:)
+
+      render json: { entities: @entities.map { |e| body_for(e) }, page: page_data }
     end
 
     def show

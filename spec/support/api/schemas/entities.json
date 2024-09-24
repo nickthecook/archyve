@@ -29,6 +29,27 @@
           "updated_at": { "type": "string", "format": "date-time" }
         }
       }
+    },
+    "page": {
+      "type": "object",
+      "required": ["page", "items", "total", "pages", "in"],
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "items": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "pages": {
+          "type": "integer"
+        },
+        "in": {
+          "type": "integer"
+        }
+      }
     }
   }
 }

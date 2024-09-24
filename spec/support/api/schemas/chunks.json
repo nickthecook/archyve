@@ -10,7 +10,6 @@
           "vector_id",
           "content",
           "embedding_content",
-          "embeddings",
           "entities_extracted"
         ],
         "properties": {
@@ -19,7 +18,6 @@
           "vector_id": { "type": "string" },
           "content": { "type": "string" },
           "embedding_content": { "type": ["string", null] },
-          "embeddings": { "type": "null" },
           "entities_extracted": { "type": "boolean" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
