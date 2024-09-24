@@ -3,6 +3,7 @@
   "required": ["reply", "augmented", "statistics"],
   "properties": {
     "reply": { "type": "string" },
+    "conversation": { "type": "integer" },
     "augmented": { "type": "boolean" },
     "statistics": {
       "type": "object",

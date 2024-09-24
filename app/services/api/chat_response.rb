@@ -18,7 +18,7 @@ module Api
 
       Message.create!(content: response, conversation:, author: model_loader.model_config, statistics: client.stats)
 
-      { reply: response, augmented: @augment, statistics: client.clean_stats }
+      { reply: response, conversation: conversation.id, augmented: @augment, statistics: client.clean_stats }
     end
 
     private

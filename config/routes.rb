@@ -56,6 +56,7 @@ Rails.application.routes.draw do
 
       resources :settings, only: [:index, :show]
       resources :models, only: [:index, :show]
+      resources :conversations, only: [:index, :show]
 
       get "search", to: "search#search"
       get "chat", to: "chat#chat"

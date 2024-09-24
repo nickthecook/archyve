@@ -50,7 +50,12 @@ RSpec.describe Api::ChatResponse do
 
   describe "#respond" do
     it "returns the reply" do
-      expect(subject.respond).to eq({ reply: "You like no bugs.", augmented: false, statistics: "stats" })
+      expect(subject.respond).to eq({
+        reply: "You like no bugs.",
+        conversation: Conversation.last.id,
+        augmented: false,
+        statistics: "stats",
+      })
     end
 
     it "calls the client to complete the prompt" do
