@@ -11,7 +11,11 @@ class ChunkDocument
     parser.chunks.each do |chunk_record|
       chunk = Chunk.create!(document: @document, content: chunk_record.content)
 
-      EmbedChunkJob.perform_async(chunk.id)
+      if contextualize_chunks && model_server_can_contextualize
+        ContextualizeChunkJob.perform_async(chunk.id)
+      else
+        EmbedChunkJob.perform_async(chunk.id)
+      end
     end
 
     @document.chunked!
@@ -36,5 +40,13 @@ class ChunkDocument
 
   def chunks
     @chunks ||= parser.chunks
+  end
+
+  def contextualize_chunks
+    Setting.get("contextualize_chunks", default: false)
+  end
+
+  def model_server_can_contextualize
+    @document.collection.embedding_model.model_server.nil? || ModelServer.active_server&.provider == "ollama"
   end
 end

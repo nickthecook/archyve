@@ -79,10 +79,7 @@ module Graph
     end
 
     def prompt_for(input_text)
-      prompt = @prompt_template.result(binding)
-      Rails.logger.info("Sending completion request:\n#{prompt}")
-
-      prompt
+      @prompt_template.result(binding)
     end
 
     ###
