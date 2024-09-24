@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_16_175557) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_24_180650) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -105,6 +105,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_16_175557) do
     t.integer "process_step"
     t.integer "process_steps"
     t.boolean "stop_jobs", default: false
+    t.string "error_message"
     t.index ["embedding_model_id"], name: "index_collections_on_embedding_model_id"
   end
 
