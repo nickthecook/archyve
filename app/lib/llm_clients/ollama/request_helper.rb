@@ -9,6 +9,13 @@ module LlmClients
         @temperature = temperature
       end
 
+      def post(path, body)
+        request = Net::HTTP::Post.new(uri(path), **headers)
+        request.body = body
+
+        request
+      end
+
       def embed_request(content)
         request = Net::HTTP::Post.new(uri(embedding_path), **headers)
         request.body = { model: @embedding_model, prompt: content }.to_json

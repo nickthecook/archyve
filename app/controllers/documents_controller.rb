@@ -19,7 +19,7 @@ class DocumentsController < ApplicationController
 
     @document = new_document
 
-    ChunkDocumentJob.perform_async(@document.id)
+    GenerateDocumentContextJob.perform_async(@document.id)
 
     respond_to do |format|
       format.turbo_stream do
@@ -46,7 +46,7 @@ class DocumentsController < ApplicationController
   end
 
   def vectorize
-    ChunkDocumentJob.perform_async(@document.id)
+    GenerateDocumentContextJob.perform_async(@document.id)
   end
 
   def stop

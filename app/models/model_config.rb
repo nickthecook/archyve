@@ -38,4 +38,14 @@ class ModelConfig < ApplicationRecord
 
     Setting.set("entity_extraction_model", id)
   end
+
+  def make_active_contextualization_model
+    raise ModelTypeError, "Model is an embedding model" if embedding?
+
+    if model_server.present? && model_server&.provider != "ollama"
+      raise ModelTypeError, "Model has a non-Ollama server set"
+    end
+
+    Setting.set("contextualization_model", id)
+  end
 end

@@ -3,6 +3,12 @@ module LlmClients
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
+      def post(path, body, traceable: nil, &block)
+        req = helper.post(path, body)
+
+        request(req, traceable:, &block)
+      end
+
       def complete(prompt, traceable: nil, &block)
         req = helper.completion_request(prompt)
 
