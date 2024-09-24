@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "required": ["documents"],
+  "required": ["documents", "page"],
   "allow_additional": false,
   "properties": {
     "documents": {
@@ -23,6 +23,27 @@
           "state": { "type": "string" },
           "vector_id": { "type": ["integer", "null"] },
           "chunking_profile_id": { "type": "integer" }
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["page", "items", "total", "pages", "in"],
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "items": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "pages": {
+          "type": "integer"
+        },
+        "in": {
+          "type": "integer"
         }
       }
     }

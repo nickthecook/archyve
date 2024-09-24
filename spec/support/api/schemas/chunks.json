@@ -1,25 +1,51 @@
 {
-  "type": "array",
-  "items": {
-    "required": [
-      "id",
-      "document_id",
-      "vector_id",
-      "content",
-      "embedding_content",
-      "embeddings",
-      "entities_extracted"
-    ],
-    "properties": {
-      "id": { "type": "integer" },
-      "document_id": { "type": "integer" },
-      "vector_id": { "type": "string" },
-      "content": { "type": "string" },
-      "embedding_content": { "type": "string" },
-      "embeddings": { "type": "null" },
-      "entities_extracted": { "type": "boolean" },
-      "created_at": { "type": "string", "format": "date-time" },
-      "updated_at": { "type": "string", "format": "date-time" }
+  "type": "object",
+  "properties": {
+    "chunks": {
+      "type": "array",
+      "items": {
+        "required": [
+          "id",
+          "document",
+          "vector_id",
+          "content",
+          "embedding_content",
+          "embeddings",
+          "entities_extracted"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "document": { "type": "integer" },
+          "vector_id": { "type": "string" },
+          "content": { "type": "string" },
+          "embedding_content": { "type": ["string", null] },
+          "embeddings": { "type": "null" },
+          "entities_extracted": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["page", "items", "total", "pages", "in"],
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "items": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "pages": {
+          "type": "integer"
+        },
+        "in": {
+          "type": "integer"
+        }
+      }
     }
   }
 }
