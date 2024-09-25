@@ -5,6 +5,8 @@ class Document < ApplicationRecord
   has_one_attached :file
   has_many :chunks, dependent: :destroy
   has_many :graph_entity_descriptions, dependent: :destroy, through: :chunks
+  has_many :chunk_api_calls, through: :chunks, source: :api_calls
+  has_many :api_calls, as: :traceable
 
   include Turbo::Broadcastable
   include AASM
