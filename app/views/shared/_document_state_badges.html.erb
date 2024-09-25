@@ -3,6 +3,7 @@
     state_bg = state_error?(document) ? "bg-error-400 dark:bg-error-800 hover:bg-error-300 hover:dark:bg-error-700" : "bg-secondary-300 dark:bg-secondary-700"
     total_chunks = document.chunks.count
     embedded_chunks = document.chunks.embedded.count
+    contextualized_chunks = document.chunks.contextualized.count
     extracted_chunks = document.chunks.extracted.count
   %>
   <% if state_error?(document) %>
@@ -13,6 +14,11 @@
   <% else %>
   <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-1 p-1 px-2 <%= state_bg %>">
       <%= state_text_for(document) %>
+    </div>
+  <% end %>
+  <% if document.collection.contextual_retrieval_enabled %>
+    <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
+      <%= chunks_completed_label_for(total_chunks, contextualized_chunks, "contextualized") %>
     </div>
   <% end %>
   <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">

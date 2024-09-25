@@ -1,14 +1,17 @@
-<div id="<%= dom_id(chunk) %>">
+<div id="<%= dom_id(chunk) %>" class="flex">
   <% selected ||= false %>
   <% extra_classes = selected ? "border-secondary-400 dark:border-secondary-300 border border-2" : "" %>
 
-  <div class="flex items-center px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900 <%= extra_classes %>">
-    <div class="pr-10 flex-col">
+  <div class="flex flex-1 items-center px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-900 <%= extra_classes %>">
+    <div class="pr-10 flex-col text-right">
       <%= chunk.id %>
       <p class="py-1 text-xs text-right text-muted"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></p>
+      <% if chunk.document.collection.contextual_retrieval_enabled && chunk.present? %>
+        <p class="py-1 text-xs text-right text-muted"><%= chunk.contextualized ? "Contextualized" : "Not contextualized" %></p>
+      <% end %>
       <%= render "shared/copy_button", content: chunk.content.strip %>
     </div>
-    <div class="flex-1">
+    <div class="flex-1 whitespace-pre-line">
       <p><%= chunk.embedding_content %></p>
     </div>
   </div>

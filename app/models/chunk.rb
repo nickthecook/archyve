@@ -9,6 +9,7 @@ class Chunk < ApplicationRecord
 
   scope :embedded, -> { where.not(vector_id: nil) }
   scope :extracted, ->  { where(entities_extracted: true) }
+  scope :contextualized, -> { where(contextualized: true) }
 
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)
