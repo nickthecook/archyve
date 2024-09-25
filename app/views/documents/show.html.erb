@@ -11,7 +11,7 @@
           <%= link_to "Back to collection", collection_path(@document.collection), class: "rounded-lg ml-auto py-1 mb-4 px-3 my-2 text-secondary-200 dark:text-secondary-950 font-medium bg-tertiary-600 dark:bg-tertiary-400"%>
         </div>
         <%= render "info" %>
-        <div class="flex-1">
+        <div class="w-full">
           <%= render "chunks", chunks: @chunks %>
           <%= render partial: "next_page" %>
         </div>
