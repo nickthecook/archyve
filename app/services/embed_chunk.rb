@@ -40,7 +40,7 @@ class EmbedChunk
   end
 
   def embedder
-    @embedder ||= Embedder.new(model_config: embedding_model, traceable: @document)
+    @embedder ||= Embedder.new(model_config: embedding_model, traceable: @chunk)
   end
 
   def embedding_model
@@ -48,6 +48,6 @@ class EmbedChunk
   end
 
   def chromadb
-    @chromadb ||= Chromadb::Client.new(traceable: @document)
+    @chromadb ||= Chromadb::Client.new(traceable: @chunk)
   end
 end
