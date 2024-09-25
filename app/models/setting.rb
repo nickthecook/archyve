@@ -1,9 +1,11 @@
 class Setting < ApplicationRecord
-  belongs_to :target, optional: true
+  belongs_to :target, optional: true, polymorphic: true
+
+  validates :setting_and_target, uniqueness: { scope: %i[key target] }
 
   class << self
     def get(key, target: nil, default: nil)
-      setting = find_by(key:, target_id: target&.id)
+      setting = find_by(key:, target:)
 
       set(key, default, target:) if setting.nil? || setting.value.nil?
 
@@ -11,7 +13,7 @@ class Setting < ApplicationRecord
     end
 
     def set(key, value, target: nil)
-      find_or_create_by(key:, target_id: target&.id).update!(value:)
+      find_or_create_by(key:, target:).update!(value:)
 
       value
     end

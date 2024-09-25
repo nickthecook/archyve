@@ -4,6 +4,11 @@
   <div class="px-2 py-1 rounded-lg text-xs bg-secondary-300 dark:bg-secondary-700 text-secondary-800 dark:text-secondary-200">
     <%= collection.embedding_model.name %>
   </div>
+  <% if collection.entity_extraction_model.present? %>
+    <div class="p-1 px-2 ms-2 rounded-lg text-xs bg-secondary-300 dark:bg-secondary-700 text-secondary-800 dark:text-secondary-200">
+      <%= collection.entity_extraction_model.name %>
+    </div>
+   <% end %>
   <% if collection.graph_enabled %>
     <% if collection.state == "errored" %>
       <div class="p-1 px-2 ms-2 rounded-lg text-xs text-secondary-800 dark:text-secondary-200 bg-error-400 dark:bg-error-800" title="<%= collection.error_message %>">

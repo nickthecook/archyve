@@ -15,10 +15,16 @@
       )%>
       <%= f.submit "Update", hidden: true %>
     </div>
-    <div class="py-4 items-center">
+    <div class="py-4 items-center flex">
       <%= f.label "Embedding model", class: "pr-4" %>
       <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :name, {}, {
-        class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"
+        class: "flex-1 rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"
+      })%>
+    </div>
+    <div class="py-4 items-center flex">
+      <%= f.label "Embedding model", class: "pr-4" %>
+      <%= f.collection_select(:entity_extraction_model_id, entity_extraction_model_list, :id, :name, {}, {
+        class: "flex-1 rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"
       })%>
     </div>
     <div class="flex py-4 items-center justify-start">

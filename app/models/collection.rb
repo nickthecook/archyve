@@ -2,6 +2,7 @@ class Collection < ApplicationRecord
   has_many :documents, dependent: :destroy
   has_many :conversation_collections, dependent: :destroy
   belongs_to :embedding_model, class_name: "ModelConfig"
+  belongs_to :entity_extraction_model, class_name: "ModelConfig"
   has_many :graph_entities, dependent: :destroy
   has_many :graph_relationships_from, through: :graph_entities
   has_many :graph_relationships_to, through: :graph_entities

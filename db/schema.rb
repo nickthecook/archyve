@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_25_164721) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_25_172218) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -106,7 +106,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_25_164721) do
     t.integer "process_steps"
     t.boolean "stop_jobs", default: false
     t.string "error_message"
+    t.bigint "entity_extraction_model_id"
     t.index ["embedding_model_id"], name: "index_collections_on_embedding_model_id"
+    t.index ["entity_extraction_model_id"], name: "index_collections_on_entity_extraction_model_id"
   end
 
   create_table "conversation_collections", force: :cascade do |t|
@@ -460,6 +462,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_25_164721) do
   add_foreign_key "chunks", "documents"
   add_foreign_key "clients", "users"
   add_foreign_key "collections", "model_configs", column: "embedding_model_id"
+  add_foreign_key "collections", "model_configs", column: "entity_extraction_model_id"
   add_foreign_key "conversation_collections", "collections"
   add_foreign_key "conversation_collections", "conversations"
   add_foreign_key "conversations", "model_configs"
