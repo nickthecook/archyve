@@ -14,7 +14,7 @@ class PromptAugmentor
     @prompt ||= if @search_hits.any?
       prompt = "Here is some context that may help you answer the following question:\n\n"
       @search_hits.each do |hit|
-        prompt << "#{hit.content}\n\n"
+        prompt << "#{hit.content}\n\n---\n\n"
       end
 
       prompt << "Question: #{@message.content}\n"

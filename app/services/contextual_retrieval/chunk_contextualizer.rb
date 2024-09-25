@@ -6,7 +6,7 @@ module ContextualRetrieval
     end
 
     def execute
-      @contextualization = get_client_response
+      @contextualization = fetch_client_response
       @chunk.update!(
         content: updated_chunk_content_for(@chunk.content),
         embedding_content: updated_chunk_content_for(@chunk.embedding_content),
@@ -19,16 +19,33 @@ module ContextualRetrieval
 
     private
 
-    def get_client_response
-      if model_helper.provider == "ollama"
-        client.post("/api/generate", request_body)["response"]
+    def fetch_client_response
+      if use_ollama_contextualization_optimization
+        fetch_optimized_ollama_response
       else
-        client.complete(request_body)
+        fetch_completion_response
       end
     end
 
+    def fetch_optimized_ollama_response
+      client.post("/api/generate", {
+        model: model_config.model,
+        prompt:,
+        context: @chunk.document.context,
+        stream: false,
+      }.to_json)["response"]
+    end
+
+    def fetch_completion_response
+      client.complete({
+        model: model_config.model,
+        prompt:,
+        stream: false,
+      }.to_json)
+    end
+
     def prompt_template
-      @prompt_template ||= if model_helper.provider == "ollama"
+      @prompt_template ||= if use_ollama_contextualization_optimization
         ERB.new(ContextualRetrieval::Prompts::CONTEXTUALIZE_CHUNK_PROMPT)
       else
         ERB.new(ContextualRetrieval::Prompts::CONTEXTUALIZE_CHUNK_PROMPT_FULLDOC)
@@ -39,17 +56,8 @@ module ContextualRetrieval
       "#{@contextualization}\n\n---\n\n#{string}"
     end
 
-    def request_body
-      {
-        model: model_config.model,
-        prompt: prompt_for(@chunk.content),
-        context: @chunk.document.context,
-        stream: false,
-      }.to_json
-    end
-
-    def prompt_for(input_text)
-      prompt_template.result(binding)
+    def prompt
+      @prompt ||= prompt_template.result(binding)
     end
 
     def client
@@ -78,6 +86,10 @@ module ContextualRetrieval
 
     def parser
       @parser ||= Parsers.parser_for(@document.filename).new(@document)
+    end
+
+    def use_ollama_contextualization_optimization
+      model_helper.provider == "ollama" && Setting.get("use_ollama_contextualization_optimization", default: true)
     end
   end
 end

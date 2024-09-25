@@ -7,7 +7,9 @@ class Setting < ApplicationRecord
 
       set(key, default, user:) if setting.nil? || setting.value.nil?
 
-      setting&.value || default
+      return default if setting.value.nil?
+
+      setting.value
     end
 
     def set(key, value, user: nil)
