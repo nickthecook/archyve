@@ -1,17 +1,17 @@
 class Setting < ApplicationRecord
-  belongs_to :user, optional: true
+  belongs_to :target, optional: true
 
   class << self
-    def get(key, user: nil, default: nil)
-      setting = find_by(key:, user_id: user&.id)
+    def get(key, target: nil, default: nil)
+      setting = find_by(key:, target_id: target&.id)
 
-      set(key, default, user:) if setting.nil? || setting.value.nil?
+      set(key, default, target:) if setting.nil? || setting.value.nil?
 
       setting&.value || default
     end
 
-    def set(key, value, user: nil)
-      find_or_create_by(key:, user_id: user&.id).update!(value:)
+    def set(key, value, target: nil)
+      find_or_create_by(key:, target_id: target&.id).update!(value:)
 
       value
     end
