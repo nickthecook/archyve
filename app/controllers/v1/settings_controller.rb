@@ -31,7 +31,7 @@ module V1
     end
 
     def settings
-      Setting.where(user: nil)
+      Setting.where(target: nil)
     end
   end
 end

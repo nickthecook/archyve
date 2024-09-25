@@ -34,11 +34,11 @@ RSpec.describe Setting do
       let(:user) { create(:user) }
 
       before do
-        create(:setting, key: "key2", value: "user value", user:)
+        create(:setting, key: "key2", value: "user value", target: user)
       end
 
       it "returns the value of the existing setting for that user" do
-        expect(described_class.get("key2", user:)).to eq("user value")
+        expect(described_class.get("key2", target: user)).to eq("user value")
       end
 
       context "when no user is given" do
