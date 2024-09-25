@@ -1,7 +1,7 @@
 class Setting < ApplicationRecord
   belongs_to :target, optional: true, polymorphic: true
 
-  validates :setting_and_target, uniqueness: { scope: %i[key target] }
+  validates :key, uniqueness: { scope: :target }
 
   class << self
     def get(key, target: nil, default: nil)
