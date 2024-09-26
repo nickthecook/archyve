@@ -17,7 +17,7 @@ RSpec.describe Message do
 
   describe "#previous" do
     it "returns the previous message" do
-      expect(subject.previous).to contain_exactly(conversation.messages.order(:id)[1])
+      expect(subject.previous).to eq(conversation.messages.order(:id)[1])
     end
 
     it "returns multiple messages" do
@@ -31,7 +31,7 @@ RSpec.describe Message do
 
   describe "#next" do
     it "returns the next message" do
-      expect(subject.next).to contain_exactly(conversation.messages.order(:id)[3])
+      expect(subject.next).to eq(conversation.messages.order(:id)[3])
     end
 
     it "returns multiple messages" do

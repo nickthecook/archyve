@@ -23,12 +23,21 @@ class Message < ApplicationRecord
       partial: "messages/message"
     )
   }
+  after_destroy_commit lambda {
+    broadcast_remove_to(user_dom_id("conversations"), target: "message_#{id}")
+  }
 
   def previous(count = 1)
-    self.class.where(conversation:).where("id < ?", id).order(id: :asc).last(count)
+    previous = self.class.where(conversation:).where("id < ?", id).order(id: :asc).last(count)
+    return previous.first if count == 1
+
+    previous
   end
 
   def next(count = 1)
-    self.class.where(conversation:).where("id > ?", id).order(id: :asc).first(count)
+    nnext = self.class.where(conversation:).where("id > ?", id).order(id: :asc).first(count)
+    return nnext.first if count == 1
+
+    nnext
   end
 end

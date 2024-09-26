@@ -2,13 +2,7 @@
   <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
 
   <div class="overflow-y-scroll no-scrollbar flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
-    <div class="container flex justify-center w-full align-center">
-      <% if notice %>
-        <p class="text-sm notice text-secondary-700"><%= notice %></p>
-      <% elsif alert %>
-        <p class="text-sm alert text-primary-700"><%= alert %></p>
-      <% end %>
-    </div>
+    <%= render "shared/notice" %>
 
     <%= turbo_stream_from user_dom_id("conversations") %>
     <div class="m-2 h-full">

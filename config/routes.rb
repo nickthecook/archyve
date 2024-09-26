@@ -18,7 +18,9 @@ Rails.application.routes.draw do
     end
 
     resources :conversations do
-      resources :messages, only: [:create, :destroy]
+      resources :messages, only: [:create, :destroy] do
+        post :regenerate, as: :regenerate
+      end
     end
 
     resources :conversation_collections, only: [:create]

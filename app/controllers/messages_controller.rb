@@ -1,6 +1,7 @@
 class MessagesController < ApplicationController
   before_action :set_message, except: [:create]
   before_action :set_conversation
+  before_action :validate_author!, only: [:regenerate]
 
   def create
     @message = create_message
@@ -25,6 +26,15 @@ class MessagesController < ApplicationController
     redirect_to conversation_path(@conversation)
   end
 
+  def regenerate
+    respond_to do |format|
+      format.turbo_stream do
+        ReplyJob.perform_async(@message.previous.id)
+        @message.destroy!
+      end
+    end
+  end
+
   private
 
   def create_message
@@ -35,12 +45,19 @@ class MessagesController < ApplicationController
     message
   end
 
+  def validate_author!
+    return unless @message.author.is_a?(User)
+
+    flash.now[:alert] = "Cannot regenerate user message."
+    render turbo_stream: turbo_stream.replace(user_dom_id("notice"), partial: "shared/notice")
+  end
+
   def message_params
     params.permit(:content, :conversation_id)
   end
 
   def set_message
-    @message = Message.find(params[:id])
+    @message = Message.find(params[:id] || params[:message_id])
   end
 
   def set_conversation

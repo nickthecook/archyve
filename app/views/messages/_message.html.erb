@@ -9,7 +9,13 @@
       <div class="flex flex-col ms-4 text-right text-secondary-500 dark:text-secondary-400">
         <p class="py-1 text-xs"><%= author_name_for(message) %></p>
         <p class="py-1 text-xs"><%= time_ago_in_words(message.created_at) %> ago</p>
-        <%= render "shared/copy_button", content: message.content.strip %>
+        <div class="flex">
+          <div class="flex-1"></div>
+          <% if message.author.is_a?(ModelConfig) %>
+            <div class="ml-2"><%= render "shared/regenerate_button", message: %></div>
+          <% end %>
+          <div class="ml-2"><%= render "shared/copy_button", content: message.content.strip %></div>
+        </div>
       </div>
     </div>
 
@@ -44,7 +50,7 @@
       </div>
     <% end %>
     <% if message.error.present? %>
-      <div class="bg-red-400 text-secondary-950 dark:bg-red-800 dark:text-secondary-200 text-sm rounded-lg px-2">
+      <div class="bg-red-400 mx-4 text-secondary-950 dark:bg-red-800 dark:text-secondary-200 text-sm rounded-lg px-2">
         <%= message.error["message"] %>
       </div>
     <% end %>
