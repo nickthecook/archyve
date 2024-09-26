@@ -2,6 +2,11 @@ unless ENV.include?("DEFAULT_CLIENT_ID") && ENV.include?("DEFAULT_API_KEY")
   raise StandardError, "To run end-to-end tests, please set DEFAULT_CLIENT_ID and DEFAULT_API_KEY"
 end
 
+RSpec.configure do |config|
+  # some specs do a thing in one example and then check its result in the next example
+  config.order = :defined
+end
+
 require 'httparty'
 require 'pry'
 
