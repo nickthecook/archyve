@@ -40,4 +40,6 @@ class Message < ApplicationRecord
 
     nnext
   end
+
+  delegate :user, to: :conversation
 end
