@@ -109,10 +109,16 @@ ModelServer.last.make_active if ModelServer.active_server.nil?
 
 model_config_fields = ModelConfig.column_names
 provisioned_model_configs.each do |fields|
+  server = fields["server"]
   fields.slice!(*model_config_fields)
   puts "provisioning model configuration for `#{fields}` ..."
 
-  ModelConfig.find_or_initialize_by(name: fields["name"]).update!(**fields, provisioned: true)
+  model_config = ModelConfig.find_or_initialize_by(name: fields["name"])
+  model_config.update!(**fields, provisioned: true)
+  if server
+    model_server = ModelServer.find_by(name: server)
+    model_config.update!(model_server:)
+  end
 end
 
 
