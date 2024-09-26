@@ -28,7 +28,7 @@ module V1
 
     def num_results
       num_results = params[:num_results].to_i if params.include?(:num_results)
-      num_results || Setting.get(:num_chunks_to_include) || 10
+      num_results || Setting.get(:num_chunks_to_include, default: 10)
     end
   end
 end

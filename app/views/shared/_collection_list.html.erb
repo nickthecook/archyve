@@ -4,25 +4,15 @@
       <%= link_to "ARCHYVE", root_path, class: "text-tertiary-700 dark:text-tertiary-400" %>
     </div>
     <%= link_to "New collection", new_collection_path, class: "rounded-lg py-2 mb-4 px-4 my-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700" %>
-    <div id="collection_list_items" class="container overflow-y-scroll flex-1 no-scrollbar">
+    <div id="collection_list_items" class="container overflow-y-scroll flex-1 no-scrollbar rounded-lg border border-secondary-300 dark:border-secondary-700">
       <% collections.order(created_at: :desc).each do |collection| %>
         <%= render "shared/collection_list_item", collection:, selected: %>
       <% end %>
     </div>
-    <div class="w-full text-sm font-bold text-center my-1">
-      <%= @current_user.email %>
-    </div>
-    <% if current_user.admin? %>
-      <% classes = "rounded-lg py-1 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium border border-1/2 border-tertiary-700 dark:border-tertiary-400 w-full hover:bg-secondary-100 hover:dark:bg-secondary-800" %>
 
-      <%= link_to "Admin", "/admin", class: classes %>
-      <%= link_to "Sidekiq", "/sidekiq", class: classes %>
-    <% end %>
-    <div class="w-full">
-      <%= link_to "Chat", "/conversations", class: "rounded-lg py-1 px-3 my-1 text-center text-primary-900 block font-medium border border-primary-800 dark:text-secondary-100 dark:border-primary-400 hover:bg-secondary-100 hover:dark:bg-secondary-800", data: { turbo: false } %>
-    </div>
-    <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-2 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium w-full hover:bg-secondary-100 hover:dark:bg-secondary-800" %>
-    </div>
+    <%= render "shared/user_and_settings" %>
+    <%= render "shared/admin_buttons" %>
+    <%= render "shared/area_buttons" %>
+    <%= render "shared/sign_out_button" %>
   </div>
 </div>

@@ -59,7 +59,7 @@ module V1
 
     def num_results
       num_results = params[:num_results]&.to_i
-      num_results || Setting.get(:num_chunks_to_include) || 10
+      num_results || Setting.get(:num_chunks_to_include, default: 10)
     end
 
     def user_can_access_collection?(user, collection)

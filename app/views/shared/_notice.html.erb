@@ -1,6 +1,6 @@
-<div id="<%= user_dom_id("notice") %>" class="container flex justify-center w-full align-center">
+<div id="<%= user_dom_id("notice") %>" class="flex justify-center align-center fixed">
   <% if notice %>
-    <p class="text-sm notice text-secondary-700"><%= notice %></p>
+    <p class="text-sm notice text-secondary-500"><%= notice %></p>
   <% elsif alert %>
     <p class="text-sm alert text-tertiary-700"><%= alert %></p>
   <% end %>

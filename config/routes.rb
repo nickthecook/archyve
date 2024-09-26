@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       mount Sidekiq::Web => "/sidekiq"
     end
 
+    resources :settings, only: [:index, :update]
     resources :conversations do
       resources :messages, only: [:create, :destroy] do
         post :regenerate, as: :regenerate

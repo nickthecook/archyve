@@ -1,26 +1,16 @@
-<div id="conversations" class="overflow-y-scroll overflow-x-hidden no-scrollbar p-4 w-80 h-screen bg-secondary-200 dark:bg-secondary-900 text-secondary-950 dark:text-secondary-100">
+<div id="conversations" class="overflow-y-scroll overflow-x-hidden no-scrollbar p-5 w-80 h-screen bg-secondary-200 dark:bg-secondary-900 text-secondary-950 dark:text-secondary-100">
   <div class="container flex flex-col items-center h-full">
     <div class="pb-2 w-full font-mono text-2xl font-bold text-center"><%= link_to "ARCHYVE", root_path, class: "text-primary-600 dark:text-primary-400" %></div>
     <%= button_to "New conversation", conversations_path, class: "rounded-lg py-2 px-3 mb-4 my-2 text-center text-secondary-950 dark:text-secondary-950 block font-medium bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 hover:dark:bg-primary-300", data: { turbo: false } %>
-    <div class="overflow-y-scroll flex-1 overflow-x-hidden w-full pr-3">
+    <div class="overflow-y-scroll flex-1 overflow-x-hidden w-full pr-3 rounded-lg border border-secondary-300 dark:border-secondary-700">
       <% conversations.order(created_at: :desc).each do |conversation| %>
         <%= render "conversation_list_item", conversation:, selected: %>
       <% end %>
     </div>
-    <div class="w-full text-sm font-bold text-center my-5">
-      <%= @current_user.email %>
-    </div>
-    <% if current_user.admin? %>
-      <% classes = "rounded-lg py-1 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium border border-primary-600 dark:border-primary-400 w-full hover:bg-secondary-100 hover:dark:bg-secondary-800" %>
 
-      <%= link_to "Admin", "/admin", class: classes %>
-      <%= link_to "Sidekiq", "/sidekiq", class: classes %>
-    <% end %>
-    <div class="w-full">
-      <%= link_to "Documents", "/collections", class: "rounded-lg py-1 px-3 my-1 text-center text-secondary-900 block font-medium border border-tertiary-700 dark:text-secondary-100 dark:border-tertiary-400 hover:bg-secondary-100 hover:dark:bg-secondary-800", data: { turbo: false } %>
-    </div>
-    <div class="w-full">
-      <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "rounded-lg py-2 px-3 my-1 text-center text-secondary-900 dark:text-secondary-100 block font-medium w-full hover:bg-secondary-100 hover:dark:bg-secondary-800" %>
-    </div>
+    <%= render "shared/user_and_settings" %>
+    <%= render "shared/admin_buttons" %>
+    <%= render "shared/area_buttons" %>
+    <%= render "shared/sign_out_button" %>
   </div>
 </div>

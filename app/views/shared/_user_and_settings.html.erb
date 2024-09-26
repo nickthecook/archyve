@@ -1,0 +1,11 @@
+<div class="flex w-full m-2 py-2 px-4 rounded-lg">
+  <div class="pt-2 w-full flex-1 font-bold text-center align-middle">
+    <%= @current_user.email %>
+  </div>
+  <div class="flex-1"></div>
+  <div class="align-middle hover:text-secondary-400">
+    <%= link_to settings_path do %>
+      <i class="fa fa-gear fa-2x"></i>
+    <% end %>
+  </div>
+</div>

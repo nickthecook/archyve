@@ -26,7 +26,7 @@ class MessageAugmentor
   def searcher
     @searcher ||= Search::SearchN.new(
       collections_to_search,
-      num_results: Setting.get(:num_chunks_to_include),
+      num_results: Setting.get(:num_chunks_to_include, default: 10),
       traceable: @conversation
     )
   end

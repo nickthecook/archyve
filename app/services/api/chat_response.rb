@@ -45,7 +45,7 @@ module Api
     def searcher
       @searcher ||= Search::SearchN.new(
         @collections || Collection.all,
-        num_results: Setting.get(:num_chunks_to_include),
+        num_results: Setting.get(:num_chunks_to_include, default: 10),
         traceable: @api_client
       )
     end

@@ -136,3 +136,6 @@ Style/FrozenStringLiteralComment:
 Rails/ApplicationController:
   Exclude:
     - app/controllers/v1/**/*
+Metrics/AbcSize:
+  Exclude:
+    - app/controllers/**/*
