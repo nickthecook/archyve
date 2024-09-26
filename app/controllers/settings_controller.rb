@@ -1,16 +1,7 @@
 class SettingsController < ApplicationController
-  VISIBLE_SETTINGS = %i[
-    chat_model
-    embedding_model
-    entity_extraction_model
-    summarization_model
-  ].freeze
-
   before_action :set_setting, only: [:update]
 
-  def index
-    @settings = visible_settings
-  end
+  def index; end
 
   def update
     update_setting(setting_params[:value])
@@ -37,12 +28,6 @@ class SettingsController < ApplicationController
     end
 
     @setting.update!(value:)
-  end
-
-  def visible_settings
-    VISIBLE_SETTINGS.map do |key|
-      Setting.find_by(key:)
-    end
   end
 
   def setting_params

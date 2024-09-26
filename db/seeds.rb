@@ -130,8 +130,32 @@ Setting.find_or_create_by!(key: "summarization_model") do |setting|
   setting.value = ModelConfig.generation.last&.id
 end
 
+Setting.find_or_create_by!(key: "entity_extraction_model") do |setting|
+  setting.value = ModelConfig.generation.last&.id
+end
+
 Setting.find_or_create_by!(key: "num_chunks_to_include") do |setting|
   setting.value = 5
+end
+
+Setting.find_or_create_by!(key: "distance_ratio_threshold") do |setting|
+  setting.value = 0.2
+end
+
+Setting.find_or_create_by!(key: "normalized_search_distance_ceiling") do |setting|
+  setting.value = 0.5
+end
+
+Setting.find_or_create_by!(key: "num_chunks_to_include") do |setting|
+  setting.value = 10
+end
+
+Setting.find_or_create_by!(key: "opp_num_conversation_title_chars") do |setting|
+  setting.value = 60
+end
+
+Setting.find_or_create_by!(key: "opp_num_recent_convos_for_match") do |setting|
+  setting.value = 10
 end
 
 # DEV
