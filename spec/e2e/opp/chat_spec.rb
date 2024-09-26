@@ -1,4 +1,4 @@
-RSpec.describe "opp/api/chat", :chat, :llm, :now, :opp, :slow, type: :system do
+RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
   let(:call) { opp_post("/api/chat", payload) }
   let(:payload) do
     {
