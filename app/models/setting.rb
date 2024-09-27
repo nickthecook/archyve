@@ -7,9 +7,17 @@ class Setting < ApplicationRecord
     def get(key, target: nil, default: nil)
       setting = find_by(key:, target:)
 
-      set(key, default, target:) if setting.nil? || setting.value.nil?
+      if setting.nil?
+        Setting.create!(key:, value: default, target:)
 
-      setting&.value || default
+        default
+      elsif setting.value.nil?
+        setting.update!(value: default)
+
+        setting.value
+      else
+        setting.value
+      end
     end
 
     def set(key, value, target: nil)

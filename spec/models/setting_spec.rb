@@ -12,6 +12,20 @@ RSpec.describe Setting do
       expect(described_class.get("key1")).to eq("value1")
     end
 
+    context "when the value is nil" do
+      before do
+        create(:setting, key: "nil_setting", value: nil)
+      end
+
+      it "returns nil" do
+        expect(described_class.get("nil_setting")).to be_nil
+      end
+
+      it "does not create an additional setting" do
+        expect { described_class.get("nil_setting") }.not_to change(Setting, :count)
+      end
+    end
+
     context "when the setting does not exist" do
       it "returns nil" do
         expect(described_class.get("no_such_key")).to be_nil
@@ -27,6 +41,20 @@ RSpec.describe Setting do
     context "when a default is given" do
       it "returns the value of the existing setting" do
         expect(described_class.get("key2", default: "default value")).to eq("value2")
+      end
+
+      context "when the value is nil" do
+        before do
+          create(:setting, key: "nil_setting", value: nil)
+        end
+
+        it "returns nil" do
+          expect(described_class.get("nil_setting")).to be_nil
+        end
+
+        it "does not create an additional setting" do
+          expect { described_class.get("nil_setting") }.not_to change(Setting, :count)
+        end
       end
     end
 
