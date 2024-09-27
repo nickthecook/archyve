@@ -6,6 +6,7 @@ module Chunkers
   module InputType
     PLAIN_TEXT = 0
     COMMON_MARK = 1
+    HTML = 2
   end
 
   CHUNKING_METHODS = [

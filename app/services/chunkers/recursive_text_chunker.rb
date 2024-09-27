@@ -4,6 +4,9 @@ module Chunkers
   # Chunker splits text by recursively look at characters.
   # Recursively tries to split by different characters to find one that works.
   class RecursiveTextChunker
+    # Separators suitable for chunking html (headings and paragraphs)
+    HTML_SEPARATORS = %w[h1 h2 h3 h4 h5 h6 p]
+
     # Recursive text splitting separators suitable for chunking CommonMark text
     COMMONMARK_SEPARATORS = [
       # markdown-specific separators
@@ -47,8 +50,8 @@ module Chunkers
       @chunking_profile = chunking_profile
     end
 
-    def chunk(text, text_type = InputType::PLAIN_TEXT)
-      raw_chunks_from(text, separators_for(text_type)).map do |c|
+    def chunk(text, text_type)
+      raw_chunks_from(text, text_type, separators_for(text_type)).map do |c|
         ChunkRecord.new(content: c[:text])
       end
     end
@@ -56,22 +59,29 @@ module Chunkers
     private
 
     # Internal chunker returns array of chunks
-    def raw_chunks_from(text, separators)
+    def raw_chunks_from(text, text_type, separators)
       chunk_size = chunking_profile.size
       chunk_overlap = chunking_profile.overlap
-      splitter = Baran::RecursiveCharacterTextSplitter.new(
-        chunk_size:,
-        chunk_overlap:,
-        separators:
-      )
 
-      splitter.chunks(text)
+      if text_type = InputType::HTML
+        Nokogiri::HTML(text)
+          .css(HTML_SEPARATORS.join(",")).map(&:inner_text).map { |t| { text: t } }
+      else
+        splitter = Baran::RecursiveCharacterTextSplitter.new(
+          chunk_size:,
+          chunk_overlap:,
+          separators:
+        )
+        splitter.chunks(text)
+      end
     end
 
     def separators_for(text_type)
       case text_type
       when InputType::COMMON_MARK
         COMMONMARK_SEPARATORS
+      when InputType::HTML
+        HTML_SEPARATORS
       else
         PLAINTEXT_SEPARATORS
       end

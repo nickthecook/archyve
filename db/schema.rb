@@ -144,6 +144,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_25_172218) do
     t.bigint "chunking_profile_id"
     t.boolean "stop_jobs", default: false
     t.string "error_message"
+    t.string "link"
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
