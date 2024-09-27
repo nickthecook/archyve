@@ -1,7 +1,7 @@
 class Setting < ApplicationRecord
   belongs_to :target, optional: true, polymorphic: true
 
-  validates :key, uniqueness: { scope: :target }
+  # validates :key, uniqueness: { scope: :target }
 
   class << self
     def get(key, target: nil, default: nil)
@@ -14,7 +14,7 @@ class Setting < ApplicationRecord
       elsif setting.value.nil?
         setting.update!(value: default)
 
-        setting.value
+        default
       else
         setting.value
       end

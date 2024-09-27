@@ -164,6 +164,12 @@ Setting.find_or_create_by!(key: "opp_num_recent_convos_for_match") do |setting|
   setting.value = 10
 end
 
+# deduplicate settings - just added validation and some DBs have duplicate keys
+Setting.all.each do |setting|
+  settings_with_same_key = Setting.where(key: setting.key).order(updated_at: :desc)
+  settings_with_same_key.where(value: nil).each(&:destroy!)
+  settings_with_same_key[1..-1].each(&:destroy!)
+end
 # DEV
 #
 if Rails.env == "development"
