@@ -43,7 +43,7 @@ module Graph
     end
 
     def entity_extraction_model_id
-      @document.collection.entity_extraction_model.id ||
+      @document.collection.entity_extraction_model&.id ||
         Setting.get("entity_extraction_model", default: Setting.chat_model.id)
     end
   end
