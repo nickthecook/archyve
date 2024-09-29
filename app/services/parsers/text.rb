@@ -17,6 +17,11 @@ module Parsers
       @text ||= @document.contents
     end
 
+    # Overriede to set approriate title
+    def get_title
+      ''
+    end
+
     private
 
     def text_type

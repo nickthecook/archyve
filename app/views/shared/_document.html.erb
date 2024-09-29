@@ -6,7 +6,7 @@
       <div class="flex-1">
         <div class="flex items-baseline">
           <div class="pb-4 mr-2">
-            <%= link_to document.filename, collection_document_path(document.collection, document), format: :turbo_stream %>
+            <%= link_to title_for(document), collection_document_path(document.collection, document), format: :turbo_stream %>
           </div>
           <%= render "shared/document_state_badges", document: %>
         </div>
