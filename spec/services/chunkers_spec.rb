@@ -16,7 +16,7 @@ RSpec.describe Chunkers do
       let(:chunking_method) { method }
 
       it "succeeds" do
-        expect(subject.chunker_for(chunking_profile)).to be_a(chunker_class)
+        expect(subject.chunker_for(chunking_profile, Chunkers::InputType::PLAIN_TEXT)).to be_a(chunker_class)
       end
     end
   end
@@ -30,7 +30,7 @@ RSpec.describe Chunkers do
       let(:chunking_method) { :unknown_method }
 
       it "raises an error" do
-        expect { subject.chunker_for(chunking_profile) }.to raise_error(Chunkers::UnknownChunkingMethod)
+        expect { subject.chunker_for(chunking_profile, Chunkers::InputType::PLAIN_TEXT) }.to raise_error(Chunkers::UnknownChunkingMethod)
       end
     end
   end

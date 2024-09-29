@@ -8,7 +8,7 @@ RSpec.shared_examples "chunkers supporting overlap" do
   #   - :chunk_overlap
 
   describe "#chunk" do
-    let(:chunks) { subject.chunk(text, text_type) }
+    let(:chunks) { subject.chunk(text) }
 
     context "with overlap" do
       it "returns chunks no bigger than 'chunk_size + chunk_overlap'" do

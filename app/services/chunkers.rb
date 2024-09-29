@@ -14,7 +14,7 @@ module Chunkers
     { id: :basic, name: "Basic" },
   ].freeze
 
-  def self.chunker_for(chunking_profile)
+  def self.chunker_for(chunking_profile, text_type)
     chunking_method = chunking_profile.method.to_sym
     if chunking_method == :bytes
       # Mapping :bytes method for backwards compatibility since
@@ -31,6 +31,6 @@ module Chunkers
       raise UnknownChunkingMethod,
         "Unknown chunking method '#{chunking_method}"
     end
-    chunker_class.new(chunking_profile)
+    chunker_class.new(chunking_profile, text_type)
   end
 end

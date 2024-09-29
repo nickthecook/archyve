@@ -1,6 +1,7 @@
 RSpec.describe Chunkers::BasicCharacterChunker do
-  subject { described_class.new(chunking_profile) }
+  subject { described_class.new(chunking_profile, Chunkers::InputType::PLAIN_TEXT) }
 
+  let(:text_type) { Chunkers::InputType::PLAIN_TEXT }
   let(:text) { file_fixture('small_doc.md').read }
   let(:text_type) { Chunkers::InputType::PLAIN_TEXT }
   let(:chunk_size) { 100 }

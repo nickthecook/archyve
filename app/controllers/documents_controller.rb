@@ -65,7 +65,7 @@ class DocumentsController < ApplicationController
         f.puts HTTParty.get(params[:link])
         f.rewind
         document.file = f
-        document.filename = file.path #File.basename(f.path)
+        document.filename = File.basename(f.path)
       rescue StandardError
         document.update(state: :errored)
       end
@@ -84,7 +84,7 @@ class DocumentsController < ApplicationController
   end
 
   def document_params
-    params.permit(:file, :link)
+    params.permit(:file, :link, :filename)
   end
 
   def set_document

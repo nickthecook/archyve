@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_25_172218) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_29_193319) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -145,6 +145,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_25_172218) do
     t.boolean "stop_jobs", default: false
     t.string "error_message"
     t.string "link"
+    t.string "title"
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
     t.index ["user_id"], name: "index_documents_on_user_id"

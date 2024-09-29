@@ -7,7 +7,9 @@ module Parsers
     return Pdf if name_locase.end_with?(".pdf")
     return Docx if name_locase.end_with?(".docx")
     return CommonMark if name_locase.end_with?(".md")
-    return Text if name_locase.end_with?(".txt", ".html")
+    return Text if name_locase.end_with?(".txt")
+    return Html if name_locase.ends_with?(".html")
+    return Html if name_locase.match?(/.html*\z/)
 
     raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end

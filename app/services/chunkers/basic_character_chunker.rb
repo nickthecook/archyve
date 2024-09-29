@@ -2,12 +2,13 @@ module Chunkers
   class BasicCharacterChunker
     attr_reader :chunking_profile
 
-    def initialize(chunking_profile)
+    def initialize(chunking_profile, text_type)
       @chunking_profile = chunking_profile
+      @text_type = text_type
     end
 
     # Return Enumerable with chunks
-    def chunk(text, _text_type = InputType::PLAIN_TEXT)
+    def chunk(text)
       chunk_size = chunking_profile.size
 
       raw_chunks = text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)

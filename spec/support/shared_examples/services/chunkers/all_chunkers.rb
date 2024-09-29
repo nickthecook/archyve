@@ -6,7 +6,7 @@ RSpec.shared_examples "all chunkers" do
   #   - :text_type
 
   describe "#chunk" do
-    let(:chunks) { subject.chunk(text, text_type) }
+    let(:chunks) { subject.chunk(text) }
 
     it "returns Enumerable" do
       expect(chunks).to be_a(Enumerable)

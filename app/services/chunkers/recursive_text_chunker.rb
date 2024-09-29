@@ -46,12 +46,13 @@ module Chunkers
 
     attr_reader :chunking_profile, :chunking_separators
 
-    def initialize(chunking_profile)
+    def initialize(chunking_profile, text_type)
       @chunking_profile = chunking_profile
+      @text_type = text_type
     end
 
-    def chunk(text, text_type)
-      raw_chunks_from(text, text_type, separators_for(text_type)).map do |c|
+    def chunk(text)
+      raw_chunks_from(text).map do |c|
         ChunkRecord.new(content: c[:text])
       end
     end
@@ -59,11 +60,11 @@ module Chunkers
     private
 
     # Internal chunker returns array of chunks
-    def raw_chunks_from(text, text_type, separators)
+    def raw_chunks_from(text)
       chunk_size = chunking_profile.size
       chunk_overlap = chunking_profile.overlap
 
-      if text_type = InputType::HTML
+      if @text_type == Chunkers::InputType::HTML
         Nokogiri::HTML(text)
           .css(HTML_SEPARATORS.join(",")).map(&:inner_text).map { |t| { text: t } }
       else
@@ -76,8 +77,8 @@ module Chunkers
       end
     end
 
-    def separators_for(text_type)
-      case text_type
+    def separators
+      case @text_type
       when InputType::COMMON_MARK
         COMMONMARK_SEPARATORS
       when InputType::HTML
