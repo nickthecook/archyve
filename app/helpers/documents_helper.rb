@@ -6,6 +6,14 @@ module DocumentsHelper
     end
   end
 
+  def title_for(document)
+    if document.title.presence
+      document.title
+    else
+      document.filename
+    end
+  end
+
   def chunks_completed_label_for(total_chunks, completed_chunks, label_name)
     if total_chunks.zero?
       "Not #{label_name}"
