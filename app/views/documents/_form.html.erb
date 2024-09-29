@@ -6,7 +6,10 @@
         <div class="flex-col">
 
           <%= f.file_field :file, class: "w-full p-2 rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:border-secondary-600" %>
-          <%= f.url_field "link", class: "w-full p-2 rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:border-secondary-600" %>
+          <%= f.url_field "link",
+            placeholder: "Enter a URL",
+            class: "w-full p-2 rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:bg-secondary-925 dark:border-secondary-600"
+          %>
           <%= fields_for :chunking_profile do |cp| %>
             <div class="flex w-full justify-between overflow-x-scroll no-scrollbar">
               <div class="flex justify-start text-end">
