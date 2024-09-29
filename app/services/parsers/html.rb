@@ -1,7 +1,7 @@
 module Parsers
   class Html < Text
     def get_title
-      Nokogiri::HTML(@document.text).css('title').text
+      Nokogiri::HTML(@document.contents).css('title').text
     end
 
     private
