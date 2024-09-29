@@ -7,11 +7,7 @@ module DocumentsHelper
   end
 
   def title_for(document)
-    if document.title.presence
-      document.title
-    else
-      document.filename
-    end
+    document.title || document.filename
   end
 
   def chunks_completed_label_for(total_chunks, completed_chunks, label_name)

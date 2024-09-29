@@ -14,6 +14,8 @@ class ChunkDocument
       EmbedChunkJob.perform_async(chunk.id)
     end
 
+    @document.update(title: parser.get_title)
+
     @document.chunked!
   end
 
