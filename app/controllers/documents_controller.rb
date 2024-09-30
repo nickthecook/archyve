@@ -19,7 +19,11 @@ class DocumentsController < ApplicationController
 
     @document = new_document
 
-    ChunkDocumentJob.perform_async(@document.id) unless @document.errored?
+    if @document.file.present?
+      ChunkDocumentJob.perform_async(@document.id) unless @document.errored?
+    else
+      FetchWebDocumentJob.perform_async(@document.id)
+    end
 
     respond_to do |format|
       format.turbo_stream do
@@ -59,17 +63,7 @@ class DocumentsController < ApplicationController
 
   def new_document
     document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
-    if params[:link].present?
-      begin
-        f = Tempfile.create(['web-', '.html'])
-        f.puts HTTParty.get(params[:link])
-        f.rewind
-        document.file = f
-        document.filename = File.basename(f.path)
-      rescue StandardError
-        document.update(state: :errored)
-      end
-    elsif params[:file]
+    if params[:file].present?
       document.filename = params[:file].original_filename
     end
     document.collection = @collection
