@@ -14,7 +14,7 @@
       <% elsif @document %>
         <%= render @document %>
       <% elsif @collection %>
-        <% if @collection.id.present? %>
+        <% if @collection.persisted? %>
           <%= render @collection %>
         <% else %>
           <%= render "collections/new", collection: @collection %>

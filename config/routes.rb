@@ -27,7 +27,7 @@ Rails.application.routes.draw do
     resources :conversation_collections, only: [:create]
 
     resources :collections do
-      resources :documents, only: [:create, :destroy, :show] do
+      resources :documents, only: %i[create destroy show new] do
         post :vectorize, as: :vectorize
         post :stop, as: :stop
         post :start, as: :start

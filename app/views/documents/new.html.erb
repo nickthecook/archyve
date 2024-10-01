@@ -1,0 +1,63 @@
+<div class="flex">
+  <%= render "shared/collection_list", collections: @collections, selected: @collection %>
+
+  <div id="collection_area" class="overflow-y-scroll no-scrollbar flex-1 h-screen bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+
+    <div class="flex flex-col h-full w-full justify-center items-center">
+      <div class="p-4">
+        <% flash[:error]&.each do |error| %>
+          <div class="rounded-lg px-2 p-1 bg-error-400 dark:bg-error-800"><%= error %></div>
+        <% end %>  
+      </div>
+      <div class="w-1/2">
+        <div class="rounded-lg border border-secondary-400 dark:border-secondary-600 p-8 mb-8">
+          <%= form_for [@collection, @document] do |f| %>
+            <div class="pr-2">Upload a file</div>
+            <div class="py-2 items-center flex">
+              <%= f.file_field :file,
+                class: "w-full p-2 rounded-lg my-2 px-5 py-8 border border-secondary-400 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-925 flex-1 text-center"
+              %>
+              <%= f.submit "Update", hidden: true %>
+            </div>
+            OR
+            <div class="py-2 items-center flex">
+              <%= f.url_field :link,
+                placeholder: "Enter a URL",
+                class: "w-full rounded-lg my-2 px-5 border border-secondary-400 dark:bg-secondary-925 dark:border-secondary-600"
+              %>
+            </div>
+          </div>
+          <%= fields_for :chunking_profile do |cp| %>
+            <div class="py-4 items-center flex">
+              <%= cp.label :chunking_method, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.collection_select(
+                :method,
+                chunking_method_options,
+                :first, :last,
+                { selected: default_chunking_method },
+                { class: "rounded-md dark:bg-secondary-925 mx-1" }
+              ) %>
+            </div>
+            
+            <div class="py-4 items-center flex">
+              <%= cp.label :chunk_size, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.text_field :size, value: default_chunk_size(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 mx-1 text-right" %>
+            </div>
+
+            <div class="py-4 items-center flex">
+              <%= cp.label :chunk_overlap, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 mx-1 text-right" %>
+            </div>
+          <% end %>
+          <div class="flex p-2 items-center">
+            <div class="flex-1"></div>
+            <%= f.submit "Create", class: "rounded-lg py-1 px-3 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -14,10 +14,15 @@ class DocumentsController < ApplicationController
     render "show", locals: { document: @document }
   end
 
+  def new
+    @collections = current_user.collections
+    @document = Document.new(collection_id: @collection.id)
+  end
+
   def create
     @chunking_profile = ChunkingProfile.find_or_create_by(chunking_params)
 
-    @document = new_document
+    @document = document_from_params
 
     if @document.web?
       FetchWebDocumentJob.perform_async(@document.id)
@@ -25,17 +30,7 @@ class DocumentsController < ApplicationController
       ChunkDocumentJob.perform_async(@document.id)
     end
 
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.replace(:document_form, partial: "documents/form"),
-          turbo_stream.append("#{dom_id(@collection)}-documents", partial: "shared/document"),
-        ]
-      end
-      format.html do
-        render @document.collection
-      end
-    end
+    redirect_to @document.collection
   end
 
   def destroy
@@ -64,11 +59,11 @@ class DocumentsController < ApplicationController
 
   private
 
-  def new_document
+  def document_from_params
     document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
     if document_params[:file].present?
       document.filename = document_params[:file].original_filename
-    elsif params[:link].present?
+    elsif document_params[:link].present?
       document.title = document_params[:link]
     end
     document.collection = @collection
@@ -83,7 +78,7 @@ class DocumentsController < ApplicationController
   end
 
   def document_params
-    params.permit(:file, :link, :filename)
+    params.require(:document).permit(:file, :link, :filename)
   end
 
   def set_document

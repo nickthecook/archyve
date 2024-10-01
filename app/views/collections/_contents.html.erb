@@ -24,7 +24,7 @@
   </div>
 <% end %>
 
-<div class="h-full overflow-y-scroll no-scrollbar">
+<div class="h-full overflow-y-scroll py-2 no-scrollbar">
   <% if @show == "entities" %>
     <div id="<%= dom_id(collection) %>_entities_by_desc_count" class="flex-1">
       <% collection.graph_entities.by_description_count.first(num_entities_to_show).each do |entity| %>
@@ -38,8 +38,10 @@
       <% end %>
     </div>
   <% end %>
-</div>
 
-<% if @show != "entities" %>
-  <%= render "documents/form", locals: { collection: } %>
-<% end %>
+  <%= button_to "Add Document",
+    new_collection_document_path(collection_id: @collection.id),
+    class: "rounded-lg my-4 px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 cursor-pointer",
+    method: :get
+  %>
+</div>
