@@ -66,10 +66,10 @@ class DocumentsController < ApplicationController
 
   def new_document
     document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
-    if params[:file].present?
-      document.filename = params[:file].original_filename
+    if document_params[:file].present?
+      document.filename = document_params[:file].original_filename
     elsif params[:link].present?
-      document.title = params[:link]
+      document.title = document_params[:link]
     end
     document.collection = @collection
     document.user = current_user
