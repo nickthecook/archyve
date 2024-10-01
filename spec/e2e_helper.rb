@@ -67,3 +67,18 @@ def opp_post(path, payload)
   post(path, payload, opp_url)
 end
 # rubocop:enable Rails/HttpPositionalArguments
+
+def test_collection_id
+  @test_collection_id ||= begin
+    collections = api_get("/v1/collections").parsed_body["collections"]
+    raise StandardError, "No collections found!" if collections.empty?
+
+    test_collection = collections.find { |c| c['name'] == 'Testing' }
+    raise StandardError, "No collection found with name 'Testing'," unless test_collection
+
+    test_collection_id = test_collection["id"]
+    raise StandardError, "Could not get 'id' from test collection: #{test_collection}" if test_collection_id.nil?
+
+    test_collection_id
+  end
+end

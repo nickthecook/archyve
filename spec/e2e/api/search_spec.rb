@@ -1,6 +1,6 @@
 RSpec.describe "search", :api, :llm, :slow, type: :system do
   describe "/v1/search" do
-    let(:call) { api_get("/v1/search?q=skippy+dare") }
+    let(:call) { api_get("/v1/search?q=richard+stallman") }
 
     it "returns 200" do
       expect(call.code).to eq(200)

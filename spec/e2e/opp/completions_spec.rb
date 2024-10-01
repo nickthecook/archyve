@@ -9,7 +9,7 @@ RSpec.describe "opp/v1/chat/completions", :chat, :llm, :opp, :slow, type: :syste
         messages: [
           {
             role: "user",
-            content: "Tell me about Skippy Dare.",
+            content: "Tell me about the GNU Project.",
           },
         ],
       }
@@ -35,7 +35,7 @@ RSpec.describe "opp/v1/chat/completions", :chat, :llm, :opp, :slow, type: :syste
             role: "user",
             content: [
               {
-                text: "Tell me about Skippy Dare.",
+                text: "Tell me about the GNU Project.",
                 type: "text",
               },
             ],

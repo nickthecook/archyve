@@ -16,7 +16,7 @@ RSpec.describe "collections", :api, type: :system do
   end
 
   describe "/v1/collections/:id" do
-    let(:collection_id) { api_get("/v1/collections").parsed_body["collections"].last["id"] }
+    let(:collection_id) { test_collection_id }
 
     let(:call) { api_get("/v1/collections/#{collection_id}") }
 

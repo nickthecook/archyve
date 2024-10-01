@@ -8,7 +8,7 @@ RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
       messages: [
         {
           role: "user",
-          content: "Who is Skippy Dare?",
+          content: "Who started the GNU Project?",
         },
       ],
     }.to_json
@@ -30,7 +30,7 @@ RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
 
   it "creates messages in the database" do
     expect(messages_call.parsed_body["messages"][0]).to include(
-      "content" => "Who is Skippy Dare?",
+      "content" => "Who started the GNU Project?",
       "author_type" => "User"
     )
     expect(messages_call.parsed_body.dig("messages", 1)).to include(
