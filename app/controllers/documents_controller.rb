@@ -19,7 +19,11 @@ class DocumentsController < ApplicationController
 
     @document = new_document
 
-    ChunkDocumentJob.perform_async(@document.id) unless @document.errored?
+    if @document.web?
+      FetchWebDocumentJob.perform_async(@document.id)
+    else
+      ChunkDocumentJob.perform_async(@document.id)
+    end
 
     respond_to do |format|
       format.turbo_stream do
@@ -40,13 +44,16 @@ class DocumentsController < ApplicationController
     DestroyJob.perform_async(@document.id)
 
     respond_to do |format|
-      # Document will take care of it
       format.html { redirect_to collection_path(@collection) }
     end
   end
 
   def vectorize
-    ChunkDocumentJob.perform_async(@document.id)
+    if @document.web?
+      FetchWebDocumentJob.perform_async(@document.id)
+    else
+      ChunkDocumentJob.perform_async(@document.id)
+    end
   end
 
   def stop
@@ -59,18 +66,10 @@ class DocumentsController < ApplicationController
 
   def new_document
     document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
-    if params[:link].present?
-      begin
-        f = Tempfile.create(['web-', '.html'])
-        f.puts HTTParty.get(params[:link])
-        f.rewind
-        document.file = f
-        document.filename = File.basename(f.path)
-      rescue StandardError
-        document.update(state: :errored)
-      end
-    elsif params[:file]
+    if params[:file].present?
       document.filename = params[:file].original_filename
+    elsif params[:link].present?
+      document.title = params[:link]
     end
     document.collection = @collection
     document.user = current_user

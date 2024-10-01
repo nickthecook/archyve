@@ -42,6 +42,8 @@ class Document < ApplicationRecord
 
   enum state: {
     created: 0,
+    fetching: 2,
+    fetched: 3,
     chunking: 4,
     chunked: 1,
     deleting: 7,
@@ -52,6 +54,8 @@ class Document < ApplicationRecord
   # rubocop:disable Metrics/BlockLength
   aasm column: :state, enum: true do
     state :created
+    state :fetching
+    state :fetched
     state :chunking
     state :chunked
     state :deleting
@@ -104,5 +108,9 @@ class Document < ApplicationRecord
 
   def extracted?
     chunks.extracted.count == chunks.count
+  end
+
+  def web?
+    link.present?
   end
 end
