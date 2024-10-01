@@ -15,7 +15,7 @@
             <div class="pr-2">Upload a file</div>
             <div class="py-2 items-center flex">
               <%= f.file_field :file,
-                class: "w-full p-2 rounded-lg my-2 px-5 py-8 border border-secondary-400 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-925 flex-1 text-center"
+              class: "w-full p-2 rounded-lg my-2 px-5 py-8 border border-secondary-400 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-925 flex-1 text-center"
               %>
               <%= f.submit "Update", hidden: true %>
             </div>
@@ -28,7 +28,7 @@
             </div>
           </div>
           <%= fields_for :chunking_profile do |cp| %>
-            <div class="py-4 items-center flex">
+            <div class="py-2 items-center flex">
               <%= cp.label :chunking_method, class: "px-2" %>
               <div class="flex-1"></div>
               <%= cp.collection_select(
@@ -36,25 +36,25 @@
                 chunking_method_options,
                 :first, :last,
                 { selected: default_chunking_method },
-                { class: "rounded-md dark:bg-secondary-925 mx-1" }
+                { class: "rounded-md dark:bg-secondary-925" }
               ) %>
             </div>
             
-            <div class="py-4 items-center flex">
+            <div class="py-2 items-center flex">
               <%= cp.label :chunk_size, class: "px-2" %>
               <div class="flex-1"></div>
-              <%= cp.text_field :size, value: default_chunk_size(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 mx-1 text-right" %>
+              <%= cp.text_field :size, value: default_chunk_size(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
             </div>
 
-            <div class="py-4 items-center flex">
+            <div class="py-2 items-center flex">
               <%= cp.label :chunk_overlap, class: "px-2" %>
               <div class="flex-1"></div>
-              <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 mx-1 text-right" %>
+              <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
             </div>
           <% end %>
-          <div class="flex p-2 items-center">
+          <div class="flex py-4 items-center">
             <div class="flex-1"></div>
-            <%= f.submit "Create", class: "rounded-lg py-1 px-3 text-center text-secondary-100 dark:text-secondary-950 block font-medium bg-tertiary-600 dark:bg-tertiary-400" %>
+            <%= f.submit "Create", class: "rounded-lg my-4 px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 cursor-pointer" %>
           </div>
         <% end %>
       </div>
