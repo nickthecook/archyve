@@ -30,6 +30,19 @@ class ModelServer < ApplicationRecord
     end
   end
 
+  def default_context_window_size
+    if provider_openai_azure?
+      # May be more per model, but we can assume a bigger default
+      8 * 1024
+    elsif provider_openai?
+      # May be more per model, but we can assume a bigger default
+      16 * 1024
+    else
+      # The default for ollama unless overridden by custom Modelfile
+      2 * 1024
+    end
+  end
+
   def make_active
     active_servers = ModelServer.active
     return if active_servers.length == 1 && active_servers.first == self
