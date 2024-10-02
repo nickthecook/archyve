@@ -1,5 +1,5 @@
 <% collection ||= @collection %>
-<div id="<%= "#{dom_id(collection)}_list_item" %>">
+<div id="<%= "#{dom_id(collection)}_list_item" %>", class="px-1">
   <%
     bg_class = if selected && selected.id == collection.id
       "bg-secondary-300 dark:bg-secondary-600 hover:bg-secondary-400 dark:hover:bg-secondary-500"
@@ -9,7 +9,7 @@
   %>
   <div class="container flex rounded-md p-1 my-2 items-center <%= bg_class %> w-full" title="<%= collection.name %>">
     <%= link_to collection, class: "flex-1 w-full truncate mx-2" do %>
-      <div class="px-2 py-1 truncate">
+      <div class="py-1 truncate">
         <%= collection.name %>
       </div>
     <% end %>
