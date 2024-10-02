@@ -1,0 +1,4 @@
+<%= turbo_frame_tag "#{dom_id(@entity)}-page-#{@pagy.page}" do %>
+  <%= render "descriptions", descriptions: @descriptions %>
+  <%= render partial: "next_page" %>
+<% end %>

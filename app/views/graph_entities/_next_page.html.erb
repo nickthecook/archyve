@@ -1,0 +1,10 @@
+<% if @pagy.next.present? %>
+  <%= turbo_frame_tag(
+        "#{dom_id(@entity)}-page-#{@pagy.next}",
+        loading: :lazy,
+        src: pagy_url_for(@pagy, @pagy.next),
+        target: "_top"
+      ) do %>
+    Loading...
+  <% end %>
+<% end %>

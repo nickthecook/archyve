@@ -8,6 +8,9 @@ class GraphEntitiesController < ApplicationController
 
   def show
     @collections = current_user.collections
+    @pagy, @descriptions = pagy(@entity.descriptions.order(:id))
+
+    return render "scrollable_list" if params[:page].present?
 
     render :show
   end
