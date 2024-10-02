@@ -7,5 +7,6 @@ FactoryBot.define do
     provisioned { false }
     available { true }
     model_server { nil }
+    context_window_size { nil }
   end
 end

@@ -15,6 +15,10 @@ class ModelConfig < ApplicationRecord
     model_server&.api_version_required?
   end
 
+  def context_window_size
+    self[:context_window_size] || model_server.default_context_window_size
+  end
+
   def make_active_embedding_model
     raise ModelTypeError, "Model is not an embedding model" unless embedding?
 
