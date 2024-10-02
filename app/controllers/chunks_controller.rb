@@ -3,7 +3,7 @@ class ChunksController < ApplicationController
   before_action :set_document, only: [:show]
   before_action :set_chunk, only: [:show]
 
-  NUM_NEIGHBOURS = 3
+  NUM_NEIGHBOURS = 2
 
   def show
     return render_not_found unless @chunk

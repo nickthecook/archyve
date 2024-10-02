@@ -5,7 +5,7 @@ module Chunkers
   # Recursively tries to split by different characters to find one that works.
   class RecursiveTextChunker
     # Separators suitable for chunking html (headings and paragraphs)
-    HTML_SEPARATORS = %w[h1 h2 h3 h4 h5 h6 p]
+    HTML_SEPARATORS = %w[p]
 
     # Recursive text splitting separators suitable for chunking CommonMark text
     COMMONMARK_SEPARATORS = [

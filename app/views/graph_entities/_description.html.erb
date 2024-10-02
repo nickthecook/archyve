@@ -1,15 +1,32 @@
 <% entity ||= @entity %>
 
 <div id="<%= dom_id(description) %>">
-  <div class="flex px-6 py-5 my-3 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-925">
-    <div class="flex-col px-5">
-      <%= description.id %>
-      <p class="py-1 text-xs text-right text-muted">
-        Entity: <%= link_to entity.name, collection_entity_path(entity.collection, entity) %>
-      </p>
+  <div class="flex px-6 py-3 my-5 rounded-md shadow-lg bg-secondary-200 dark:bg-secondary-925">
+    <div class="flex flex-col px-8 py-6">
+      <div class="flex h-full">
+        <div class="flex flex-col align-middle">
+          <p class="py-1 pr-2 text-xs text-right text-muted">Description:</p>
+          <p class="py-1 pr-2 text-xs text-right text-muted">Chunk:</p>
+        </div>
+        <div class="flex flex-col align-middle text-middle">
+          <p class="py-1 text-xs text-left text-muted">
+            #<%= description.id %>
+          </p>
+          <p class="py-1 text-xs text-left text-muted">
+            <%= link_to "##{description.chunk.id}",
+              collection_document_chunk_path(
+                description.collection,
+                description.document,
+                description.chunk
+              ),
+              class: "text-tertiary-700 dark:text-tertiary-600 hover:underline"
+            %>
+          </p>
+        </div>
+      </div>
     </div>
     <div class="flex-1">
-      <p><%= description.description %></p>
+      <p class="py-6"><%= description.description %></p>
     </div>
   </div>
 </div>
