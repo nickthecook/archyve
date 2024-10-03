@@ -1,5 +1,5 @@
 <% description ||= @description %>
 <% collection ||= @collection %>
-<% descriptions.each do |description| %>
+<% descriptions&.each do |description| %>
   <%= render "graph_entities/description", description: %>
 <% end %>
