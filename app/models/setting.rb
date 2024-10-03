@@ -4,20 +4,20 @@ class Setting < ApplicationRecord
   # validates :key, uniqueness: { scope: :target }
 
   class << self
-    def get(key, target: nil, default: nil)
+    def ensure_exists(key, target: nil, default: nil)
       setting = find_by(key:, target:)
 
       if setting.nil?
-        Setting.create!(key:, value: default, target:)
-
-        default
+        setting = Setting.create!(key:, value: default, target:)
       elsif setting.value.nil?
         setting.update!(value: default)
-
-        default
-      else
-        setting.value
       end
+
+      setting
+    end
+
+    def get(*args, **kwargs)
+      ensure_exists(*args, **kwargs).value
     end
 
     def set(key, value, target: nil)
