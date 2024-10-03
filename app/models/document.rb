@@ -15,14 +15,14 @@ class Document < ApplicationRecord
     broadcast_append_to(
       :collections,
       target: "documents",
-      partial: "shared/document"
+      partial: "collections/document"
     )
   }
   after_update_commit lambda {
     broadcast_replace_to(
       :collections,
       target: "document_#{id}",
-      partial: "shared/document",
+      partial: "collections/document",
       document: reload
     )
 

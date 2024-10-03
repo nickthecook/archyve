@@ -34,7 +34,7 @@
   <% else %>
     <div id="<%= dom_id(collection) %>-documents" class="flex-1">
       <% collection.documents.order(:created_at).each do |document| %>
-        <%= render "shared/document", document: %>
+        <%= render "collections/document", document: %>
       <% end %>
     </div>
   <% end %>
