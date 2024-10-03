@@ -13,6 +13,8 @@ class Conversation < ApplicationRecord
     proxy: 2,
   }
 
+  scope :chat, -> { where(source: "chat") }
+
   include Turbo::Broadcastable
 
   after_update_commit lambda {

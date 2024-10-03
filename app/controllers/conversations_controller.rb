@@ -1,17 +1,15 @@
 class ConversationsController < ApplicationController
   before_action :set_conversation, only: %i[show update destroy update_collections]
+  before_action :set_conversations
 
   # GET /conversations or /conversations.json
-  def index
-    @conversations = current_user.conversations
-  end
+  def index; end
 
   # GET /conversations/1 or /conversations/1.json
   def show
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.replace("conversation", partial: "conversation") }
       format.html do
-        @conversations = current_user.conversations
         render :index
       end
     end
@@ -86,6 +84,18 @@ class ConversationsController < ApplicationController
   end
 
   private
+
+  def show_all_conversations
+    @show_all_conversations ||= Setting.get(:show_conversations_from_api, target: current_user)
+  end
+
+  def set_conversations
+    @conversations = if show_all_conversations
+      current_user.conversations
+    else
+      current_user.conversations.chat
+    end
+  end
 
   def set_conversation
     @conversation = Conversation.find(params[:id] || params[:conversation_id])

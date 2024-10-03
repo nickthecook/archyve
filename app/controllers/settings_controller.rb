@@ -13,7 +13,7 @@ class SettingsController < ApplicationController
       end
       format.html do
         flash[:notice] = "Setting saved."
-        redirect_to settings_path
+        redirect_to params[:redirect_path] || settings_path
       end
     end
   end
@@ -25,6 +25,8 @@ class SettingsController < ApplicationController
       value = value.to_i
     elsif value.to_f.to_s == value
       value = value.to_f
+    elsif %w[true false].include?(value)
+      value = value == "true"
     end
 
     @setting.update!(value:)

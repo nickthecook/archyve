@@ -9,9 +9,11 @@
     <div class="container flex overflow-hidden rounded-md w-full p-1 my-2 <%= bg_class %>">
       <div class="flex justify-end pe-1">
         <div class="flex flex-col place-content-center place-items-center">
-          <div class="text-xs text-secondary-700 dark:text-secondary-200 px-2 py-1 ms-1 bg-secondary-100 dark:bg-secondary-500 rounded-lg">
-            <%= conversation.source || "chat" %>
-          </div>
+          <% if conversation.source.present? && conversation.source != "chat" %>
+            <div class="text-xs text-secondary-700 dark:text-secondary-200 px-2 py-1 ms-1 bg-secondary-100 dark:bg-secondary-500 rounded-lg">
+              <%= conversation.source %>
+            </div>
+          <% end %>
         </div>
       </div>
       <%= link_to conversation, class: "flex-1 w-full truncate" do %>
