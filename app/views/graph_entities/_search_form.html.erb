@@ -1,0 +1,29 @@
+<% entity ||= @entity %>
+
+<div id="<%= dom_id(entity) + "_search_form" %>" class="w-full">
+  <%= form_with url: collection_entity_search_path(entity.collection, entity), method: :get, data: { turbo_stream: true } do |f| %>
+    <div class="container flex flex-1">
+      <%= f.text_field :query,
+        placeholder: "Search descriptions (case sensitive, substring search only)...",
+        class: "rounded-md dark:bg-secondary-925 w-full flex-1",
+        hidden: false,
+        value: query,
+        data: { controller: "submit", "submit-target": "input" },
+        autocomplete: "off"
+      %>
+      <div class="flex items-center">
+        <div>
+          <%= f.submit "Search",
+            class: "rounded-lg px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 ml-2 cursor-pointer"
+          %>
+        </div>
+        <div>
+          <%= link_to "Clear",
+            collection_entity_path(entity.collection, entity),
+            class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2"
+          %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

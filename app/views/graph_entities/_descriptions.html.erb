@@ -1,5 +1,10 @@
-<% description ||= @description %>
-<% collection ||= @collection %>
-<% descriptions&.each do |description| %>
-  <%= render "graph_entities/description", description: %>
-<% end %>
+<% entity ||= @entity %>
+<div id="<%= dom_id(entity) %>-descriptions">
+  <% descriptions.each do |description| %>
+    <%= render "graph_entities/description", description: %>
+  <% end %>
+
+  <%= render partial: "graph_entities/next_page" if @pagy %>
+</div>
+
+
