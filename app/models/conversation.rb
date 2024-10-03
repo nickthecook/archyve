@@ -13,7 +13,7 @@ class Conversation < ApplicationRecord
     proxy: 2,
   }
 
-  scope :chat, -> { where(source: "chat") }
+  scope :chat, -> { where(source: "chat").or(where(source: nil)) }
 
   include Turbo::Broadcastable
 
