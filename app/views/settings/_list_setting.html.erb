@@ -1,4 +1,4 @@
-<% setting_model = Setting.find_by(key: setting) %>
+<% setting_model = Setting.ensure_exists(setting) %>
 
 <%= form_for setting_model do |f| %>
   <div class="py-4 items-center flex">
