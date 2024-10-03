@@ -25,11 +25,6 @@ class Document < ApplicationRecord
       partial: "shared/document",
       document: reload
     )
-    broadcast_replace_to(
-      :documents,
-      target: "document_#{id}-details",
-      partial: "documents/document"
-    )
 
     collection.touch(:updated_at)
   }
