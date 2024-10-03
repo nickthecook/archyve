@@ -22,9 +22,4 @@
     %>
   </div>
   <div class="pb-10"><%= render "graph_entities/info", entity: %></div>
-  <div class="flex-1 flex flex-col">
-    <div class="text-lg text-secondary-925 dark:text-secondary-100 py-5">Descriptions</div>
-    <%= render "graph_entities/descriptions", descriptions: @descriptions %>
-    <%= render partial: "graph_entities/next_page" if @pagy %>
-  </div>
 </div>

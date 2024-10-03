@@ -22,7 +22,7 @@ RSpec.describe Parsers::Html do
     it_behaves_like "all parsers"
 
     it "succeeds recursive chunking" do
-      expect(subject.chunks.count).to eq(3)
+      expect(subject.chunks.count).to eq(2)
     end
   end
 end

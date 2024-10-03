@@ -1,5 +1,5 @@
 class GraphEntitiesController < ApplicationController
-  before_action :set_entity, only: [:show, :summarize]
+  before_action :set_entity, only: [:show, :summarize, :search]
   before_action :set_collection
 
   def index
@@ -19,6 +19,28 @@ class GraphEntitiesController < ApplicationController
     @entity.update!(summary_outdated: true)
 
     SummarizeEntityJob.perform_async(@entity.id)
+  end
+
+  def search
+    @collections = current_user.collections
+    @pagy, @descriptions = pagy(
+      @entity.descriptions.where("description LIKE ?", "%#{params[:query]}%"),
+      request_path: collection_entity_search_path(@entity.collection, @entity)
+    )
+
+    return render "scrollable_list" if params[:page].present?
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.replace(
+            "#{@entity.class.name.underscore}_#{@entity.id}-descriptions",
+            partial: "graph_entities/descriptions",
+            locals: { descriptions: @descriptions }
+          ),
+        ]
+      end
+    end
   end
 
   private

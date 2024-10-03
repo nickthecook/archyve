@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       end
       resources :entities, controller: :graph_entities, only: [:show] do
         post :summarize, as: :summarize
+        get :search, as: :search
       end
 
       post :stop, as: :stop
