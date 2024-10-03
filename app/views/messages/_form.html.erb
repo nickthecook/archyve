@@ -1,5 +1,5 @@
 <%
-  disable_form = @conversation.source != "chat"
+  disable_form = @conversation.source.present? && @conversation.source != "chat"
   hover_text = disable_form ? "This conversation came in through the #{@conversation.source.upcase}, and cannot be edited here." : ""
   placeholder = disable_form ? "Chat via UI disabled" : "Enter a message"
   button_classes = disable_form ? "bg-secondary-200 dark:bg-secondary-700 text-secondary-400 dark:text-secondary-400" : "text-secondary-100 dark:text-secondary-950 bg-primary-700 dark:bg-primary-500"
