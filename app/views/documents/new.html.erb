@@ -10,8 +10,8 @@
         <% end %>  
       </div>
       <div class="w-1/2">
-        <div class="rounded-lg border border-secondary-400 dark:border-secondary-600 p-8 mb-8">
-          <%= form_for [@collection, @document] do |f| %>
+        <%= form_for [@collection, @document] do |f| %>
+          <div class="rounded-lg border border-secondary-400 dark:border-secondary-600 p-8 mb-8">
             <div class="pr-2">Upload a file</div>
             <div class="py-2 items-center flex">
               <%= f.file_field :file,
@@ -26,8 +26,7 @@
                 class: "w-full rounded-lg my-2 px-5 border border-secondary-400 dark:bg-secondary-925 dark:border-secondary-600"
               %>
             </div>
-          </div>
-          <%= fields_for :chunking_profile do |cp| %>
+            <%= fields_for :chunking_profile do |cp| %>
             <div class="py-2 items-center flex">
               <%= cp.label :chunking_method, class: "px-2" %>
               <div class="flex-1"></div>
@@ -51,7 +50,8 @@
               <div class="flex-1"></div>
               <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
             </div>
-          <% end %>
+            <% end%>
+          </div>
           <div class="flex py-4 items-center">
             <%= link_to "Cancel", collection_path(@collection), class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
             <div class="flex-1"></div>
