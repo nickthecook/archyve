@@ -1,7 +1,14 @@
 module Parsers
   class Html < Text
+    attr_reader :doc
+
+    def initialize(document)
+      super(document)
+      @doc = Nokogiri::HTML(@document.contents)
+    end
+
     def get_title
-      Nokogiri::HTML(@document.contents).css('title').text
+      @doc.css('title').text
     end
 
     private

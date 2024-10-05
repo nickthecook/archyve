@@ -51,29 +51,32 @@ module Chunkers
       @text_type = text_type
     end
 
-    def chunk(text)
-      raw_chunks_from(text).map do |c|
+    def chunk(parser)
+      raw_chunks_from(parser).map do |c|
         ChunkRecord.new(content: c[:text])
       end
+    end
+
+    def chunk_document(parser)
+      parser.chunks
     end
 
     private
 
     # Internal chunker returns array of chunks
-    def raw_chunks_from(text)
+    def raw_chunks_from(parser)
       chunk_size = chunking_profile.size
       chunk_overlap = chunking_profile.overlap
 
       if @text_type == Chunkers::InputType::HTML
-        Nokogiri::HTML(text)
-          .css(HTML_SEPARATORS.join(",")).map(&:inner_text).map { |t| { text: t } }
+        parser.doc.css(HTML_SEPARATORS.join(",")).map(&:inner_text).map { |t| { text: t } }
       else
         splitter = Baran::RecursiveCharacterTextSplitter.new(
           chunk_size:,
           chunk_overlap:,
           separators:
         )
-        splitter.chunks(text)
+        splitter.chunks(parser.text)
       end
     end
 

@@ -9,7 +9,7 @@ module Parsers
 
     # Enumerable chunk records
     def chunks
-      chonker.chunk(text)
+      chonker.chunk(@document)
     end
 
     # Override to return the document's text if any additional processing is needed
