@@ -26,32 +26,32 @@
                 class: "w-full rounded-lg my-2 px-5 border border-secondary-400 dark:bg-secondary-925 dark:border-secondary-600"
               %>
             </div>
-            <%= fields_for :chunking_profile do |cp| %>
-              <div class="py-2 items-center flex">
-                <%= cp.label :chunking_method, class: "px-2" %>
-                <div class="flex-1"></div>
-                <%= cp.collection_select(
-                  :method,
-                  chunking_method_options,
-                  :first, :last,
-                  { selected: default_chunking_method },
-                  { class: "rounded-md dark:bg-secondary-925" }
-                ) %>
-              </div>
-            
-              <div class="py-2 items-center flex">
-                <%= cp.label :chunk_size, class: "px-2" %>
-                <div class="flex-1"></div>
-                <%= cp.text_field :size, value: default_chunk_size(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
-              </div>
-
-              <div class="py-2 items-center flex">
-                <%= cp.label :chunk_overlap, class: "px-2" %>
-                <div class="flex-1"></div>
-                <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
-              </div>
-            <% end %>
           </div>
+          <%= fields_for :chunking_profile do |cp| %>
+            <div class="py-2 items-center flex">
+              <%= cp.label :chunking_method, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.collection_select(
+                :method,
+                chunking_method_options,
+                :first, :last,
+                { selected: default_chunking_method },
+                { class: "rounded-md dark:bg-secondary-925" }
+               ) %>
+            </div>
+            
+            <div class="py-2 items-center flex">
+              <%= cp.label :chunk_size, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.text_field :size, value: default_chunk_size(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
+            </div>
+
+            <div class="py-2 items-center flex">
+              <%= cp.label :chunk_overlap, class: "px-2" %>
+              <div class="flex-1"></div>
+              <%= cp.text_field :overlap, value: default_chunk_overlap(default_chunking_method), size: 10, maxlength: 10, class: "rounded-md dark:bg-secondary-925 text-right" %>
+            </div>
+          <% end %>
           <div class="flex py-4 items-center">
             <%= link_to "Cancel", collection_path(@collection), class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
             <div class="flex-1"></div>
