@@ -1,11 +1,4 @@
 RSpec.shared_examples "chunkers supporting overlap" do
-  # Requires
-  # - `subject` to be instance of a chunker
-  # - the following `let` variables to be defined
-  #   - :text
-  #   - :text_type
-  #   - :chunk_size
-  #   - :chunk_overlap
   let(:document) { create(:documentx) }
 
   describe "#chunk" do

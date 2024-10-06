@@ -57,10 +57,6 @@ module Chunkers
       end
     end
 
-    def chunk_document(parser)
-      parser.chunks
-    end
-
     private
 
     # Internal chunker returns array of chunks

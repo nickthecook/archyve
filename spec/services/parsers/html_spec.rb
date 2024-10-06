@@ -11,7 +11,6 @@ RSpec.describe Parsers::Html do
     it_behaves_like "all parsers"
 
     it "succeeds basic chunking" do
-      puts subject.chunks[0].content
       expect(subject.chunks.count).to eq(1)
     end
   end
