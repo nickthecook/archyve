@@ -11,7 +11,7 @@ module Chunkers
     def chunk(parser)
       chunk_size = chunking_profile.size
 
-      raw_chunks = parser.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
+      raw_chunks = parser.text.gsub(/  +/, "  ").gsub(/\n\n+/, "\n\n").scan(/.{0,#{chunk_size}}\b /m)
 
       if chunking_profile.overlap.zero?
         chunk_records(raw_chunks)

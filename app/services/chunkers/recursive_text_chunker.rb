@@ -76,7 +76,7 @@ module Chunkers
           chunk_overlap:,
           separators:
         )
-        splitter.chunks(parser)
+        splitter.chunks(parser.text)
       end
     end
 
