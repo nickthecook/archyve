@@ -10,10 +10,12 @@ jobs:
       image: ruby:3.1.4
     steps:
       - uses: actions/checkout@v1
-      - uses: ruby/setup-ruby@v1
+      - name: Gem cache
+        id: cache-bundle
+        uses: actions/cache@v1
         with:
-          ruby-version: 3.1.4
-          bundler-cache: true
+          path: vendor/bundle
+          key: bundle-${{ hashFiles('**/Gemfile.lock') }}
       - name: bundler
         env:
           RAILS_ENV: test
