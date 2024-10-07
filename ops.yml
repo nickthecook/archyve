@@ -10,6 +10,7 @@ dependencies:
     - containers:
         up: ops deps start
         down: ops deps stop
+        sideways: testing
     - yarn
   apt:
     - pandoc
