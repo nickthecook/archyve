@@ -16,7 +16,7 @@ class ModelConfig < ApplicationRecord
   end
 
   def context_window_size
-    self[:context_window_size] || model_server.default_context_window_size
+    self[:context_window_size] || active_server.default_context_window_size
   end
 
   def make_active_embedding_model
@@ -41,5 +41,11 @@ class ModelConfig < ApplicationRecord
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
     Setting.set("entity_extraction_model", id)
+  end
+
+  private
+
+  def active_server
+    model_server || ModelServer.active_server
   end
 end
