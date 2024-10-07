@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: install apt dependencies
-        run: apt-get update && apt-get install -y pandoc ruby-poppler
+        run: apt-get update && apt-get install -y pandoc poppler-utils ruby-poppler
       - name: Gem cache
         id: cache-bundle
         uses: actions/cache@v1
