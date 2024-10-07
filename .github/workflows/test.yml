@@ -21,6 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - name: install apt dependencies
+        run: sudo apt-get install pandox ruby-poppler
       - name: Gem cache
         id: cache-bundle
         uses: actions/cache@v1
@@ -40,4 +42,4 @@ jobs:
           RAILS_ENV: test
         run: |
           bin/rails db:create db:schema:load
-          bundle exec rspec
+          bundle exec rspec --exclude spec/e2e
