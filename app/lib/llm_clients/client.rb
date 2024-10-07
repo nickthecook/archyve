@@ -38,7 +38,6 @@ module LlmClients
       traceable: nil,
       stream: true
     )
-      "oh no, a line is too long!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
       @endpoint = endpoint
       @api_key = api_key
       @api_version = api_version
