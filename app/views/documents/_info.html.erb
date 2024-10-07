@@ -5,7 +5,7 @@
   <div class="px-3">Chunk size: <strong><%= @document.chunking_profile&.size %></strong></div>
   <div class="px-3">Chunk overlap: <strong><%= @document.chunking_profile&.overlap %></strong></div>
   <div class="px-3 text-tertiary-700 dark:text-tertiary-600 hover:underline">
-    <%= link_to "Download", rails_blob_path(@document.file.blob, disposition: 'attachment') %>
+    <%= link_to "Download", rails_blob_path(@document.file.blob, disposition: 'attachment') if @document.file.present? %>
   </div>
   <!-- TODO: add page count, chunking profile, document size, download link -->
 </div>
