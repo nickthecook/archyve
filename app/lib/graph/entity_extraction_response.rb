@@ -1,5 +1,7 @@
 module Graph
   class EntityExtractionResponse
+    # rubocop:disable Layout/LineLength
+    #
     # ("entity"|"Minnie M. Baxter"|"organization"|"Minnie M. Baxter is a boat or organization, named in new and shining letters on it.")##
     # ("entity"|"Skippy"|"person"|"Skippy is the young boy who is wrestling with the tiller to keep the lumbering hulk (Minnie M. Baxter) head on.")##
     # ("location"|"Jersey Shore"|"geo"|"Jersey Shore is a location described as precipitous.")##
@@ -10,6 +12,7 @@ module Graph
       /^#*\("(?'type'\w+)" \| "(?'name'[^"]+)" \| "(?'subtype'[^"]+)" \| "(?'desc'[^"]+)".*$/
     RELATIONSHIP_REGEX =
       /^#*\("(?'type'relationship)" \| "(?'from'[^"]+)" \| "(?'to'[^"]+)" \| "(?'desc'[^"]+)"(?: \| (?'strength'\d+))?.*$/
+    # rubocop:enable Layout/LineLength
 
     def initialize(text)
       @text = text.strip
@@ -32,7 +35,7 @@ module Graph
     end
 
     def to_h
-      @to_h ||= Hash[@match.names.zip(@match.captures)].symbolize_keys
+      @to_h ||= @match.names.zip(@match.captures).to_h.symbolize_keys
     end
 
     private

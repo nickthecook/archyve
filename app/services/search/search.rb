@@ -1,5 +1,5 @@
 module Search
-  class Search < Base
+  class Search
     def initialize(collection, traceable: nil, include_irrelevant: false)
       @collection = collection
       @traceable = traceable

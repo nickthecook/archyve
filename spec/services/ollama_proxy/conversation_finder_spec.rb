@@ -2,7 +2,7 @@ RSpec.describe OllamaProxy::ConversationFinder do
   subject { described_class.new(chat_request, user) }
 
   let(:chat_request) { OllamaProxy::ChatRequest.new(controller_request) }
-  let(:controller_request) { double('controller request', raw_post:, request_method:, path:) }
+  let(:controller_request) { instance_double(ActionDispatch::Request, raw_post:, request_method:, path:) }
   let(:raw_post) do
     {
       model: "llama3",

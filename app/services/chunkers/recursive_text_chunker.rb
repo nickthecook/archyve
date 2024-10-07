@@ -5,7 +5,7 @@ module Chunkers
   # Recursively tries to split by different characters to find one that works.
   class RecursiveTextChunker
     # Separators suitable for chunking html (headings and paragraphs)
-    HTML_SEPARATORS = %w[p]
+    HTML_SEPARATORS = %w[p].freeze
 
     # Recursive text splitting separators suitable for chunking CommonMark text
     COMMONMARK_SEPARATORS = [
@@ -34,7 +34,7 @@ module Chunkers
       "\n", # new line
       " ", # space
       "", # empty
-    ]
+    ].freeze
 
     # Recursive text splitting separators suitable for chunking plain text
     PLAINTEXT_SEPARATORS = [
@@ -42,7 +42,7 @@ module Chunkers
       "\n", # new line
       " ", # space
       "", # empty
-    ]
+    ].freeze
 
     attr_reader :chunking_profile, :chunking_separators
 

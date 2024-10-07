@@ -1,11 +1,11 @@
 RSpec.describe OllamaProxy::ChatRequest do
   subject { described_class.new(controller_request) }
 
-  let(:controller_request) { double('controller request', raw_post:, request_method:, path:) }
+  let(:controller_request) { instance_double(ActionDispatch::Request, raw_post:, request_method:, path:) }
   let(:request_method) { "POST" }
   let(:path) { "/api/chat" }
 
-  shared_context "messages are in Ollama format" do
+  shared_context "when messages are in Ollama format" do
     let(:raw_post) do
       {
         model: "llama3",
@@ -18,7 +18,7 @@ RSpec.describe OllamaProxy::ChatRequest do
     end
   end
 
-  shared_context "messages are in OpenAI format" do
+  shared_context "when messages are in OpenAI format" do
     let(:raw_post) do
       {
         model: "llama3",
@@ -31,7 +31,7 @@ RSpec.describe OllamaProxy::ChatRequest do
     end
   end
 
-  include_context "messages are in Ollama format"
+  include_context "when messages are in Ollama format"
 
   describe "#model" do
     it "returns the model name from the request body" do
@@ -49,8 +49,8 @@ RSpec.describe OllamaProxy::ChatRequest do
       expect(subject.messages.map(&:role)).to eq(%w[user assistant user])
     end
 
-    context "when messages are in OpenAI format" do
-      include_context "messages are in OpenAI format"
+    context "when when messages are in OpenAI format" do
+      include_context "when messages are in OpenAI format"
 
       it "returns the messages from the request body" do
         expect(subject.messages.map(&:content)).to eq([
@@ -71,8 +71,8 @@ RSpec.describe OllamaProxy::ChatRequest do
       ])
     end
 
-    context "when messages are in OpenAI format" do
-      include_context "messages are in OpenAI format"
+    context "when when messages are in OpenAI format" do
+      include_context "when messages are in OpenAI format"
 
       it "returns only messages with content" do
         expect(subject.messages_with_content.map(&:content)).to eq([
@@ -89,8 +89,8 @@ RSpec.describe OllamaProxy::ChatRequest do
       expect(subject.last_user_message.role).to eq("user")
     end
 
-    context "when messages are in OpenAI format" do
-      include_context "messages are in OpenAI format"
+    context "when when messages are in OpenAI format" do
+      include_context "when messages are in OpenAI format"
 
       it "returns the last message from the user" do
         expect(subject.last_user_message.content).to eq("")
@@ -122,8 +122,8 @@ RSpec.describe OllamaProxy::ChatRequest do
       }.to_json)
     end
 
-    context "when messages are in OpenAI format" do
-      include_context "messages are in OpenAI format"
+    context "when when messages are in OpenAI format" do
+      include_context "when messages are in OpenAI format"
 
       it "updates the last user message with the new message content" do
         expect { subject.update_last_user_message(new_message) }

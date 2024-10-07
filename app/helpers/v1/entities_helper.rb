@@ -1,2 +1,4 @@
-module V1::EntitiesHelper
+module V1
+  module EntitiesHelper
+  end
 end

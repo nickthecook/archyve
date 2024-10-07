@@ -10,6 +10,6 @@ require 'rails_helper'
 #     end
 #   end
 # end
-RSpec.describe V1::MessagesHelper, type: :helper do
+RSpec.describe V1::MessagesHelper do
   pending "add some examples to (or delete) #{__FILE__}"
 end

@@ -22,7 +22,7 @@ RSpec.describe Setting do
       end
 
       it "does not create an additional setting" do
-        expect { described_class.get("nil_setting") }.not_to change(Setting, :count)
+        expect { described_class.get("nil_setting") }.not_to change(described_class, :count)
       end
     end
 
@@ -53,7 +53,7 @@ RSpec.describe Setting do
         end
 
         it "does not create an additional setting" do
-          expect { described_class.get("nil_setting") }.not_to change(Setting, :count)
+          expect { described_class.get("nil_setting") }.not_to change(described_class, :count)
         end
       end
     end

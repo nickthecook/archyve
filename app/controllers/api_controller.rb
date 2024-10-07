@@ -1,3 +1,6 @@
+# rubocop:disable Rails/ApplicationController
+# TODO: move browser auth stuff to subclass of ApplicationController so we can
+# inherit from that class here and make rubocop happy?
 class ApiController < ActionController::Base
   CLIENT_ID_HEADER = "X-Client-Id".freeze
 
@@ -35,7 +38,7 @@ class ApiController < ActionController::Base
     return if header.blank?
     return unless header.start_with?("Bearer ")
 
-    value = header.split(" ").last
+    value = header.split.last
     return unless valid_base64?(value)
 
     value
@@ -58,3 +61,4 @@ class ApiController < ActionController::Base
     body.delete(field_with_id)
   end
 end
+# rubocop:enable Rails/ApplicationController

@@ -110,7 +110,7 @@ class CollectionsController < ApplicationController
   def global_search
     query = params[:query]
     dom_id = user_dom_id("global_search_results")
-    collection_ids = current_user.collections.select(:id).map(&:id)
+    collection_ids = current_user.collections.pluck(:id)
 
     return redirect_to(root_path, notice: "You don't have any collections yet.") if collection_ids.empty?
 

@@ -1,2 +1,4 @@
-module OllamaProxy::OllamaProxyHelper
+module OllamaProxy
+  module OllamaProxyHelper
+  end
 end

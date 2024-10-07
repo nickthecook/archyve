@@ -7,7 +7,7 @@ module Chromadb
 
     def initialize(host = nil, port = nil, traceable: nil)
       @host = host || ENV.fetch("CHROMADB_HOST") { "localhost" }
-      @port = port || ENV.fetch("CHROMADB_PORT") { 8000 }
+      @port = port || ENV.fetch("CHROMADB_PORT", 8000)
       @traceable = traceable
 
       @url = "http://#{@host}:#{@port}"

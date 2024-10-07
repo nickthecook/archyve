@@ -50,8 +50,6 @@ module DocumentsHelper
     case method
     when :bytes then Setting.get("chunk_bytes_overlap", default: 0)
     when "sentences" then 1
-    when "paragraphs" then 0
-    when "pages" then 0
     else 0
     end
   end

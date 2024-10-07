@@ -90,6 +90,7 @@ Style/ClassAndModuleChildren:
   Exclude:
     - "config.ru"
     - "config/initializers/*"
+    - "config/application.rb"
 Style/TrailingCommaInArrayLiteral:
   Enabled: true
   EnforcedStyleForMultiline: consistent_comma
@@ -102,8 +103,6 @@ Layout/LeadingCommentSpace:
 Style/SymbolArray:
   MinSize: 4
 Style/QuotedSymbols:
-  Enabled: false
-Style/StringLiterals:
   Enabled: false
 Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
@@ -139,3 +138,12 @@ Rails/ApplicationController:
 Metrics/AbcSize:
   Exclude:
     - app/controllers/**/*
+Rails/SkipsModelValidations:
+  AllowedMethods:
+    - "touch"
+RSpec/InstanceVariable:
+  Exclude:
+    - spec/e2e/**/*
+Rails/I18nLocaleTexts:
+  # reenable when we localize
+  Enabled: false

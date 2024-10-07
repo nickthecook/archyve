@@ -1,2 +1,4 @@
-module V1::ConversationsHelper
+module V1
+  module ConversationsHelper
+  end
 end

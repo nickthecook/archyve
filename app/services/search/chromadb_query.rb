@@ -32,7 +32,9 @@ module Search
       if reference.present?
         Rails.logger.info("Got hit for reference #{vector_id} in collection #{@collection.slug}.")
       else
-        Rails.logger.error("Could not find reference with id #{vector_id} while searching collection #{@collection.slug}.")
+        Rails.logger.error(
+          "Could not find reference with id #{vector_id} while searching collection #{@collection.slug}."
+        )
       end
 
       reference

@@ -25,6 +25,8 @@ module LlmClients
       end
     end
 
+    # rubocop:disable Metrics/ParameterLists
+    # we're just going to live with this one for now; most are defaulted anyway
     def initialize(
       endpoint:,
       api_key:,
@@ -48,6 +50,7 @@ module LlmClients
 
       @uri = URI(endpoint)
     end
+    # rubocop:enable Metrics/ParameterLists
 
     def clean_stats
       @stats.slice(:elapsed_ms, :tokens, :tokens_per_sec, :time_to_first_token)

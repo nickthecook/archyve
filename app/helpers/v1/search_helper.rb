@@ -1,2 +1,4 @@
-module V1::SearchHelper
+module V1
+  module SearchHelper
+  end
 end

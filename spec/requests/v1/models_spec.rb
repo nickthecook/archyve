@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe "V1::Models" do
   let!(:model_config) { create(:model_config, name: "Sir Mixalot", model: "mixalot:99b") }
 
-  include_context "authenticated api client"
+  include_context "when api client is authenticated"
 
   describe "GET /v1/models" do
     let(:params) { nil }

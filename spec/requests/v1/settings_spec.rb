@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "V1::Settings" do
-  include_context "authenticated api client"
+  include_context "when api client is authenticated"
 
   let!(:settings) { create_list(:setting, 2) }
 

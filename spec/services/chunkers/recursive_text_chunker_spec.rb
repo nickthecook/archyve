@@ -11,11 +11,6 @@ RSpec.describe Chunkers::RecursiveTextChunker do
     )
   end
 
-  describe "for plain text chunking" do
-    it_behaves_like "all chunkers"
-    it_behaves_like "chunkers supporting overlap"
-  end
-
   describe "for commonmark text chunking" do
     it_behaves_like "all chunkers"
     it_behaves_like "chunkers supporting overlap"

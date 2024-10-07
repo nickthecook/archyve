@@ -10,6 +10,6 @@ require 'rails_helper'
 #     end
 #   end
 # end
-RSpec.describe ChunksHelper, type: :helper do
+RSpec.describe ChunksHelper do
   pending "add some examples to (or delete) #{__FILE__}"
 end

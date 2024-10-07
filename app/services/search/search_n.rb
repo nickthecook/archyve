@@ -1,5 +1,5 @@
 module Search
-  class SearchN < Base
+  class SearchN
     def initialize(collections, num_results: 10, traceable: nil, include_irrelevant: false)
       @collections = collections
       @num_results = num_results

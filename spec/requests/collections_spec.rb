@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Collections" do
-  include_context "authenticated api client"
+  include_context "when api client is authenticated"
 
   let!(:collections) { create_list(:collection, 2) }
 
