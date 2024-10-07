@@ -1,0 +1,18 @@
+name: Run linter
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Bundle install
+        env:
+          RAILS_ENV: test
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3 --path vendor/bundle
+      - name: lint
+        run: bundle exec rubocop
