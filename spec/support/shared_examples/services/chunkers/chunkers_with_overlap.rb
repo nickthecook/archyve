@@ -1,15 +1,9 @@
 RSpec.shared_examples "chunkers supporting overlap" do
-  # Requires
-  # - `subject` to be instance of a chunker
-  # - the following `let` variables to be defined
-  #   - :text
-  #   - :text_type
-  #   - :chunk_size
-  #   - :chunk_overlap
+  let(:document) { create(:documentx) }
+  let(:parser) { Parsers::CommonMark.new(document) }
+  let(:chunks) { subject.chunk(parser) }
 
   describe "#chunk" do
-    let(:chunks) { subject.chunk(text) }
-
     context "with overlap" do
       it "returns chunks no bigger than 'chunk_size + chunk_overlap'" do
         expect(chunks.first.content.size).to be <= chunk_size + chunk_overlap

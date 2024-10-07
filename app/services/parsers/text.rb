@@ -9,7 +9,7 @@ module Parsers
 
     # Enumerable chunk records
     def chunks
-      chonker.chunk(text)
+      chonker.chunk(self)
     end
 
     # Override to return the document's text if any additional processing is needed
@@ -18,7 +18,7 @@ module Parsers
     end
 
     # Overriede to set approriate title
-    def get_title
+    def title
       ''
     end
 
