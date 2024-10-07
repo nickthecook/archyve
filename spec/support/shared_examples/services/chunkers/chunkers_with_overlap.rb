@@ -1,5 +1,5 @@
 RSpec.shared_examples "chunkers supporting overlap" do
-  let(:document) { create(:documentx) }
+  let(:document) { create(:document, :with_file) }
   let(:parser) { Parsers::CommonMark.new(document) }
   let(:chunks) { subject.chunk(parser) }
 
