@@ -12,6 +12,8 @@ dependencies:
         down: ops deps stop
     - yarn
   apt:
+    - pandoc
+    - poppler-utils
     - ruby-poppler
   gem:
     - rerun

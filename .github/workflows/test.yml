@@ -1,0 +1,45 @@
+name: Run unit tests
+
+on:
+  push:
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    container:
+      image: ruby:3.1.4
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: install apt dependencies
+        run: apt-get update && apt-get install -y pandoc poppler-utils ruby-poppler
+      - name: Gem cache
+        id: cache-bundle
+        uses: actions/cache@v1
+        with:
+          path: vendor/bundle
+          key: bundle-${{ hashFiles('**/Gemfile.lock') }}
+      - name: bundler
+        env:
+          RAILS_ENV: test
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+      - name: set up db, run tests
+        env:
+          DATABASE_URL: postgresql://postgres:5432
+          RAILS_ENV: test
+        run: |
+          bin/rails db:create db:schema:load
+          bundle exec rspec --tag "~skip" --exclude-pattern "spec/e2e/**/*"
