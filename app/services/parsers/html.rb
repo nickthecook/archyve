@@ -7,7 +7,7 @@ module Parsers
       @doc = Nokogiri::HTML(@document.contents)
     end
 
-    def get_title
+    def title
       @doc.css('title').text
     end
 

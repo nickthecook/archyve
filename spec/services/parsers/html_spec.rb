@@ -4,8 +4,6 @@ RSpec.describe Parsers::Html do
   let(:chunking_profile) { create(:chunking_profile, method: :basic, size: 800) }
   let(:file) { fixture_file_upload("small_page.html", 'application/html') }
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
-  let(:text_type) { Chunkers::InputType::HTML }
-  let(:text) { File.read(file) }
 
   context "when method is :basic" do
     it_behaves_like "all parsers"

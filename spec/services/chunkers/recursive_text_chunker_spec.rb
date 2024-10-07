@@ -17,8 +17,6 @@ RSpec.describe Chunkers::RecursiveTextChunker do
   end
 
   describe "for commonmark text chunking" do
-    let(:text_type) { Chunkers::InputType::COMMON_MARK }
-
     it_behaves_like "all chunkers"
     it_behaves_like "chunkers supporting overlap"
   end
