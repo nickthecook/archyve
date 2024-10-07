@@ -10,7 +10,10 @@ jobs:
       image: ruby:3.1.4
     steps:
       - uses: actions/checkout@v1
-
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.4
+          bundler-cache: true
       - name: Gem cache
         id: cache-bundle
         uses: actions/cache@v1
@@ -18,11 +21,11 @@ jobs:
           path: vendor/bundle
           key: bundle-${{ hashFiles('**/Gemfile.lock') }}
       - name: bundler
-      env:
-        RAILS_ENV: test
-      run: |
-        gem install bundler
-        bundle config set path 'vendor/bundle'
-        bundle install --jobs 4 --retry 3
+        env:
+          RAILS_ENV: test
+        run: |
+          gem install bundler
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
       - name: lint
         run: bundle exec rubocop
