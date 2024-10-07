@@ -7,14 +7,16 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ruby:3.1
+      image: ruby:3.1.4
     steps:
       - uses: actions/checkout@v1
-      - uses: ruby/setup-ruby@v1
+      - name: Gem cache
+        id: cache-bundle
+        uses: actions/cache@v1
         with:
-          ruby-version: 3.1
-          bundler-cache: true
-      - name: bundler
+          path: vendor/bundle
+          key: bundle-${{ hashFiles('**/Gemfile.lock') }}
+        - name: bundler
         env:
           RAILS_ENV: test
         run: |
