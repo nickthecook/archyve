@@ -6,6 +6,8 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    container:
+      image: ruby:3.1.4
     steps:
       - uses: actions/checkout@v1
       - name: Bundle install
