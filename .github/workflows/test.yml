@@ -42,4 +42,4 @@ jobs:
           RAILS_ENV: test
         run: |
           bin/rails db:create db:schema:load
-          bundle exec rspec --exclude spec/e2e
+          bundle exec rspec --tag "~skip" --exclude-pattern "spec/e2e/**/*"
