@@ -46,6 +46,7 @@ deps/chroma-data
 config/dev
 !config/dev/config.sample.json
 local.env
+.env
 .DS_Store
 spec/examples.txt
 config/local/*
