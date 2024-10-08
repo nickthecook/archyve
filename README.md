@@ -61,8 +61,8 @@ The Getting Started section will walk you through setting up Archyve for use wit
 To run Archyve, use `docker compose`.
 
 1. Clone this repo
-2. `cp dotenv_template local.env`
-3. Run `openssl rand -hex 64` and put the value in the `SECRET_KEY_BASE` variable in your `local.env` file
+2. `cp dotenv_template .env`
+3. Run `openssl rand -hex 64` and put the value in the `SECRET_KEY_BASE` variable in your `.env` file
 4. Run the container
 
 ```bash
@@ -75,7 +75,7 @@ docker compose up --build
 >
 > Work around this with `mv deps ../archyve-deps`. You'll need to `mv ../archyve-deps deps` when you want to run the app on your host again.
 
-5. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `local.env` file and restarting the container)
+5. Browse to http://127.0.0.1:3300 and log in with `admin@archyve.io` / `password` (you can change these values by setting `USERNAME` and `PASSWORD` in your `.env` file and restarting the container)
 
 > **WARNING**: The container will write a file with local encryption keys into `config/local`. **If you lose this file**, the application will not be able to decrypt sensitive data within the database (e.g. passwords or API keys), and the database will need to be reset, **losing all data**.
 >
@@ -194,7 +194,7 @@ If you are running the app on your host, you can set the `DEFAULT_API_KEY` and `
 - `DEFAULT_API_KEY` must be a 48-byte value encoded in base64. Generate a key with `openssl rand -base64 48`.
 - `DEFAULT_CLIENT_ID` can be any string, but it should be unique to your app. A UUID is recommended.
 
-> If you are running the app via `docker compose`, set the above two environment variables in your `local.env` file and restart the containers.
+> If you are running the app via `docker compose`, set the above two environment variables in your `.env` file and restart the containers.
 
 > If you are running the app on your host, set the two above environment variables in `config/dev/config.json` and run `rails db:seed`.
 

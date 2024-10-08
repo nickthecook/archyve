@@ -34,7 +34,7 @@ services:
   archyve:
     image: archyve:local
     build: .
-    env_file: ./local.env
+    env_file: .env
     restart: unless-stopped
     volumes: &archyve-volumes
       - archyve_files:/rails/storage
@@ -50,7 +50,7 @@ services:
   archyve-ollamaproxy:
     image: archyve:local
     build: .
-    env_file: ./local.env
+    env_file: .env
     restart: unless-stopped
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
@@ -75,7 +75,7 @@ services:
       ]
   archyve-worker:
     image: archyve:local
-    env_file: ./local.env
+    env_file: .env
     restart: unless-stopped
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
@@ -90,7 +90,7 @@ services:
       RUN_SIDEKIQ: true
   archyve-worker-llm:
     image: archyve:local
-    env_file: ./local.env
+    env_file: .env
     restart: unless-stopped
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
