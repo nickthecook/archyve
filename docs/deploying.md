@@ -63,4 +63,4 @@ In general, you shouldn't need to set any of these except in development.
 
 By default, Archyve will use 5 threads to run non-LLM jobs (jobs that won't hit an LLM server API) at a time, and 5 LLM jobs at a time. You may need to **change the LLM job concurrency** if you get throttled by the LLM server (e.g. OpenAI).
 
-To change this value, change the value of `LLM_JOBS_CONCURRENCY` in your `.env` file.
+To change this value, change the value of `LLM_JOBS_CONCURRENCY` in your `local.env` file.
