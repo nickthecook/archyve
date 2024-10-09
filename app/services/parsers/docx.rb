@@ -11,11 +11,15 @@ module Parsers
       #       may cause tables to be "pretty" in text which may not be ideal for chunking.
       #       Not specifying works best for rotated pages, so doing that for now
       @text, e, s = Open3.capture3(CMD, stdin_data: @document.contents, binmode: true)
-      return if s.success?
+      raise_error(e) unless s.success?
+    end
 
-      error = e&.lines&.first || 'Unknown error running pandoc'
-      Rails.logger.error("Error running '#{CMD}' on DOCX: #{@document.filename}\n#{error}")
-      raise StandardError, "Error converting DOCX to markdown: #{@document.filename}: #{error}"
+    private
+
+    def raise_error(error_output)
+      error = error_output&.lines&.first || 'Unknown error running pandoc'
+      Rails.logger.error("Error running '#{CMD}' on DOCX: #{filename}\n#{error}")
+      raise StandardError, "Error converting DOCX to markdown: #{filename}: #{error}"
     end
   end
 end
