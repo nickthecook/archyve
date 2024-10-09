@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Parsers
   # DOCX parser converts word documents into commonmark (with tables) markdown
   class Docx < CommonMark
