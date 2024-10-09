@@ -23,8 +23,8 @@ module Parsers
         @text = r[(r.index(ENDFRONTMATTER) + ENDFRONTMATTER.length)..]
       else
         error = e&.lines&.first || 'Unknown error running pandoc'
-        Rails.logger.error("Error running '#{cmd}' on HTML: #{@document.filename}\n#{error}")
-        raise StandardError, "Error converting HTML to MD: #{@document.filename}: #{error}'"
+        Rails.logger.error("Error running '#{CMD}' on HTML: #{@document.filename}\n#{error}")
+        raise StandardError, "Error converting HTML to MD: #{@document.filename}: #{error}"
       end
     end
 
