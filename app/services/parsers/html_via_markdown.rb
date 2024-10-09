@@ -15,15 +15,16 @@ module Parsers
     def initialize(document)
       super(document)
       # Convert the HTML into markdown, strip out all the junk we don't need
-      rawtxt, serr, status = Open3.capture3(CMD, stdin_data: @document.contents, binmode: true)
-      if status.success?
-        # extract the front matter from the raw text
-        @title = rawtxt.match(/title: (.+)\n/).captures.join
+      r, e, s = Open3.capture3(CMD, stdin_data: @document.contents, binmode: true)
+      if s.success?
+        # extract the title from front matter (pandoc -s for `markdown`)
+        @title = r.match(/title: (.+)\n/).captures.join
         # remove the front matter to get the body
-        @text = rawtxt[(rawtxt.index("---\n\n") + 5)..]
+        @text = r[(r.index(ENDFRONTMATTER) + ENDFRONTMATTER.length)..]
       else
-        Rails.logger.error("Error running '#{cmd}' on HTML: #{@document.filename}\n#{serr}")
-        raise StandardError, "Error converting HTML to markdown: #{@document.filename}'"
+        error = e&.lines&.first || 'Unknown error running pandoc'
+        Rails.logger.error("Error running '#{cmd}' on HTML: #{@document.filename}\n#{error}")
+        raise StandardError, "Error converting HTML to MD: #{@document.filename}: #{error}'"
       end
     end
 
