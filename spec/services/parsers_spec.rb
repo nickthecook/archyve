@@ -24,6 +24,6 @@ RSpec.describe Parsers do
     include_examples "supported_format_parser", ".docx", Parsers::Docx
     include_examples "supported_format_parser", ".md", Parsers::CommonMark
     include_examples "supported_format_parser", ".txt", Parsers::Text
-    include_examples "supported_format_parser", ".html", Parsers::Html
+    include_examples "supported_format_parser", ".html", Parsers::HtmlViaMarkdown
   end
 end

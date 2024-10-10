@@ -22,6 +22,10 @@ module Parsers
       ''
     end
 
+    def filename
+      @document.filename
+    end
+
     private
 
     def text_type

@@ -8,8 +8,7 @@ module Parsers
     return Docx if name_locase.end_with?(".docx")
     return CommonMark if name_locase.end_with?(".md")
     return Text if name_locase.end_with?(".txt")
-    return Html if name_locase.ends_with?(".html")
-    return Html if name_locase.match?(/.html*\z/)
+    return HtmlViaMarkdown if name_locase.match?(/\.?html*\z/)
 
     raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end
