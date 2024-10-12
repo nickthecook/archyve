@@ -14,6 +14,11 @@ class PromptAugmentor
     @prompt ||= if @search_hits.any?
       prompt = "Here is some context that may help you answer the following question:\n\n"
       @search_hits.each do |hit|
+        prompt << if hit.document.web?
+          "This chunk was derived from #{hit.document.link} which was scraped into archyve on #{hit.document.created_at}:\n\n"
+        else
+          "This chunk is from a document named #{hit.document.filename} in archyve:\n\n"
+        end
         prompt << "#{hit.content}\n\n"
       end
 

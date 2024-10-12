@@ -3,7 +3,12 @@ RSpec.describe PromptAugmentor do
 
   let(:message) { create(:message, content: "What tool should I use to install Ruby?", conversation:) }
   let(:conversation) { create(:conversation, messages: []) }
-  let(:chunks) { create_list(:chunk, 2) }
+  let(:chunks) do
+    [
+      create(:chunk),
+      create(:chunk_from_web),
+    ]
+  end
   let(:search_hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
@@ -17,7 +22,11 @@ RSpec.describe PromptAugmentor do
         <<~PROMPT
           Here is some context that may help you answer the following question:
 
+          This chunk is from a document named #{chunks.first.document.filename} in archyve:
+
           #{chunks.first.content}
+
+          This chunk was derived from #{chunks.second.document.link} which was scraped into archyve on #{chunks.second.created_at}:
 
           #{chunks.second.content}
 
