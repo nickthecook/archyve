@@ -35,6 +35,7 @@ module Search
       (@distance - @previous_distance) / @previous_distance
     end
 
+    # TODO: Remove methods below if not needed
     # (i.e., if we always use document.link and document.created_at)
     #
     # def link

@@ -12,17 +12,16 @@ class PromptAugmentor
 
   def prompt
     @prompt ||= if @search_hits.any?
-      prompt = "Here is some context that may help you answer the following question:\n\n"
+      prompt = "You are given a question to answer based on some given textual context, all inside xml tags.\nIf the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.\n\n"
       @search_hits.each do |hit|
         prompt << if hit.document.web?
-          "This chunk was derived from #{hit.document.link} which was scraped into archyve on #{hit.document.created_at}:\n\n"
+          "<context>\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n</text>\n#{hit.content}\n<text>\n</context>\n\n"
         else
-          "This chunk is from a document named #{hit.document.filename} in archyve:\n\n"
+          "<context>\n<filename>#{hit.document.filename}</filename>\n<text>\n#{hit.content}\n</text>\n</context>\n\n"
         end
-        prompt << "#{hit.content}\n\n"
       end
 
-      prompt << "Question: #{@message.content}\n"
+      prompt << "<user_question>\n#{@message.content}\n<user_question>\n"
     else
       @message.content
     end
