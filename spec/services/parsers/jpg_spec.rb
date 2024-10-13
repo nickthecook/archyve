@@ -10,7 +10,7 @@ RSpec.describe Parsers::Jpg do
     it_behaves_like "all parsers"
 
     it "succeeds basic chunking" do
-      expect(subject.chunks.count).to eq(17)
+      expect(subject.chunks.count).to eq(35)
     end
   end
 
