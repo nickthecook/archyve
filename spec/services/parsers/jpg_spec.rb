@@ -1,7 +1,8 @@
 RSpec.describe Parsers::Jpg do
   subject { described_class.new(document) }
 
-  let(:chunking_profile) { create(:chunking_profile, method: :basic, size: 800) }
+  let(:chunking_method) { :basic }
+  let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
   let(:file) { fixture_file_upload("avatar.jpg", 'application/image') }
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
 

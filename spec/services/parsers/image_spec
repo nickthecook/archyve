@@ -1,7 +1,8 @@
 RSpec.describe Parsers::Image do
   subject { described_class.new(document) }
 
-  let(:chunking_profile) { create(:chunking_profile, method: :basic, size: 800) }
+  let(:chunking_method) { :basic }
+  let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
 
   describe "when file type not supported" do
