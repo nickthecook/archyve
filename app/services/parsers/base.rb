@@ -30,6 +30,10 @@ module Parsers
 
   private
 
+  def text_type
+    raise NotImplementedError
+  end
+
   def chonker
     raise NotImplementedError
   end

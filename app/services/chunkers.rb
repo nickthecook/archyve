@@ -7,7 +7,8 @@ module Chunkers
     PLAIN_TEXT = 0
     COMMON_MARK = 1
     HTML = 2
-    IMAGE_JPG = 3
+    JPG = 3
+    PDF = 4
   end
 
   CHUNKING_METHODS = [
