@@ -1,0 +1,16 @@
+RSpec.describe Parsers::Image do
+  subject { described_class.new(document) }
+
+  let(:chunking_profile) { create(:chunking_profile, method: :basic, size: 800) }
+  let(:document) { create(:document, state: :created, file:, chunking_profile:) }
+
+  describe "when file type not supported" do
+    context "when file is not DOCX" do
+      let(:file) { fixture_file_upload("small_doc.md", 'text/markdown; charset=UTF-8') }
+
+      it "fails" do
+        expect { subject.chunks }.to raise_error(StandardError)
+      end
+    end
+  end
+end

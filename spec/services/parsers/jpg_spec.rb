@@ -8,7 +8,7 @@ RSpec.describe Parsers::Jpg do
   context "when method is :basic" do
     it_behaves_like "all parsers"
 
-    xit "succeeds basic chunking" do # TODO
+    it "succeeds basic chunking" do
       expect(subject.chunks.count).to eq(17)
     end
   end
