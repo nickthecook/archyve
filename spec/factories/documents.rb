@@ -12,4 +12,11 @@ FactoryBot.define do
       file { Rails.root.join("spec/fixtures/files/small_doc.md") }
     end
   end
+  factory :document_from_web, parent: :document do
+    trait :with_file do
+      filename { "web.html" }
+      link { "https://web.org" }
+      file { Rails.root.join("spec/fixtures/files/small_page.html") }
+    end
+  end
 end

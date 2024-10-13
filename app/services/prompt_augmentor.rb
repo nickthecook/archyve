@@ -12,18 +12,21 @@ class PromptAugmentor
 
   def prompt
     @prompt ||= if @search_hits.any?
-      prompt = "You are given a question to answer based on some given textual context, all inside xml tags.\nIf the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.\n\n"
+      prompt = "You are given a question to answer based on some given textual context, all inside xml tags.\nIf the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.\n\n" # rubocop:disable Layout/LineLength
       @search_hits.each do |hit|
-        prompt << if hit.document.web?
-          "<context>\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n</text>\n#{hit.content}\n<text>\n</context>\n\n"
-        else
-          "<context>\n<filename>#{hit.document.filename}</filename>\n<text>\n#{hit.content}\n</text>\n</context>\n\n"
-        end
+        prompt << prompt_context(hit)
       end
-
       prompt << "<user_question>\n#{@message.content}\n<user_question>\n"
     else
       @message.content
+    end
+  end
+
+  def prompt_context(hit)
+    if hit.document.web?
+      "<context>\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context>\n" # rubocop:disable Layout/LineLength
+    else
+      "<context>\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context>\n"
     end
   end
 
