@@ -12,10 +12,18 @@ FactoryBot.define do
       file { Rails.root.join("spec/fixtures/files/small_doc.md") }
     end
   end
-  factory :document_from_web, parent: :document do
+  factory :document_from_web, class: 'Document' do
+    chunks { [] }
+    user { association(:user) }
+    collection { association(:collection) }
+    filename { "web.html" }
+    state { :chunked }
+    vector_id { nil } # TODO: we probably don't need this
+    chunking_profile { association(:chunking_profile) }
+
+    link { Faker::Internet.url }
+
     trait :with_file do
-      filename { "web.html" }
-      link { "https://web.org" }
       file { Rails.root.join("spec/fixtures/files/small_page.html") }
     end
   end
