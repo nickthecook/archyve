@@ -12,7 +12,6 @@ class PromptAugmentor
 
   def prompt
     @prompt ||= if @search_hits.any?
-      # prompt = "You are given a query to answer based on some given textual context, all inside xml tags.\nIf the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.\n\n" # rubocop:disable Layout/LineLength
       prompt = <<~CONTENT
         You are given a query to answer based on some given textual context, all inside xml tags.
         If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
