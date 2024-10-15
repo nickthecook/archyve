@@ -23,8 +23,11 @@ RSpec.describe PromptAugmentor do
         If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
 
         <context>\n<filename>#{chunks.first.document.filename}</filename>
-        <text>#{chunks.first.content}</text>\n</context>\n<context>
-        <url>#{chunks.second.document.link}</url>\n<scraped>#{chunks.second.document.created_at}</scraped>
+        <text>#{chunks.first.content}</text>
+        </context>
+        <context>
+        <url>#{chunks.second.document.link}</url>
+        <scraped>#{chunks.second.document.created_at}</scraped>
         <text>#{chunks.second.content}</text>
         </context>
         <user_query>

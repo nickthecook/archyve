@@ -29,6 +29,8 @@ class PromptAugmentor
   private
 
   def prompt_context(hit)
+    return "" unless hit.document
+
     if hit.document.web?
       "<context>\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context>\n" # rubocop:disable Layout/LineLength
     else

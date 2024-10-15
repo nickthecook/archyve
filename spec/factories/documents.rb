@@ -3,7 +3,7 @@ FactoryBot.define do
     chunks { [] }
     user { association(:user) }
     collection { association(:collection) }
-    state { :chunked }
+    state { :created }
     vector_id { nil } # TODO: we probably don't need this
     chunking_profile { association(:chunking_profile) }
 
@@ -17,7 +17,7 @@ FactoryBot.define do
     chunks { [] }
     user { association(:user) }
     collection { association(:collection) }
-    state { :chunked }
+    state { :created }
     vector_id { nil } # TODO: we probably don't need this
     chunking_profile { association(:chunking_profile) }
 

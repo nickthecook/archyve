@@ -34,20 +34,5 @@ module Search
 
       (@distance - @previous_distance) / @previous_distance
     end
-
-    # TODO: Remove methods below if not needed
-    # (i.e., if we always use document.link and document.created_at)
-    #
-    # def link
-    #   @reference.link if @reference.respond_to?(:link)
-    # end
-
-    # def created_at
-    #   @reference.created_at if @reference.respond_to?(:created_at)
-    # end
-
-    # def filename
-    #   @referemce.filename if @reference.respond_to?(:filename)
-    # end
   end
 end
