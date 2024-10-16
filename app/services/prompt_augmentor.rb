@@ -10,7 +10,7 @@ class PromptAugmentor
     link_message_with_augmentations
   end
 
-  def prompt
+  def prompt # rubocop:todo Metrics
     @prompt ||= if @search_hits.any?
       prompt = <<~CONTENT
         You are given a query to answer based on some given textual context, all inside xml tags.
@@ -19,14 +19,13 @@ class PromptAugmentor
         <context>
       CONTENT
 
-      # TODO: Eliminate rubocop warnings here
       @search_hits.each do |hit|
         if hit.document.nil?
-          prompt << "<context_item name=\"#{hit.name}\">\n<text>#{hit.content}</text>\n</context_item>\n" if hit.document.nil?
+          prompt << "<context_item name=\"#{hit.name}\">\n<text>#{hit.content}</text>\n</context_item>\n" if hit.document.nil? # rubocop:todo Layout/LineLength
         elsif hit.document.web?
-          prompt << "<context_item name=\"#{hit.name}\">\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context_item>\n"
+          prompt << "<context_item name=\"#{hit.name}\">\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context_item>\n" # rubocop:todo Layout/LineLength
         else
-          prompt << "<context_item name=\"#{hit.name}\">\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context_item>\n"
+          prompt << "<context_item name=\"#{hit.name}\">\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context_item>\n" # rubocop:todo Layout/LineLength
         end
       end
       prompt << "</context>\n\n"

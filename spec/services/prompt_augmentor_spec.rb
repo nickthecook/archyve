@@ -3,17 +3,18 @@ RSpec.describe PromptAugmentor do
 
   let(:message) { create(:message, content: "What tool should I use to install Ruby?", conversation:) }
   let(:conversation) { create(:conversation, messages: []) }
-  # TODO: add chunk_from_knowlege_graph
   let(:chunks) do
     [
       create(:chunk),
       create(:chunk_from_web),
     ]
   end
+  let(:graph_entity) { create(:graph_entity) }
   let(:search_hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
       Search::SearchHit.new(chunks[1], 220.0),
+      Search::SearchHit.new(graph_entity, 240.0),
     ]
   end
 
@@ -32,6 +33,9 @@ RSpec.describe PromptAugmentor do
         <url>#{chunks.second.document.link}</url>
         <scraped>#{chunks.second.document.created_at}</scraped>
         <text>#{chunks.second.content}</text>
+        </context_item>
+        <context_item name="#{search_hits.third.name}">
+        <text>#{graph_entity.summary}</text>
         </context_item>
         </context>
 
@@ -56,7 +60,7 @@ RSpec.describe PromptAugmentor do
     end
 
     it "creates MessageAugmentations" do
-      expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(2)
+      expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(3)
     end
 
     it "links the Message and the search hit references with MessageAugmentations" do
