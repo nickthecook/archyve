@@ -16,27 +16,27 @@ class PromptAugmentor
         You are given a query to answer based on some given textual context, all inside xml tags.
         If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
 
+        <context>
       CONTENT
+
+      # TODO: Eliminate rubocop warnings here
       @search_hits.each do |hit|
-        prompt << prompt_context(hit)
+        if hit.document.nil?
+          prompt << "<context_item name=\"#{hit.name}\">\n<text>#{hit.content}</text>\n</context_item>\n" if hit.document.nil?
+        elsif hit.document.web?
+          prompt << "<context_item name=\"#{hit.name}\">\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context_item>\n"
+        else
+          prompt << "<context_item name=\"#{hit.name}\">\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context_item>\n"
+        end
       end
-      prompt << "<user_query>\n#{@message.content}\n<user_query>\n"
+      prompt << "</context>\n\n"
+      prompt << "Query: #{@message.content}\n"
     else
       @message.content
     end
   end
 
   private
-
-  def prompt_context(hit)
-    return "" unless hit.document
-
-    if hit.document.web?
-      "<context>\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context>\n" # rubocop:disable Layout/LineLength
-    else
-      "<context>\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context>\n"
-    end
-  end
 
   def link_message_with_augmentations
     @search_hits.each do |hit|

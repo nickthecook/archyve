@@ -3,6 +3,7 @@ RSpec.describe PromptAugmentor do
 
   let(:message) { create(:message, content: "What tool should I use to install Ruby?", conversation:) }
   let(:conversation) { create(:conversation, messages: []) }
+  # TODO: add chunk_from_knowlege_graph
   let(:chunks) do
     [
       create(:chunk),
@@ -22,17 +23,19 @@ RSpec.describe PromptAugmentor do
         You are given a query to answer based on some given textual context, all inside xml tags.
         If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
 
-        <context>\n<filename>#{chunks.first.document.filename}</filename>
-        <text>#{chunks.first.content}</text>
-        </context>
         <context>
+        <context_item name="#{search_hits.first.name}">
+        <filename>#{chunks.first.document.filename}</filename>
+        <text>#{chunks.first.content}</text>
+        </context_item>
+        <context_item name="#{search_hits.second.name}">
         <url>#{chunks.second.document.link}</url>
         <scraped>#{chunks.second.document.created_at}</scraped>
         <text>#{chunks.second.content}</text>
+        </context_item>
         </context>
-        <user_query>
-        What tool should I use to install Ruby?
-        <user_query>
+
+        Query: #{message.content}
       CONTENT
 
       expect(subject.prompt).to eq(content)
