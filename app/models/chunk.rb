@@ -10,10 +10,6 @@ class Chunk < ApplicationRecord
   scope :embedded, -> { where.not(vector_id: nil) }
   scope :extracted, ->  { where(entities_extracted: true) }
 
-  # TODO: Take out next 2 lines if not needed.
-  # delegate :link, to: :document
-  # delegate :filename, to: :document
-
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)
   end
