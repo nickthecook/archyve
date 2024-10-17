@@ -10,7 +10,9 @@ class PromptAugmentor
     link_message_with_augmentations
   end
 
-  def prompt # rubocop:todo Metrics
+  def prompt
+    return nil if @search_hits.none?(&:relevant)
+
     @prompt ||= if @search_hits.any?
       prompt = <<~CONTENT
         You are given a query to answer based on some given textual context, all inside xml tags.
@@ -20,14 +22,11 @@ class PromptAugmentor
       CONTENT
 
       @search_hits.each do |hit|
-        if hit.document.nil?
-          prompt << "<context_item name=\"#{hit.name}\">\n<text>#{hit.content}</text>\n</context_item>\n" if hit.document.nil? # rubocop:todo Layout/LineLength
-        elsif hit.document.web?
-          prompt << "<context_item name=\"#{hit.name}\">\n<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n</context_item>\n" # rubocop:todo Layout/LineLength
-        else
-          prompt << "<context_item name=\"#{hit.name}\">\n<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n</context_item>\n" # rubocop:todo Layout/LineLength
-        end
+        prompt << "<context_item name=\"#{hit.name}\">\n"
+        prompt << context_item(hit)
+        prompt << "</context_item>\n"
       end
+
       prompt << "</context>\n\n"
       prompt << "Query: #{@message.content}\n"
     else
@@ -36,6 +35,16 @@ class PromptAugmentor
   end
 
   private
+
+  def context_item(hit)
+    if hit.document.nil?
+      "<text>#{hit.content}</text>\n"
+    elsif hit.document.web?
+      "<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n"
+    else
+      "<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n"
+    end
+  end
 
   def link_message_with_augmentations
     @search_hits.each do |hit|

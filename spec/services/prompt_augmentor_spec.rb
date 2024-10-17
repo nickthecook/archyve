@@ -20,6 +20,9 @@ RSpec.describe PromptAugmentor do
 
   describe "#prompt" do
     it "has the correct content" do
+      # TODO: Avoid rubocop:todo and add tests with both relevant and irrelevant hits
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
+
       content = <<~CONTENT
         You are given a query to answer based on some given textual context, all inside xml tags.
         If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
@@ -48,14 +51,17 @@ RSpec.describe PromptAugmentor do
     context "when no search_hits are given" do
       let(:search_hits) { [] }
 
-      it "returns just the original prompt" do
-        expect(subject.prompt).to eq(message.content)
+      it "returns no prompt" do
+        expect(subject.prompt).to be_nil
       end
     end
   end
 
   describe "#augment" do
     it "updates the message with the augmented prompt" do
+      # TODO: Avoid rubocop:todo
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
+
       expect { subject.augment }.to change { message.reload.prompt }.from(nil).to(/You are given a query/)
     end
 
