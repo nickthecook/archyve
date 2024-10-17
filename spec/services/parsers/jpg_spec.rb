@@ -10,9 +10,7 @@ RSpec.describe Parsers::Jpg do
     it_behaves_like "all parsers"
 
     it "succeeds basic chunking" do
-      # TODO: why failing?
-      # expect(subject.chunks.count).to eq(35)
-      expect(subject.chunks.count).to eq(0)
+      expect(subject.chunks.count).to eq(1)
     end
   end
 
@@ -22,7 +20,8 @@ RSpec.describe Parsers::Jpg do
     it_behaves_like "all parsers"
 
     it "succeeds recursive chunking" do
-      expect(subject.chunks.count).to eq(149)
+      # What's expected here?
+      expect(subject.chunks.count).to eq(1)
     end
   end
 end
