@@ -9,7 +9,7 @@ RSpec.describe PromptAugmentor do
       create(:chunk_from_web),
     ]
   end
-  let(:graph_entity) { create(:graph_entity) }
+  let(:graph_entity) { create(:graph_entity_summarized) }
   let(:search_hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
