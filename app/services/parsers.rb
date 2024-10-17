@@ -9,6 +9,7 @@ module Parsers
     return CommonMark if name_locase.end_with?(".md")
     return Text if name_locase.end_with?(".txt")
     return HtmlViaMarkdown if name_locase.match?(/\.?html*\z/)
+    return Jpg if name_locase.end_with?(".jpg")
 
     raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end

@@ -7,11 +7,14 @@ module Chunkers
     PLAIN_TEXT = 0
     COMMON_MARK = 1
     HTML = 2
+    JPG = 3
+    PDF = 4
   end
 
   CHUNKING_METHODS = [
     { id: :recursive_split, name: "Recursive Split" },
     { id: :basic, name: "Basic" },
+    { id: :basic_image, name: "Basic Image" },
   ].freeze
 
   def self.chunker_for(chunking_profile, text_type)
@@ -25,6 +28,8 @@ module Chunkers
     chunker_class = case chunking_method
     when :basic
       Chunkers::BasicCharacterChunker
+    when :basic_image
+      Chunkers::BasicImageChunker
     when :recursive_split
       Chunkers::RecursiveTextChunker
     else
@@ -32,5 +37,9 @@ module Chunkers
         "Unknown chunking method '#{chunking_method}"
     end
     chunker_class.new(chunking_profile, text_type)
+  end
+
+  def self.single_chunk(parser)
+    [ChunkRecord.new(content: parser.text)]
   end
 end

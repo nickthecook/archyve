@@ -1,7 +1,8 @@
 RSpec.describe Parsers::Html do
   subject { described_class.new(document) }
 
-  let(:chunking_profile) { create(:chunking_profile, method: :basic, size: 800) }
+  let(:chunking_method) { :basic }
+  let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
   let(:file) { fixture_file_upload("small_page.html", 'application/html') }
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
 
