@@ -1,9 +1,7 @@
 module Parsers
   class Image < Base
-    private
-
-    def chonker
-      Chunkers.chunker_for(document.chunking_profile, text_type)
+    def chunks
+      Chunkers.single_chunk(self)
     end
   end
 end
