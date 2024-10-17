@@ -20,7 +20,6 @@ RSpec.describe PromptAugmentor do
 
   describe "#prompt" do
     it "has the correct content" do
-      # TODO: Avoid rubocop:todo and add tests with both relevant and irrelevant hits
       allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
 
       content = <<~CONTENT
@@ -52,7 +51,7 @@ RSpec.describe PromptAugmentor do
       let(:search_hits) { [] }
 
       it "returns no prompt" do
-        expect(subject.prompt).to be_nil
+        expect(subject.prompt).to eq "The query found hits, but none were relevant. Query: #{message.content}\n"
       end
     end
   end

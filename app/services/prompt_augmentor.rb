@@ -11,7 +11,9 @@ class PromptAugmentor
   end
 
   def prompt
-    return nil if @search_hits.none?(&:relevant)
+    if @search_hits.none?(&:relevant)
+      return "The query found hits, but none were relevant. Query: #{@message.content}\n"
+    end
 
     @prompt ||= if @search_hits.any?
       prompt = <<~CONTENT
