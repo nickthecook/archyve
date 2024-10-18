@@ -3,54 +3,99 @@ RSpec.describe PromptAugmentor do
 
   let(:message) { create(:message, content: "What tool should I use to install Ruby?", conversation:) }
   let(:conversation) { create(:conversation, messages: []) }
-  let(:chunks) { create_list(:chunk, 2) }
+  let(:chunks) do
+    [
+      create(:chunk),
+      create(:chunk_from_web),
+    ]
+  end
+  let(:graph_entity) { create(:graph_entity, summary: "The entity summary.") }
   let(:search_hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
       Search::SearchHit.new(chunks[1], 220.0),
+      Search::SearchHit.new(graph_entity, 240.0),
     ]
   end
 
   describe "#prompt" do
-    it "has the correct content" do
-      expect(subject.prompt).to eq(
-        <<~PROMPT
-          Here is some context that may help you answer the following question:
+    it "has the correct content with relevant hits" do
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
 
-          #{chunks.first.content}
+      content = <<~CONTENT
+        You are given a query to answer based on some given textual context, all inside xml tags.
+        If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
 
-          #{chunks.second.content}
+        <context>
+        <context_item name="#{search_hits.first.name}">
+        <filename>#{chunks.first.document.filename}</filename>
+        <text>#{chunks.first.content}</text>
+        </context_item>
+        <context_item name="#{search_hits.second.name}">
+        <url>#{chunks.second.document.link}</url>
+        <scraped>#{chunks.second.document.created_at}</scraped>
+        <text>#{chunks.second.content}</text>
+        </context_item>
+        <context_item name="#{search_hits.third.name}">
+        <text>#{graph_entity.summary}</text>
+        </context_item>
+        </context>
 
-          Question: What tool should I use to install Ruby?
-        PROMPT
-      )
+        Query: #{message.content}
+      CONTENT
+
+      expect(subject.prompt).to eq(content)
+    end
+
+    context "when no relevant hits are given" do
+      it "returns a helpful prompt" do
+        allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(false) # rubocop:todo RSpec/AnyInstance
+
+        expect(subject.prompt).to eq "The query found hits, but none were relevant.\nQuery: #{message.content}\n"
+      end
     end
 
     context "when no search_hits are given" do
       let(:search_hits) { [] }
 
-      it "returns just the original prompt" do
-        expect(subject.prompt).to eq(message.content)
+      it "returns no augmentation" do
+        expect(subject.prompt).to be_nil
       end
     end
   end
 
   describe "#augment" do
     it "updates the message with the augmented prompt" do
-      expect { subject.augment }.to change { message.reload.prompt }.from(nil).to(/Here is some context/)
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
+
+      expect { subject.augment }.to change { message.reload.prompt }.from(nil).to(/You are given a query/)
     end
 
     it "creates MessageAugmentations" do
-      expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(2)
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
+
+      expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(3)
     end
 
-    it "links the Message and the search hit references with MessageAugmentations" do
+    it "links the Message and the search hit references with MessageAugmentations" do # rubocop:todo RSpec/MultipleExpectations
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
       subject.augment
 
       expect(MessageAugmentation.first.message).to eq(message)
       expect(MessageAugmentation.first.augmentation).to eq(search_hits.first.reference)
       expect(MessageAugmentation.second.message).to eq(message)
       expect(MessageAugmentation.second.augmentation).to eq(search_hits.second.reference)
+      expect(MessageAugmentation.third.message).to eq(message)
+      expect(MessageAugmentation.third.augmentation).to eq(search_hits.third.reference)
+    end
+
+    context "when no relevent hits are given" do
+      it "does not link any hits" do
+        allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(false) # rubocop:todo RSpec/AnyInstance
+        subject.augment
+
+        expect(MessageAugmentation.count).to eq(0)
+      end
     end
   end
 end
