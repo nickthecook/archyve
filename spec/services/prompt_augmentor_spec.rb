@@ -77,7 +77,7 @@ RSpec.describe PromptAugmentor do
       expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(3)
     end
 
-    it "links the Message and the search hit references with MessageAugmentations" do
+    it "links the Message and the search hit references with MessageAugmentations" do # rubocop:todo RSpec/MultipleExpectations
       allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
       subject.augment
 
