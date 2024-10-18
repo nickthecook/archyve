@@ -9,7 +9,7 @@ RSpec.describe PromptAugmentor do
       create(:chunk_from_web),
     ]
   end
-  let(:graph_entity) { create(:graph_entity, summary: "THe summary") }
+  let(:graph_entity) { create(:graph_entity, summary: "The entity summary.") }
   let(:search_hits) do
     [
       Search::SearchHit.new(chunks[0], 200.0),
@@ -19,7 +19,7 @@ RSpec.describe PromptAugmentor do
   end
 
   describe "#prompt" do
-    it "has the correct content" do
+    it "has the correct content with relevant hits" do
       allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
 
       content = <<~CONTENT
@@ -47,34 +47,55 @@ RSpec.describe PromptAugmentor do
       expect(subject.prompt).to eq(content)
     end
 
+    context "when no relevant hits are given" do
+      it "returns a helpful prompt" do
+        allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(false) # rubocop:todo RSpec/AnyInstance
+
+        expect(subject.prompt).to eq "The query found hits, but none were relevant.\nQuery: #{message.content}\n"
+      end
+    end
+
     context "when no search_hits are given" do
       let(:search_hits) { [] }
 
-      it "returns no prompt" do
-        expect(subject.prompt).to eq "The query found hits, but none were relevant. Query: #{message.content}\n"
+      it "returns no augmentation" do
+        expect(subject.prompt).to be_nil
       end
     end
   end
 
   describe "#augment" do
     it "updates the message with the augmented prompt" do
-      # TODO: Avoid rubocop:todo
       allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
 
       expect { subject.augment }.to change { message.reload.prompt }.from(nil).to(/You are given a query/)
     end
 
     it "creates MessageAugmentations" do
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
+
       expect { subject.augment }.to change(MessageAugmentation, :count).from(0).to(3)
     end
 
     it "links the Message and the search hit references with MessageAugmentations" do
+      allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(true) # rubocop:todo RSpec/AnyInstance
       subject.augment
 
       expect(MessageAugmentation.first.message).to eq(message)
       expect(MessageAugmentation.first.augmentation).to eq(search_hits.first.reference)
       expect(MessageAugmentation.second.message).to eq(message)
       expect(MessageAugmentation.second.augmentation).to eq(search_hits.second.reference)
+      expect(MessageAugmentation.third.message).to eq(message)
+      expect(MessageAugmentation.third.augmentation).to eq(search_hits.third.reference)
+    end
+
+    context "when no relevent hits are given" do
+      it "does not link any hits" do
+        allow_any_instance_of(Search::SearchHit).to receive(:relevant).and_return(false) # rubocop:todo RSpec/AnyInstance
+        subject.augment
+
+        expect(MessageAugmentation.count).to eq(0)
+      end
     end
   end
 end

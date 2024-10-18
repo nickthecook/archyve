@@ -11,34 +11,33 @@ class PromptAugmentor
   end
 
   def prompt
-    if @search_hits.none?(&:relevant)
-      return "The query found hits, but none were relevant. Query: #{@message.content}\n"
+    if @search_hits.none?
+      return nil
+    elsif @search_hits.none?(&:relevant)
+      return "The query found hits, but none were relevant.\nQuery: #{@message.content}\n"
     end
 
-    @prompt ||= if @search_hits.any?
-      prompt = <<~CONTENT
-        You are given a query to answer based on some given textual context, all inside xml tags.
-        If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
+    prompt = <<~CONTENT
+      You are given a query to answer based on some given textual context, all inside xml tags.
+      If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
 
-        <context>
-      CONTENT
+      <context>
+    CONTENT
 
-      @search_hits.each do |hit|
-        prompt << "<context_item name=\"#{hit.name}\">\n"
-        prompt << context_item(hit)
-        prompt << "</context_item>\n"
-      end
-
-      prompt << "</context>\n\n"
-      prompt << "Query: #{@message.content}\n"
-    else
-      @message.content
+    @search_hits.each do |hit|
+      prompt << "<context_item name=\"#{hit.name}\">\n"
+      prompt << context_content(hit)
+      prompt << "</context_item>\n"
     end
+
+    prompt << "</context>\n\n"
+    prompt << "Query: #{@message.content}\n"
+    prompt
   end
 
   private
 
-  def context_item(hit)
+  def context_content(hit)
     if hit.document.nil?
       "<text>#{hit.content}</text>\n"
     elsif hit.document.web?
@@ -50,6 +49,8 @@ class PromptAugmentor
 
   def link_message_with_augmentations
     @search_hits.each do |hit|
+      next unless hit.relevant == true
+
       MessageAugmentation.create!(message: @message, augmentation: hit.reference, distance: hit.distance)
     end
   end
