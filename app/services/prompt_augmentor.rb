@@ -11,19 +11,39 @@ class PromptAugmentor
   end
 
   def prompt
-    @prompt ||= if @search_hits.any?
-      prompt = "Here is some context that may help you answer the following question:\n\n"
-      @search_hits.each do |hit|
-        prompt << "#{hit.content}\n\n"
-      end
-
-      prompt << "Question: #{@message.content}\n"
-    else
-      @message.content
+    if @search_hits.none?
+      return nil
     end
+
+    prompt = <<~CONTENT
+      You are given a query to answer based on some given textual context, all inside xml tags.
+      If the answer is not in the context but you think you know the answer, explain that to the user then answer with your own knowledge.
+
+      <context>
+    CONTENT
+
+    @search_hits.each do |hit|
+      prompt << "<context_item name=\"#{hit.name}\">\n"
+      prompt << context_item_content(hit)
+      prompt << "</context_item>\n"
+    end
+
+    prompt << "</context>\n\n"
+    prompt << "Query: #{@message.content}\n"
+    prompt
   end
 
   private
+
+  def context_item_content(hit)
+    if hit.document.nil?
+      "<text>#{hit.content}</text>\n"
+    elsif hit.document.web?
+      "<url>#{hit.document.link}</url>\n<scraped>#{hit.document.created_at}</scraped>\n<text>#{hit.content}</text>\n"
+    else
+      "<filename>#{hit.document.filename}</filename>\n<text>#{hit.content}</text>\n"
+    end
+  end
 
   def link_message_with_augmentations
     @search_hits.each do |hit|
