@@ -6,5 +6,12 @@ module Chunkers
       @chunking_profile = chunking_profile
       @text_type = text_type
     end
+
+    # Return Enumerable with single chunk
+    def chunk(parser)
+      [ChunkRecord.new(
+        content: parser.text,
+        embedding_content: 'This is an image of ...')]
+    end
   end
 end
