@@ -11,7 +11,7 @@ module Chunkers
     def chunk(parser)
       [ChunkRecord.new(
         content: parser.text,
-        embedding_content: 'This is an image of ...')]
+        embedding_content: 'Unknown image...')]
     end
   end
 end
