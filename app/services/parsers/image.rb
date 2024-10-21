@@ -1,7 +1,13 @@
 module Parsers
   class Image < Base
-    def chunks
-      Chunkers.single_chunk(self)
+    private
+
+    def text_type
+      Chunkers::InputType::JPG
+    end
+
+    def chonker
+      Chunkers.chunker_for(document.chunking_profile, text_type)
     end
   end
 end

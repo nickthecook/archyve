@@ -38,8 +38,4 @@ module Chunkers
     end
     chunker_class.new(chunking_profile, text_type)
   end
-
-  def self.single_chunk(parser)
-    [ChunkRecord.new(content: parser.text)]
-  end
 end

@@ -9,7 +9,9 @@ class ChunkDocument
     @document.chunking!
 
     parser.chunks.each do |chunk_record|
-      chunk = Chunk.create!(document: @document, content: chunk_record.content)
+      chunk = Chunk.create!(
+        document: @document, content: chunk_record.content,
+        embedding_content: chunk_record.embedding_content) # TODO: Unnecessary if same as content?
 
       EmbedChunkJob.perform_async(chunk.id)
     end
