@@ -3,6 +3,7 @@ module LlmClients
   class NetworkError < ClientError; end
   class UnsupportedServerError < ClientError; end
   class RetryableError < StandardError; end
+  class UnimplementedRequestError < ClientError; end
 
   class ResponseError < StandardError
     attr_reader :additional_info
