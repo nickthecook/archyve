@@ -62,4 +62,27 @@ RSpec.describe LlmClients::Ollama::Client, skip: "tests shouldn't be hitting a r
       expect(result).to include("scatter")
     end
   end
+
+  describe "#image" do
+    response = nil # Needed to make 'response' visible across before-block and examples.
+    let(:model) { 'llava' }
+    let(:result) { response } # lazy
+    let(:content) { 'Describe this image, including details of any trees in the picture.' }
+    let(:images) { [Base64.strict_encode64(file_fixture('images/hut_in_forest.jpg').read)] }
+
+    before do
+      response = ""
+      subject.image(content, images:) do |str|
+        response << str
+      end
+    end
+
+    it "yields a non-empty string" do
+      expect(response.size).to be > 0
+    end
+
+    it "identifies 'tree' in the answer" do
+      expect(result).to include("trees")
+    end
+  end
 end
