@@ -8,6 +8,8 @@ class ModelConfig < ApplicationRecord
   scope :embedding, -> { where(embedding: true) }
   scope :default, -> { where(default: true) }
 
+  validate :model_type_flags_are_ok
+
   # Require API version if ...
   validates :api_version, presence: true, if: :api_version_required?
 
@@ -37,6 +39,12 @@ class ModelConfig < ApplicationRecord
     Setting.set("summarization_model", id)
   end
 
+  def make_active_vision_model
+    raise ModelTypeError, "Model is not a vision model" unless vision?
+
+    Setting.set("vision_model", id)
+  end
+
   def make_active_entity_extraction_model
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
@@ -47,5 +55,12 @@ class ModelConfig < ApplicationRecord
 
   def active_server
     model_server || ModelServer.active_server
+  end
+
+  def model_type_flags_are_ok
+    return unless vision? && embedding?
+
+    errors.add(:embedding, "An embedding model cannot also be a vision model")
+    errors.add(:vision, "A vision model cannot also be an embedding model")
   end
 end

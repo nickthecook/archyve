@@ -4,6 +4,7 @@ FactoryBot.define do
     model { "mixalot:latest" }
     temperature { 0.1 }
     embedding { false }
+    vision { false }
     provisioned { false }
     available { true }
     model_server { nil }
