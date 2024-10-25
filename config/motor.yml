@@ -79,6 +79,11 @@ resources:
       action_type: method
       preferences:
         method_name: make_active_summarization_model
+    - name: use_for_vision
+      display_name: Use for vision
+      action_type: method
+      preferences:
+        method_name: make_active_vision_model
     - name: use_for_chat
       display_name: Use for chat
       action_type: method
