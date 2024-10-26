@@ -86,4 +86,38 @@ RSpec.describe LlmClients::Ollama::RequestHelper do
       expect(result.body).to eq({ model: "gemma2:8b", messages: }.to_json)
     end
   end
+
+  describe "#image_request" do
+    let(:model) { 'llava' }
+    let(:content) { 'Describe this image' }
+
+    let(:images) { [Base64.strict_encode64(file_fixture('images/hut_in_forest.jpg').read)] }
+    let(:result) { subject.image_request(content, images:) }
+
+    it "returns a completion request_object" do
+      expect(result).to be_a(Net::HTTP::Post)
+    end
+
+    it "sets the correct headers" do
+      expect(result['Content-Type']).to eq('application/json')
+      expect(result['Authorization']).to eq("Bearer fake-api-key")
+    end
+
+    it "sets the correct uri" do
+      expect(result.uri.to_s).to eq('http://localhost/v1/api/generate')
+    end
+
+    it "generates the correct body" do
+      expect(result.body).to eq(
+        {
+          model: "llava",
+          prompt: "Describe this image",
+          images: [Base64.strict_encode64(file_fixture('images/hut_in_forest.jpg').read)],
+          temperature: 0.1,
+          stream: true,
+          max_tokens: 200,
+        }.to_json
+      )
+    end
+  end
 end

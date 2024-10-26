@@ -30,6 +30,15 @@ module LlmClients
         request
       end
 
+      # Make a request with a `prompt` and one or more `images` supplied as an array of base-64-encoded
+      # strings of the raw image files (e.g. PNG, JPG)
+      def image_request(prompt, images:, max_tokens: 200)
+        request = Net::HTTP::Post.new(uri(completion_path), **headers)
+        request.body = { model: @model, prompt:, images:, temperature: @temperature, stream: true, max_tokens: }.to_json
+
+        request
+      end
+
       def raw_chat_request(message_list)
         chat = { model: @model, messages: message_list }
 

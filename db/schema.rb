@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_02_185332) do
+ActiveRecord::Schema[7.1].define(version: 2024_10_24_190823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -227,6 +227,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_02_185332) do
     t.float "distance_min"
     t.float "distance_max"
     t.integer "context_window_size"
+    t.boolean "vision", default: false
     t.index ["model_server_id"], name: "index_model_configs_on_model_server_id"
   end
 

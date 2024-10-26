@@ -28,6 +28,12 @@ module LlmClients
         request(req, traceable:)
       end
 
+      def image(prompt, images:, traceable: nil, &block)
+        req = helper.image_request(prompt, images:)
+
+        stream(req, traceable:, &block)
+      end
+
       private
 
       def helper

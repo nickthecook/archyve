@@ -30,6 +30,10 @@ module LlmClients
         embedding_request(content)
       end
 
+      def image(_prompt, _images:, _traceable: nil, &_block)
+        raise UnimplementedRequestError, "#image"
+      end
+
       # Callback for instrumenting request via Faraday middleware used by OpenAI API gem
       def instrument(_name, env, &)
         begin

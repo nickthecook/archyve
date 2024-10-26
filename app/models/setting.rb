@@ -38,6 +38,10 @@ class Setting < ApplicationRecord
       model_for("summarization")
     end
 
+    def vision_model
+      model_for("vision")
+    end
+
     def entity_extraction_model
       model_for("entity_extraction")
     end
