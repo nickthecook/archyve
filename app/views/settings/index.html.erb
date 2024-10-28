@@ -23,18 +23,10 @@
       </div>
 
       <!-- SERVERS -->
-      <div class="mb-5 text-secondary-700 dark:text-secondary-200">
-        <h2 class="text-xl font-bold text-center">Inference servers</h2>
-        <div class="text-center text-xs">(Read-only for now)</div>
-      </div>
+      <h2 class="mb-5 text-secondary-700 dark:text-secondary-200 text-xl font-bold text-center">Inference servers</h2>
       <div class="mb-20 flex justify-center items-center w-full">
         <div class="py-10 px-10 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <div class="grid grid-cols-10 auto-cols-auto gap-4">
-            <%= render "server", server: nil %>
-            <% ModelServer.all.each do |server| %>
-              <%= render "server", server: %>
-            <% end %>
-          </div>
+          <%= render "model_servers" %>
         </div>
       </div>
 
@@ -42,7 +34,7 @@
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Search</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
         <div class="py-10 px-20 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "number_setting", setting: "distance_ratio_threshold", list: ModelConfig.generation, step: 0.1 %>
+          <%= render "number_setting", setting: "distance_ratio_threshold", list: ModelConfig.generation, step: 0.01 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that detects when one result is significantly less relevant than the previous result - a sudden drop in relevance while traversing search results. This value controls how large a drop will trigger Archyve to consider all results after the drop irrelevant.</div>
           <%= render "number_setting", setting: "normalized_search_distance_ceiling", list: ModelConfig.generation, step: 0.1 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that discards any result with a distance score (higher is less relevant) above this threshold.</div>

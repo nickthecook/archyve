@@ -84,6 +84,17 @@ module.exports = {
           950: "#432f05",
         },
       },
+      animation: {
+        fade: "fadeOut 2s ease-in-out",
+      },
+
+      // that is actual animation
+      keyframes: (theme) => ({
+        fadeOut: {
+          "0%": { opacity: 100 },
+          "100%": { opacity: 0 },
+        },
+      }),
     },
   },
   plugins: [

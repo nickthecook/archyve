@@ -46,6 +46,10 @@ Rails.application.routes.draw do
       post :search, as: :search, on: :collection, to: "collections#global_search"
     end
 
+    resources :model_servers, only: [:update, :destroy] do
+      post :activate, as: :activate
+    end
+
     # API
     namespace :v1 do
       resources :collections, only: %i[create destroy index show] do
