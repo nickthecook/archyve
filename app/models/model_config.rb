@@ -4,9 +4,9 @@ class ModelConfig < ApplicationRecord
   has_many :messages, as: :author, dependent: :destroy
   belongs_to :model_server, optional: true
 
-  scope :generation, -> { where(embedding: false) }
+  scope :generation, -> { where(embedding: false).where(vision: false) }
   scope :embedding, -> { where(embedding: true) }
-  scope :default, -> { where(default: true) }
+  scope :vision, -> { where(vision: true) }
 
   validate :model_type_flags_are_ok
 
