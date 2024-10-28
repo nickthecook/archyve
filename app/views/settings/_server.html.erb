@@ -1,0 +1,24 @@
+
+<% if server.nil? %>
+  <div class="col-span-2 font-bold text-lg" title="A name given to the server by the user">Name</div>
+  <div class="col-span-2 font-bold text-lg" title="The inference server API provided by the server">Provider</div>
+  <div class="col-span-4 font-bold text-lg col-span-2" title="The URL for the inference server">URL</div>
+  <div class="col-span-1 font-bold text-lg text-center" title="Whether the inference server is the default for models with no explicit server set">Active</div>
+  <div class="col-span-1 font-bold text-lg text-center" title="Whether the server is currently accessible to Archyve">Available</div>
+<% else %>
+  <div title="<%= server.name %>" class="col-span-2 text-nowrap truncate"><%= server.name %></div>
+  <div title="<%= server.provider %>" class="col-span-2 text-nowrap truncate"><%= server.provider %></div>
+  <div title="<%= server.url %>" class="col-span-4 text-nowrap truncate col-span-2">
+    <%= link_to server.url&.chomp("/"), server.url, class: "text-blue-500" %>
+  </div>
+  <div title="<%= server.active %>" class="col-span-1 text-center text-nowrap truncate">
+    <%= render "icon_for_boolean", value: server.active %>
+  </div>
+  <div title="<%= server.available %>" class="col-span-1 text-center text-nowrap truncate">
+    <% if server.available.is_a?(String) %>
+      <%= server.available %>
+    <% else server.available %>
+      <%= render "icon_for_boolean", value: server.available %>
+    <% end %>
+  </div>
+<% end %>
