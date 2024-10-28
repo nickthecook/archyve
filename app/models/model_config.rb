@@ -6,7 +6,7 @@ class ModelConfig < ApplicationRecord
 
   scope :generation, -> { where(embedding: false).where(vision: false) }
   scope :embedding, -> { where(embedding: true) }
-  scope :vision, -> { where(vision: true).where(embedding: false) }
+  scope :vision, -> { where(vision: true) }
 
   validate :model_type_flags_are_ok
 
