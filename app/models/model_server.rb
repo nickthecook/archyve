@@ -1,4 +1,6 @@
 class ModelServer < ApplicationRecord
+  has_many :model_configs, dependent: :destroy
+
   encrypts :api_key
 
   scope :active, -> { where(active: true) }

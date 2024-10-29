@@ -1,5 +1,5 @@
 class ModelServersController < ApplicationController
-  before_action :set_model_server!, only: [:update, :destroy, :activate]
+  before_action :set_model_server!, only: %i[update destroy activate sync_models]
 
   def create
     @model_server = ModelServer.new(model_server_params)
@@ -48,6 +48,17 @@ class ModelServersController < ApplicationController
       format.html do
         flash[:notice] = 'Model server activated.'
         redirect_to settings_path
+      end
+    end
+  end
+
+  def sync_models
+    SyncModelsJob.perform_async(@model_server.id)
+
+    respond_to do |format|
+      format.turbo_stream do
+        flash.now[:notice] = 'Syncing models...'
+        render turbo_stream: turbo_stream.replace(user_dom_id("notice"), partial: "shared/notice")
       end
     end
   end

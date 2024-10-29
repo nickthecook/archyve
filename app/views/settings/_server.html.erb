@@ -41,11 +41,20 @@
       </div>
     <% end %>
   </div>
-  <div class="col-span-1 text-center text-nowrap truncate" title="Delete">
+  <div class="col-span-1 text-center text-nowrap truncate flex">
     <%= button_to server, method: :delete, form: { data: { turbo_confirm: 'Are you sure?' } },
-      class: "px-2 py-1 rounded-md hover:bg-secondary-300 hover:dark:bg-secondary-700" do
+      class: "px-2 py-1 rounded-md hover:bg-secondary-300 hover:dark:bg-secondary-700",
+      title: "Delete server" do
     %>
       <i class="fa fa-trash"></i>
+    <% end %>
+    <% if server.provider == "ollama" %>
+      <%= button_to model_server_sync_models_path(server),
+        class: "px-2 py-1 rounded-md hover:bg-secondary-300 hover:dark:bg-secondary-700",
+        title: "Sync models from server..." do
+      %>
+        <i class="fa fa-refresh"></i>
+      <% end %>
     <% end %>
   </div>
 <% end %>
