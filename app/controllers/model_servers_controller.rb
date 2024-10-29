@@ -55,7 +55,7 @@ class ModelServersController < ApplicationController
   private
 
   def model_server_params
-    params.require(:model_server).permit(:name, :provider, :url)
+    params.require(:model_server).permit(:name, :provider, :url, :api_key)
   end
 
   def set_model_server!

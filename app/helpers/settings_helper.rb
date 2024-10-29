@@ -8,6 +8,6 @@ module SettingsHelper
   end
 
   def provider_list
-    options_for_select([%w[Ollama ollama], %w[OpenAI openai]])
+    options_for_select(ModelServer.providers.map { |name, _int| [name.humanize.capitalize, name] })
   end
 end
