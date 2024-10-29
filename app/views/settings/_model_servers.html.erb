@@ -1,6 +1,8 @@
-<div id="settings_model_servers" class="grid grid-cols-10 auto-cols-auto gap-4">
+<% model_server ||= @model_server %>
+<div id="settings_model_servers" class="grid grid-cols-11 auto-cols-auto gap-4">
   <%= render "settings/server", server: nil %>
   <% ModelServer.all.order(:id).each do |server| %>
     <%= render "settings/server", server: %>
   <% end %>
+  <%= render "settings/server_form", model_server: %>
 </div>

@@ -9,7 +9,8 @@ class ModelServer < ApplicationRecord
     broadcast_replace_to(
       "settings",
       target: "settings_model_servers",
-      partial: "settings/model_servers"
+      partial: "settings/model_servers",
+      locals: { model_server: ModelServer.new }
     )
   }
 
@@ -21,6 +22,10 @@ class ModelServer < ApplicationRecord
 
   # Require API key if ...
   validates :api_key, presence: true, if: :api_key_required?
+
+  validates :provider, presence: true
+  validates :name, presence: true
+  validates :url, presence: true
 
   # Return true for providers that require an API key
   def api_key_required?
