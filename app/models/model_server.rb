@@ -9,7 +9,8 @@ class ModelServer < ApplicationRecord
     broadcast_replace_to(
       "settings",
       target: "settings_model_servers",
-      partial: "settings/model_servers"
+      partial: "settings/model_servers",
+      locals: { model_server: ModelServer.new }
     )
   }
 
