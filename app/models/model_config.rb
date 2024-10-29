@@ -2,11 +2,13 @@ class ModelConfig < ApplicationRecord
   class ModelTypeError < StandardError; end
 
   has_many :messages, as: :author, dependent: :destroy
+  has_many :conversations, dependent: :destroy
   belongs_to :model_server, optional: true
 
   scope :generation, -> { where(embedding: false).where(vision: false) }
   scope :embedding, -> { where(embedding: true) }
   scope :vision, -> { where(vision: true) }
+  default_scope { where(available: true) }
 
   validate :model_type_flags_are_ok
 
@@ -49,6 +51,14 @@ class ModelConfig < ApplicationRecord
     raise ModelTypeError, "Model is an embedding model" if embedding?
 
     Setting.set("entity_extraction_model", id)
+  end
+
+  def mark_as_available
+    update(available: true)
+  end
+
+  def mark_as_unavailable
+    update(available: false)
   end
 
   private
