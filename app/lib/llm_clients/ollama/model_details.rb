@@ -1,15 +1,17 @@
 module LlmClients
   module Ollama
-    class ModelInfo
+    class ModelDetails
       DEFAULT_CONTEXT_SIZE = 2048
       DEFAULT_TEMPERATURE = 0.8
 
+      EMBEDDING_MODEL_REGEX = /(nomic|minilm|bert)/i
+
       attr_reader :name, :model
 
-      def initialize(name, model, model_info)
+      def initialize(name, model, model_details)
         @name = name
         @model = model
-        @model_info = model_info
+        @model_details = model_details
       end
 
       def context_window_size
@@ -18,6 +20,14 @@ module LlmClients
 
       def temperature
         @temperature || extract_parameter("temperature")&.to_f || DEFAULT_TEMPERATURE
+      end
+
+      def embedding?
+        @model_details.dig("model_info", "general.architecture").match?(EMBEDDING_MODEL_REGEX)
+      end
+
+      def vision?
+        @model_details.keys.include?("projector_info")
       end
 
       private
@@ -32,7 +42,7 @@ module LlmClients
       end
 
       def modelfile
-        @model_info["modelfile"]
+        @model_details["modelfile"]
       end
     end
   end

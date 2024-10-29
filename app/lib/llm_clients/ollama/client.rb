@@ -41,8 +41,8 @@ module LlmClients
         request(req, traceable:)
       end
 
-      def fetch_model_info(name, traceable: nil)
-        req = helper.model_info_request(name)
+      def fetch_model_details(name, traceable: nil)
+        req = helper.model_details_request(name)
         request(req, traceable:)
       end
 
