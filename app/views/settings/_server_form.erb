@@ -1,0 +1,28 @@
+<%= form_for @model_server, data: { turbo: false } do |f| %>
+  <div class="flex w-full">
+    <div class="pr-4">
+      <%= f.text_field :name,
+        placeholder: 'Name',
+        class: "px-0 py-1 border-0 border-b-2 bg-secondary-200 dark:bg-secondary-950"
+      %>
+    </div>
+    <div class="mr-4">
+      <%= f.select :provider,
+        provider_list,
+        { prompt: "Provider..." },
+        { class: "px-8 py-1 rounded-lg bg-secondary-200 dark:bg-secondary-950 flex-1" }
+      %>
+    </div>
+    <div class="pr-4">
+      <%= f.text_field :url,
+        placeholder: 'URL',
+        class: "px-0 py-1 border-0 border-b-2 bg-secondary-200 dark:bg-secondary-950"
+      %>
+    </div>
+    <div>
+      <%= f.submit 'Add',
+        class: "px-4 py-2 rounded-lg text-secondary-900 dark:text-secondary-100 bg-secondary-200 dark:bg-secondary-800"
+      %>
+    </div>
+  </div>
+<% end %>

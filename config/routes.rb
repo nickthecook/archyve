@@ -46,7 +46,7 @@ Rails.application.routes.draw do
       post :search, as: :search, on: :collection, to: "collections#global_search"
     end
 
-    resources :model_servers, only: [:update, :destroy] do
+    resources :model_servers, only: [:create, :update, :destroy] do
       post :activate, as: :activate
     end
 

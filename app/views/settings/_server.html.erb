@@ -11,6 +11,7 @@
     <span>Available</span>
     <span class="text-sm"><i class="fa fa-question-circle-o text-sm"></i></span>
   </div>
+  <div></div>
 <% else %>
   <div title="<%= server.name %>" class="col-span-2 text-nowrap truncate"><%= server.name %></div>
   <div title="<%= server.provider %>" class="col-span-2 text-nowrap truncate"><%= server.provider %></div>
@@ -38,6 +39,13 @@
       <div class="p-2">
         <%= render "settings/icon_for_boolean", value: server.available %>
       </div>
+    <% end %>
+  </div>
+  <div class="col-span-1 text-center text-nowrap truncate" title="Delete">
+    <%= button_to server, method: :delete, form: { data: { turbo_confirm: 'Are you sure?' } },
+      class: "px-2 py-1 rounded-md hover:bg-secondary-300 hover:dark:bg-secondary-700" do
+    %>
+      <i class="fa fa-trash"></i>
     <% end %>
   </div>
 <% end %>

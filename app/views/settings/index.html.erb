@@ -10,6 +10,14 @@
     <div class="flex-col w-full justify-center">
       <div><h1 class="mt-5 mb-20 text-2xl font-bold text-center text-tertiary-700 dark:text-tertiary-400">Settings</h1></div>
 
+      <!-- SERVERS -->
+      <h2 class="mb-5 text-secondary-700 dark:text-secondary-200 text-xl font-bold text-center">Inference servers</h2>
+      <div class="mb-20 flex justify-center items-center w-full">
+        <div class="py-10 px-10 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+          <%= render "model_servers" %>
+        </div>
+      </div>
+
       <!-- MODELS -->
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-700 dark:text-secondary-200">Models</h2>
       <div class="mb-20 flex justify-center items-center w-full">
@@ -19,14 +27,6 @@
           <%= render "list_setting", setting: "summarization_model", list: ModelConfig.generation %>
           <%= render "list_setting", setting: "chat_model", list: ModelConfig.generation %>
           <%= render "list_setting", setting: "vision_model", list: ModelConfig.vision %>
-        </div>
-      </div>
-
-      <!-- SERVERS -->
-      <h2 class="mb-5 text-secondary-700 dark:text-secondary-200 text-xl font-bold text-center">Inference servers</h2>
-      <div class="mb-20 flex justify-center items-center w-full">
-        <div class="py-10 px-10 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "model_servers" %>
         </div>
       </div>
 
