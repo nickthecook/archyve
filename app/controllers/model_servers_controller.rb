@@ -7,6 +7,8 @@ class ModelServersController < ApplicationController
     respond_to do |format|
       format.html do
         if @model_server.save
+          SyncModelsJob.perform_async(@model_server.id)
+
           flash[:notice] = "Inference server created."
         else
           flash[:alert] = @model_server.errors.full_messages.join(";  ")

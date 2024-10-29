@@ -34,7 +34,7 @@ module LlmClients
 
       def extract_parameter(param)
         modelfile.each_line do |line|
-          match = line.match(/^PARAMETER +#{param} +(\s+)/)&.captures
+          match = line.match(/^PARAMETER +#{param} +(\S+)/)&.captures&.first
           return match if match
         end
 

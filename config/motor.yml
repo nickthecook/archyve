@@ -1,6 +1,6 @@
 ---
 engine_version: 0.4.26
-file_version: 2024-09-16 20:07:53.231558000 Z
+file_version: 2024-10-29 21:35:41.244527000 Z
 resources:
 - name: api_call
   preferences:
@@ -211,14 +211,18 @@ configs:
   - name
   - model
   - embedding
-  - provisioned
+  - vision
   - available
   - temperature
+  - context_window_size
+  - provisioned
   - system_prompt
   - api_version
   - updated_at
   - created_at
-  updated_at: 2024-08-27 14:14:34.344515000 +00:00
+  - distance_max
+  - distance_min
+  updated_at: 2024-10-29 21:35:41.244527000 +00:00
 - key: resources.setting.columns.order
   value:
   - id
