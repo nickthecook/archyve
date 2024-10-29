@@ -1,28 +1,39 @@
-<%= form_for model_server, data: { turbo: false } do |f| %>
-  <div class="flex w-full">
-    <div class="pr-4">
-      <%= f.text_field :name,
-        placeholder: 'Name',
-        class: "px-0 py-1 border-0 border-b-2 bg-secondary-200 dark:bg-secondary-950"
-      %>
+<%= form_for model_server, data: { turbo: false }, html: { class: "w-full flex-1 flex" } do |f| %>
+  <div class="flex flex-col w-full items-center">
+    <div class="pb-4 font-bold">Add new server</div>
+    <div class="flex w-full">
+      <div class="pr-4 flex">
+        <%= f.text_field :name,
+          placeholder: 'Name',
+          class: "px-1 py-1 border-0 border-b-2 focus:ring-0 bg-secondary-50 dark:bg-secondary-950"
+        %>
+      </div>
+      <div class="mr-4 mt-2">
+        <%= f.select :provider,
+          provider_list,
+          { prompt: "Provider..." },
+          { class: "pr-2 py-1 rounded-lg bg-secondary-50 dark:bg-secondary-950 flex-1" }
+        %>
+      </div>
+      <div class="pr-4 flex flex-1">
+        <%= f.text_field :url,
+          placeholder: 'URL',
+          class: "flex-1 px-1 py-1 border-0 border-b-2 focus:ring-0 bg-secondary-50 dark:bg-secondary-950"
+        %>
+      </div>
+      <div class="pr-4 flex flex-1">
+        <%= f.password_field :api_key,
+          placeholder: 'API key (optional)',
+          class: "flex-1 px-1 py-1 border-0 border-b-2 focus:ring-0 bg-secondary-50 dark:bg-secondary-950"
+        %>
+      </div>
+      <div>
+        <%= f.submit 'Add',
+          class: "px-4 py-2 rounded-lg text-secondary-900 dark:text-secondary-100 bg-secondary-50 dark:bg-secondary-800"
+        %>
+      </div>
     </div>
-    <div class="mr-4">
-      <%= f.select :provider,
-        provider_list,
-        { prompt: "Provider..." },
-        { class: "pr-10 py-1 rounded-lg bg-secondary-200 dark:bg-secondary-950 flex-1" }
-      %>
-    </div>
-    <div class="pr-4">
-      <%= f.text_field :url,
-        placeholder: 'URL',
-        class: "px-0 py-1 border-0 border-b-2 bg-secondary-200 dark:bg-secondary-950"
-      %>
-    </div>
-    <div>
-      <%= f.submit 'Add',
-        class: "px-4 py-2 rounded-lg text-secondary-900 dark:text-secondary-100 bg-secondary-200 dark:bg-secondary-800"
-      %>
+    <div class="flex w-full py-2">
     </div>
   </div>
 <% end %>
