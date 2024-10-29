@@ -3,6 +3,16 @@ class ModelServer < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
+  include Turbo::Broadcastable
+
+  after_update_commit lambda {
+    broadcast_replace_to(
+      "settings",
+      target: "settings_model_servers",
+      partial: "settings/model_servers"
+    )
+  }
+
   enum :provider, {
     ollama: 1,
     openai_azure: 2,

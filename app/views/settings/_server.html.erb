@@ -1,0 +1,43 @@
+
+<% if server.nil? %>
+  <div class="col-span-2 font-bold text-nowrap">Name</div>
+  <div class="col-span-2 font-bold text-nowrap">Provider</div>
+  <div class="col-span-4 font-bold text-nowrap col-span-2">URL</div>
+  <div class="col-span-1 font-bold text-nowrap text-center" title="Whether the inference server is the default for models with no explicit server set.">
+    <span>Active</span>
+    <span class="text-sm"><i class="fa fa-question-circle-o text-sm"></i></span>
+  </div>
+  <div class="col-span-1 font-bold text-nowrap text-center" title="Whether the server is currently accessible to Archyve.">
+    <span>Available</span>
+    <span class="text-sm"><i class="fa fa-question-circle-o text-sm"></i></span>
+  </div>
+<% else %>
+  <div title="<%= server.name %>" class="col-span-2 text-nowrap truncate"><%= server.name %></div>
+  <div title="<%= server.provider %>" class="col-span-2 text-nowrap truncate"><%= server.provider %></div>
+  <div title="<%= server.url %>" class="col-span-4 text-nowrap truncate col-span-2">
+    <%= link_to server.url&.chomp("/"), server.url, class: "text-blue-500" %>
+  </div>
+  <div title="<%= server.active %>" class="col-span-1 text-center text-nowrap truncate">
+    <% if server.active %>
+      <div class="p-2">
+        <%= render "settings/icon_for_boolean", value: server.active %>
+      </div>
+    <% else %>
+      <%= button_to model_server_activate_path(server),
+        title: "Make active",
+        class: "px-2 py-1 rounded-md border border-secondary-200 dark:border-secondary-800 hover:bg-secondary-300 hover:dark:bg-secondary-700" do
+      %>
+        <%= render "settings/icon_for_boolean", value: server.active %>
+      <% end %>
+    <% end %>
+  </div>
+  <div title="<%= server.available %>" class="col-span-1 text-center text-nowrap truncate">
+    <% if server.available.is_a?(String) %>
+      <%= server.available %>
+    <% else server.available %>
+      <div class="p-2">
+        <%= render "settings/icon_for_boolean", value: server.available %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
