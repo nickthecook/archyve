@@ -52,6 +52,13 @@ module LlmClients
         Net::HTTP::Get.new(uri(tags_path), **headers)
       end
 
+      def model_info_request(name)
+        request = Net::HTTP::Post.new(uri(model_info_path))
+        request.body = { "name" => name }.to_json
+
+        request
+      end
+
       private
 
       def uri(path)
@@ -79,6 +86,10 @@ module LlmClients
 
       def tags_path
         "api/tags"
+      end
+
+      def model_info_path
+        "api/show"
       end
     end
   end
