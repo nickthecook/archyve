@@ -1,5 +1,6 @@
 module LlmClients
   module Ollama
+    # rubocop:disable Metrics/ClassLength
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 
@@ -32,6 +33,12 @@ module LlmClients
         req = helper.image_request(prompt, images:)
 
         stream(req, traceable:, &block)
+      end
+
+      def list_models(traceable: nil)
+        req = helper.list_request
+
+        request(req, traceable:)
       end
 
       private

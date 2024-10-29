@@ -48,6 +48,10 @@ module LlmClients
         request
       end
 
+      def list_request
+        Net::HTTP::Get.new(uri(tags_path), **headers)
+      end
+
       private
 
       def uri(path)
@@ -71,6 +75,10 @@ module LlmClients
 
       def chat_path
         "api/chat"
+      end
+
+      def tags_path
+        "api/tags"
       end
     end
   end
