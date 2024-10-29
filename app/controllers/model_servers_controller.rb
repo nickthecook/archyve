@@ -7,7 +7,7 @@ class ModelServersController < ApplicationController
     respond_to do |format|
       format.html do
         if @model_server.save
-          SyncModelsJob.perform_async(@model_server.id)
+          SyncModelsJob.perform_async(@model_server.id) if @model_server.provider == "ollama"
 
           flash[:notice] = "Inference server created."
         else
