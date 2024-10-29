@@ -48,6 +48,7 @@ Rails.application.routes.draw do
 
     resources :model_servers, only: [:create, :update, :destroy] do
       post :activate, as: :activate
+      post :sync_models, as: :sync_models
     end
 
     # API
