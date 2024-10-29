@@ -65,4 +65,17 @@ class ModelServer < ApplicationRecord
     active_servers.update(active: false)
     update!(active: true)
   end
+
+  # soft deletion: move to concern when adding the second one
+  scope :deleted, -> { with_deleted.where.not(deleted_at: nil) }
+  scope :with_deleted, -> { unscope(where: :deleted_at) }
+  default_scope { where(deleted_at: nil) }
+
+  def mark_as_deleted
+    update(deleted_at: Time.current)
+  end
+
+  def restore
+    update(deleted_at: nil)
+  end
 end

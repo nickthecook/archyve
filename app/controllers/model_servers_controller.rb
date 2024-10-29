@@ -26,7 +26,7 @@ class ModelServersController < ApplicationController
   def destroy
     respond_to do |format|
       format.html do
-        if @model_server.destroy
+        if @model_server.mark_as_deleted
           flash[:notice] = "Inference server deleted."
         else
           flash[:alert] = @model_server.errors.full_messages.join(";  ")
