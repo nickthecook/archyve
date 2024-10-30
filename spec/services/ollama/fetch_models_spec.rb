@@ -3,7 +3,7 @@ RSpec.describe Ollama::FetchModels do
 
   let(:model_server) { create(:model_server, name:, url:, provider:) }
   let(:name) { "ChadGPT" }
-  let(:url) { "http://example.com:11434" }
+  let(:url) { "http://example.com:11111" }
   let(:provider) { "ollama" }
 
   let(:client) { instance_double(LlmClients::Ollama::Client, list_models:) }
