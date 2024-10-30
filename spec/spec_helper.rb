@@ -103,3 +103,7 @@ RSpec.configure do |config|
     require "rails_helper"
   end
 end
+
+def json_fixture(path)
+  JSON.parse(File.read("spec/fixtures/#{path}"))
+end
