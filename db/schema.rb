@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_29_143102) do
+ActiveRecord::Schema[7.1].define(version: 2024_10_30_122945) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -242,6 +242,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_29_143102) do
     t.boolean "available", default: true
     t.string "api_key"
     t.datetime "deleted_at"
+    t.index ["name"], name: "index_model_servers_on_name", unique: true, where: "(deleted_at IS NULL)"
   end
 
   create_table "motor_alert_locks", force: :cascade do |t|
