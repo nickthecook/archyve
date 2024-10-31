@@ -2,11 +2,11 @@ class ModelServersController < ApplicationController
   before_action :set_model_server!, only: %i[update destroy activate sync_models]
 
   def create
-    @model_server = ModelServer.new(model_server_params)
+    @model_server = create_model_server
 
     respond_to do |format|
       format.html do
-        if @model_server.save
+        if @model_server.valid?
           SyncModelsJob.perform_async(@model_server.id) if @model_server.provider == "ollama"
 
           flash[:notice] = "Inference server created."
@@ -66,6 +66,23 @@ class ModelServersController < ApplicationController
   end
 
   private
+
+  def create_model_server
+    existing_but_deleted_server = ModelServer.deleted.find_by(**model_server_find_params)
+
+    if existing_but_deleted_server.present?
+      existing_but_deleted_server.update(deleted_at: nil, api_key: model_server_find_params[:api_key])
+
+      existing_but_deleted_server
+    else
+      ModelServer.create(model_server_params)
+    end
+  end
+
+  def model_server_find_params
+    # remove api_key, since encrypted fields won't be matched by find_by
+    model_server_params.to_h.slice!(:api_key)
+  end
 
   def model_server_params
     params.require(:model_server).permit(:name, :provider, :url, :api_key)
