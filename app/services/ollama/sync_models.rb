@@ -61,8 +61,8 @@ module Ollama
     end
 
     def find_existing_model(model_details)
-      ModelConfig.where(model_server: nil)
-        .or(ModelConfig.where(model_server: @model_server))
+      ModelConfig.available.where(model_server: nil)
+        .or(ModelConfig.available.where(model_server: @model_server))
         .find_by(name: model_details.name, model: model_details.model)
     end
 

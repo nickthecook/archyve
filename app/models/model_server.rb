@@ -4,14 +4,12 @@ class ModelServer < ApplicationRecord
   encrypts :api_key
 
   scope :active, -> { where(active: true) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
+  scope :available, -> { where(deleted_at: nil) }
 
   include Turbo::Broadcastable
 
-  before_destroy :destroy_model_configs
-
   after_update_commit lambda {
-    model_configs.find_each { |model_config| model_config.update!(available: false) } if deleted_at.present?
-
     broadcast_replace_to(
       "settings",
       target: "settings_model_servers",
@@ -73,20 +71,15 @@ class ModelServer < ApplicationRecord
     update!(active: true)
   end
 
-  # soft deletion: move to concern when adding the second one
-  scope :deleted, -> { with_deleted.where.not(deleted_at: nil) }
-  scope :with_deleted, -> { unscope(where: :deleted_at) }
-  default_scope { where(deleted_at: nil) }
-
   def mark_as_deleted
+    model_configs.find_each { |model_config| model_config.update!(available: false) }
+
     update(deleted_at: Time.current)
   end
 
   def restore
-    update!(deleted_at: nil)
-  end
+    model_configs.find_each { |model_config| model_config.update!(available: true) }
 
-  def destroy_model_configs
-    model_configs.unscope(where: :available).destroy_all
+    update!(deleted_at: nil)
   end
 end

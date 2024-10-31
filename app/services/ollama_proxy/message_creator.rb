@@ -26,7 +26,7 @@ module OllamaProxy
     end
 
     def model_config
-      @model_config ||= ModelConfig.find_or_create_by(model: @chat_model) do |model_config|
+      @model_config ||= ModelConfig.available.find_or_create_by(model: @chat_model) do |model_config|
         model_config.name = @chat_model
         model_config.available = true
       end

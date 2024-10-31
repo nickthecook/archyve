@@ -71,7 +71,8 @@ class ModelServersController < ApplicationController
     existing_but_deleted_server = ModelServer.deleted.find_by(**model_server_find_params)
 
     if existing_but_deleted_server.present?
-      existing_but_deleted_server.update(deleted_at: nil, api_key: model_server_find_params[:api_key])
+      existing_but_deleted_server.restore
+      existing_but_deleted_server.update(api_key: model_server_find_params[:api_key])
 
       existing_but_deleted_server
     else

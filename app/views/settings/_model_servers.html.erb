@@ -2,7 +2,7 @@
 <div id="settings_model_servers">
   <div class="grid grid-cols-11 auto-cols-auto gap-4">
     <%= render "settings/server", server: nil %>
-    <% ModelServer.all.order(:id).each do |server| %>
+    <% ModelServer.available.order(:id).each do |server| %>
       <%= render "settings/server", server: %>
     <% end %>
   </div>

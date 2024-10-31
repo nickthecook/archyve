@@ -113,7 +113,7 @@ provisioned_model_configs.each do |fields|
   fields.slice!(*model_config_fields)
   puts "provisioning model configuration for `#{fields}` ..."
 
-  model_config = ModelConfig.find_or_initialize_by(name: fields["name"])
+  model_config = ModelConfig.available.find_or_initialize_by(name: fields["name"])
   model_config.update!(**fields, provisioned: true)
   if server
     model_server = ModelServer.find_by(name: server)
@@ -125,19 +125,19 @@ end
 # SETTINGS
 #
 Setting.find_or_create_by!(key: "chat_model") do |setting|
-  setting.value = ModelConfig.generation.last&.id
+  setting.value = ModelConfig.available.generation.last&.id
 end
 
 Setting.find_or_create_by!(key: "embedding_model") do |setting|
-  setting.value = ModelConfig.embedding.last&.id
+  setting.value = ModelConfig.available.embedding.last&.id
 end
 
 Setting.find_or_create_by!(key: "summarization_model") do |setting|
-  setting.value = ModelConfig.generation.last&.id
+  setting.value = ModelConfig.available.generation.last&.id
 end
 
 Setting.find_or_create_by!(key: "entity_extraction_model") do |setting|
-  setting.value = ModelConfig.generation.last&.id
+  setting.value = ModelConfig.available.generation.last&.id
 end
 
 Setting.find_or_create_by!(key: "num_chunks_to_include") do |setting|

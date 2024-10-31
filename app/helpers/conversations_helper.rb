@@ -1,6 +1,6 @@
 module ConversationsHelper
   def model_config_list
-    ModelConfig.generation
+    ModelConfig.available.generation
   end
 
   def collection_list(user)

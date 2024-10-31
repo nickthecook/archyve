@@ -21,14 +21,16 @@ module V1
     end
 
     def model_config
-      ModelConfig.find_by(name: id_param) || ModelConfig.find_by(model: id_param) || ModelConfig.find(id_param)
+      ModelConfig.available.find_by(name: id_param) ||
+        ModelConfig.available.find_by(model: id_param) ||
+        ModelConfig.find(id_param)
     end
 
     def model_configs(embedding = nil)
-      return ModelConfig.embedding if embedding&.true?
-      return ModelConfig.generation if embedding&.false?
+      return ModelConfig.available.embedding if embedding&.true?
+      return ModelConfig.available.generation if embedding&.false?
 
-      ModelConfig.all
+      ModelConfig.available
     end
   end
 end
