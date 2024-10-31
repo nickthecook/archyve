@@ -4,6 +4,10 @@ class ModelConfig < ApplicationRecord
   has_many :messages, as: :author, dependent: :destroy
   has_many :conversations, dependent: :destroy
   belongs_to :model_server, optional: true
+  has_many :embedding_collections, class_name: "Collection", inverse_of: :embedding_model_id,
+    dependent: :restrict_with_exception
+  has_many :extracting_collections, class_name: "Collection", inverse_of: :extraction_model_id,
+    dependent: :restrict_with_exception
 
   scope :generation, -> { where(embedding: false).where(vision: false) }
   scope :embedding, -> { where(embedding: true) }
