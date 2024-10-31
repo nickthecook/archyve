@@ -22,6 +22,14 @@
         %>
       </div>
       <div class="pr-4 flex flex-1">
+        <!--
+          Apparently, browsers sometimes assume that whatever field is before a "password" field is the username field
+          and try to autocomplete it. This results in a misleading popup that the user will never use, since they want
+          a URL, not a username, in this field.
+          This field is only here so browsers think it is the "username" field and don't try to autocomplete the
+          "url" field.>
+        -->
+        <%= f.text_field :available, hidden: true %>
         <%= f.password_field :api_key,
           placeholder: 'API key (optional)',
           class: "flex-1 px-1 py-1 border-0 border-b-2 focus:ring-0 bg-secondary-50 dark:bg-secondary-950"
