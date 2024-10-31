@@ -7,7 +7,11 @@ class ModelServer < ApplicationRecord
 
   include Turbo::Broadcastable
 
+  before_destroy :destroy_model_configs
+
   after_update_commit lambda {
+    model_configs.find_each { |model_config| model_config.update!(available: false) } if deleted_at.present?
+
     broadcast_replace_to(
       "settings",
       target: "settings_model_servers",
@@ -28,6 +32,7 @@ class ModelServer < ApplicationRecord
   validates :provider, presence: true
   validates :name, presence: true
   validates :url, presence: true
+  validates :name, uniqueness: { conditions: -> { where(deleted_at: nil) } }
 
   # Return true for providers that require an API key
   def api_key_required?
@@ -78,6 +83,10 @@ class ModelServer < ApplicationRecord
   end
 
   def restore
-    update(deleted_at: nil)
+    update!(deleted_at: nil)
+  end
+
+  def destroy_model_configs
+    model_configs.unscope(where: :available).destroy_all
   end
 end
