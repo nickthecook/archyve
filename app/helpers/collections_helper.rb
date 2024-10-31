@@ -1,10 +1,10 @@
 module CollectionsHelper
   def embedding_model_list
-    ModelConfig.embedding
+    ModelConfig.available.embedding
   end
 
   def entity_extraction_model_list
-    ModelConfig.generation
+    ModelConfig.available.generation
   end
 
   def state_label_for(collection)

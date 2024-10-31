@@ -10,7 +10,7 @@ module Api
 
     def model_config
       @model_config ||= if @model.present?
-        ModelConfig.find_by(name: @model) || ModelConfig.find_by(model: @model)
+        ModelConfig.available.find_by(name: @model) || ModelConfig.available.find_by(model: @model)
       else
         Setting.chat_model
       end

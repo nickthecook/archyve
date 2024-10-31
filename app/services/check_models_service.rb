@@ -14,9 +14,9 @@ class CheckModelsService
 
   def select_default_for_role(role)
     if role == "embedding"
-      Setting.get("#{role}_model", default: ModelConfig.embedding.last&.id)
+      Setting.get("#{role}_model", default: ModelConfig.available.embedding.last&.id)
     else
-      Setting.get("#{role}_model", default: ModelConfig.generation.last&.id)
+      Setting.get("#{role}_model", default: ModelConfig.available.generation.last&.id)
     end
   end
 

@@ -14,9 +14,8 @@ class ModelConfig < ApplicationRecord
   scope :vision, -> { where(vision: true) }
 
   # soft deletion: move to concern when adding the third one :D
-  default_scope { where(available: true) }
-  scope :unavailable, -> { with_deleted.where.not(available: false) }
-  scope :with_unavailable, -> { unscope(where: :available) }
+  scope :available, -> { where(available: true) }
+  scope :unavailable, -> { where(available: false) }
 
   validate :model_type_flags_are_ok
 

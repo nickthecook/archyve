@@ -22,11 +22,11 @@
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-700 dark:text-secondary-200">Models</h2>
       <div class="mb-20 flex justify-center items-center w-full">
         <div class="py-10 px-20 flex flex-col w-1/2 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "list_setting", setting: "entity_extraction_model", list: ModelConfig.generation %>
-          <%= render "list_setting", setting: "embedding_model", list: ModelConfig.embedding %>
-          <%= render "list_setting", setting: "summarization_model", list: ModelConfig.generation %>
-          <%= render "list_setting", setting: "chat_model", list: ModelConfig.generation %>
-          <%= render "list_setting", setting: "vision_model", list: ModelConfig.vision %>
+          <%= render "list_setting", setting: "entity_extraction_model", list: ModelConfig.available.generation %>
+          <%= render "list_setting", setting: "embedding_model", list: ModelConfig.available.embedding %>
+          <%= render "list_setting", setting: "summarization_model", list: ModelConfig.available.generation %>
+          <%= render "list_setting", setting: "chat_model", list: ModelConfig.available.generation %>
+          <%= render "list_setting", setting: "vision_model", list: ModelConfig.available.vision %>
         </div>
       </div>
 
@@ -34,11 +34,11 @@
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Search</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
         <div class="py-10 px-20 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "number_setting", setting: "distance_ratio_threshold", list: ModelConfig.generation, step: 0.01 %>
+          <%= render "number_setting", setting: "distance_ratio_threshold", list: ModelConfig.available.generation, step: 0.01 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that detects when one result is significantly less relevant than the previous result - a sudden drop in relevance while traversing search results. This value controls how large a drop will trigger Archyve to consider all results after the drop irrelevant.</div>
-          <%= render "number_setting", setting: "normalized_search_distance_ceiling", list: ModelConfig.generation, step: 0.1 %>
+          <%= render "number_setting", setting: "normalized_search_distance_ceiling", list: ModelConfig.available.generation, step: 0.1 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that discards any result with a distance score (higher is less relevant) above this threshold.</div>
-          <%= render "number_setting", setting: "num_chunks_to_include", list: ModelConfig.generation, step: 1 %>
+          <%= render "number_setting", setting: "num_chunks_to_include", list: ModelConfig.available.generation, step: 1 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">This setting controls the maximum number of relevant chunks Archyve will include in search results or when augmenting a prompt.</div>
         </div>
       </div>
@@ -47,9 +47,9 @@
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Ollama Proxy Port (OPP)</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
         <div class="py-10 px-20 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "number_setting", setting: "opp_num_conversation_title_chars", list: ModelConfig.generation, step: 1 %>
+          <%= render "number_setting", setting: "opp_num_conversation_title_chars", list: ModelConfig.available.generation, step: 1 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">When creating a conversation based on a request to the OPP, this setting controls how many characters from the first chat message will be used in the conversation title.</div>
-          <%= render "number_setting", setting: "opp_num_recent_convos_for_match", list: ModelConfig.generation, step: 1 %>
+          <%= render "number_setting", setting: "opp_num_recent_convos_for_match", list: ModelConfig.available.generation, step: 1 %>
           <div class="mb-10 text-secondary-400 dark:text-secondary-400">When a message is received by the OPP, Archyve looks through its recent conversations to attempt to find a matching one. If it finds a match, it appends the new message to that conversation instead of creating a new conversation. This setting controls how far back Archyve will look for a matching conversation.</div>
         </div>
       </div>

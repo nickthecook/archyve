@@ -1,4 +1,4 @@
-RSpec.describe "/v1/chat", :api, :llm, :slow, type: :system do
+RSpec.describe "/v1/chat", :api, :llm, :now, :slow, type: :system do
   let(:call) { api_get("/v1/chat?prompt=hello") }
   let(:conversation_id) { @call.parsed_body["conversation"] }
   let(:conversation_call) { api_get("/v1/conversations/#{conversation_id}") }
