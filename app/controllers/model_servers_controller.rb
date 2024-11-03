@@ -2,6 +2,7 @@ class ModelServersController < ApplicationController
   before_action :set_model_server!, except: %i[create]
 
   def show
+    @model_config = ModelConfig.new
   end
 
   def create

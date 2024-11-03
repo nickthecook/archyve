@@ -1,7 +1,8 @@
 <% model_server ||= @model_server %>
+<% model_config ||= @model_config %>
 
 <div id="model-server-<%= model_server.id %>-configs">
-  <div class="grid grid-cols-7 auto-cols-auto gap-4">
+  <table class="w-full table-auto text-secondary-900 dark:text-secondary-100">
     <%= render "model_servers/model_config", model_config: nil %>
 
     <% model_server.model_configs.available.order(:name).each do |model_config| %>

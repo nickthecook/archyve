@@ -1,25 +1,31 @@
 <% if model_config.nil? %>
-  <div class="col-span-2 font-bold">Name</div>
-  <div class="col-span-2 font-bold">Model</div>
-  <div class="col-span-1 font-bold"></div>
-  <div class="col-span-1 font-bold text-right">Temperature</div>
-  <div class="col-span-1 font-bold text-right">Context Window Size</div>
+  <thead>
+    <tr class="pb-4">
+      <th class="p-4 text-left bg-blue-gray-50 border-b border-secondary-700 dark:border-secondary-400">Name</th>
+      <th class="p-4 text-left bg-blue-gray-50 border-b border-secondary-700 dark:border-secondary-400">Model</th>
+      <th class="p-4 text-left bg-blue-gray-50 border-b border-secondary-700 dark:border-secondary-400"></th>
+      <th class="p-4 text-right bg-blue-gray-50 border-b border-secondary-700 dark:border-secondary-400">Temperature</th>
+      <th class="p-4 text-right bg-blue-gray-50 border-b border-secondary-700 dark:border-secondary-400">Context Window Size</th>
+    </tr>
+  </thead>
 <% else %>
-  <div class="col-span-2"><%= model_config.name %></div>
-  <div class="col-span-2">
-    <span class="pr-2">
-      <%= model_config.model %>
-    </span>
-    <% if model_config.embedding? %>
-      <i class="text-green-400 hover:text-green-600 fa fa-file-text-o" title="Embedding model"></i>
-    <% elsif model_config.vision? %>
-      <i class="text-green-400 hover:text-green-600 fa fa-eye" title="Vision model"></i>
-    <% elsif model_config.usable_for_knowledge_graph? %>
-      <i class="text-green-400 hover:text-green-600 fa fa-share-alt-square" title="Knowledge Graph model"></i>
-    <% end %>
-  </div>
-  <div class="col-span-1 text-left">
-  </div>
-  <div class="col-span-1 text-right"><%= model_config.temperature %></div>
-  <div class="col-span-1 text-right"><%= model_config.context_window_size %></div>
+  <tr>
+    <td class="p-4 border-b border-secondary-300 dark:border-secondary-700"><%= model_config.name %></td>
+    <td class="p-4 border-b border-secondary-300 dark:border-secondary-700">
+      <span class="pr-2">
+        <%= model_config.model %>
+      </span>
+      <% if model_config.embedding? %>
+        <i class="text-primary-600 dark:text-primary-400 hover:text-primary-400 dark:hover:text-primary-600 fa fa-file-text-o" title="Embedding model"></i>
+      <% elsif model_config.vision? %>
+        <i class="text-primary-600 dark:text-primary-400 hover:text-primary-400 dark:hover:text-primary-600 fa fa-eye" title="Vision model"></i>
+      <% elsif model_config.usable_for_knowledge_graph? %>
+        <i class="text-primary-600 dark:text-primary-400 hover:text-primary-400 dark:hover:text-primary-600 fa fa-share-alt-square" title="Knowledge Graph model"></i>
+      <% end %>
+    </td>
+    <td class="p-4 border-b border-secondary-300 dark:border-secondary-700">
+    </td>
+    <td class="p-4 text-right border-b border-secondary-300 dark:border-secondary-700"><%= model_config.temperature %></td>
+    <td class="p-4 text-right border-b border-secondary-300 dark:border-secondary-700"><%= model_config.context_window_size %></td>
+  </tr>
 <% end %>
