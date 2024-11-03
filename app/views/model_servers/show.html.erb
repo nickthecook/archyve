@@ -1,0 +1,24 @@
+<div class="flex">
+  <%= turbo_stream_from "model_servers" %>
+
+  <%= render "shared/setting_list" %>
+
+  <%= render "shared/app_area" , div_id: "app_area" do %>
+    <%= render "shared/model_warnings" %>
+    <%= render "shared/notice" %>
+
+    <div class="flex-col justify-center items-center w-full align-center">
+      <h1 class="mt-5 mb-20 text-2xl font-bold text-center text-tertiary-700 dark:text-tertiary-400">
+        Model Server: <%= @model_server.name %>
+      </h1>
+
+      <h2 class="mb-5 text-xl font-bold text-center text-secondary-700 dark:text-secondary-200">Models</h2>
+      <div class="flex justify-center items-center mb-20 w-full">
+        <div class="flex flex-col px-10 py-10 w-3/4 min-w-min rounded-lg border shadow-lg border-secondary-300 dark:border-secondary-600 hover:border-secondary-900 hover:dark:border-secondary-500">
+          <%= render "model_servers/model_configs", server: @model_server %>
+        </div>
+      </div>
+
+    </div>
+  <% end %>
+</div>

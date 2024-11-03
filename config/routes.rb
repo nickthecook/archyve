@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     end
 
     resources :settings, only: [:index, :update]
+    resources :model_servers, only: [:show]
     resources :conversations do
       resources :messages, only: [:create, :destroy] do
         post :regenerate, as: :regenerate

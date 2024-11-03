@@ -1,0 +1,25 @@
+<% if model_config.nil? %>
+  <div class="col-span-2 font-bold">Name</div>
+  <div class="col-span-2 font-bold">Model</div>
+  <div class="col-span-1 font-bold"></div>
+  <div class="col-span-1 font-bold text-right">Temperature</div>
+  <div class="col-span-1 font-bold text-right">Context Window Size</div>
+<% else %>
+  <div class="col-span-2"><%= model_config.name %></div>
+  <div class="col-span-2">
+    <span class="pr-2">
+      <%= model_config.model %>
+    </span>
+    <% if model_config.embedding? %>
+      <i class="text-green-400 hover:text-green-600 fa fa-file-text-o" title="Embedding model"></i>
+    <% elsif model_config.vision? %>
+      <i class="text-green-400 hover:text-green-600 fa fa-eye" title="Vision model"></i>
+    <% elsif model_config.usable_for_knowledge_graph? %>
+      <i class="text-green-400 hover:text-green-600 fa fa-share-alt-square" title="Knowledge Graph model"></i>
+    <% end %>
+  </div>
+  <div class="col-span-1 text-left">
+  </div>
+  <div class="col-span-1 text-right"><%= model_config.temperature %></div>
+  <div class="col-span-1 text-right"><%= model_config.context_window_size %></div>
+<% end %>

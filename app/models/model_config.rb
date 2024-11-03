@@ -1,6 +1,8 @@
 class ModelConfig < ApplicationRecord
   class ModelTypeError < StandardError; end
 
+  MIN_KG_CONTEXT_WINDOW = 8192
+
   has_many :messages, as: :author, dependent: :destroy
   has_many :conversations, dependent: :destroy
   belongs_to :model_server, optional: true
@@ -66,6 +68,10 @@ class ModelConfig < ApplicationRecord
 
   def mark_as_unavailable
     update(available: false)
+  end
+
+  def usable_for_knowledge_graph?
+    context_window_size >= MIN_KG_CONTEXT_WINDOW
   end
 
   private

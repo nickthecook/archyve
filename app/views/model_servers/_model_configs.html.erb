@@ -1,0 +1,12 @@
+<% model_server ||= @model_server %>
+
+<div id="model-server-<%= model_server.id %>-configs">
+  <div class="grid grid-cols-7 auto-cols-auto gap-4">
+    <%= render "model_servers/model_config", model_config: nil %>
+
+    <% model_server.model_configs.available.order(:name).each do |model_config| %>
+      <%= render "model_servers/model_config", model_config: %>
+    <% end %>
+  </div>
+</div>
+

@@ -1,4 +1,5 @@
 <% model_server ||= @model_server %>
+
 <div id="settings_model_servers">
   <div class="grid grid-cols-11 auto-cols-auto gap-4">
     <%= render "settings/server", server: nil %>
@@ -6,8 +7,8 @@
       <%= render "settings/server", server: %>
     <% end %>
   </div>
-  <div class="w-full flex">
-    <div class="flex flex-col w-full items-center pt-8">
+  <div class="flex w-full">
+    <div class="flex flex-col items-center pt-8 w-full">
       <hr class="pt-8 w-3/4 border-secondary-200 dark:border-secondary-600">
       <%= render "settings/server_form", model_server: %>
     </div>

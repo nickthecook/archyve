@@ -1,5 +1,8 @@
 class ModelServersController < ApplicationController
-  before_action :set_model_server!, only: %i[update destroy activate sync_models]
+  before_action :set_model_server!, except: %i[create]
+
+  def show
+  end
 
   def create
     @model_server = create_model_server
