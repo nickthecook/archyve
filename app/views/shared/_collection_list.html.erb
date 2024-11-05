@@ -1,8 +1,6 @@
 <div id="collections" class="p-4 w-80 h-screen bg-secondary-200 dark:bg-secondary-900 text-secondary-950 dark:text-secondary-100">
   <div class="container flex flex-col items-center h-full">
-    <div class="pb-2 w-full font-mono text-2xl font-bold text-center">
-      <%= link_to "ARCHYVE", root_path, class: "text-tertiary-700 dark:text-tertiary-400" %>
-    </div>
+    <%= render "shared/title", classes: nil %>
     <%= link_to "New collection", new_collection_path, class: "rounded-lg py-2 mb-4 px-4 my-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700" %>
     <div id="collection_list_items" class="container overflow-y-scroll flex-1 no-scrollbar rounded-lg border border-secondary-300 dark:border-secondary-700">
       <% collections.order(created_at: :desc).each do |collection| %>
@@ -14,5 +12,6 @@
     <%= render "shared/admin_buttons" %>
     <%= render "shared/area_buttons" %>
     <%= render "shared/sign_out_button" %>
+    <%= render "shared/version" %>
   </div>
 </div>
