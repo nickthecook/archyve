@@ -19,7 +19,7 @@
       <div class="py-4 items-center flex">
         <%= f.label "Embedding model", class: "pr-4" %>
         <div class="flex-1"></div>
-        <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :name, {}, {
+        <%= f.collection_select(:embedding_model_id, embedding_model_list, :id, :descriptor, {}, {
           class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"
         })%>
       </div>
@@ -37,7 +37,7 @@
             <div class="flex items-center">
               <%= f.label "Entity extraction model", class: "pr-4" %>
               <div class="flex-1"></div>
-              <%= f.collection_select(:entity_extraction_model_id, entity_extraction_model_list, :id, :name, {
+              <%= f.collection_select(:entity_extraction_model_id, entity_extraction_model_list, :id, :descriptor, {
                 include_blank: true
               }, {
                 class: "flex-1 rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"

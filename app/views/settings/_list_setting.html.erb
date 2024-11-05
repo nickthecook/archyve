@@ -6,7 +6,8 @@
     <div class="items-center flex">
       <%= f.label setting.titleize, class: "pr-4" %>
       <div class="flex-1"></div>
-      <%= f.collection_select(:value, list, :id, :name, {
+      <% field = list.all? { |item| item.respond_to?(:descriptor) } ? :descriptor : :name %>
+      <%= f.collection_select(:value, list, :id, field, {
         prompt: "Select an option..."
       }, {
         class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800",
