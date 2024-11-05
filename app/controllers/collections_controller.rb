@@ -31,7 +31,7 @@ class CollectionsController < ApplicationController
   end
 
   def create
-    @collection = collection_from_params(collection_params)
+    @collection = Collection.new(collection_params)
 
     if @collection.save
       @collection.generate_slug
@@ -130,17 +130,6 @@ class CollectionsController < ApplicationController
   end
 
   private
-
-  def collection_from_params(params)
-    @collection = Collection.new(params)
-    @collection.embedding_model = if params[:embedding_model_id]
-      ModelConfig.find(params[:embedding_model_id])
-    else
-      Setting.embedding_model
-    end
-
-    @collection
-  end
 
   def collection_params
     params.require(:collection).permit(:name, :graph_enabled, :embedding_model_id, :entity_extraction_model_id)

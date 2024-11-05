@@ -1,6 +1,6 @@
 <div class="py-4 items-center flex">
   <%= f.label setting.key.titleize, class: "pr-4" %>
-  <%= f.collection_select(:entity_extraction_model_id, entity_extraction_model_list, :id, :name, {}, {
+  <%= f.collection_select(:entity_extraction_model_id, settings_entity_extraction_model_list, :id, :name, {}, {
     class: "flex-1 rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800"
   })%>
 </div>

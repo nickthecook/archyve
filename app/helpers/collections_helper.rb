@@ -3,10 +3,6 @@ module CollectionsHelper
     ModelConfig.available.embedding
   end
 
-  def entity_extraction_model_list
-    ModelConfig.available.generation
-  end
-
   def state_label_for(collection)
     state_text = state_text_for(collection)
     return state_text unless state_text.end_with?("ing")
@@ -33,5 +29,14 @@ module CollectionsHelper
     return distance.round if distance > 10
 
     distance.round(2)
+  end
+
+  def entity_extraction_model_for(collection)
+    return collection.entity_extraction_model&.name if collection.entity_extraction_model.present?
+
+    global_model = ModelConfig.find_by(id: Setting.get("entity_extraction_model"))
+    return global_model.name if global_model.present?
+
+    "No extraction model"
   end
 end

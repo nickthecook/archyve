@@ -1,13 +1,11 @@
 class CheckModelsService
-  MODEL_ROLES = %w[chat summarization embedding entity_extraction].freeze
+  MODEL_ROLES = %w[chat summarization embedding].freeze
 
   def execute
     missing_roles = detect_missing_roles
     return if missing_roles.empty?
 
-    missing_roles.each { |role| select_default_for_role(role) }
-
-    detect_missing_roles
+    missing_roles
   end
 
   private
@@ -22,12 +20,6 @@ class CheckModelsService
 
   def detect_missing_roles
     MODEL_ROLES - defined_roles
-  end
-
-  def warning_string_for(roles)
-    "No model defined for roles #{roles.join(", ")}.
-
-    Define a ModelConfig in Admin -> ModelConfigs and then click 'Use for <role>."
   end
 
   def defined_roles

@@ -1,14 +1,22 @@
 <% setting_model = Setting.ensure_exists(setting) %>
+<% help_text ||= nil %>
 
 <%= form_for setting_model do |f| %>
-  <div class="py-4 items-center flex">
-    <%= f.label setting.titleize, class: "pr-4" %>
-    <div class="flex-1"></div>
-    <%= f.collection_select(:value, list, :id, :name, {
-      prompt: "Select an option..."
-    }, {
-      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800",
-      onchange: "this.form.submit()"
-    })%>
+  <div class="py-4 flex-col">
+    <div class="items-center flex">
+      <%= f.label setting.titleize, class: "pr-4" %>
+      <div class="flex-1"></div>
+      <%= f.collection_select(:value, list, :id, :name, {
+        prompt: "Select an option..."
+      }, {
+        class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800",
+        onchange: "this.form.submit()"
+      })%>
+    </div>
+    <% if help_text.present? %>
+      <div class="text-sm text-secondary-500 pb-1 whitespace-pre-line">
+        <div><%= help_text %></div>
+      </div>
+    <% end %>
   </div>
 <% end %>

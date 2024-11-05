@@ -15,4 +15,15 @@ module ApplicationHelper
     num_bgs = Rails.configuration.dark_backgrounds.length
     Rails.configuration.dark_backgrounds[rand(0..num_bgs - 1)]
   end
+
+  def entity_extraction_model_list
+    ModelConfig.available.generation.where(
+      "context_window_size >= ?",
+      min_context_window_size
+    ).order(context_window_size: :desc)
+  end
+
+  def min_context_window_size
+    @min_context_window_size ||= Graph::CalculateMinContextSize.new.execute
+  end
 end

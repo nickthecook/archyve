@@ -21,7 +21,7 @@ class ConversationsController < ApplicationController
     unless Setting.chat_model && Setting.embedding_model && Setting.summarization_model
       return redirect_to(
         conversations_path,
-        alert: "Please ask your admin to set the chat model, embedding model and summarization model in the admin UI."
+        alert: "Please set the chat model, embedding model and summarization model on the Settings page."
       )
     end
 

@@ -74,7 +74,7 @@ class ModelServer < ApplicationRecord
   def mark_as_deleted
     model_configs.find_each { |model_config| model_config.update!(available: false) }
 
-    update(deleted_at: Time.current)
+    update(deleted_at: Time.current, active: false)
   end
 
   def restore

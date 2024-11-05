@@ -1,16 +1,24 @@
 <% setting_model = Setting.ensure_exists(setting) %>
+<% help_text ||= nil %>
 
 <%= form_for setting_model do |f| %>
-  <div class="py-4 items-center flex">
-    <%= f.label setting.titleize, class: "pr-4" %>
-    <div class="flex-1"></div>
-    <%= f.number_field(
-      :value,
-      class: "rounded-md bg-secondary-200 dark:bg-secondary-800 mx-1",
-      value: setting_model.value,
-      onchange: "this.form.requestSubmit()",
-      step:,
-      min: step
-    )%>
+  <div class="py-4 flex-col">
+    <div class="items-center flex">
+      <%= f.label setting.titleize, class: "pr-4" %>
+      <div class="flex-1"></div>
+      <%= f.number_field(
+        :value,
+        class: "rounded-md bg-secondary-200 dark:bg-secondary-800 mx-1",
+        value: setting_model.value,
+        onchange: "this.form.requestSubmit()",
+        step:,
+        min: step
+      )%>
+    </div>
+    <% if help_text.present? %>
+      <div class="text-sm text-secondary-400 dark:text-secondary-500 pb-1 whitespace-pre-line">
+        <div><%= help_text %></div>
+      </div>
+    <% end %>
   </div>
 <% end %>

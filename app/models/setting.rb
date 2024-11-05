@@ -50,7 +50,7 @@ class Setting < ApplicationRecord
       model_id = find_by(key: "#{role}_model")&.value
       return if model_id.nil?
 
-      ModelConfig.find(model_id)
+      ModelConfig.available.find_by(id: model_id)
     end
   end
 end
