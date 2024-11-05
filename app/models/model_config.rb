@@ -71,7 +71,7 @@ class ModelConfig < ApplicationRecord
   end
 
   def descriptor
-    "#{model_server.name || active_server.name}/#{name}"
+    "#{model_server&.name || active_server.name}/#{name}"
   end
 
   private
