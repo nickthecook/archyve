@@ -18,6 +18,7 @@ class ConversationsController < ApplicationController
   # rubocop:disable Metrics/AbcSize
   # POST /conversations or /conversations.json
   def create
+    binding.pry
     unless Setting.chat_model && Setting.embedding_model && Setting.summarization_model
       return redirect_to(
         conversations_path,
