@@ -19,7 +19,7 @@
           "id": { "type": "integer" },
           "collection_id": { "type": "integer" },
           "user_id": { "type": "integer" },
-          "filename": { "type": "string" },
+          "filename": { "type": ["string", "null"] },
           "state": { "type": "string" },
           "vector_id": { "type": ["integer", "null"] },
           "chunking_profile_id": { "type": "integer" }
