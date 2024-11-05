@@ -46,11 +46,17 @@ class Setting < ApplicationRecord
       model_for("entity_extraction")
     end
 
+    def settings_for_model_id(id)
+      where("key LIKE ?", "%_model").where(value: id)
+    end
+
+    private
+
     def model_for(role)
       model_id = find_by(key: "#{role}_model")&.value
       return if model_id.nil?
 
-      ModelConfig.find(model_id)
+      ModelConfig.available.find_by(id: model_id)
     end
   end
 end

@@ -66,6 +66,12 @@ class ModelConfig < ApplicationRecord
 
   def mark_as_unavailable
     update(available: false)
+
+    Setting.settings_for_model_id(id).destroy_all
+  end
+
+  def descriptor
+    "#{model_server.name || active_server.name}/#{name}"
   end
 
   private

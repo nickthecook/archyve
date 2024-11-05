@@ -136,10 +136,6 @@ Setting.find_or_create_by!(key: "summarization_model") do |setting|
   setting.value = ModelConfig.available.generation.last&.id
 end
 
-Setting.find_or_create_by!(key: "entity_extraction_model") do |setting|
-  setting.value = ModelConfig.available.generation.last&.id
-end
-
 Setting.find_or_create_by!(key: "num_chunks_to_include") do |setting|
   setting.value = 5
 end

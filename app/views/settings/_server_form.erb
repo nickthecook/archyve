@@ -10,7 +10,7 @@
       </div>
       <div class="mr-4 mt-2">
         <%= f.select :provider,
-          provider_list,
+          settings_provider_list,
           { prompt: "Provider..." },
           { class: "pr-2 py-1 rounded-lg bg-secondary-50 dark:bg-secondary-950 flex-1" }
         %>
@@ -37,7 +37,7 @@
       </div>
       <div>
         <%= f.submit 'Add',
-          class: "px-4 py-2 rounded-lg text-secondary-900 dark:text-secondary-100 bg-secondary-50 dark:bg-secondary-800"
+          class: "px-4 py-2 rounded-lg text-secondary-900 dark:text-secondary-100 bg-secondary-200 dark:bg-secondary-800"
         %>
       </div>
     </div>

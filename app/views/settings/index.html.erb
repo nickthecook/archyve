@@ -13,7 +13,7 @@
       <!-- SERVERS -->
       <h2 class="mb-5 text-secondary-700 dark:text-secondary-200 text-xl font-bold text-center">Inference servers</h2>
       <div class="mb-20 flex justify-center items-center w-full">
-        <div class="py-10 px-10 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+        <div class="py-10 px-10 flex flex-col sm:w-full md:w-full lg:w-4/5 xl:w-3/5 2xl:w-[640px] border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
           <%= render "model_servers" %>
         </div>
       </div>
@@ -21,10 +21,31 @@
       <!-- MODELS -->
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-700 dark:text-secondary-200">Models</h2>
       <div class="mb-20 flex justify-center items-center w-full">
-        <div class="py-10 px-20 flex flex-col w-1/2 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "list_setting", setting: "entity_extraction_model", list: ModelConfig.available.generation %>
-          <%= render "list_setting", setting: "embedding_model", list: ModelConfig.available.embedding %>
-          <%= render "list_setting", setting: "summarization_model", list: ModelConfig.available.generation %>
+        <div class="py-10 px-10 flex flex-col sm:w-full md:w-4/5 lg:w-3/5 xl:w-1/2 2xl:w-[640px] border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+          <%= render "list_setting",
+            setting: "entity_extraction_model",
+            list: entity_extraction_model_list,
+            help_text: <<~EXTRACTION_HELP
+              Archyve requires a context window of at least #{min_context_window_size} to reliably perform entity extraction. This list has been filtered to those models.
+              
+              Archyve will fall back to this model if a collection does not have an entity extraction model set.
+            EXTRACTION_HELP
+          %>
+          <%= render "list_setting",
+            setting: "embedding_model",
+            list: ModelConfig.available.embedding,
+            help_text: <<~EMBEDDING_HELP
+              Archyve will fall back to this model if a collection does not have an embedding model set.
+            EMBEDDING_HELP
+          %>
+          <%= render "list_setting",
+            setting: "summarization_model",
+            list: ModelConfig.available.generation,
+            help_text: <<~SUMMARIZATION_HELP
+              Archyve will use this model to summarize prompts given by the user in chat. Those summaries are used as the titles of conversations.
+            SUMMARIZATION_HELP
+
+          %>
           <%= render "list_setting", setting: "chat_model", list: ModelConfig.available.generation %>
           <%= render "list_setting", setting: "vision_model", list: ModelConfig.available.vision %>
         </div>
@@ -33,24 +54,54 @@
       <!-- SEARCH -->
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Search</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
-        <div class="py-10 px-20 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "number_setting", setting: "distance_ratio_threshold", list: ModelConfig.available.generation, step: 0.01 %>
-          <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that detects when one result is significantly less relevant than the previous result - a sudden drop in relevance while traversing search results. This value controls how large a drop will trigger Archyve to consider all results after the drop irrelevant.</div>
-          <%= render "number_setting", setting: "normalized_search_distance_ceiling", list: ModelConfig.available.generation, step: 0.1 %>
-          <div class="mb-10 text-secondary-400 dark:text-secondary-400">Archyve uses a filter on search results that discards any result with a distance score (higher is less relevant) above this threshold.</div>
-          <%= render "number_setting", setting: "num_chunks_to_include", list: ModelConfig.available.generation, step: 1 %>
-          <div class="mb-10 text-secondary-400 dark:text-secondary-400">This setting controls the maximum number of relevant chunks Archyve will include in search results or when augmenting a prompt.</div>
+        <div class="py-10 px-20 flex flex-col sm:w-full md:w-full lg:w-4/5 xl:w-3/5 2xl:w-[880px] border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+          <%= render "number_setting",
+            setting: "distance_ratio_threshold",
+            list: ModelConfig.available.generation,
+            step: 0.01,
+            help_text: <<~DRT_HELP
+              Archyve uses a filter on search results that detects when one result is significantly less relevant than the previous result - a sudden drop in relevance while traversing search results. This value controls how large a drop will trigger Archyve to consider all results after the drop irrelevant.
+            DRT_HELP
+          %>
+          <%= render "number_setting",
+            setting: "normalized_search_distance_ceiling",
+            list: ModelConfig.available.generation,
+            step: 0.1,
+            help_text: <<~NSD_CEILING_HELP
+              Archyve uses a filter on search results that discards any result with a distance score (higher is less relevant) above this threshold.
+            NSD_CEILING_HELP
+          %>
+          <%= render "number_setting",
+            setting: "num_chunks_to_include",
+            list: ModelConfig.available.generation,
+            step: 1,
+            help_text: <<~NUM_CHUNKS_HELP
+              This setting controls the maximum number of relevant chunks Archyve will include in search results or when augmenting a prompt.
+            NUM_CHUNKS_HELP
+          %>
         </div>
       </div>
 
       <!-- OPP -->
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Ollama Proxy Port (OPP)</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
-        <div class="py-10 px-20 flex flex-col w-3/4 border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
-          <%= render "number_setting", setting: "opp_num_conversation_title_chars", list: ModelConfig.available.generation, step: 1 %>
-          <div class="mb-10 text-secondary-400 dark:text-secondary-400">When creating a conversation based on a request to the OPP, this setting controls how many characters from the first chat message will be used in the conversation title.</div>
-          <%= render "number_setting", setting: "opp_num_recent_convos_for_match", list: ModelConfig.available.generation, step: 1 %>
-          <div class="mb-10 text-secondary-400 dark:text-secondary-400">When a message is received by the OPP, Archyve looks through its recent conversations to attempt to find a matching one. If it finds a match, it appends the new message to that conversation instead of creating a new conversation. This setting controls how far back Archyve will look for a matching conversation.</div>
+        <div class="py-10 px-20 flex flex-col sm:w-full md:w-full lg:w-4/5 xl:w-3/5 2xl:w-[880px] border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+          <%= render "number_setting",
+            setting: "opp_num_conversation_title_chars",
+            list: ModelConfig.available.generation,
+            step: 1,
+            help_text: <<~OPP_NUM_TITLE_CHARS_HELP
+              When creating a conversation based on a request to the OPP, this setting controls how many characters from the first chat message will be used in the conversation title.
+            OPP_NUM_TITLE_CHARS_HELP
+          %>
+          <%= render "number_setting",
+            setting: "opp_num_recent_convos_for_match",
+            list: ModelConfig.available.generation,
+            step: 1,
+            help_text: <<~OPP_NUM_RECENT_CONVOS_HELP
+              When a message is received by the OPP, Archyve looks through its recent conversations to attempt to find a matching one. If it finds a match, it appends the new message to that conversation instead of creating a new conversation. This setting controls how far back Archyve will look for a matching conversation.
+            OPP_NUM_RECENT_CONVOS_HELP
+          %>
         </div>
       </div>
     </div>
