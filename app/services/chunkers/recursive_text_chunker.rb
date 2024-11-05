@@ -53,7 +53,9 @@ module Chunkers
 
     def chunk(parser)
       raw_chunks_from(parser).map do |c|
-        ChunkRecord.new(content: c[:text])
+        # Intentionally using the overlapping "surrounding content" as the excerpt
+        # for now ... backwards compatibility
+        ChunkRecord.new(excerpt: c[:text])
       end
     end
 

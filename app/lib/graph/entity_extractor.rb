@@ -6,9 +6,9 @@ module Graph
     end
 
     def extract(chunk)
-      if chunk.content.size < minimum_chunk_size
+      if chunk.excerpt.size < minimum_chunk_size
         Rails.logger.info(
-          "Chunk #{chunk.id} is too small to extract entities (#{chunk.content.size} < #{minimum_chunk_size})"
+          "Chunk #{chunk.id} is too small to extract entities (#{chunk.excerpt.size} < #{minimum_chunk_size})"
         )
         return
       end
@@ -71,7 +71,7 @@ module Graph
     end
 
     def entities_for(chunk)
-      entities = client.complete(prompt_for(chunk.content), traceable: chunk)
+      entities = client.complete(prompt_for(chunk.excerpt), traceable: chunk)
 
       Rails.logger.debug { "Extracted entities:\n#{entities}" }
 
@@ -104,7 +104,7 @@ module Graph
     end
 
     def input_text
-      @chunk.content
+      @chunk.excerpt
     end
 
     def minimum_chunk_size

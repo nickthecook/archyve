@@ -8,16 +8,22 @@
           "id",
           "document",
           "vector_id",
-          "content",
+          "excerpt",
           "embedding_content",
-          "entities_extracted"
+          "entities_extracted",
+          "headings",
+          "location_summary",
+          "surrounding_content"
         ],
         "properties": {
           "id": { "type": "integer" },
           "document": { "type": "integer" },
           "vector_id": { "type": "string" },
-          "content": { "type": "string" },
+          "excerpt": { "type": "string" },
           "embedding_content": { "type": ["string", null] },
+          "headings": { "type": ["string", null] },
+          "location_summary": { "type": ["string", null] },
+          "surrounding_content": { "type": ["string", null] },
           "entities_extracted": { "type": "boolean" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }

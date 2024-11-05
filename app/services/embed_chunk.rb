@@ -17,7 +17,7 @@ class EmbedChunk
   def embed
     embedding = embedder.embed(@chunk.embedding_content)
 
-    ids = chromadb.add_documents(@collection_id, [@chunk.content], [embedding])
+    ids = chromadb.add_documents(@collection_id, [@chunk.embedding_content], [embedding])
     @chunk.update!(vector_id: ids.first)
 
     @document.touch(:updated_at)

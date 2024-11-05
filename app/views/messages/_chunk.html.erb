@@ -4,7 +4,7 @@
   <div class="flex-1 whitespace-prewrap">
     <div class="flex flex-col">
       <div class="pb-4">Chunk #<%= chunk.id%></div>
-      <div><%= chunk.content %></div>
+      <div><%= chunk.excerpt %></div>
     </div>
     
   </div>
@@ -13,10 +13,10 @@
     <% if distance %>
       <div class="py-1">distance: <%= distance.round(1) %></div>
     <% end %>
-    <div class="py-1"><%= chunk ? number_to_human_size(chunk.content.size) : "?" %></div>
+    <div class="py-1"><%= chunk ? number_to_human_size(chunk.excerpt.size) : "?" %></div>
     <div class="py-1"><%= chunk ? time_ago_in_words(chunk.created_at) : "?" %> ago</div>
     <div class="py-1" class="p-4 text-right">
-      <%= render "shared/copy_button", content: chunk.content.strip %>
+      <%= render "shared/copy_button", content: chunk.excerpt.strip %>
     </div>
   </div>
   <% end %>

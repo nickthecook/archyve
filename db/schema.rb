@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_30_122945) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_03_190426) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -72,12 +72,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_30_122945) do
   create_table "chunks", force: :cascade do |t|
     t.bigint "document_id", null: false
     t.string "vector_id"
-    t.string "content"
+    t.string "excerpt"
     t.jsonb "embeddings"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "embedding_content"
     t.boolean "entities_extracted", default: false
+    t.string "headings"
+    t.string "location_summary"
+    t.string "surrounding_content"
     t.index ["document_id"], name: "index_chunks_on_document_id"
   end
 

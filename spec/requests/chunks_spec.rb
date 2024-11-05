@@ -28,7 +28,10 @@ RSpec.describe "Chunks" do
         expect(response.parsed_body["chunks"].first).to eq({
           "id" => chunk_one.id,
           "document" => chunk_one.document_id,
-          "content" => chunk_one.content,
+          "excerpt" => chunk_one.excerpt,
+          "headings" => chunk_one.headings,
+          "location_summary" => chunk_one.location_summary,
+          "surrounding_content" => chunk_one.surrounding_content,
           "embedding_content" => chunk_one.embedding_content,
           "entities_extracted" => chunk_one.entities_extracted,
           "vector_id" => chunk_one.vector_id,
@@ -38,7 +41,10 @@ RSpec.describe "Chunks" do
         expect(response.parsed_body["chunks"].second).to eq({
           "id" => chunk_two.id,
           "document" => chunk_two.document_id,
-          "content" => chunk_two.content,
+          "excerpt" => chunk_two.excerpt,
+          "headings" => chunk_two.headings,
+          "location_summary" => chunk_two.location_summary,
+          "surrounding_content" => chunk_two.surrounding_content,
           "embedding_content" => chunk_two.embedding_content,
           "entities_extracted" => chunk_two.entities_extracted,
           "vector_id" => chunk_two.vector_id,

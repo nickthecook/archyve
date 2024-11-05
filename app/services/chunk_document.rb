@@ -11,7 +11,12 @@ class ChunkDocument
     parser.chunks.each do |chunk_record|
       chunk = Chunk.create!(
         document: @document,
-        content: chunk_record.content,
+
+        excerpt: chunk_record.excerpt,
+        headings: chunk_record.headings,
+        location_summary: chunk_record.location_summary,
+        surrounding_content: chunk_record.surrounding_content,
+        embedding_content: chunk_record.embedding_content,
         embedding_content: chunk_record.embedding_content)
 
       EmbedChunkJob.perform_async(chunk.id)

@@ -44,7 +44,8 @@ module V1
     end
 
     def render_attributes
-      %w[id document_id content embedding_content entities_extracted vector_id created_at updated_at]
+      %w[id document_id excerpt embedding_content headings surrounding_content location_summary entities_extracted
+         vector_id created_at updated_at]
     end
   end
 end

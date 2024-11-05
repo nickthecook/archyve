@@ -1,60 +1,82 @@
 require 'rails_helper'
 
 RSpec.describe Chunk do
-  subject { create(:chunk, content: "subject", embedding_content:) }
+  subject { create(:chunk, excerpt:, embedding_content:) }
 
   let(:document) { create(:document) }
-  let(:embedding_content) { nil }
+  let(:excerpt) { "subject" }
+  let(:embedding_content) { "surround subject sound" }
   let(:chunks) { document.chunks.sort }
 
-  before do
-    create(:chunk, document:)
-    create(:chunk, document:)
-    document.chunks << subject
-    create(:chunk, document:)
-    create(:chunk, document:)
+  describe "creating a chunk" do
+    context "without embedding_content" do
+      let(:embedding_content) { nil }
 
-    document.reload
-  end
-
-  describe "#previous" do
-    it "returns the previous chunk" do
-      expect(subject.previous).to contain_exactly(chunks[1])
-    end
-
-    it "returns multiple chunks" do
-      expect(subject.previous(2)).to eq(chunks[0..1])
-    end
-
-    it "stops at the beginning of the list" do
-      expect(subject.previous(3)).to eq(chunks[0..1])
+      it "fails" do
+        expect { subject }.to raise_error(ActiveRecord::RecordInvalid)
+      end
     end
   end
 
-  describe "#next" do
-    it "returns the next chunk" do
-      expect(subject.next).to contain_exactly(chunks[-2])
+  context "when using chunks" do
+    before do
+      create(:chunk, document:)
+      create(:chunk, document:)
+      document.chunks << subject
+      create(:chunk, document:)
+      create(:chunk, document:)
+
+      document.reload
     end
 
-    it "returns multiple chunks" do
-      expect(subject.next(2)).to eq(chunks[3..4])
+    describe "#previous" do
+      it "returns the previous chunk" do
+        expect(subject.previous).to contain_exactly(chunks[1])
+      end
+
+      it "returns multiple chunks" do
+        expect(subject.previous(2)).to eq(chunks[0..1])
+      end
+
+      it "stops at the beginning of the list" do
+        expect(subject.previous(3)).to eq(chunks[0..1])
+      end
     end
 
-    it "stops at the end of the list" do
-      expect(subject.next(3)).to eq(chunks[3..4])
-    end
-  end
+    describe "#next" do
+      it "returns the next chunk" do
+        expect(subject.next).to contain_exactly(chunks[-2])
+      end
 
-  describe "#embedding_content" do
-    it "returns the content" do
-      expect(subject.embedding_content).to eq("subject")
+      it "returns multiple chunks" do
+        expect(subject.next(2)).to eq(chunks[3..4])
+      end
+
+      it "stops at the end of the list" do
+        expect(subject.next(3)).to eq(chunks[3..4])
+      end
     end
 
-    context "when embedding_content is set" do
-      let(:embedding_content) { "subject subject subject" }
+    describe "#embedding_content=" do
+      it "fails since property is readonly" do
+        expect { subject.embedding_content = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
+      end
+    end
+
+    describe "#embedding_content" do
+      # context "when embedding_content is not set" do
+      #   before do
+      #     chunk = subject
+      #     chunk.embedding_content = nil
+      #   end
+
+      #   it "returns the excerpt" do
+      #     expect(subject.embedding_content).to eq(excerpt)
+      #   end
+      # end
 
       it "returns the embedding content" do
-        expect(subject.embedding_content).to eq("subject subject subject")
+        expect(subject.embedding_content).to eq("surround subject sound")
       end
     end
   end

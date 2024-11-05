@@ -15,7 +15,7 @@ RSpec.describe Graph::EntityExtractor do
       sound emanating from the muffled engine.
     CHUNK
   end
-  let(:chunk) { create(:chunk, content: chunk_content) }
+  let(:chunk) { create(:chunk, excerpt: chunk_content) }
   let(:completion) do
     <<~COMPLETION
       ("entity" | "Minnie M. Baxter" | "organization" | "Minnie M. Baxter is the name of the barge owned by Skippy and his father.")##
