@@ -7,8 +7,6 @@ RSpec.describe Parsers::Image do
   let(:document) { create(:document, state: :created, file:, chunking_profile:) }
 
   context "when method is :basic_image" do
-    #it_behaves_like "all parsers"
-
     it "succeeds basic chunking" do
       expect(subject.chunks.count).to eq(1)
     end

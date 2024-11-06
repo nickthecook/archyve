@@ -13,18 +13,4 @@ module Parsers
       raise StandardError, "Error converting PDF to text: #{@document.filename}"
     end
   end
-
-  #   class Pdf < Image
-  #     def initialize(document)
-  #       # TODO: Replace with parsing of text AND images
-  #     end
-
-  #     private
-
-  #     def text_type
-  #       # TODO: Replace with parsing of text AND images
-  #       # Chunkers::InputType::PDF
-  #       Chunkers::InputType::PLAIN_TEXT
-  #     end
-  #   end
 end

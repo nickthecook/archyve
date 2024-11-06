@@ -11,24 +11,4 @@ RSpec.describe Parsers::Jpg do
       expect(subject.chunks.count).to eq(1)
     end
   end
-
-  # TODO: Determine expected bahavior of the other methods.
-  #       Maybe ':basic' always means ':basic_image'?
-
-  # context "when method is :basic" do
-  #   it_behaves_like "all parsers"
-
-  #   it "succeeds basic chunking" do
-  #     expect(subject.chunks.count).to eq(1)
-  #   end
-  # end
-
-  # context "when method is :recursive_split" do
-  #   let(:chunking_profile) { create(:chunking_profile, method: :recursive_split) }
-
-  #   it_behaves_like "all parsers"
-
-  #   it "succeeds recursive chunking" do
-  #     expect(subject.chunks.count).to eq(149)
-  #   end
 end
