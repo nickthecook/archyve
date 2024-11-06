@@ -1,11 +1,9 @@
 module Parsers
-  # Plain text parser
-
-  class Text < Base
+  class Image < Base
     private
 
     def text_type
-      Chunkers::InputType::PLAIN_TEXT
+      Chunkers::InputType::JPG
     end
 
     def chonker

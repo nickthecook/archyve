@@ -10,7 +10,7 @@ module Parsers
       return if status.success?
 
       Rails.logger.error("Error running '#{cmd}' on PDF: #{@document.filename}\n#{stderr}")
-      raise StandardError, "Error converting PDF to text: #{@document.filename}'"
+      raise StandardError, "Error converting PDF to text: #{@document.filename}"
     end
   end
 end

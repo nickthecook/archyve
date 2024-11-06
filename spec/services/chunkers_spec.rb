@@ -23,6 +23,7 @@ RSpec.describe Chunkers do
 
   describe "#chunker_for" do
     include_examples "supported_chunking_method", :basic, Chunkers::BasicCharacterChunker
+    include_examples "supported_chunking_method", :basic_image, Chunkers::BasicImageChunker
     include_examples "supported_chunking_method", :bytes, Chunkers::RecursiveTextChunker
     include_examples "supported_chunking_method", :recursive_split, Chunkers::RecursiveTextChunker
 
