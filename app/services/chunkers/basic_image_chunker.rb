@@ -8,10 +8,10 @@ module Chunkers
     end
 
     # Return Enumerable with single chunk
-    def chunk(parser)
+    def chunk(parser) # rubocop:disable Lint/UnusedMethodArgument
       [ChunkRecord.new(
-        content: parser.text,
-        embedding_content: 'Unknown image...')]
+        content: '', # TODO: parser.text
+        embedding_content: '')] # or here?
     end
   end
 end
