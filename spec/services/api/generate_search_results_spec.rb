@@ -39,7 +39,7 @@ RSpec.describe Api::GenerateSearchResults do
       expect(subject.search(query)).to eq([
         {
           id: chunks.first.id,
-          document: chunks.first.content,
+          document: chunks.first.excerpt,
           metadata: "",
           distance: hits.first.distance,
           vector_id: chunks.first.vector_id,
@@ -59,7 +59,7 @@ RSpec.describe Api::GenerateSearchResults do
         },
         {
           id: chunks.second.id,
-          document: chunks.second.content,
+          document: chunks.second.excerpt,
           metadata: "",
           distance: hits.third.distance,
           vector_id: chunks.second.vector_id,

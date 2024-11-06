@@ -17,9 +17,9 @@ RSpec.describe PromptAugmentor do
         <<~PROMPT
           Here is some context that may help you answer the following question:
 
-          #{chunks.first.content}
+          #{chunks.first.excerpt}
 
-          #{chunks.second.content}
+          #{chunks.second.excerpt}
 
           Question: What tool should I use to install Ruby?
         PROMPT

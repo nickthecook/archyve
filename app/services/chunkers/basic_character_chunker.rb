@@ -33,7 +33,9 @@ module Chunkers
         chunk = overlap_prev_chunk(chunk, raw_chunks[idx - 1]) if idx.positive?
         chunk = overlap_next_chunk(chunk, raw_chunks[idx + 1]) if idx < (raw_chunks.length - 1)
 
-        overlapped_chunks << ChunkRecord.new(content: chunk)
+        # Intentionally using the overlapping "surrounding content" as the excerpt
+        # for now ... backwards compatibility
+        overlapped_chunks << ChunkRecord.new(excerpt: chunk)
       end
 
       overlapped_chunks
@@ -56,7 +58,7 @@ module Chunkers
     end
 
     def chunk_records(raw_chunks)
-      raw_chunks.map { |chunk| ChunkRecord.new(content: chunk) }
+      raw_chunks.map { |chunk| ChunkRecord.new(excerpt: chunk) }
     end
   end
 end

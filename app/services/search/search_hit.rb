@@ -25,6 +25,7 @@ module Search
 
     def content
       return @reference.content if @reference.respond_to?(:content)
+      return @reference.excerpt if @reference.respond_to?(:excerpt)
 
       @reference.summary if @reference.respond_to?(:summary)
     end
