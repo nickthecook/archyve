@@ -21,15 +21,8 @@ class DocumentsController < ApplicationController
 
   def create
     @chunking_profile = ChunkingProfile.find_or_create_by(chunking_params)
-
     @document = document_from_params
-
-    if @document.web?
-      FetchWebDocumentJob.perform_async(@document.id)
-    else
-      ChunkDocumentJob.perform_async(@document.id)
-    end
-
+    Mediator.ingest(@document)
     redirect_to @document.collection
   end
 
