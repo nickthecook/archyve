@@ -7,7 +7,14 @@ class ChunkDocument
     reset_document unless @document.created?
 
     @document.chunking!
+    create_chunk_records
+    @document.update(title: parser.title)
+    @document.chunked!
+  end
 
+  private
+
+  def create_chunk_records
     parser.chunks.each do |chunk_record|
       chunk = Chunk.create!(
         document: @document,
@@ -21,13 +28,7 @@ class ChunkDocument
 
       EmbedChunkJob.perform_async(chunk.id)
     end
-
-    @document.update(title: parser.title)
-
-    @document.chunked!
   end
-
-  private
 
   def reset_document
     Rails.logger.warn("RESETTING DOCUMENT #{@document.id}: is in state #{@document.state}...")

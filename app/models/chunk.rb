@@ -12,7 +12,7 @@ class Chunk < ApplicationRecord
 
   # Require embedding content when creating new chunks
   # Schema doesn't enforce presence for backwards compatibility with existing data
-  validate :has_explicit_embedding_content?, on: :create
+  validate :explicit_embedding_content?, on: :create
 
   # Ensure that someone can't change a previously set embedding content back to `nil`
   attr_readonly :embedding_content
@@ -33,8 +33,8 @@ class Chunk < ApplicationRecord
 
   private
 
-  def has_explicit_embedding_content?
-    return if self[:embedding_content]
+  def explicit_embedding_content?
+    return false if self[:embedding_content]
 
     errors.add(:embedding_content, "New chunks require embedding content")
   end
