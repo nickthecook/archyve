@@ -14,10 +14,6 @@ class Chunk < ApplicationRecord
   # Schema doesn't enforce presence for backwards compatibility with existing data
   validate :explicit_embedding_content?, on: :create
 
-  # Ensure that someone can't change a previously set embedding content back to `nil`
-  attr_readonly :embedding_content
-  attr_readonly :excerpt, :surrounding_content, :location_summary, :headings
-
   def previous(count = 1)
     self.class.where(document:).where("id < ?", id).order(id: :asc).last(count)
   end

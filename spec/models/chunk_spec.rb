@@ -57,47 +57,17 @@ RSpec.describe Chunk do
       end
     end
 
-    describe "#embedding_content=" do
-      it "fails since property is readonly" do
-        expect { subject.embedding_content = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
-      end
-    end
-
-    describe "#excerpt=" do
-      it "fails since property is readonly" do
-        expect { subject.excerpt = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
-      end
-    end
-
-    describe "#location_summary=" do
-      it "fails since property is readonly" do
-        expect { subject.location_summary = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
-      end
-    end
-
-    describe "#surrounding_content=" do
-      it "fails since property is readonly" do
-        expect { subject.surrounding_content = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
-      end
-    end
-
-    describe "#headings=" do
-      it "fails since property is readonly" do
-        expect { subject.headings = nil }.to raise_error(ActiveRecord::ReadonlyAttributeError)
-      end
-    end
-
     describe "#embedding_content" do
-      # context "when embedding_content is not set" do
-      #   before do
-      #     chunk = subject
-      #     chunk.embedding_content = nil
-      #   end
+      context "when embedding_content is nil" do
+        before do
+          chunk = subject
+          chunk.update_attribute(:embedding_content, nil)
+        end
 
-      #   it "returns the excerpt" do
-      #     expect(subject.embedding_content).to eq(excerpt)
-      #   end
-      # end
+        it "returns the excerpt" do
+          expect(subject.embedding_content).to eq(excerpt)
+        end
+      end
 
       it "returns the embedding content" do
         expect(subject.embedding_content).to eq("surround subject sound")
