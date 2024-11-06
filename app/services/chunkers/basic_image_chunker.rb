@@ -10,8 +10,7 @@ module Chunkers
     # Return Enumerable with single chunk
     def chunk(parser)
       [ChunkRecord.new(
-        content: parser.text,
-        embedding_content: '')]
+        excerpt: parser.text)]
     end
   end
 end
