@@ -7,14 +7,14 @@ class ChunkDocument
     reset_document unless @document.created?
 
     @document.chunking!
-    create_chunk_records
+    create_chunks
     @document.update(title: parser.title)
     @document.chunked!
   end
 
   private
 
-  def create_chunk_records
+  def create_chunks
     parser.chunks.each do |chunk_record|
       chunk = Chunk.create!(
         document: @document,
