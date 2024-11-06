@@ -61,7 +61,7 @@ RSpec.describe Chunk do
       context "when embedding_content is nil" do
         before do
           chunk = subject
-          chunk.update_attribute(:embedding_content, nil)
+          chunk.embedding_content = nil
         end
 
         it "returns the excerpt" do
