@@ -8,7 +8,7 @@ RSpec.describe Chunk do
   let(:embedding_content) { "surround subject sound" }
   let(:chunks) { document.chunks.sort }
 
-  describe "creating a chunk" do
+  describe "#create!" do
     context "without embedding_content" do
       let(:embedding_content) { nil }
 
