@@ -1,4 +1,5 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg dark:border dark:border-secondary-800" %>
+
 <%= content_tag :div, id: dom_id(message), class: "py-3 my-10 rounded-lg #{message_bg_class}" do %>
   <div>
     <div class="flex justify-start items-start px-5 py-3">
@@ -7,14 +8,13 @@
       </div>
 
       <div class="flex flex-col ms-4 text-right text-secondary-500 dark:text-secondary-400 overflow-x-hidden">
-        <p class="py-1 text-xs hidden xl:block"><%= author_name_for(message) %></p>
-        <p class="py-1 text-xs hidden xl:block"><%= time_ago_in_words(message.created_at) %> ago</p>
-        <div class="flex flex-col hidden xl:block text-xl p-2 text-secondary-500 dark:text-secondary-400">
-          <div class="flex-1"></div>
+        <div class="py-1 text-xs hidden xl:block"><%= author_name_for(message) %></div>
+        <div class="py-1 text-xs hidden xl:block"><%= time_ago_in_words(message.created_at) %> ago</div>
+        <div class="flex hidden xl:block text-xl p-2 text-secondary-500 dark:text-secondary-400">
           <% if message.author.is_a?(ModelConfig) %>
-            <div class="ml-2 hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/regenerate_button", message: %></div>
+            <div class="hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/regenerate_button", message: %></div>
           <% end %>
-          <div class="ml-2 hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/copy_button", content: message.content.strip %></div>
+          <div class="hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/copy_button", content: message.content.strip %></div>
         </div>
       </div>
     </div>
@@ -57,7 +57,7 @@
           </div>
         <% end %>
       </div>
-      <div class="flex flex-col block xl:hidden text-lg p-2 text-secondary-500 dark:text-secondary-400">
+      <div class="flex block xl:hidden text-lg p-2 text-secondary-500 dark:text-secondary-400">
         <div class="flex-1"></div>
         <% if message.author.is_a?(ModelConfig) %>
           <div class="ml-2 hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/regenerate_button", message: %></div>
