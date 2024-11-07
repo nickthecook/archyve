@@ -1,22 +1,17 @@
-<div class="flex flex-col no-scrollbar">
-  <nav id="conversations-menu-button" class="bg-secondary-100 dark:bg-secondary-900 block lg:hidden text-2xl text-secondary-800 dark:text-secondary-200 py-2 px-5">
-    <%= render "shared/title", classes: "text-primary-600 dark:text-primary-400" %>
-  </nav>
+<div class="flex flex-col">
   <div class="flex">
     <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
 
-    <div class="overflow-x-hidden overflow-y-scroll no-scrollbar flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+    <div class="flex-1 w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
       <%= render "shared/notice" %>
 
       <%= turbo_stream_from user_dom_id("conversations") %>
-      <div class="p-2 h-full">
-        <% if @conversation %>
-          <%= render @conversation %>
-        <% else %>
-          <div class="container flex justify-center h-full align-center">
-          <%= render "no_conversation" %>
-        <% end %>
-      </div>
+      <% if @conversation %>
+        <%= render @conversation %>
+      <% else %>
+        <div class="container flex justify-center align-center">
+        <%= render "no_conversation" %>
+      <% end %>
     </div>
   </div>
 </div>
