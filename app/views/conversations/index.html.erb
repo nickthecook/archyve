@@ -1,18 +1,23 @@
-<div class="flex">
-  <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
+<div class="flex flex-col no-scrollbar">
+  <nav id="conversations-menu-button" class="bg-secondary-100 dark:bg-secondary-900 block lg:hidden text-2xl text-secondary-800 dark:text-secondary-200 py-2 px-5">
+    <i class="fa fa-bars"></i>
+    <span>Archyve</span>
+  </nav>
+  <div class="flex">
+    <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
 
-  <div class="overflow-y-scroll no-scrollbar flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
-    <%= render "shared/notice" %>
+    <div class="overflow-x-hidden overflow-y-scroll no-scrollbar flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+      <%= render "shared/notice" %>
 
-    <%= turbo_stream_from user_dom_id("conversations") %>
-    <div class="m-2 h-full">
-      <% if @conversation %>
-        <%= render @conversation %>
-      <% else %>
+      <%= turbo_stream_from user_dom_id("conversations") %>
+      <div class="p-2 h-full">
+        <% if @conversation %>
+          <%= render @conversation %>
+        <% else %>
           <div class="container flex justify-center h-full align-center">
           <%= render "no_conversation" %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>

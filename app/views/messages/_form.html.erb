@@ -6,7 +6,8 @@
 %>
 
 
-<%= form_with url: conversation_messages_path(@conversation), html: { id: "message_form", class: "my-5 w-full" } do |f| %>
+<%= form_with url: conversation_messages_path(@conversation),
+  html: { id: "message_form", class: "mb-5 w-full" } do |f| %>
   <div class="container flex">
     <div class="flex-1 pr-3">
       <%= f.text_area :content,
