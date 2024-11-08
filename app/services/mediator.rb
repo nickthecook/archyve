@@ -2,7 +2,7 @@ module Mediator
   class DocumentHasNoFile < StandardError; end
 
   def self.ingest(document)
-    if document.file.nil?
+    if document.filename.nil?
       # Document has no file, so kick off fetching if it's a link
       raise DocumentHasNoFile, "No file exists: #{document.name}" unless document.web?
 
