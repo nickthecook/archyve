@@ -37,11 +37,7 @@ class DocumentsController < ApplicationController
   end
 
   def vectorize
-    if @document.web?
-      FetchWebDocumentJob.perform_async(@document.id)
-    else
-      ChunkDocumentJob.perform_async(@document.id)
-    end
+    Mediator.ingest(@document)
   end
 
   def stop
