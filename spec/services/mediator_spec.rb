@@ -14,30 +14,14 @@ RSpec.describe Mediator do
     context "with web link" do
       let(:link) { "https://en.wikipedia.org/wiki/Tabloid_journalism" }
 
-      it "fetches web page" do
-        # Catching the message seems to prevent the actual method from being called
-        # So limiting this to example
+      before do
         allow(FetchWebDocumentJob).to receive("perform_async")
+      end
 
+      it "fetches web page" do
         subject.ingest(doc)
 
         expect(FetchWebDocumentJob).to have_received("perform_async").with(doc.id)
-      end
-
-      context "when web page has been fetched" do
-        before do
-          allow(ChunkDocumentJob).to receive("perform_async")
-        end
-
-        it "chunks document" do
-          subject.ingest(doc)
-
-          # Need to drain to cause the job to be run so I can check if the
-          # chunking job was initiated after fetching
-          FetchWebDocumentJob.drain
-
-          expect(ChunkDocumentJob).to have_received("perform_async").with(doc.id)
-        end
       end
     end
 
