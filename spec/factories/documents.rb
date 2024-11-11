@@ -3,13 +3,14 @@ FactoryBot.define do
     chunks { [] }
     user { association(:user) }
     collection { association(:collection) }
-    filename { "gnu_manifesto.md" }
+    link { "https://www.gnu.org/gnu/manifesto.html" }
+    filename { "spec/fixtures/files/gnu_manifesto.md" }
     state { :chunked }
     vector_id { nil } # TODO: we probably don't need this
     chunking_profile { association(:chunking_profile) }
 
     trait :with_file do
-      file { Rails.root.join("spec/fixtures/files/small_doc.md") }
+      file { Rails.root.join(filename) }
     end
   end
 end

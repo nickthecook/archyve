@@ -12,7 +12,6 @@ class FetchWebDocumentJob
     document = Document.find(document_id)
 
     FetchWebDocument.new(document).execute
-
-    ChunkDocumentJob.perform_async(document.id) unless document.errored?
+    Mediator.ingest(document) unless document.errored?
   end
 end
