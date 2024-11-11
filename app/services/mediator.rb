@@ -4,7 +4,7 @@ module Mediator
   def self.ingest(document)
     if document.filename.nil?
       # Document has no file, so kick off fetching if it's a link
-      raise DocumentHasNoFile, "No file exists: #{document.name}" unless document.web?
+      raise DocumentHasNoFile, "No file exists, file name is nil" unless document.web?
 
       FetchWebDocumentJob.perform_async(document.id)
     else
