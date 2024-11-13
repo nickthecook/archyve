@@ -1,6 +1,14 @@
 module Parsers
   class UnsupportedFileFormat < StandardError; end
 
+  # Returns true if the `content_type` refers to content that can be parsed into
+  # text for chunking
+  def self.textual?(content_type)
+    content_type.start_with?("text/") ||
+      ["application/pdf", "application/html"].include?(content_type) ||
+      ["officedocument.word"].any? { |t| content_type.include?(t) }
+  end
+
   def self.parser_for(filename)
     name_locase = filename.downcase
 

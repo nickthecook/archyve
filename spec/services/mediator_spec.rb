@@ -25,8 +25,8 @@ RSpec.describe Mediator do
       end
     end
 
-    context "with filename" do
-      let(:file) { fixture_file_upload("gnu_manifesto.md", 'application/html') }
+    context "with markdown file name" do
+      let(:file) { fixture_file_upload("gnu_manifesto.md") }
       let(:filename) { "spec/fixtures/files/gnu_manifesto.md" }
 
       before do
@@ -37,6 +37,15 @@ RSpec.describe Mediator do
         subject.ingest(doc)
 
         expect(ChunkDocumentJob).to have_received("perform_async").with(doc.id)
+      end
+    end
+
+    context "with audio file name" do
+      let(:file) { fixture_file_upload("sample-3s.mp3") }
+      let(:filename) { "spec/fixtures/files/sample-3s.mp3" }
+
+      it "cannot be chunked" do
+        expect { subject.ingest(doc) }.to raise_error(Mediator::DocumentNotChunkable)
       end
     end
 
