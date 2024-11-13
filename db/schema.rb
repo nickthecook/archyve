@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_03_190426) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_12_221039) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -149,8 +149,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_03_190426) do
     t.string "error_message"
     t.string "link"
     t.string "title"
+    t.bigint "parent_id"
     t.index ["chunking_profile_id"], name: "index_documents_on_chunking_profile_id"
     t.index ["collection_id"], name: "index_documents_on_collection_id"
+    t.index ["parent_id"], name: "index_documents_on_parent_id"
     t.index ["user_id"], name: "index_documents_on_user_id"
   end
 
@@ -478,6 +480,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_03_190426) do
   add_foreign_key "conversations", "users"
   add_foreign_key "documents", "chunking_profiles"
   add_foreign_key "documents", "collections"
+  add_foreign_key "documents", "documents", column: "parent_id"
   add_foreign_key "documents", "users"
   add_foreign_key "graph_entities", "collections"
   add_foreign_key "graph_entity_descriptions", "chunks"

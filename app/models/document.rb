@@ -8,6 +8,8 @@ class Document < ApplicationRecord
   has_many :chunk_api_calls, through: :chunks, source: :api_calls
   has_many :api_calls, as: :traceable, dependent: :destroy
 
+  belongs_to :parent, optional: true, class_name: "Document"
+
   include Turbo::Broadcastable
   include AASM
 
@@ -107,5 +109,29 @@ class Document < ApplicationRecord
 
   def web?
     link.present?
+  end
+
+  def original_document?
+    parent.not_nil?
+  end
+
+  delegate :content_type, to: :file
+
+  def image?
+    content_type&.starts_with?("image/")
+  end
+
+  def audio?
+    content_type&.starts_with?("audio/")
+  end
+
+  def video?
+    content_type&.starts_with?("video/")
+  end
+
+  def original_document
+    return self if parent.nil?
+
+    parent.original_document
   end
 end
