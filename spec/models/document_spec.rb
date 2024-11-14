@@ -110,6 +110,10 @@ RSpec.describe Document do
     it "has parent as original document" do
       expect(subject.original_document).to eq(parent)
     end
+
+    it "is not an original document" do
+      expect(subject.original_document?).to be false
+    end
   end
 
   describe "with a grandparent document" do

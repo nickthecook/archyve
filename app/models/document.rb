@@ -112,7 +112,7 @@ class Document < ApplicationRecord
   end
 
   def original_document?
-    parent.not_nil?
+    parent.nil?
   end
 
   delegate :content_type, to: :file
