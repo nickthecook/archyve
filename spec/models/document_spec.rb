@@ -15,11 +15,11 @@ RSpec.describe Document do
   context "with a web link" do
     let(:link) { "https://en.wikipedia.org/wiki/Tabloid_journalism" }
 
-    it "#web? is true" do
+    it "returns true for #web?" do
       expect(subject.web?).to be true
     end
 
-    it "#file is not attached" do
+    it "is not attached" do
       expect(subject.file.attached?).to be false
     end
 
@@ -36,7 +36,7 @@ RSpec.describe Document do
     let(:file) { fixture_file_upload("gnu_manifesto.md") }
     let(:filename) { "spec/fixtures/files/gnu_manifesto.md" }
 
-    it "#web? is false" do
+    it "is not a web link" do
       expect(subject.web?).to be false
     end
 
