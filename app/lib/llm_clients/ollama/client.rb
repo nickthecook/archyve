@@ -1,6 +1,5 @@
 module LlmClients
   module Ollama
-    # rubocop:disable Metrics/ClassLength
     class Client < LlmClients::Client
       NETWORK_TIMEOUT = 8
 

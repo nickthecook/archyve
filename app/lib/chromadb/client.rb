@@ -1,7 +1,6 @@
 require "httparty"
 
 module Chromadb
-  # rubocop:disable Metrics/ClassLength
   class Client
     attr_reader :last_response
 
@@ -160,5 +159,4 @@ module Chromadb
       end
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end
