@@ -44,8 +44,17 @@ RSpec.describe Mediator do
       let(:file) { fixture_file_upload("sample-3s.mp3") }
       let(:filename) { "spec/fixtures/files/sample-3s.mp3" }
 
-      it "cannot be chunked" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::DocumentNotChunkable)
+      it "needs conversion" do
+        expect { subject.ingest(doc) }.to raise_error(Mediator::ConversionUnimplemented)
+      end
+    end
+
+    context "with image file name" do
+      let(:filename) { "spec/fixtures/files/avatar.jpg" }
+      let(:file) { fixture_file_upload("avatar.jpg") }
+
+      it "needs conversion" do
+        expect { subject.ingest(doc) }.to raise_error(Mediator::ConversionUnimplemented)
       end
     end
 
