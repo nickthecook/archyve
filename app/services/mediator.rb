@@ -1,7 +1,8 @@
 module Mediator
-  class DocumentHasNoFile < StandardError; end
-  class DocumentNotChunkable < StandardError; end
-  class ConversionUnimplemented < StandardError; end
+  class IngestError < StandardError; end
+  class DocumentHasNoFile < IngestError; end
+  class DocumentNotChunkable < IngestError; end
+  class ConversionUnimplemented < IngestError; end
 
   def self.ingest(document)
     case next_step(document)
