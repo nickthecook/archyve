@@ -97,8 +97,7 @@ RSpec.describe Document do
   end
 
   describe "with a parent document" do
-    let(:grandparent) { nil }
-    let(:parent) { create(:document, parent: grandparent) }
+    let(:parent) { create(:document, parent: nil) }
 
     it "has parent" do
       expect(subject.parent).not_to be_nil
@@ -108,16 +107,25 @@ RSpec.describe Document do
       expect(parent.parent).to be_nil
     end
 
-    context "and grandparent document" do
-      let(:grandparent) { create(:document) }
+    it "has parent as original document" do
+      expect(subject.original_document).to eq(parent)
+    end
+  end
 
-      it "has grand parent" do
-        expect(parent.parent).not_to be_nil
-      end
+  describe "with a grandparent document" do
+    let(:grandparent) { create(:document) }
+    let(:parent) { create(:document, parent: grandparent) }
 
-      it "has original document" do
-        expect(subject.original_document).to eq(grandparent)
-      end
+    it "has parent" do
+      expect(subject.parent).not_to be_nil
+    end
+
+    it "has grand parent" do
+      expect(parent.parent).not_to be_nil
+    end
+
+    it "has grandparent as original document" do
+      expect(subject.original_document).to eq(grandparent)
     end
   end
 end
