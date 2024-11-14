@@ -12,7 +12,7 @@ RSpec.describe Document do
   let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
   let(:parent) { nil }
 
-  describe "with a web link" do
+  context "with a web link" do
     let(:link) { "https://en.wikipedia.org/wiki/Tabloid_journalism" }
 
     it "#web? is true" do
@@ -32,7 +32,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with a markdown file" do
+  context "with a markdown file" do
     let(:file) { fixture_file_upload("gnu_manifesto.md") }
     let(:filename) { "spec/fixtures/files/gnu_manifesto.md" }
 
@@ -53,7 +53,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with a JPEG file" do
+  context "with a JPEG file" do
     let(:filename) { "spec/fixtures/files/avatar.jpg" }
     let(:file) { fixture_file_upload("avatar.jpg") }
 
@@ -66,7 +66,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with a PDF file" do
+  context "with a PDF file" do
     let(:filename) { "spec/fixtures/files/gnu_manifesto.pdf" }
     let(:file) { fixture_file_upload("gnu_manifesto.pdf") }
 
@@ -83,7 +83,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with an MP3 file" do
+  context "with an MP3 file" do
     let(:filename) { "spec/fixtures/files/sample-3s.mp3" }
     let(:file) { fixture_file_upload("sample-3s.mp3") }
 
@@ -96,7 +96,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with a parent document" do
+  context "with a parent document" do
     let(:parent) { create(:document, parent: nil) }
 
     it "has parent" do
@@ -116,7 +116,7 @@ RSpec.describe Document do
     end
   end
 
-  describe "with a grandparent document" do
+  context "with a grandparent document" do
     let(:grandparent) { create(:document) }
     let(:parent) { create(:document, parent: grandparent) }
 
