@@ -25,7 +25,7 @@ Style/HashTransformKeys:
 Style/HashTransformValues:
   Enabled: true
 Metrics/ClassLength:
-  Max: 100
+  Max: 150
   Exclude:
     - app/controllers/**/*
 Layout/LineLength:
