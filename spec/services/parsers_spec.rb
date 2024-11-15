@@ -12,7 +12,7 @@ RSpec.describe Parsers do
   end
 
   shared_examples "supported_format_parser_by_content_type" do |content_type, parser_class|
-    context "with a #{file_ext} document" do
+    context "with a #{content_type} document" do
       let(:filename) { "something.98384" }
 
       it "succeeds" do
