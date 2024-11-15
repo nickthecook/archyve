@@ -2,6 +2,7 @@ class Document < ApplicationRecord
   belongs_to :collection
   belongs_to :user
   belongs_to :chunking_profile, optional: true
+  belongs_to :parent, optional: true, class_name: "Document"
   has_one_attached :file
   has_many :chunks, dependent: :destroy
   has_many :graph_entity_descriptions, dependent: :destroy, through: :chunks
@@ -25,7 +26,6 @@ class Document < ApplicationRecord
       partial: "collections/document",
       document: reload
     )
-
     collection.touch(:updated_at)
   }
   after_destroy_commit lambda {
@@ -61,7 +61,6 @@ class Document < ApplicationRecord
       # TODO: validate that there are no chunks in the db
       transitions to: :created
     end
-
     event :chunking do
       transitions from: :created, to: :chunking
     end
@@ -80,7 +79,6 @@ class Document < ApplicationRecord
     event :extracted do
       transitions from: :extracting, to: :extracted
     end
-
     event :deleting do
       transitions to: :deleting
     end
@@ -107,5 +105,29 @@ class Document < ApplicationRecord
 
   def web?
     link.present?
+  end
+
+  def original_document?
+    parent.nil?
+  end
+
+  delegate :content_type, to: :file
+
+  def image?
+    content_type&.starts_with?("image/")
+  end
+
+  def audio?
+    content_type&.starts_with?("audio/")
+  end
+
+  def video?
+    content_type&.starts_with?("video/")
+  end
+
+  def original_document
+    return self if parent.nil?
+
+    parent.original_document
   end
 end

@@ -20,7 +20,7 @@ module Parsers
 
     # Overriede to set approriate title
     def title
-      ''
+      @document.link || filename
     end
 
     def filename

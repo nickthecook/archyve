@@ -1,6 +1,9 @@
 <% collection ||= @collection %>
 
 <div id="<%= dom_id(collection) %>" class="flex flex-col h-full">
+ <div class="p-4">
+    <% flash[:error]&.each do |error| %><div class="rounded-lg px-2 p-1 bg-error-400 dark:bg-error-800"><%= error %></div><% end %>  
+  </div>
   <div class="flex flex-col items-center align-center">
     <div class="pb-2 items-center w-3/4">
       <div class="flex justify-center items-center pb-3">

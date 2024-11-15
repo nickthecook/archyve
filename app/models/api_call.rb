@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/ClassLength
 class ApiCall < ApplicationRecord
   belongs_to :traceable, polymorphic: true, optional: true
 
@@ -121,4 +120,3 @@ class ApiCall < ApplicationRecord
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

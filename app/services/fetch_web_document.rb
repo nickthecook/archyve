@@ -1,6 +1,7 @@
 class FetchWebDocument
   def initialize(document)
     @document = document
+    @uri = URI(document.link)
   end
 
   def execute
@@ -28,12 +29,16 @@ class FetchWebDocument
   end
 
   def fetch_file_content
-    content = HTTParty.get(@document.link)
+    content = HTTParty.get(@uri)
     tempfile.write(content)
     tempfile.rewind
   end
 
   def tempfile
-    @tempfile ||= Tempfile.create(['web-', '.html'])
+    @tempfile ||= Tempfile.create(['web-', file_extension], binmode: true)
+  end
+
+  def file_extension
+    Pathname.new(@uri.path).extname
   end
 end
