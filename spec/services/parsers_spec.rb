@@ -1,12 +1,22 @@
 RSpec.describe Parsers do
   subject { described_class }
 
-  shared_examples "supported_format_parser" do |file_ext, parser_class|
+  shared_examples "supported_format_parser_by_filename" do |file_ext, parser_class|
     context "with a #{file_ext} document" do
       let(:filename) { "something#{file_ext}" }
 
       it "succeeds" do
         expect(subject.parser_for(filename)).to be(parser_class)
+      end
+    end
+  end
+
+  shared_examples "supported_format_parser_by_content_type" do |content_type, parser_class|
+    context "with a #{file_ext} document" do
+      let(:filename) { "something.98384" }
+
+      it "succeeds" do
+        expect(subject.parser_for(filename, content_type)).to be(parser_class)
       end
     end
   end
@@ -20,10 +30,16 @@ RSpec.describe Parsers do
       end
     end
 
-    include_examples "supported_format_parser", ".pdf", Parsers::Pdf
-    include_examples "supported_format_parser", ".docx", Parsers::Docx
-    include_examples "supported_format_parser", ".md", Parsers::CommonMark
-    include_examples "supported_format_parser", ".txt", Parsers::Text
-    include_examples "supported_format_parser", ".html", Parsers::HtmlViaMarkdown
+    include_examples "supported_format_parser_by_filename", ".pdf", Parsers::Pdf
+    include_examples "supported_format_parser_by_filename", ".docx", Parsers::Docx
+    include_examples "supported_format_parser_by_filename", ".md", Parsers::CommonMark
+    include_examples "supported_format_parser_by_filename", ".txt", Parsers::Text
+    include_examples "supported_format_parser_by_filename", ".html", Parsers::HtmlViaMarkdown
+
+    include_examples "supported_format_parser_by_content_type", "application/pdf", Parsers::Pdf
+    include_examples "supported_format_parser_by_content_type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", Parsers::Docx
+    include_examples "supported_format_parser_by_content_type", "text/markdown", Parsers::CommonMark
+    include_examples "supported_format_parser_by_content_type", "text/plain", Parsers::Text
+    include_examples "supported_format_parser_by_content_type", "application/html", Parsers::HtmlViaMarkdown
   end
 end

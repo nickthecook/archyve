@@ -9,14 +9,14 @@ module Parsers
       ["officedocument.word"].any? { |t| content_type.include?(t) }
   end
 
-  def self.parser_for(filename)
+  def self.parser_for(filename, content_type = nil)
     name_locase = filename.downcase
 
-    return Pdf if name_locase.end_with?(".pdf")
-    return Docx if name_locase.end_with?(".docx")
-    return CommonMark if name_locase.end_with?(".md")
-    return Text if name_locase.end_with?(".txt")
-    return HtmlViaMarkdown if name_locase.match?(/\.?html*\z/)
+    return Pdf if content_type&.end_with?("/pdf") || name_locase.end_with?(".pdf")
+    return Docx if content_type&.include?("officedocument.word") || name_locase.end_with?(".docx")
+    return CommonMark if content_type&.end_with?("/markdown") || name_locase.end_with?(".md")
+    return Text if content_type&.end_with?("text/plain") || name_locase.end_with?(".txt")
+    return HtmlViaMarkdown if content_type&.end_with?("/html") || name_locase.match?(/\.?html*\z/)
     return Jpg if name_locase.end_with?(".jpg")
 
     raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"

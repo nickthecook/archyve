@@ -41,7 +41,7 @@ class ChunkDocument
   end
 
   def parser
-    @parser ||= Parsers.parser_for(@document.filename).new(@document)
+    @parser ||= Parsers.parser_for(@document.filename, @document.content_type).new(@document)
   end
 
   def chunks
