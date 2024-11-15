@@ -14,6 +14,10 @@ module Parsers
       raise_error(e) unless s.success?
     end
 
+    def self.can_parse?(filename, content_type)
+      content_type&.include?("officedocument.word") || filename.end_with?(".docx")
+    end
+
     private
 
     def raise_error(error_output)

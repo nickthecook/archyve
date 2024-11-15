@@ -12,5 +12,9 @@ module Parsers
       Rails.logger.error("Error running '#{cmd}' on PDF: #{@document.filename}\n#{stderr}")
       raise StandardError, "Error converting PDF to text: #{@document.filename}"
     end
+
+    def self.can_parse?(filename, content_type)
+      content_type&.end_with?("/pdf") || filename.end_with?(".pdf")
+    end
   end
 end

@@ -1,6 +1,8 @@
 module Parsers
   class UnsupportedFileFormat < StandardError; end
 
+  ENABLED = [Pdf, Docx, CommonMark, Text, HtmlViaMarkdown, Jpg].freeze
+
   # Returns true if the `content_type` refers to content that can be parsed into
   # text for chunking
   def self.textual?(content_type)
@@ -12,12 +14,8 @@ module Parsers
   def self.parser_for(filename, content_type = nil)
     name_locase = filename.downcase
 
-    return Pdf if content_type&.end_with?("/pdf") || name_locase.end_with?(".pdf")
-    return Docx if content_type&.include?("officedocument.word") || name_locase.end_with?(".docx")
-    return CommonMark if content_type&.end_with?("/markdown") || name_locase.end_with?(".md")
-    return Text if content_type&.end_with?("text/plain") || name_locase.end_with?(".txt")
-    return HtmlViaMarkdown if content_type&.end_with?("/html") || name_locase.match?(/\.?html*\z/)
-    return Jpg if name_locase.end_with?(".jpg")
+    parsers = ENABLED.select { |p| p.can_parse?(name_locase, content_type) }
+    return parsers.first unless parsers.empty?
 
     raise UnsupportedFileFormat, "Unsupported file extension: '#{filename.slice(/\.\w+$/)}'"
   end

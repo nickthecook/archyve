@@ -11,6 +11,10 @@ module Parsers
       @doc.css('title').text
     end
 
+    def self.can_parse?(filename, content_type)
+      content_type&.end_with?("/html") || filename.match?(/\.?html*\z/)
+    end
+
     private
 
     def text_type
