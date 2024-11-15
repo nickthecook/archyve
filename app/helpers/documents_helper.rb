@@ -8,7 +8,12 @@ module DocumentsHelper
 
   def title_for(document)
     if document.link.blank?
-      document.filename
+      # TODO: fix after we finalize how to show parents vs children
+      if document.original_document?
+        document.filename
+      else
+        "#{document.original_document.filename} (#{document.filename})"
+      end
     else
       document.title || document.filename
     end
