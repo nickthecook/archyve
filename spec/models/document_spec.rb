@@ -96,6 +96,23 @@ RSpec.describe Document do
     end
   end
 
+  describe "#children" do
+    let(:parent) { create(:document, parent: nil) }
+
+    before do
+      parent.save
+      subject.save
+    end
+
+    it "returns one child document" do
+      expect(parent.children.count).to eq(1)
+    end
+
+    it "returns subject as child" do
+      expect(parent.children.first).to eq(subject)
+    end
+  end
+
   context "with a parent document" do
     let(:parent) { create(:document, parent: nil) }
 

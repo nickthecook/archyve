@@ -8,6 +8,7 @@ class Document < ApplicationRecord
   has_many :graph_entity_descriptions, dependent: :destroy, through: :chunks
   has_many :chunk_api_calls, through: :chunks, source: :api_calls
   has_many :api_calls, as: :traceable, dependent: :destroy
+  has_many :children, class_name: "Document", inverse_of: :parent
 
   include Turbo::Broadcastable
   include AASM
@@ -105,6 +106,10 @@ class Document < ApplicationRecord
 
   def web?
     link.present?
+  end
+
+  def has_no_children?
+    children.empty?
   end
 
   def original_document?
