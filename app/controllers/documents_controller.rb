@@ -38,8 +38,8 @@ class DocumentsController < ApplicationController
 
   def vectorize
     Mediator.ingest(@document)
-  rescue Mediator::IngestError
-    flash[:error] = ["Unable to ingest document. Likely an unsupported format."]
+  rescue Mediator::IngestError => e
+    flash[:error] = ["Unable to ingest document: #{e.message}"]
     redirect_to @document.collection
   end
 
