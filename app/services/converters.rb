@@ -10,7 +10,7 @@ module Converters
     ERROR = 3
   end
 
-  ENABLED = [PdfToText]
+  ENABLED = [PdfToText].freeze
 
   def self.can_convert?(document)
     ENABLED.any? { |c| c.can_convert?(document) }

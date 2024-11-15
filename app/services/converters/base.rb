@@ -20,7 +20,7 @@ module Converters
     # Override to check the document's content type / format
     # to determine if it can be converted. For e.g. a PDF converter
     # should check if the document's content type ends with '/pdf'.
-    def self.can_convert?(document)
+    def self.can_convert?(_document)
       false
     end
 
