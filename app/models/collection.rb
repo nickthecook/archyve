@@ -67,4 +67,8 @@ class Collection < ApplicationRecord
   def summarized?
     graph_entities.where(summary: nil).none?
   end
+
+  def original_documents
+    documents.where(parent: nil)
+  end
 end
