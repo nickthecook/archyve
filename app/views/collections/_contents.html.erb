@@ -33,7 +33,8 @@
     </div>
   <% else %>
     <div id="<%= dom_id(collection) %>-documents" class="flex-1">
-      <% collection.documents.order(:created_at).each do |document| %>
+      <!-- Render original documents (i.e. those without parent documents) -->
+      <% collection.original_documents.order(:created_at).each do |document| %>
         <%= render "collections/document", document: %>
       <% end %>
     </div>
