@@ -35,11 +35,14 @@ module OllamaProxy
     def extract_content(chunk)
       response_hash = parse_chunk(chunk)
 
-      response_hash.dig("message", "content") ||
+      content = response_hash.dig("message", "content") ||
         response_hash.dig("choices", 0, "delta", "content") ||
         response_hash.dig("choices", 0, "message", "content") ||
         response_hash["error"] ||
         chunk
+      content = content.to_s unless content.is_a?(String)
+
+      content
     end
 
     def parse_chunk(chunk)
