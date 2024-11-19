@@ -1,8 +1,8 @@
-RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
+RSpec.describe "opp/api/chat", :chat, :llm, :now, :opp, :slow, type: :system do
   let(:call) { opp_post("/api/chat", payload) }
   let(:payload) do
     {
-      model: "llama3.1:8b",
+      model:,
       format: "",
       options: {},
       messages: [
@@ -13,6 +13,7 @@ RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
       ],
     }.to_json
   end
+  let(:model) { "llama3.1:latest" }
   let(:conversations_call) { api_get("/v1/conversations") }
   let(:conversation_id) { conversations_call.parsed_body.dig("conversations", 0, "id") }
   let(:conversation_call) { api_get("/v1/conversations/#{conversation_id}") }
@@ -37,5 +38,13 @@ RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
       "author_type" => "ModelConfig"
     )
     expect(messages_call.parsed_body.dig("messages", 1, "content")).not_to be_empty
+  end
+
+  context "when requesting a model that is not avilable" do
+    let(:model) { "alpaca99.99:latest" }
+
+    it "returns the error string" do
+      expect(call.parsed_body["error"]).to eq("model \"alpaca99.99:latest\" not found, try pulling it first")
+    end
   end
 end
