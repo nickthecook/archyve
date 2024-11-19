@@ -147,3 +147,5 @@ RSpec/InstanceVariable:
 Rails/I18nLocaleTexts:
   # reenable when we localize
   Enabled: false
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
