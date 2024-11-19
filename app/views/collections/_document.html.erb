@@ -1,18 +1,23 @@
-<% document ||= @document %>
+<% 
+  document ||= @document 
+
+  # style nested child document blocks tighter
+  sub_doc_div_class = if document.original_document? 
+      "p-6 my-6 rounded-lg shadow-lg bg-secondary-200 dark:bg-secondary-900" 
+    else
+      "p-4 my-2 rounded-md shadow-md bg-secondary-100 dark:bg-secondary-800"
+    end
+%>
 
 <%= content_tag :div,
   id: dom_id(document),
-  class: "flex justify-start items-start p-8 my-4 rounded-lg shadow-lg bg-secondary-200 dark:bg-secondary-900" do
+  class: "flex justify-start items-start #{sub_doc_div_class}" do
 %>
   <div class="flex-1 whitespace-prewrap">
     <div class="flex flex-col">
       <div class="flex-1">
         <div class="flex items-baseline">
           <div class="pb-4 mr-2">
-            <!-- TODO fix after we finalize how to show parents vs children -->
-            <% if document.parent %>
-              <%= fa_icon "arrow-circle-down" %>
-            <% end %>            
             <%= link_to title_for(document), collection_document_path(document.collection, document), format: :turbo_stream %>
           </div>
           <% if document.no_children? %>
