@@ -37,7 +37,9 @@ module OllamaProxy
 
       response_hash.dig("message", "content") ||
         response_hash.dig("choices", 0, "delta", "content") ||
-        response_hash.dig("choices", 0, "message", "content")
+        response_hash.dig("choices", 0, "message", "content") ||
+        response_hash["error"] ||
+        chunk
     end
 
     def parse_chunk(chunk)

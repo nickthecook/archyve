@@ -11,6 +11,8 @@ class MessageProcessor
 
   # rubocop:disable all
   def append(str)
+    return ["", str] if str.nil?
+
     @input += str.dup
     escaped_str = CGI.escapeHTML(str)
     ret = ""
