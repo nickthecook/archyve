@@ -31,6 +31,20 @@ RSpec.describe OllamaProxy::ChatRequest do
     end
   end
 
+  # this came from HF chat-ui in the wild, was causing a problem
+  shared_context "when empty system message is included" do
+    let(:raw_post) do
+      {
+        model: "llama3.1:latest",
+        stream: true,
+        messages: [
+          { role: "system", content: "" },
+          { role: "user", content: "why is the sky blue?" },
+        ],
+      }.to_json
+    end
+  end
+
   include_context "when messages are in Ollama format"
 
   describe "#model" do
@@ -59,6 +73,18 @@ RSpec.describe OllamaProxy::ChatRequest do
           "",
         ])
         expect(subject.messages.map(&:role)).to eq(%w[user assistant user])
+      end
+    end
+
+    context "when empty system message is included" do
+      include_context "when empty system message is included"
+
+      it "returns the messages from the request body" do
+        expect(subject.messages.map(&:content)).to eq([
+          "",
+          "why is the sky blue?",
+        ])
+        expect(subject.messages.map(&:role)).to eq(%w[system user])
       end
     end
   end

@@ -35,6 +35,7 @@ module OllamaProxy
     def extract_content(chunk)
       response_hash = parse_chunk(chunk)
 
+      # TODO: raise the error, don't return it as content
       content = response_hash.dig("message", "content") ||
         response_hash.dig("choices", 0, "delta", "content") ||
         response_hash.dig("choices", 0, "message", "content") ||

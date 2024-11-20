@@ -15,9 +15,9 @@ class MessageAugmentor
   private
 
   def collections_to_search
-    @collections_to_search ||= if @conversation.search_collections
-      message_collections = @conversation.collections
-      message_collections.any? ? message_collections : @conversation.user.collections
+    @collections_to_search ||= if @conversation.search_collections?
+      conversation_collections = @conversation.collections
+      conversation_collections.any? ? conversation_collections : @conversation.user.collections
     else
       []
     end

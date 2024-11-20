@@ -135,5 +135,22 @@ RSpec.describe OllamaProxy::ConversationFinder do
         end
       end
     end
+
+    context "when an empty system message is present" do
+      let(:raw_post) do
+        {
+          model: "llama3",
+          messages: [
+            { role: "system", content: "" },
+            { role: "user", content: "why is the sky blue?" },
+          ],
+        }.to_json
+      end
+
+      it "creates one message" do
+        expect { subject.find_or_create }.to change(Message, :count).by(1)
+        expect(Message.last.content).to eq("why is the sky blue?")
+      end
+    end
   end
 end

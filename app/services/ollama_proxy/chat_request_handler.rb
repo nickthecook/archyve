@@ -1,13 +1,14 @@
 module OllamaProxy
   class ChatRequestHandler < RequestHandler
     def handle(&)
-      chat_augmentor.execute
-      @request.update_last_user_message(message.prompt)
+      @message = chat_augmentor.execute
+      # if there are no collections to search, prompt will remain nil
+      @request.update_last_user_message(@message.prompt || @message.content)
 
       formatted_response, raw_response = FormattedChatResponse.new(@proxy).generate(&)
 
       MessageCreator.new(
-        message.conversation,
+        @message.conversation,
         @request.model
       ).create!("assistant", formatted_response, raw_response)
 
@@ -17,11 +18,6 @@ module OllamaProxy
     end
 
     private
-
-    def message
-      # TODO: when authn is implemented, find User based on Client
-      @message ||= chat_augmentor.execute
-    end
 
     def chat_augmentor
       @chat_augmentor ||= ChatAugmentor.new(@request, User.first)

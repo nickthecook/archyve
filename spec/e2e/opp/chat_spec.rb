@@ -1,4 +1,4 @@
-RSpec.describe "opp/api/chat", :chat, :llm, :now, :opp, :slow, type: :system do
+RSpec.describe "opp/api/chat", :chat, :llm, :opp, :slow, type: :system do
   let(:call) { opp_post("/api/chat", payload) }
   let(:payload) do
     {
@@ -8,7 +8,7 @@ RSpec.describe "opp/api/chat", :chat, :llm, :now, :opp, :slow, type: :system do
       messages: [
         {
           role: "user",
-          content: "Who started the GNU Project?",
+          content: "hello",
         },
       ],
     }.to_json

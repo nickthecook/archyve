@@ -7,7 +7,7 @@ module OllamaProxy
 
     def content
       # the first attempt to find content in the message works with Ollama's OpenAI chat route
-      # the second attempt works with the Ollama's chat route
+      # the second attempt works with Ollama's chat route
       @content ||= if @provider == :ollama
         @message_hash["content"]
       elsif @provider == :openai
