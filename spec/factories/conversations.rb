@@ -9,6 +9,7 @@ FactoryBot.define do
         build(:message, author: user, content: "Not exactly what I meant."),
       ]
     end
+    search_collections { true }
 
     factory :augmented_conversation do
       messages do
@@ -26,6 +27,10 @@ FactoryBot.define do
           ),
         ]
       end
+    end
+
+    factory :conversation_with_collection do
+      conversation_collections { [build(:conversation_collection)] }
     end
   end
 end

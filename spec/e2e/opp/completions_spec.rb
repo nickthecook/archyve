@@ -49,4 +49,28 @@ RSpec.describe "opp/v1/chat/completions", :chat, :llm, :opp, :slow, type: :syste
       expect(call).to have_chunks_matching_schema("opp/completion_chunk")
     end
   end
+
+  context "when empty system message is included" do
+    let(:payload) do
+      {
+        model: "llama3.1:latest",
+        stream: true,
+        messages: [
+          {
+            role: "system",
+            content: "",
+          },
+          {
+            role: "user",
+            content: "why is the sky blue?",
+          },
+        ],
+      }
+    end
+
+    it "returns a chat response", :now do
+      expect(call.code).to eq(200)
+      expect(call).to have_chunks_matching_schema("opp/completion_chunk")
+    end
+  end
 end
