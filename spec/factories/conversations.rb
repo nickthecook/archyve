@@ -32,5 +32,9 @@ FactoryBot.define do
     factory :conversation_with_collection do
       conversation_collections { [build(:conversation_collection)] }
     end
+
+    factory :conversation_with_no_messages do
+      messages { [] }
+    end
   end
 end

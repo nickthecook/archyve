@@ -22,6 +22,8 @@ class Conversation < ApplicationRecord
     update_form
   }
 
+  after_create :add_system_message
+
   def update_list_item
     broadcast_replace_to(
       user_dom_id("conversations"),
@@ -37,6 +39,18 @@ class Conversation < ApplicationRecord
       target: "conversation_form",
       partial: "conversations/conversation_form",
       current_user: user
+    )
+  end
+
+  private
+
+  def add_system_message
+    system_prompt = Setting.find_by(key: 'system_prompt')&.value
+    return unless system_prompt
+
+    messages.create!(
+      content: system_prompt,
+      author: user # TODO: should be a system user, author_type: "System"?
     )
   end
 end
