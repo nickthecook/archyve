@@ -31,7 +31,14 @@ module LlmClients
       def role_for_message(message)
         return nil if message.author.nil?
 
-        message.author.is_a?(User) ? "user" : "assistant"
+        case message.author.class
+        when ModelServer
+          "system"
+        when User
+          "user"
+        else
+          "assistant"
+        end
       end
 
       def messages

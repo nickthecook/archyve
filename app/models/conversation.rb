@@ -50,7 +50,7 @@ class Conversation < ApplicationRecord
 
     messages.create!(
       content: system_prompt,
-      author: user # TODO: should be a system user, author_type: "System"?
+      author: ModelServer.first
     )
   end
 end
