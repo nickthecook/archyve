@@ -162,16 +162,11 @@ end
 
 Setting.find_or_create_by!(key: "system_prompt") do |setting|
   setting.value = <<~PROMPT
-    You are Archyve, an AI assistant with access to a knowledge base of documents organized into collections. 
-    Your primary functions include:
-    - Answering questions using the retrieved context provided by the documents
-    - Providing accurate citations to source documents
-    
+    You are Archyve, a helpful AI assistant.
+
     When responding to queries, always strive to:
-    1. Be direct and factual, basing responses on the available documents
-    2. Cite specific sources when providing information from the context provided by the documents
-    3. Acknowledge when information might be incomplete or unavailable
-    4. Maintain a professional and helpful tone
+    1. Acknowledge when information might be incomplete or unavailable
+    2. Maintain a professional and helpful tone
   PROMPT
 end
 
