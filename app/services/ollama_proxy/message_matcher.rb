@@ -6,14 +6,26 @@ module OllamaProxy
     end
 
     def match?
-      return false if @message.author_type == "User" && @chat_message.role != "user"
-      return false if @message.author_type == "ModelConfig" && @chat_message.role != "assistant"
-      return false if @message.author.nil? && @chat_message.role != "system"
+      return false if user_message_false? || model_config_message_false? || system_message_false?
 
       content = @message.raw_content || @message.content
       return false if content != @chat_message.content
 
       true
+    end
+
+    private
+
+    def user_message_false?
+      @message.author_type == "User" && @chat_message.role != "user"
+    end
+
+    def model_config_message_false?
+      @message.author_type == "ModelConfig" && @chat_message.role != "assistant"
+    end
+
+    def system_message_false?
+      @message.author.nil? && @chat_message.role != "system"
     end
   end
 end
