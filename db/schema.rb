@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_12_221039) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_26_141354) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -208,7 +208,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_12_221039) do
     t.datetime "updated_at", null: false
     t.integer "conversation_id", null: false
     t.string "author_type"
-    t.bigint "author_id", null: false
+    t.bigint "author_id"
     t.jsonb "statistics"
     t.jsonb "error"
     t.string "prompt"

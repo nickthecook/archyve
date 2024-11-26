@@ -28,7 +28,6 @@ class ConversationsController < ApplicationController
     @conversation = Conversation.new
     @conversation.user = current_user
     @conversation.model_config ||= Setting.chat_model
-    @conversation.model_server ||= ModelServer.first
     @conversation.title ||= "New conversation"
     @conversation.search_collections = Setting.get(:search_collections, target: current_user)
     @conversation.save!

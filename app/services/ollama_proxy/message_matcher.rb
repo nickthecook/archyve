@@ -8,7 +8,7 @@ module OllamaProxy
     def match?
       return false if @message.author_type == "User" && @chat_message.role != "user"
       return false if @message.author_type == "ModelConfig" && @chat_message.role != "assistant"
-      return false if @message.author_type == "System" && @chat_message.role != "system"
+      return false if @message.author.nil? && @chat_message.role != "system"
 
       content = @message.raw_content || @message.content
       return false if content != @chat_message.content

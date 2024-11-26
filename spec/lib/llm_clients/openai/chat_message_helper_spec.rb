@@ -9,6 +9,10 @@ RSpec.describe LlmClients::Openai::ChatMessageHelper do
     expect(subject.chat_history).to eq(
       [
         {
+          role: "system",
+          content: "You are Archyve, an AI assistant.",
+        },
+        {
           role: "user",
           content: "Write a simple ruby program.",
         },

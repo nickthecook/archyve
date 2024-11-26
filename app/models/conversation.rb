@@ -50,7 +50,7 @@ class Conversation < ApplicationRecord
 
     messages.create!(
       content: system_prompt,
-      author: ModelServer.first
+      author: nil
     )
   end
 end

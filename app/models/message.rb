@@ -1,6 +1,6 @@
 class Message < ApplicationRecord
   belongs_to :conversation, counter_cache: true
-  belongs_to :author, polymorphic: true
+  belongs_to :author, polymorphic: true, optional: true
   has_one :user, through: :conversation
   has_many :api_calls, as: :traceable, dependent: :destroy
   has_many :augmentations, dependent: :destroy, class_name: "MessageAugmentation"

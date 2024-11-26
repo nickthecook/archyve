@@ -1,11 +1,10 @@
 FactoryBot.define do
   factory :conversation do
     model_config { association(:model_config) }
-    model_server { association(:model_server) }
     user { association(:user) }
     messages do
       [
-        build(:message, author: model_server, content: "You are Archyve, an AI assistant."),
+        build(:message, author: nil, content: "You are Archyve, an AI assistant."),
         build(:message, author: user, content: "Write a simple ruby program."),
         build(:message, author: model_config, content: "loop { puts 'HA' }"),
         build(:message, author: user, content: "Not exactly what I meant."),
