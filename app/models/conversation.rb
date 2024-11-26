@@ -1,7 +1,6 @@
 class Conversation < ApplicationRecord
   belongs_to :user
   belongs_to :model_config
-  belongs_to :model_server
   has_many :messages, dependent: :destroy
   has_many :conversation_collections, dependent: :destroy
   has_many :collections, through: :conversation_collections, dependent: :destroy
