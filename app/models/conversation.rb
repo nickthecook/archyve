@@ -46,6 +46,10 @@ class Conversation < ApplicationRecord
     messages.where(author_type: "User").count == 1
   end
 
+  def any_user_messages?
+    messages.where(author_type: "User").any?
+  end
+
   private
 
   def add_system_message

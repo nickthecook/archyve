@@ -18,8 +18,8 @@
         <%= f.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
           class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
           onchange: "this.form.requestSubmit()",
-          disabled: conversation.messages.any? ? true : false,
-          title: conversation.messages.any? ? "The model cannot be changed after the conversation has started." : ""
+          disabled: conversation.any_user_messages? ? true : false,
+          title: conversation.any_user_messages? ? "The model cannot be changed after the conversation has started." : ""
         })%>
       <% else %>
         <%= f.collection_select(:model_config_id, [conversation.model_config], :id, :name, {}, {
