@@ -174,7 +174,7 @@ end
 Setting.all.each do |setting|
   settings_with_same_key = Setting.where(key: setting.key).order(updated_at: :desc)
   settings_with_same_key.where(value: nil).each(&:destroy!)
-  settings_with_same_key[1..-1].each(&:destroy!)
+  settings_with_same_key[1..-1]&.each(&:destroy!)
 end
 # DEV
 #
