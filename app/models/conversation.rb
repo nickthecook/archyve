@@ -42,6 +42,10 @@ class Conversation < ApplicationRecord
     )
   end
 
+  def first_user_message?
+    messages.where(author_type: "User").count == 1
+  end
+
   private
 
   def add_system_message

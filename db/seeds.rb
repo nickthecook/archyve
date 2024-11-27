@@ -165,8 +165,8 @@ Setting.find_or_create_by!(key: "system_prompt") do |setting|
     You are Archyve, a helpful AI assistant.
 
     When responding to queries, always strive to:
-    1. Acknowledge when information might be incomplete or unavailable
-    2. Maintain a professional and helpful tone
+    1. Acknowledge when information might be incomplete or unavailable.
+    2. Maintain a professional and helpful tone.
   PROMPT
 end
 
