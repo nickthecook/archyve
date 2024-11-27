@@ -1,17 +1,16 @@
-<div class="flex">
-  <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
+<div class="flex flex-col">
+  <div class="flex">
+    <%= render "conversation_list", conversations: @conversations, selected: @conversation %>
 
-  <div class="overflow-y-scroll no-scrollbar flex-1 p-5 h-screen w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
-    <%= render "shared/notice" %>
+    <div class="flex-1 w-100 bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+      <%= render "shared/notice" %>
 
-    <%= turbo_stream_from user_dom_id("conversations") %>
-    <div class="m-2 h-full">
+      <%= turbo_stream_from user_dom_id("conversations") %>
       <% if @conversation %>
         <%= render @conversation %>
       <% else %>
-          <div class="container flex justify-center h-full align-center">
-          <%= render "no_conversation" %>
-        </div>
+        <div class="container flex justify-center align-center">
+        <%= render "no_conversation" %>
       <% end %>
     </div>
   </div>

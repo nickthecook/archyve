@@ -1,5 +1,8 @@
 <% classes ||= "text-tertiary-600 dark:text-tertiary-400" %>
 
-<div class="pb-2 w-full font-mono text-2xl font-bold text-center">
+<div class="flex w-full font-mono text-2xl font-bold text-center lg:justify-center">
+  <div class="lg:hidden pr-2" data-controller="sidebar" data-action="click->sidebar#toggle">
+    <i class="fa fa-bars"></i>
+  </div>
   <%= link_to "ARCHYVE", root_path, class: classes %>
 </div>

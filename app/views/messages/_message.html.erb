@@ -1,20 +1,20 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg dark:border dark:border-secondary-800" %>
-<%= content_tag :div, id: dom_id(message), class: "py-3 my-10 rounded-lg #{message_bg_class}" do %>
+
+<%= content_tag :div, id: dom_id(message), class: "py-3 lg:my-5 rounded-lg #{message_bg_class}" do %>
   <div>
-    <div class="flex justify-start items-start px-5 py-3">
-      <div class="flex-1 whitespace-prewrap w-full text-lg" data-controller="markdown-text">
+    <div class="flex justify-start items-start px-5">
+      <div class="flex-1 w-full text-lg" data-controller="markdown-text">
         <%= raw(message.content) %>
       </div>
 
-      <div class="flex flex-col ms-4 text-right text-secondary-500 dark:text-secondary-400">
-        <p class="py-1 text-xs"><%= author_name_for(message) %></p>
-        <p class="py-1 text-xs"><%= time_ago_in_words(message.created_at) %> ago</p>
-        <div class="flex">
-          <div class="flex-1"></div>
+      <div class="flex flex-col ms-4 text-right text-secondary-500 dark:text-secondary-400 overflow-x-hidden">
+        <div class="py-1 text-xs hidden xl:block"><%= author_name_for(message) %></div>
+        <div class="py-1 text-xs hidden xl:block"><%= time_ago_in_words(message.created_at) %> ago</div>
+        <div class="flex hidden xl:block text-xl text-secondary-500 dark:text-secondary-400">
           <% if message.author.is_a?(ModelConfig) %>
-            <div class="ml-2"><%= render "shared/regenerate_button", message: %></div>
+            <div class="hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/regenerate_button", message: %></div>
           <% end %>
-          <div class="ml-2"><%= render "shared/copy_button", content: message.content.strip %></div>
+          <div class="hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/copy_button", content: message.content.strip %></div>
         </div>
       </div>
     </div>
@@ -38,21 +38,32 @@
       </div>
     <% end %>
 
-    <% if message.statistics.present? %>
-      <div class="flex justify-start w-full px-5 py-2">
-        <div class="text-xs text-secondary-500 dark:text-secondary-400">
-          elapsed: <%= message.statistics["elapsed_ms"] %>ms |
-          tokens: <%= message.statistics["tokens"] %> |
-          tokens/s: <%= message.statistics["tokens_per_sec"] %>ms |
-          time to first token: <%= message.statistics["time_to_first_token"] %>s |
-          server: <%= message.statistics["server"] %> / <%= message.statistics["provider"] %>
-        </div>
+    <div class="flex px-5">
+      <div class="flex flex-col w-full">
+        <% if message.statistics.present? %>
+          <div class="flex justify-start w-full py-2">
+            <div class="text-xs text-secondary-500 dark:text-secondary-400">
+              elapsed: <%= message.statistics["elapsed_ms"] %>ms |
+              tokens: <%= message.statistics["tokens"] %> |
+              tokens/s: <%= message.statistics["tokens_per_sec"] %>ms |
+              time to first token: <%= message.statistics["time_to_first_token"] %>s |
+              server: <%= message.statistics["server"] %> / <%= message.statistics["provider"] %>
+            </div>
+          </div>
+        <% end %>
+        <% if message.error.present? %>
+          <div class="bg-red-400 px-4 text-secondary-950 dark:bg-red-800 dark:text-secondary-200 text-sm rounded-lg px-2">
+            <%= message.error["message"] %>
+          </div>
+        <% end %>
       </div>
-    <% end %>
-    <% if message.error.present? %>
-      <div class="bg-red-400 mx-4 text-secondary-950 dark:bg-red-800 dark:text-secondary-200 text-sm rounded-lg px-2">
-        <%= message.error["message"] %>
+      <div class="flex block xl:hidden text-lg p-2 text-secondary-500 dark:text-secondary-400">
+        <div class="flex-1"></div>
+        <% if message.author.is_a?(ModelConfig) %>
+          <div class="ml-2 hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/regenerate_button", message: %></div>
+        <% end %>
+        <div class="ml-2 hover:text-secondary-700 hover:dark:text-secondary-100"><%= render "shared/copy_button", content: message.content.strip %></div>
       </div>
-    <% end %>
+    </div>
   </div>
 <% end %>

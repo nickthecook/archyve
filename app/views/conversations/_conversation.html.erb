@@ -1,21 +1,25 @@
-<div id="conversation">
+<div id="conversation" class="h-screen overflow-x-hidden overflow-y-scroll no-scrollbar">
+  <nav id="sidebar-menu-button" class="bg-secondary-100 dark:bg-secondary-900 sticky w-full top-0 left-0 lg:hidden text-2xl text-secondary-800 dark:text-secondary-200 py-2 px-5">
+    <%= render "shared/title", classes: "text-primary-600 dark:text-primary-400" %>
+  </nav>
+
   <div class="flex flex-col items-center">
-    <div class="w-3/4 flex flex-col items-center">
-      <div class="flex-1 pb-5">
+    <div class="flex flex-col items-center px-4 w-[450px] sm:w-full md:w-full lg:w-[768px] xl:w-[900px]">
+      <div class="pb-5 w-full">
         <%= render "conversation_form" %>
       </div>
 
-    <div class="container flex flex-col items-center rounded-lg flex-start">
-        <div id="messages" class="w-full">
+      <div class="flex flex-col rounded-lg w-full">
+        <div id="messages">
           <%= render @conversation.messages.order(:created_at) %>
         </div>
 
-        <div class="py-5 w-full">
+        <div class="w-full py-5">
           <%= render "messages/form" %>
         </div>
 
         <div id="end-of-conversation">
-    </div>
+      </div>
     </div>
   </div>
 </div>
