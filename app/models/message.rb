@@ -41,5 +41,9 @@ class Message < ApplicationRecord
     nnext
   end
 
+  def system?
+    author_id.nil?
+  end
+
   delegate :user, to: :conversation
 end
