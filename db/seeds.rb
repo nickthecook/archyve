@@ -160,6 +160,16 @@ Setting.find_or_create_by!(key: "opp_num_recent_convos_for_match") do |setting|
   setting.value = 10
 end
 
+Setting.find_or_create_by!(key: "system_prompt") do |setting|
+  setting.value = <<~PROMPT
+    You are Archyve, a helpful AI assistant.
+
+    When responding to queries, always strive to:
+    1. Acknowledge when information might be incomplete or unavailable.
+    2. Maintain a professional and helpful tone.
+  PROMPT
+end
+
 # deduplicate settings - just added validation and some DBs have duplicate keys
 Setting.all.each do |setting|
   settings_with_same_key = Setting.where(key: setting.key).order(updated_at: :desc)

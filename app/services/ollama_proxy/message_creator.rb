@@ -20,6 +20,8 @@ module OllamaProxy
       if role == "user"
         # TODO: when we have a Client, use its User
         User.first
+      elsif role == "system"
+        nil
       else
         model_config
       end

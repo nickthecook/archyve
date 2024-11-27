@@ -10,6 +10,6 @@ class SetConversationTitle
   private
 
   def summarizer
-    SummarizeMessage.new(@conversation.messages.first, traceable: @conversation)
+    SummarizeMessage.new(@conversation.messages.where(author_type: "User").first, traceable: @conversation)
   end
 end

@@ -29,7 +29,7 @@ module LlmClients
       end
 
       def role_for_message(message)
-        return nil if message.author.nil?
+        return "system" if message.author.nil?
 
         message.author.is_a?(User) ? "user" : "assistant"
       end

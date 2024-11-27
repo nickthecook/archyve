@@ -4,6 +4,7 @@ FactoryBot.define do
     user { association(:user) }
     messages do
       [
+        build(:message, author: nil, content: "You are Archyve, an AI assistant."),
         build(:message, author: user, content: "Write a simple ruby program."),
         build(:message, author: model_config, content: "loop { puts 'HA' }"),
         build(:message, author: user, content: "Not exactly what I meant."),
@@ -31,6 +32,10 @@ FactoryBot.define do
 
     factory :conversation_with_collection do
       conversation_collections { [build(:conversation_collection)] }
+    end
+
+    factory :conversation_with_no_messages do
+      messages { [] }
     end
   end
 end

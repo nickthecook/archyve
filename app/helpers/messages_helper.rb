@@ -2,6 +2,8 @@ module MessagesHelper
   def author_name_for(message)
     if message.author.is_a?(User)
       message.author.email
+    elsif message.author.nil?
+      "System"
     else
       message.author.name
     end
