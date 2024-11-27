@@ -30,7 +30,7 @@ RSpec.describe Conversation do
     subject { create(:conversation) }
 
     it "returns false since the conversation has many User messages" do
-      expect(subject.first_user_message?).to be_falsey
+      expect(subject).not_to be_first_user_message
     end
   end
 end
