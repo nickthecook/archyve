@@ -51,6 +51,19 @@
         </div>
       </div>
 
+      <!-- SYSTEM INSTRUCTIONS -->
+      <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">System instructions</h2>
+      <div class="mb-20 flex justify-center items-center w-full ">
+        <div class="py-10 px-20 flex flex-col sm:w-full md:w-full lg:w-4/5 xl:w-3/5 2xl:w-[880px] border border-secondary-300 dark:border-secondary-600 rounded-lg shadow-lg hover:border-secondary-900 hover:dark:border-secondary-500 min-w-min">
+          <%= render "text_setting",
+            setting: "system_prompt",
+            help_text: <<~SYSTEM_INSTRUCTIONS_HELP
+              Archyve will prepend these instructions to the user's conversation when generating a response.
+            SYSTEM_INSTRUCTIONS_HELP
+          %>
+        </div>
+      </div>
+
       <!-- SEARCH -->
       <h2 class="mb-5 text-xl font-bold text-center text-secondary-500 dark:text-secondary-200">Search</h2>
       <div class="mb-20 flex justify-center items-center w-full ">
