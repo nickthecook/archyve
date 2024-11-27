@@ -1,10 +1,17 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg dark:border dark:border-secondary-800" %>
 
+<% if message.system? %>
+  <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="text-sm text-secondary-600 dark:text-secondary-300 px-4 py-2 my-1 rounded-lg border border-secondary-950 dark:border-secondary-800 hover:border-primary-500 cursor-pointer">
+    System message
+    <div class="flex flex-col hidden toggle-visibility">
+<% end %>
+
 <%= content_tag :div, id: dom_id(message), class: "py-3 lg:my-5 rounded-lg #{message_bg_class}" do %>
   <div>
     <div class="flex justify-start items-start px-5">
       <div class="flex-1 w-full text-lg" data-controller="markdown-text">
-        <%= raw(message.content) %>
+<!-- this is at the left so the markdown controller doesn't see a bunch of indents; that will change the formatting -->
+<%= raw(message.content) %>
       </div>
 
       <div class="flex flex-col ms-4 text-right text-secondary-500 dark:text-secondary-400 overflow-x-hidden">
@@ -20,21 +27,21 @@
     </div>
 
     <% if message.prompt %>
-      <div class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 hover:border-primary-500 px-4 py-2 my-1 rounded-lg cursor-pointer">
-        <details>
-          <summary>Augmentations</summary>
-          <div id=<%= "#{dom_id(message)}-augmentations" %> class="flex flex-col">
-            <% message.augmentations.each do |augmentation| %>
-              <%= render partial_for_augmentation(augmentation), chunk: augmentation.augmentation, entity: augmentation.augmentation, distance: augmentation.distance %>
-            <% end %>
-          </div>
-          <details>
-            <summary>Raw prompt</summary>
-            <div class="whitespace-pre-line">
-              <%= message.prompt %>
+      <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 hover:border-primary-500 px-4 py-2 my-1 rounded-lg cursor-pointer">
+          <div>Augmentations</div>
+          <div class="flex flex-col toggle-visibility hidden">
+            <div id=<%= "#{dom_id(message)}-augmentations" %> class="flex flex-col pt-3">
+              <% message.augmentations.each do |augmentation| %>
+                <%= render partial_for_augmentation(augmentation), chunk: augmentation.augmentation, entity: augmentation.augmentation, distance: augmentation.distance %>
+              <% end %>
             </div>
-          </details>
-        </details>
+              <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="p-3 rounded-lg border border-secondary-300 dark:border-secondary-900 hover:border-primary-500">
+                Raw prompt
+                <div class="hidden toggle-visibility p-5 whitespace-pre-line">
+                  <%= message.prompt %>
+                </div>
+              </div>
+          </div>
       </div>
     <% end %>
 
@@ -66,4 +73,9 @@
       </div>
     </div>
   </div>
+<% end %>
+
+<% if message.system? %>
+  </div>
+</div>
 <% end %>
