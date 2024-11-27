@@ -2,10 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Conversation do
   describe '#add_system_message' do
-    subject { create(:conversation_with_no_messages, user:, model_config:) }
-
-    let(:user) { create(:user) }
-    let(:model_config) { create(:model_config) }
+    subject { create(:conversation_with_no_messages) }
 
     context 'when system_prompt setting exists' do
       let(:system_prompt) { "You are Archyve, an AI assistant..." }
@@ -26,6 +23,14 @@ RSpec.describe Conversation do
       it 'does not create a system message' do
         expect(subject.messages).to be_empty
       end
+    end
+  end
+
+  describe "#first_user_message?" do
+    subject { create(:conversation) }
+
+    it "returns false since the conversation has many User messages" do
+      expect(subject.first_user_message?).to be_falsey
     end
   end
 end
