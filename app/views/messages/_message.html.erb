@@ -1,9 +1,11 @@
 <% message_bg_class = message.author.is_a?(User) ? "bg-secondary-100 dark:bg-secondary-950" : "bg-secondary-200 dark:bg-secondary-900 shadow-lg dark:border dark:border-secondary-800" %>
 
 <% if message.system? %>
-  <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="text-sm text-secondary-600 dark:text-secondary-300 px-4 py-2 my-1 rounded-lg border border-secondary-950 dark:border-secondary-800 hover:border-primary-500 cursor-pointer">
-    System message
-    <div class="flex flex-col hidden toggle-visibility">
+  <div class="text-sm text-secondary-600 dark:text-secondary-300 px-4 my-1 rounded-lg border border-secondary-950 dark:border-secondary-800 hover:border-secondary-500 hover:dark:border-secondary-600">
+    <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" data-toggle-element-id="system-message" class="cursor-pointer py-2 hover:text-primary-500 w-full text-center">
+      System message
+    </div>
+    <div id="system-message" class="flex flex-col hidden">
 <% end %>
 
 <%= content_tag :div, id: dom_id(message), class: "py-3 lg:my-5 rounded-lg #{message_bg_class}" do %>
@@ -27,17 +29,19 @@
     </div>
 
     <% if message.prompt %>
-      <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 hover:border-primary-500 px-4 py-2 my-1 rounded-lg cursor-pointer">
-          <div>Augmentations</div>
-          <div class="flex flex-col toggle-visibility hidden">
-            <div id=<%= "#{dom_id(message)}-augmentations" %> class="flex flex-col pt-3">
+      <div class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 px-4 my-1 rounded-lg hover:border-secondary-500 hover:dark:border-secondary-600">
+          <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" data-toggle-element-id="message-<%= message.id %>-augmentations-card" class="cursor-pointer py-2 hover:text-primary-500 w-full text-center">
+            Augmentations
+          </div>
+          <div id="message-<%= message.id %>-augmentations-card" class="flex flex-col toggle-visibility hidden pb-3">
+            <div id="<%= "#{dom_id(message)}-augmentations" %>" class="flex flex-col pt-3">
               <% message.augmentations.each do |augmentation| %>
                 <%= render partial_for_augmentation(augmentation), chunk: augmentation.augmentation, entity: augmentation.augmentation, distance: augmentation.distance %>
               <% end %>
             </div>
-              <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" class="p-3 rounded-lg border border-secondary-300 dark:border-secondary-900 hover:border-primary-500">
-                Raw prompt
-                <div class="hidden toggle-visibility p-5 whitespace-pre-line">
+              <div class="px-3 rounded-lg border border-secondary-300 dark:border-secondary-900 hover:border-secondary-500 hover:dark:border-secondary-600">
+                <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" data-toggle-element-id="message-<%= message.id %>-raw" class="cursor-pointer py-2 hover:text-primary-500">Raw prompt</div>
+                <div id="message-<%= message.id %>-raw" class="hidden toggle-visibility p-5 whitespace-pre-line">
                   <%= message.prompt %>
                 </div>
               </div>
