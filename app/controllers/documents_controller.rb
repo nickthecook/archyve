@@ -27,12 +27,17 @@ class DocumentsController < ApplicationController
   end
 
   def destroy
-    @document.deleting!
+    if @document.original_document?
+      @document.deleting!
 
-    DestroyJob.perform_async(@document.id)
+      DestroyJob.perform_async(@document.id)
 
-    respond_to do |format|
-      format.html { redirect_to collection_path(@collection) }
+      respond_to do |format|
+        format.html { redirect_to collection_path(@collection) }
+      end
+    else
+      flash[:error] = ["Not an original (top-level) document; cannot delete."]
+      redirect_to @document.collection
     end
   end
 
