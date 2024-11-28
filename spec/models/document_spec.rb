@@ -149,4 +149,21 @@ RSpec.describe Document do
       expect(subject.original_document).to eq(grandparent)
     end
   end
+
+  describe "#destroy" do
+    context "when document has children" do
+      let(:grandparent) { create(:document) }
+      let(:parent) { create(:document, parent: grandparent) }
+
+      before do
+        grandparent.save
+        parent.save
+        subject.save
+      end
+
+      it "destroys all children" do
+        expect { grandparent.destroy }.to change { Document.count }.by(-3)
+      end
+    end
+  end
 end
