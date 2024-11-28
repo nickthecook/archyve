@@ -30,7 +30,9 @@
 
     <% if message.prompt %>
       <div class="text-sm text-secondary-600 dark:text-secondary-300 border border-secondary-300 dark:border-secondary-800 px-4 my-1 rounded-lg hover:border-secondary-500 hover:dark:border-secondary-600">
-          <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" data-toggle-element-id="message-<%= message.id %>-augmentations-card" class="cursor-pointer py-2 hover:text-primary-500">Augmentations</div>
+          <div data-controller="toggle-visibility" data-action="click->toggle-visibility#toggle" data-toggle-element-id="message-<%= message.id %>-augmentations-card" class="cursor-pointer py-2 hover:text-primary-500 w-full text-center">
+            Augmentations
+          </div>
           <div id="message-<%= message.id %>-augmentations-card" class="flex flex-col toggle-visibility hidden pb-3">
             <div id="<%= "#{dom_id(message)}-augmentations" %>" class="flex flex-col pt-3">
               <% message.augmentations.each do |augmentation| %>
