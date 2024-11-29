@@ -162,7 +162,7 @@ RSpec.describe Document do
       end
 
       it "destroys all children" do
-        expect { grandparent.destroy }.to change { Document.count }.by(-3)
+        expect { grandparent.destroy }.to change(described_class, :count).by(-3)
       end
     end
   end
