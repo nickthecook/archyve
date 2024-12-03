@@ -38,7 +38,7 @@
         </div>
       <% end %>
 
-      <% unless document.no_children? %>
+      <% if document.children.any? %>
         <!-- Render the children of this document -->
         <% document.children.order(:created_at).each do |sub_document| %>
           <%= render "collections/document", document: sub_document %>
