@@ -24,7 +24,12 @@ RSpec.describe ConvertDocumentJob do
       it "calls Mediator after conversion" do
         subject.perform(doc.id)
 
-        expect(Mediator).to have_received("ingest")
+        expect(Mediator).to have_received("ingest").with(Document.last)
+      end
+
+      it "creates new document conversion" do
+        doc.save # to overcome lazy let(:doc) affecting count
+        expect { subject.perform(doc.id) }.to change(Document, :count).by(1)
       end
     end
   end
