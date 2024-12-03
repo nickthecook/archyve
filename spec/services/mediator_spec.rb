@@ -1,6 +1,4 @@
 RSpec.describe Mediator do
-  subject { described_class }
-
   let(:collection) { create(:collection) }
   let(:user) { create(:user) }
   let(:file) { nil }
@@ -19,7 +17,7 @@ RSpec.describe Mediator do
       end
 
       it "fetches web page" do
-        subject.ingest(doc)
+        described_class.ingest(doc)
 
         expect(FetchWebDocumentJob).to have_received("perform_async").with(doc.id)
       end
@@ -34,7 +32,7 @@ RSpec.describe Mediator do
       end
 
       it "converts document" do
-        subject.ingest(doc)
+        described_class.ingest(doc)
 
         expect(ConvertDocumentJob).to have_received("perform_async").with(doc.id)
       end
@@ -49,7 +47,7 @@ RSpec.describe Mediator do
       end
 
       it "chunks document without web fetch needed" do
-        subject.ingest(doc)
+        described_class.ingest(doc)
 
         expect(ChunkDocumentJob).to have_received("perform_async").with(doc.id)
       end
@@ -60,7 +58,7 @@ RSpec.describe Mediator do
       let(:filename) { "spec/fixtures/files/sample-3s.mp3" }
 
       it "fails" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
 
@@ -69,13 +67,13 @@ RSpec.describe Mediator do
       let(:file) { fixture_file_upload("avatar.jpg") }
 
       it "fails" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
 
     context "without filename or web link" do
       it "fails" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
   end
