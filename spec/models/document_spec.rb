@@ -100,7 +100,6 @@ RSpec.describe Document do
     let(:parent) { create(:document, parent: nil) }
 
     before do
-      parent.save
       subject.save
     end
 
