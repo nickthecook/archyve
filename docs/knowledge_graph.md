@@ -8,30 +8,22 @@ It is based on the work in [Microsoft's Graph RAG project](https://github.com/mi
 
 Components and connections added for the Knowledge Graph feature are in red.
 
-```plantuml
-digraph knowledge_graph {
-  node [shape=box]
-  edge [fontsize=10]
-  rankdir=LR
+```mermaid
+graph LR
+  User([User])
+  Postgres@{shape: cyl}
+  Redis@{shape: cyl}
+  ChromaDB@{shape: cyl}
+  Neo4j@{shape: cyl}
 
-  User [shape="doublecircle"]
-  Archyve
+  style Neo4j stroke:red
 
-  {
-    node [shape=cylinder]
 
-    Postgres
-    Redis
-    ChromaDB
-    Neo4j [color=red fontcolor=red]
-  }
-
-  User -> Archyve [dir=both]
-  Archyve -> Redis [label="Cache" dir=both]
-  Archyve -> Postgres [label="SQL DB" dir=both]
-  Archyve -> ChromaDB [label="Similarity\nsearch" dir=both]
-  Archyve -> Neo4j [label="Graph DB" dir=both color=red fontcolor=red]
-}
+  User <--> Archyve
+  Archyve <-- Cache --> Redis
+  Archyve <-- SQL DB --> Postgres
+  Archyve <-- Similarity search --> ChromaDB
+  Archyve <-- Graph DB --> Neo4j
 ```
 
 ## Job pipeline architecture

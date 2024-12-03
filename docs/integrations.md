@@ -1,22 +1,14 @@
 # Integrations
 
-```plantuml
-digraph integrations {
-  node [shape=box]
-  edge [fontsize=10]
-  rankdir=LR
+```mermaid
+graph LR
+  User([User]) -- ui --> Archyve
+  Client -- api --> Archyve
+  OllamaClient -- opp --> Archyve
 
-  User [shape=doublecircle]
-  Archyve
-
-  User -> Archyve [label="ui"]
-  Client -> Archyve [label="api"]
-  OllamaClient -> Archyve [label="opp"]
-
-  Archyve -> Ollama [label="ollama"]
-  Archyve -> OpenAI [label="openai"]
-  Archyve -> AzureOpenAI [label="azure_openai"]
-}
+  Archyve -- ollama --> Ollama
+  Archyve -- openai --> OpenAI
+  Archyve -- azure_openai --> AzureOpenAI
 ```
 
 ## Clients
