@@ -10,7 +10,7 @@ RSpec.describe ConvertDocumentJob do
   let(:link) { nil }
   let(:chunking_method) { :basic }
   let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
-  let(:doc) { create(:document, state: :created, link:, file:, filename:, chunking_profile:, collection:, user:) }
+  let!(:doc) { create(:document, state: :created, link:, file:, filename:, chunking_profile:, collection:, user:) }
 
   describe "#perform" do
     context "with a PDF document" do
@@ -28,7 +28,6 @@ RSpec.describe ConvertDocumentJob do
       end
 
       it "creates new document conversion" do
-        doc.save # to overcome lazy let(:doc) affecting count
         expect { subject.perform(doc.id) }.to change(Document, :count).by(1)
       end
     end
