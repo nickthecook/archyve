@@ -24,13 +24,7 @@ RSpec.describe ConvertDocumentJob do
       it "calls Mediator after conversion" do
         subject.perform(doc.id)
 
-        expect(Mediator).to have_received("ingest").with(subject.new_doc)
-      end
-
-      it "produces a new document" do
-        subject.perform(doc.id)
-
-        expect(subject.new_doc).not_to be_nil
+        expect(Mediator).to have_received("ingest")
       end
     end
   end

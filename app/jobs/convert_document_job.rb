@@ -8,15 +8,13 @@ class ConvertDocumentJob
     document.update!(state: :errored, error_message: exception.to_s)
   end
 
-  attr_reader :new_doc
-
   def perform(document_id)
     document = Document.find(document_id)
     ResetDocument.new(document).execute
     converter = Converters.find(document)
-    @new_doc = converter.convert
-    @new_doc.save!
+    new_doc = converter.convert
+    new_doc.save!
     # Pass it back to Mediator for next step
-    Mediator.ingest(@new_doc) unless @new_doc.errored?
+    Mediator.ingest(new_doc) unless new_doc.errored?
   end
 end
