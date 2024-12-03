@@ -1,6 +1,4 @@
 RSpec.describe Converters do
-  subject { described_class }
-
   let(:collection) { create(:collection) }
   let(:user) { create(:user) }
   let(:file) { nil }
@@ -16,7 +14,7 @@ RSpec.describe Converters do
       let(:file) { fixture_file_upload("gnu_manifesto.pdf") }
 
       it "succeeds" do
-        expect(subject.find(doc)).to be_a(Converters::PdfToText)
+        expect(described_class.find(doc)).to be_a(Converters::PdfToText)
       end
     end
 
@@ -25,7 +23,7 @@ RSpec.describe Converters do
       let(:filename) { "spec/fixtures/files/gnu_manifesto.md" }
 
       it "fails" do
-        expect { subject.find(doc) }.to raise_error(Converters::UnsupportedDocumentFormat)
+        expect { described_class.find(doc) }.to raise_error(Converters::UnsupportedDocumentFormat)
       end
     end
   end
