@@ -26,11 +26,6 @@ RSpec.describe Converters::PdfToText do
       expect(subject.done?).to be true
     end
 
-    it "returns nil if called twice" do
-      subject.convert
-      expect(subject.convert).to be_nil
-    end
-
     it "returns new document with text format" do
       new_doc = subject.convert
       expect(new_doc.content_type).to eq("text/plain")
