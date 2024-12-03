@@ -32,7 +32,7 @@ class ChunkDocument
   def reset_document
     Rails.logger.warn("RESETTING DOCUMENT #{@document.id}: is in state #{@document.state}...")
 
-    DocumentResetHelper.new(@document).execute
+    Helpers::DocumentResetHelper.new(@document).execute
     @document.reset!
   end
 
