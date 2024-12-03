@@ -156,8 +156,6 @@ RSpec.describe Document do
       let(:parent) { create(:document, parent: grandparent) }
 
       before do
-        grandparent.save
-        parent.save
         subject.save
       end
 
