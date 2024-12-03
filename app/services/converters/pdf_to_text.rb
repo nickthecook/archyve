@@ -1,9 +1,6 @@
 module Converters
   class PdfToText < Base
     def convert
-      # Don't repeat conversion; use a new Converter
-      return unless ready?
-
       # NOTE: Using -raw opt causes text to be broken up a lot; but not using raw
       #       may cause tables to be "pretty" in text which may not be ideal for chunking.
       #       Not specifying works best for rotated pages, so doing that for now
