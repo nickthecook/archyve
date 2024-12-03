@@ -12,6 +12,7 @@ class ConvertDocumentJob
 
   def perform(document_id)
     document = Document.find(document_id)
+    ResetDocument.new(document).execute
     converter = Converters.find(document)
     @new_doc = converter.convert
     @new_doc.save!

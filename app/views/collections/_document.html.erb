@@ -53,7 +53,7 @@
       <p class="py-1 text-xs text-right"><%= time_ago_in_words(document.created_at) %> ago</p>
       <div class="flex flex-row justify-end">
         <%= button_to collection_document_vectorize_path(document.collection, document), 
-              title: "Reprocess", class: "px-2", method: :delete, 
+              title: "Reprocess", class: "px-2", 
               form: {data: {turbo_confirm: "Do you want to reprocess '#{title_for(document)}' ?"}} do %>
           <i class="fa fa-refresh"></i>
         <% end %>
