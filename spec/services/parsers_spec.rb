@@ -30,13 +30,11 @@ RSpec.describe Parsers do
       end
     end
 
-    # include_examples "supported_format_parser_by_filename", ".pdf", Parsers::Pdf
     include_examples "supported_format_parser_by_filename", ".docx", Parsers::Docx
     include_examples "supported_format_parser_by_filename", ".md", Parsers::CommonMark
     include_examples "supported_format_parser_by_filename", ".txt", Parsers::Text
     include_examples "supported_format_parser_by_filename", ".html", Parsers::HtmlViaMarkdown
 
-    # include_examples "supported_format_parser_by_content_type", "application/pdf", Parsers::Pdf
     include_examples "supported_format_parser_by_content_type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", Parsers::Docx
     include_examples "supported_format_parser_by_content_type", "text/markdown", Parsers::CommonMark
     include_examples "supported_format_parser_by_content_type", "text/plain", Parsers::Text
