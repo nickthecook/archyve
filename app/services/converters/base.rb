@@ -49,18 +49,20 @@ module Converters
     # Creates a temporary file (using `#file_extension`) to save the content and returns a
     # new `Document`. Call this after conversion is done.
     def create_document(content, output_file_extension:, binmode: true)
-      tempfile ||= Tempfile.create(['conv-', output_file_extension], binmode:, encoding: content.encoding)
-      tempfile.write(content)
-      tempfile.rewind
-      filename = File.basename(tempfile.path)
-      new_doc = Document.new(
-        filename:,
-        parent: input_document,
-        chunking_profile: input_document.chunking_profile,
-        collection: input_document.collection,
-        user: input_document.user)
-      new_doc.file.attach(io: tempfile, filename:)
-      new_doc
+      Tempfile.create(['conv-', output_file_extension], binmode:, encoding: content.encoding) do |tempfile|
+        tempfile.write(content)
+        tempfile.rewind
+        filename = File.basename(tempfile.path)
+        new_doc = Document.new(
+          filename:,
+          parent: input_document,
+          chunking_profile: input_document.chunking_profile,
+          collection: input_document.collection,
+          user: input_document.user)
+        new_doc.file.attach(io: tempfile, filename:)
+        new_doc.save
+        new_doc
+      end
     end
   end
 end
