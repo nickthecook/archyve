@@ -52,17 +52,20 @@ module Converters
       Tempfile.create(['conv-', output_file_extension], binmode:, encoding: content.encoding) do |tempfile|
         tempfile.write(content)
         tempfile.rewind
-        filename = File.basename(tempfile.path)
-        new_doc = Document.new(
-          filename:,
-          parent: input_document,
-          chunking_profile: input_document.chunking_profile,
-          collection: input_document.collection,
-          user: input_document.user)
-        new_doc.file.attach(io: tempfile, filename:)
-        new_doc.save
-        new_doc
+        create_child_document(filename: File.basename(tempfile.path), io: tempfile)
       end
+    end
+
+    def create_child_document(filename:, io:)
+      new_doc = Document.new(
+        filename:,
+        parent: input_document,
+        chunking_profile: input_document.chunking_profile,
+        collection: input_document.collection,
+        user: input_document.user)
+      new_doc.file.attach(io:, filename:)
+      new_doc.save
+      new_doc
     end
   end
 end
