@@ -8,26 +8,27 @@ class Document < ApplicationRecord
   has_many :graph_entity_descriptions, dependent: :destroy, through: :chunks
   has_many :chunk_api_calls, through: :chunks, source: :api_calls
   has_many :api_calls, as: :traceable, dependent: :destroy
+  has_many :children, class_name: "Document", inverse_of: :parent, dependent: :destroy
 
   include Turbo::Broadcastable
   include AASM
 
   after_create_commit lambda {
-    broadcast_append_to(
-      :collections,
-      target: "documents",
-      partial: "collections/document"
-    )
+    if parent
+      parent.broadcast_replace
+    else
+      broadcast_append_to(
+        :collections,
+        target: "collection_#{collection.id}-documents",
+        partial: "collections/document"
+      )
+    end
   }
   after_update_commit lambda {
-    broadcast_replace_to(
-      :collections,
-      target: "document_#{id}",
-      partial: "collections/document",
-      document: reload
-    )
+    broadcast_replace
     collection.touch(:updated_at)
   }
+
   after_destroy_commit lambda {
     broadcast_remove_to(
       :collections,
@@ -107,6 +108,10 @@ class Document < ApplicationRecord
     link.present?
   end
 
+  def no_children?
+    children.empty?
+  end
+
   def original_document?
     parent.nil?
   end
@@ -129,5 +134,16 @@ class Document < ApplicationRecord
     return self if parent.nil?
 
     parent.original_document
+  end
+
+  protected
+
+  def broadcast_replace
+    broadcast_replace_to(
+      :collections,
+      target: "document_#{id}",
+      partial: "collections/document",
+      document: self
+    )
   end
 end

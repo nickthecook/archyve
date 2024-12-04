@@ -32,11 +32,7 @@ class ChunkDocument
   def reset_document
     Rails.logger.warn("RESETTING DOCUMENT #{@document.id}: is in state #{@document.state}...")
 
-    destroyor = TheDestroyor.new(@document)
-    destroyor.delete_embeddings
-    destroyor.delete_chunks
-    destroyor.delete_graph_entities
-
+    Helpers::DocumentResetHelper.new(@document).execute
     @document.reset!
   end
 

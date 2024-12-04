@@ -96,6 +96,22 @@ RSpec.describe Document do
     end
   end
 
+  describe "#children" do
+    let(:parent) { create(:document, parent: nil) }
+
+    before do
+      subject.save
+    end
+
+    it "returns one child document" do
+      expect(parent.children.count).to eq(1)
+    end
+
+    it "returns subject as child" do
+      expect(parent.children.first).to eq(subject)
+    end
+  end
+
   context "with a parent document" do
     let(:parent) { create(:document, parent: nil) }
 
@@ -130,6 +146,21 @@ RSpec.describe Document do
 
     it "has grandparent as original document" do
       expect(subject.original_document).to eq(grandparent)
+    end
+  end
+
+  describe "#destroy" do
+    context "when document has children" do
+      let(:grandparent) { create(:document) }
+      let(:parent) { create(:document, parent: grandparent) }
+
+      before do
+        subject.save
+      end
+
+      it "destroys all children" do
+        expect { grandparent.destroy }.to change(described_class, :count).by(-3)
+      end
     end
   end
 end

@@ -1,5 +1,5 @@
 require 'rails_helper'
 
-RSpec.describe DestroyJob do
+RSpec.describe DestroyDocumentJob do
   pending "add some examples to (or delete) #{__FILE__}"
 end

@@ -27,19 +27,28 @@ class DocumentsController < ApplicationController
   end
 
   def destroy
-    @document.deleting!
+    if @document.original_document?
+      @document.deleting!
 
-    DestroyJob.perform_async(@document.id)
+      DestroyDocumentJob.perform_async(@document.id)
 
-    respond_to do |format|
-      format.html { redirect_to collection_path(@collection) }
+      respond_to do |format|
+        format.html { redirect_to collection_path(@collection) }
+      end
+    else
+      flash[:error] = ["Not an original (top-level) document; cannot delete."]
+      redirect_to @document.collection
     end
   end
 
   def vectorize
     Mediator.ingest(@document)
+
+    respond_to do |format|
+      format.html { redirect_to collection_path(@collection) }
+    end
   rescue Mediator::IngestError => e
-    flash[:error] = ["Unable to ingest document: #{e.message}"]
+    flash[:error] = ["Unable to re-process/ingest document: #{e.message}"]
     redirect_to @document.collection
   end
 

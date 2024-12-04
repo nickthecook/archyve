@@ -1,9 +1,9 @@
-class DestroyJob
+class DestroyDocumentJob
   include Sidekiq::Job
 
   def perform(*args)
     document = Document.find(args.first)
 
-    TheDestroyor.new(document).destroy
+    DestroyDocument.new(document).execute
   end
 end

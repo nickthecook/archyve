@@ -1,6 +1,4 @@
 RSpec.describe Mediator do
-  subject { described_class }
-
   let(:collection) { create(:collection) }
   let(:user) { create(:user) }
   let(:file) { nil }
@@ -10,7 +8,7 @@ RSpec.describe Mediator do
   let(:chunking_profile) { create(:chunking_profile, method: chunking_method, size: 800) }
   let(:doc) { create(:document, state: :created, link:, file:, filename:, chunking_profile:, collection:, user:) }
 
-  describe "#ingest document" do
+  describe "#ingest" do
     context "with web link" do
       let(:link) { "https://en.wikipedia.org/wiki/Tabloid_journalism" }
 
@@ -19,13 +17,28 @@ RSpec.describe Mediator do
       end
 
       it "fetches web page" do
-        subject.ingest(doc)
+        described_class.ingest(doc)
 
         expect(FetchWebDocumentJob).to have_received("perform_async").with(doc.id)
       end
     end
 
-    context "with markdown file name" do
+    context "with a PDF file" do
+      let(:filename) { "spec/fixtures/files/gnu_manifesto.pdf" }
+      let(:file) { fixture_file_upload("gnu_manifesto.pdf") }
+
+      before do
+        allow(ConvertDocumentJob).to receive("perform_async")
+      end
+
+      it "converts document" do
+        described_class.ingest(doc)
+
+        expect(ConvertDocumentJob).to have_received("perform_async").with(doc.id)
+      end
+    end
+
+    context "with markdown file" do
       let(:file) { fixture_file_upload("gnu_manifesto.md") }
       let(:filename) { "spec/fixtures/files/gnu_manifesto.md" }
 
@@ -34,33 +47,33 @@ RSpec.describe Mediator do
       end
 
       it "chunks document without web fetch needed" do
-        subject.ingest(doc)
+        described_class.ingest(doc)
 
         expect(ChunkDocumentJob).to have_received("perform_async").with(doc.id)
       end
     end
 
-    context "with audio file name" do
+    context "with audio file" do
       let(:file) { fixture_file_upload("sample-3s.mp3") }
       let(:filename) { "spec/fixtures/files/sample-3s.mp3" }
 
-      it "needs conversion" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::ConversionUnimplemented)
+      it "fails" do
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
 
-    context "with image file name" do
+    context "with image file" do
       let(:filename) { "spec/fixtures/files/avatar.jpg" }
       let(:file) { fixture_file_upload("avatar.jpg") }
 
-      it "needs conversion" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::ConversionUnimplemented)
+      it "fails" do
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
 
     context "without filename or web link" do
-      it "raises error" do
-        expect { subject.ingest(doc) }.to raise_error(Mediator::DocumentHasNoFile)
+      it "fails" do
+        expect { described_class.ingest(doc) }.to raise_error(Mediator::CannotIngestDocument)
       end
     end
   end
