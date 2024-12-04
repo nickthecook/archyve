@@ -12,10 +12,11 @@ RSpec.describe DestroyDocument do
 
   describe "#execute" do
     context "when document has children" do
-      let(:child) { create(:document, parent: doc) }
+      before do
+        create(:document, parent: doc)
+      end
 
       it "destroys both documents document" do
-        child
         expect { subject.execute }.to change(Document, :count).by(-2)
       end
     end
