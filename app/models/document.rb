@@ -14,21 +14,21 @@ class Document < ApplicationRecord
   include AASM
 
   after_create_commit lambda {
-    broadcast_append_to(
-      :collections,
-      target: "documents",
-      partial: "collections/document"
-    )
+    if parent
+      parent.broadcast_replace
+    else
+      broadcast_append_to(
+        :collections,
+        target: "collection_#{collection.id}-documents",
+        partial: "collections/document"
+      )
+    end
   }
   after_update_commit lambda {
-    broadcast_replace_to(
-      :collections,
-      target: "document_#{id}",
-      partial: "collections/document",
-      document: reload
-    )
+    broadcast_replace
     collection.touch(:updated_at)
   }
+
   after_destroy_commit lambda {
     broadcast_remove_to(
       :collections,
@@ -134,5 +134,16 @@ class Document < ApplicationRecord
     return self if parent.nil?
 
     parent.original_document
+  end
+
+  protected
+
+  def broadcast_replace
+    broadcast_replace_to(
+      :collections,
+      target: "document_#{id}",
+      partial: "collections/document",
+      document: self
+    )
   end
 end
