@@ -11,9 +11,11 @@ class ConvertDocumentJob
   def perform(document_id)
     document = Document.find(document_id)
     ResetDocument.new(document).execute
+    document.converting!
     converter = Converters.find(document)
     new_doc = converter.convert
     new_doc.save!
+    document.convert!
     # Pass it back to Mediator for next step
     Mediator.ingest(new_doc) unless new_doc.errored?
   end

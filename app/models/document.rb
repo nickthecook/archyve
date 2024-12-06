@@ -25,7 +25,8 @@ class Document < ApplicationRecord
     end
   }
   after_update_commit lambda {
-    broadcast_replace
+    who = parent || self
+    who.broadcast_replace
     collection.touch(:updated_at)
   }
 
@@ -42,6 +43,8 @@ class Document < ApplicationRecord
     fetched: 3,
     chunking: 4,
     chunked: 1,
+    converting: 5,
+    converted: 6,
     deleting: 7,
     stopped: 8,
     errored: 10,
@@ -52,6 +55,8 @@ class Document < ApplicationRecord
     state :created
     state :fetching
     state :fetched
+    state :converting
+    state :converted
     state :chunking
     state :chunked
     state :deleting
@@ -62,8 +67,14 @@ class Document < ApplicationRecord
       # TODO: validate that there are no chunks in the db
       transitions to: :created
     end
+    event :converting do
+      transitions from: :created, to: :converting
+    end
+    event :convert do
+      transitions from: :converting, to: :converted
+    end
     event :chunking do
-      transitions from: :created, to: :chunking
+      transitions from: [:converted, :created], to: :chunking
     end
     event :chunk do
       transitions from: :chunking, to: :chunked
@@ -75,7 +86,7 @@ class Document < ApplicationRecord
       transitions from: :embedding, to: :embedded
     end
     event :extract do
-      transitions from: :embedded, to: :extracting
+      transitions from: [:embedded, :converted], to: :extracting
     end
     event :extracted do
       transitions from: :extracting, to: :extracted

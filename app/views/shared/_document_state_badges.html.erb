@@ -11,13 +11,15 @@
       <i class="fa fa-circle-info"></i>
     </div>
   <% else %>
-  <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-1 p-1 px-2 <%= state_bg %>">
+    <div class="rounded-lg text-xs text-secondary-800 dark:text-secondary-200 mx-1 p-1 px-2 <%= state_bg %>">
       <%= state_text_for(document) %>
     </div>
   <% end %>
-  <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
-    <%= chunks_completed_label_for(total_chunks, embedded_chunks, "embedded") %>
-  </div>
+  <% if document.no_children? && !(document.converting? || document.converted?) %>
+    <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
+      <%= chunks_completed_label_for(total_chunks, embedded_chunks, "embedded") %>
+    </div>
+  <% end %>
   <% if document.collection.graph_enabled? %>
     <div class="p-1 px-2 mx-1 text-xs rounded-lg text-secondary-800 dark:text-secondary-200 bg-secondary-300 dark:bg-secondary-700">
       <%= chunks_completed_label_for(total_chunks, extracted_chunks, "extracted") %>

@@ -18,6 +18,7 @@ module Helpers
       delete_embeddings
       delete_chunks
       delete_graph_entities
+      @document.reset!
     end
 
     private
