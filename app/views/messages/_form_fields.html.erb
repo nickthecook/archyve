@@ -7,7 +7,7 @@
 
 <div class="flex w-full">
   <div class="flex-1 pr-3">
-    <%= conversation_form.text_area :content,
+    <%= f.text_area :content,
       class: "form-control w-full rounded-lg bg-secondary-50 dark:bg-secondary-900",
       placeholder: placeholder,
       autofocus: true,
@@ -24,6 +24,6 @@
     %>
   </div>
   <div>
-    <%= conversation_form.submit "Send", class: "rounded-lg px-2 py-2 text-center block font-medium #{button_classes}", disabled: disable_form, title: hover_text %>
+    <%= f.submit "Send", class: "rounded-lg px-2 py-2 text-center block font-medium #{button_classes}", disabled: disable_form, title: hover_text %>
   </div>
 </div>

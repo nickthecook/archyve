@@ -3,7 +3,9 @@ class ConversationsController < ApplicationController
   before_action :set_conversations
 
   # GET /conversations or /conversations.json
-  def index; end
+  def index
+    @conversation = new_conversation
+  end
 
   # GET /conversations/1 or /conversations/1.json
   def show
@@ -25,11 +27,7 @@ class ConversationsController < ApplicationController
       )
     end
 
-    @conversation = Conversation.new
-    @conversation.user = current_user
-    @conversation.model_config ||= Setting.chat_model
-    @conversation.title ||= "New conversation"
-    @conversation.search_collections = Setting.get(:search_collections, target: current_user)
+    @conversation = new_conversation
     @conversation.save!
 
     respond_to do |format|
@@ -41,6 +39,9 @@ class ConversationsController < ApplicationController
         format.json { render json: @conversation.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  def create_with_message
   end
 
   # PATCH/PUT /conversations/1 or /conversations/1.json
@@ -84,6 +85,16 @@ class ConversationsController < ApplicationController
   end
 
   private
+
+  def new_conversation
+    @conversation = Conversation.new
+    @conversation.user = current_user
+    @conversation.model_config ||= Setting.chat_model
+    @conversation.title ||= "New conversation"
+    @conversation.search_collections = Setting.get(:search_collections, target: current_user)
+
+    @conversation
+  end
 
   def show_all_conversations
     @show_all_conversations ||= Setting.get(:show_conversations_from_api, target: current_user)

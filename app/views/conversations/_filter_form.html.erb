@@ -1,12 +1,12 @@
 <%
   setting = "show_conversations_from_api"
   setting_model = Setting.ensure_exists(setting, target: current_user, default: false)
-  redirect_path = @conversation.present? ? conversation_path(@conversation) : conversations_path
+  redirect_path = @conversation.id.present? ? conversation_path(@conversation) : conversations_path
 %>
 
 <%= form_for setting_model, data: { turbo: false } do |f| %>
-  <div class="flex py-2 items-center justify-start">
-    <label class="inline-flex items-center cursor-pointer mb-1 align-middle rounded-lg w-full">
+  <div class="flex justify-start items-center py-2">
+    <label class="inline-flex items-center mb-1 w-full align-middle rounded-lg cursor-pointer">
       <%= f.check_box :value,
         {
           value: setting_model.value,

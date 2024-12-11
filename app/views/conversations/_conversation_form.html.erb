@@ -1,59 +1,47 @@
 <% conversation ||= @conversation %>
 
 <div id="conversation_form">
-  <div class="flex w-full justify-center">
-    <%= form_for conversation do |f| %>
-      <%= f.text_field(
+  <div class="flex justify-center w-full">
+      <%= conversation_form.text_field(
         :title,
         class: "border-0 border-b-2 bg-secondary-50 dark:bg-secondary-950 m-2 px-5 w-[400px] sm:w-[550px]",
         value: conversation.title,
         onchange: "this.form.requestSubmit()"
       )%>
-      <%= f.submit "Update", hidden: true %>
-    <% end %>
   </div>
-  <div class="flex flex-col sm:flex-row justify-center">
-    <%= form_for conversation do |f| %>
-      <% if conversation.model_config.available? %>
-        <%= f.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
-          class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
-          onchange: "this.form.requestSubmit()",
-          disabled: conversation.messages.any? ? true : false,
-          title: conversation.messages.any? ? "The model cannot be changed after the conversation has started." : ""
-        })%>
-      <% else %>
-        <%= f.collection_select(:model_config_id, [conversation.model_config], :id, :name, {}, {
-          class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
-          onchange: "this.form.requestSubmit()",
-          disabled: true,
-          title: "This model is no longer available."
-        })%>
-      <% end %>
-      <%= f.submit "Update", hidden: true %>
-    <% end %>
-    <%= form_for conversation do |f| %>
-      <div class="text-nowrap">
-        <label class="inline-flex items-center cursor-pointer m-2 p-2 align-middle border border-secondary-400 rounded-lg h-full dark:bg-secondary-800">
-          <%= f.check_box :search_collections, value: "", class: "sr-only peer", onchange: "this.form.requestSubmit()" %>
-          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Search collections</span>
-        </label>
-      </div>
-      <%= f.submit "Update", hidden: true %>
-    <% end %>
-
-    <%= form_with url: conversation_collections_path, method: :post do |f|%>
-      <% selected_collection_id = conversation.collections&.first&.id %>
-      <%= f.collection_select(:collection_ids, collection_list(conversation.user), :id, :name, {
-        selected: selected_collection_id,
-        prompt: "All collections",
-      }, {
+  <div class="flex flex-col justify-center sm:flex-row">
+    <% if conversation.model_config.available? %>
+      <%= conversation_form.collection_select(:model_config_id, model_config_list, :id, :name, {}, {
         class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
         onchange: "this.form.requestSubmit()",
-        disabled: conversation.messages.any? ? true : false
+        disabled: conversation.messages.any? ? true : false,
+        title: conversation.messages.any? ? "The model cannot be changed after the conversation has started." : ""
       })%>
-      <%= f.text_field :conversation_id, value: conversation.id, type: :hidden %>
-      <%= f.submit "Update", hidden: true %>
+    <% else %>
+      <%= conversation_form.collection_select(:model_config_id, [conversation.model_config], :id, :name, {}, {
+        class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
+        onchange: "this.form.requestSubmit()",
+        disabled: true,
+        title: "This model is no longer available."
+      })%>
     <% end %>
+    <div class="text-nowrap">
+      <label class="inline-flex items-center p-2 m-2 h-full align-middle rounded-lg border cursor-pointer border-secondary-400 dark:bg-secondary-800">
+        <%= conversation_form.check_box :search_collections, value: "", class: "sr-only peer", onchange: "this.form.requestSubmit()" %>
+        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+        <span class="text-sm font-medium text-gray-900 ms-3 dark:text-gray-300">Search collections</span>
+      </label>
+    </div>
+
+    <% selected_collection_id = conversation.collections&.first&.id %>
+    <%= conversation_form.collection_select(:collection_ids, collection_list(conversation.user), :id, :name, {
+      selected: selected_collection_id,
+      prompt: "All collections",
+    }, {
+      class: "rounded-lg text-secondary-800 bg-secondary-200 dark:text-secondary-200 dark:bg-secondary-800 m-2",
+      onchange: "this.form.requestSubmit()",
+      disabled: conversation.messages.any? ? true : false
+    })%>
+    <%= conversation_form.text_field :conversation_id, value: conversation.id, type: :hidden %>
   </div>
 </div>

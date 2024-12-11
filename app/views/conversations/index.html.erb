@@ -6,12 +6,7 @@
       <%= render "shared/notice" %>
 
       <%= turbo_stream_from user_dom_id("conversations") %>
-      <% if @conversation %>
-        <%= render @conversation %>
-      <% else %>
-        <div class="container flex justify-center align-center">
-        <%= render "no_conversation" %>
-      <% end %>
+      <%= render @conversation %>
     </div>
   </div>
 </div>

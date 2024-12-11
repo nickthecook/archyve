@@ -1,25 +1,36 @@
-<div id="conversation" class="h-screen overflow-x-hidden overflow-y-scroll no-scrollbar">
-  <nav id="sidebar-menu-button" class="bg-secondary-100 dark:bg-secondary-900 sticky w-full top-0 left-0 lg:hidden text-2xl text-secondary-800 dark:text-secondary-200 py-2 px-5">
+<%
+  form_path = if @conversation.id.present? 
+    conversation_messages_path(@conversation)
+  else
+    conversations_path
+  end
+%>
+
+
+<div id="conversation" class="overflow-x-hidden overflow-y-scroll h-screen no-scrollbar">
+  <nav id="sidebar-menu-button" class="sticky top-0 left-0 px-5 py-2 w-full text-2xl bg-secondary-100 dark:bg-secondary-900 lg:hidden text-secondary-800 dark:text-secondary-200">
     <%= render "shared/title", classes: "text-primary-600 dark:text-primary-400" %>
   </nav>
 
   <div class="flex flex-col items-center">
     <div class="flex flex-col items-center px-4 w-[450px] sm:w-full md:w-full lg:w-[768px] xl:w-[900px]">
-      <div class="pb-5 w-full">
-        <%= render "conversation_form" %>
-      </div>
-
-      <div class="flex flex-col rounded-lg w-full">
-        <div id="messages">
-          <%= render @conversation.messages.order(:created_at) %>
+      <%= form_with url: form_path do |conversation_form| %>
+        <div class="pb-5 w-full">
+          <%= render "conversation_form", conversation_form: %>
         </div>
 
-        <div class="w-full py-5">
-          <%= render "messages/form" %>
-        </div>
+        <div class="flex flex-col w-full rounded-lg">
+          <div id="messages">
+            <%= render @conversation.messages.order(:created_at), conversation_form: %>
+          </div>
 
-        <div id="end-of-conversation">
-      </div>
+          <div class="py-5 w-full">
+            <%= render "messages/form", conversation_form: %>
+          </div>
+
+          <div id="end-of-conversation">
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
