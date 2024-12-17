@@ -21,6 +21,12 @@ RSpec.describe ConvertDocumentJob do
         allow(Mediator).to receive("ingest")
       end
 
+      it "marks document as converted" do
+        subject.perform(doc.id)
+
+        expect(Document.find(doc.id).converted?).to be true
+      end
+
       it "calls Mediator after conversion" do
         subject.perform(doc.id)
 

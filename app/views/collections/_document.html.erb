@@ -20,9 +20,7 @@
           <div class="pb-4 mr-2">
             <%= link_to title_for(document), collection_document_path(document.collection, document), format: :turbo_stream %>
           </div>
-          <% if document.no_children? %>
-            <%= render "shared/document_state_badges", document: %>
-          <% end %>
+          <%= render "shared/document_state_badges", document: %>
         </div>
       </div>
 
