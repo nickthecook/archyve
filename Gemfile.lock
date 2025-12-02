@@ -107,6 +107,7 @@ GEM
     baran (0.1.12)
     base64 (0.3.0)
     bcrypt (3.1.20)
+    benchmark (0.5.0)
     bigdecimal (3.3.1)
     bindex (0.8.1)
     bootsnap (1.18.3)
@@ -274,6 +275,7 @@ GEM
       racc (~> 1.4)
     open3 (0.2.1)
     orm_adapter (0.5.0)
+    ostruct (0.6.3)
     pagy (8.0.1)
     parallel (1.24.0)
     parser (3.3.0.5)
@@ -534,6 +536,7 @@ DEPENDENCIES
   activestorage (~> 7.1)
   async (= 2.11.0)
   baran (~> 0.1.12)
+  benchmark (~> 0.5.0)
   bootsnap
   capybara
   csv (~> 3.3)
@@ -551,6 +554,7 @@ DEPENDENCIES
   motor-admin (~> 0.4.26)
   neo4j-ruby-driver (~> 4.4)
   open3 (~> 0.2.1)
+  ostruct (~> 0.6.3)
   pagy (~> 8.0)
   pdf-reader (~> 2.12)
   pg

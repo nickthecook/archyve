@@ -126,3 +126,7 @@ gem "neo4j-ruby-driver", "~> 4.4"
 gem "open3", "~> 0.2.1"
 
 gem "csv", "~> 3.3"
+
+gem "ostruct", "~> 0.6.3"
+
+gem "benchmark", "~> 0.5.0"

@@ -73,7 +73,7 @@ actions:
     shell_expansion: true
 options:
   environment:
-    HOMEBREW_PREFIX: $(brew --prefix)
+    HOMEBREW_PREFIX: $(which brew &>/dev/null && brew --prefix)
     PG_OPTS: ${PG_OPTS:- --with-pg-lib=/usr/lib --with-opt-dir="${HOMEBREW_PREFIX:-/usr/local}/opt/libpq"}
     API_BASE_URL: ${API_BASE_URL:-http://localhost}
     REDIS_URL: ${REDIS_URL:-redis://localhost:6378/1}
