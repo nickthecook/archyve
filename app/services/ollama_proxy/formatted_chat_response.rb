@@ -47,13 +47,19 @@ module OllamaProxy
     end
 
     def parse_chunk(chunk)
-      # newlines will only appear after a value JSON object, and only in OpenAI compatibility endpoints
-      chunk = chunk.lines.first
+      # when streaming, newlines will only appear after a value JSON object, and only in OpenAI compatibility endpoints
+      line = chunk.lines.first
 
       # ollama does this for OpenAI-compatible endpoints
-      if chunk.start_with?("data: ")
-        chunk.gsub!(/^data: /, "")
+      if line.start_with?("data: ")
+        line.gsub!(/^data: /, "")
       end
+
+      JSON.parse(line)
+    rescue JSON::ParserError => e
+      # when using OPP non-streaming in from of an OpenAI enpoint, the response will sometimes come back with newlines
+      # in the JSON, the way you'd write it for a human
+      Rails.logger.debug { "Error parsing first line of response as JSON: #{e.message}; falling back to chunk" }
 
       JSON.parse(chunk)
     end
