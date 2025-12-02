@@ -65,8 +65,8 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 
-  gem "ruby-lsp", "~> 0.14.6"
-  gem "ruby-lsp-rails", "~> 0.3.3"
+  gem "ruby-lsp"
+  gem "ruby-lsp-rails"
 end
 
 group :test do
@@ -124,3 +124,5 @@ gem "async", "2.11.0"
 gem "neo4j-ruby-driver", "~> 4.4"
 
 gem "open3", "~> 0.2.1"
+
+gem "csv", "~> 3.3"

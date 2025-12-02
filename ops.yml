@@ -17,6 +17,7 @@ dependencies:
     - ruby-poppler
   gem:
     - rerun
+    - overmind
 forwards:
   deps: deps
 actions:
