@@ -28,7 +28,7 @@ module Helpers
         Rails.logger.info("Destroying batch of #{chunks.count} chunks...")
         chromadb.delete_documents(collection_id, chunks.map(&:vector_id))
 
-        Chunk.destroy(chunks)
+        Chunk.destroy(chunks.map(&:id))
       rescue Chromadb::ResponseError => e
         Rails.logger.error("Failed to delete batch of #{chunks.count} chunks: #{e}\n
         Destruction of document #{@document.id} will continue, but chunks may remain in ChromaDB.")

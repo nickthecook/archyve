@@ -33,13 +33,14 @@ module OllamaProxy
     private
 
     def extract_content(chunk)
-      response_hash = parse_chunk(chunk)
+      response = parse_chunk(chunk)
+      return response if response.is_a?(String)
 
       # TODO: raise the error, don't return it as content
-      content = response_hash.dig("message", "content") ||
-        response_hash.dig("choices", 0, "delta", "content") ||
-        response_hash.dig("choices", 0, "message", "content") ||
-        response_hash["error"] ||
+      content = response.dig("message", "content") ||
+        response.dig("choices", 0, "delta", "content") ||
+        response.dig("choices", 0, "message", "content") ||
+        response["error"] ||
         chunk
       content = content.to_s unless content.is_a?(String)
 
@@ -61,7 +62,14 @@ module OllamaProxy
       # in the JSON, the way you'd write it for a human
       Rails.logger.debug { "Error parsing first line of response as JSON: #{e.message}; falling back to chunk" }
 
-      JSON.parse(chunk)
+      begin
+        JSON.parse(chunk)
+      rescue JSON::ParserError
+        Rails.logger.error("Error processing chunk any which way: #{chunk}.")
+        Rails.logger.error("Returning raw chunk.")
+
+        chunk
+      end
     end
 
     def processor
