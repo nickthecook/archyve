@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
   chromadb:
-    image: chromadb/chroma:0.6.3
+    image: chromadb/chroma:0.6.2
     volumes:
       - chromadb:/chroma/chroma
     command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
@@ -62,17 +62,7 @@ services:
       RUN_OPP: true
       OPP_PORT: 11337
       OPP_BIND_ADDRESS: "0.0.0.0"
-    command:
-      [
-        "bin/rails",
-        "server",
-        "--pid",
-        "/rails/tmp/pids/opp.pid",
-        "-p",
-        "11337",
-        "-b",
-        "0.0.0.0",
-      ]
+    command: ["bin/rails", "server", "--pid", "/rails/tmp/pids/opp.pid", "-p", "11337", "-b", "0.0.0.0"]
   archyve-worker:
     image: archyve:local
     env_file: ./local.env
@@ -80,8 +70,7 @@ services:
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
     extra_hosts: *archyve-extra-hosts
-    command:
-      ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q default"]
+    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q default"]
     depends_on: &archyve-worker-dependencies
       - redis
       - postgres
@@ -95,12 +84,7 @@ services:
     volumes: *archyve-volumes
     # this needs to be edited to give podman access to host
     extra_hosts: *archyve-extra-hosts
-    command:
-      [
-        "/bin/bash",
-        "-c",
-        "bin/rails db:seed && bundle exec sidekiq -q llm -c 5",
-      ]
+    command: ["/bin/bash", "-c", "bin/rails db:seed && bundle exec sidekiq -q llm -c 5"]
     depends_on: *archyve-worker-dependencies
     environment:
       RUN_SIDEKIQ: true
