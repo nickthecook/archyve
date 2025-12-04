@@ -12,7 +12,7 @@ module OllamaProxy
       if @proxy.yielded
         response.stream.close
       else
-        render json: http_response.body, headers: http_response.to_hash, status: @proxy.code
+        render plain: http_response.body, status: @proxy.code
       end
     end
 
@@ -24,7 +24,7 @@ module OllamaProxy
       if @proxy.yielded
         response.stream.close
       else
-        render json: http_response, status: @proxy.code
+        render plain: http_response.body, status: @proxy.code
       end
     end
 

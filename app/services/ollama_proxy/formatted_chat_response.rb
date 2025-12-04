@@ -10,9 +10,13 @@ module OllamaProxy
     end
 
     def generate(&)
+      Rails.logger.info("TEEEEEEEEEEEEEEEEEEEEEEEEEEEEST")
+      Rails.logger.error("TOOOOOOOOOOOOOAAAAAAAAAAAAAAST")
       response = @proxy.post do |chunk|
         # yield the content the server sent, exactly as the server sent it
         yield chunk
+
+        Rails.logger.info("CHUNK: #{chunk}")
 
         content = extract_content(chunk)
         formatted_message, raw_message = processor.append(content)

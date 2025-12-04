@@ -10,7 +10,7 @@ module OllamaProxy
       if @proxy.yielded
         response.stream.close
       else
-        render json: @proxy.response.body, status: @proxy.code
+        render plain: @proxy.response.body, status: @proxy.code
       end
     end
 
