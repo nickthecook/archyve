@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Adwaita Sans';
+  src: url('AdwaitaSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Adwaita Sans';
+  src: url('AdwaitaSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -50,5 +66,5 @@ li {
 }
 
 html {
-  font-size: 14px;
+  font-size: 13px;
 }

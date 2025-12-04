@@ -18,7 +18,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter var", ...defaultTheme.fontFamily.sans],
+        sans: ["Adwaita Sans", ...defaultTheme.fontFamily.sans],
       },
       colors: {
         primary: {
