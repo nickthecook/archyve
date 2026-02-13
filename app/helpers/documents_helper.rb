@@ -10,7 +10,7 @@ module DocumentsHelper
     if document.link.blank?
       # TODO: fix after we finalize how to show parents vs children
       if document.original_document?
-        document.filename
+        document.is_a?(Fact) && document.title.present? ? document.title : document.filename
       else
         "#{document.original_document.filename} (#{document.filename})"
       end

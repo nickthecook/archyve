@@ -8,7 +8,7 @@ class ChunkDocument
 
     @document.chunking!
     create_chunks
-    @document.update(title: parser.title)
+    @document.update(title: parser.title) unless @document.title.present?
     @document.chunked!
   end
 

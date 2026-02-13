@@ -10,9 +10,16 @@
         <% end %>
       </div>
       <div class="w-1/2">
-        <%= form_for [@collection, @document] do |f| %>
+        <%= form_for [@collection, @document], as: :document, url: collection_document_path(@collection, @document) do |f| %>
           <div class="rounded-lg border border-secondary-400 dark:border-secondary-600 p-8 mb-8">
             <div class="pr-2 pb-2">Edit fact</div>
+            <div class="py-2 items-center flex">
+              <%= f.text_field :title,
+                value: @document.title,
+                placeholder: "Optional name",
+                class: "w-full rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-925 flex-1"
+              %>
+            </div>
             <div class="py-2 items-center flex">
               <%= f.text_area :body,
                 value: @document.contents,

@@ -31,14 +31,16 @@ class DocumentsController < ApplicationController
   end
 
   def update
-    body = params.require(:document).permit(:body)[:body]
+    permitted = params.require(:document).permit(:body, :title)
+    body = permitted[:body]
+    title = permitted[:title].presence || body.truncate(80)
     Helpers::DocumentResetHelper.new(@document).execute
     @document.file.attach(
       io: StringIO.new(body),
       filename: @document.file.filename.to_s,
       content_type: "text/plain"
     )
-    @document.update!(title: body.truncate(80))
+    @document.update!(title: title)
     Mediator.ingest(@document)
     redirect_to collection_path(@collection)
   end
@@ -92,7 +94,7 @@ class DocumentsController < ApplicationController
         content_type: "text/plain"
       )
       document.filename = document.file.filename.to_s
-      document.title = body.truncate(80)
+      document.title = document_params[:title].presence || body.truncate(80)
     end
     document.collection = @collection
     document.user = current_user
@@ -106,7 +108,7 @@ class DocumentsController < ApplicationController
   end
 
   def document_params
-    params.require(:document).permit(:file, :link, :filename, :body)
+    params.require(:document).permit(:file, :link, :filename, :body, :title)
   end
 
   def set_document
