@@ -1,0 +1,13 @@
+<%= form_with url: collection_documents_path(collection), scope: :document, html: { class: "mt-2 w-full" } do |f| %>
+  <div class="shadow-lg bg-secondary-200 dark:bg-secondary-900 dark:border-secondary-400 border px-6 py-5 rounded-lg">
+    <div class="mb-2 text-sm">Add a fact</div>
+    <%= f.text_area :body,
+      placeholder: "The Living Room TV is a Bravia ABC123.\nMy motherboard is an Asus B550.\nMy GPU is an RX 9070.",
+      rows: 3,
+      class: "w-full p-2 rounded-lg my-2 px-5 py-2 border border-secondary-400 dark:bg-secondary-925 dark:border-secondary-600"
+    %>
+    <%= f.submit "Add Fact",
+      class: "rounded-lg px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 cursor-pointer"
+    %>
+  </div>
+<% end %>

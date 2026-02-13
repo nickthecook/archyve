@@ -20,7 +20,8 @@ class Document < ApplicationRecord
       broadcast_append_to(
         :collections,
         target: "collection_#{collection.id}-documents",
-        partial: "collections/document"
+        partial: "collections/document",
+        locals: { document: self }
       )
     end
   }
@@ -129,6 +130,10 @@ class Document < ApplicationRecord
 
   delegate :content_type, to: :file
 
+  def parser
+    Parsers.parser_for(filename, content_type).new(self)
+  end
+
   def image?
     content_type&.starts_with?("image/")
   end
@@ -154,7 +159,7 @@ class Document < ApplicationRecord
       :collections,
       target: "document_#{id}",
       partial: "collections/document",
-      document: self
+      locals: { document: self }
     )
   end
 end

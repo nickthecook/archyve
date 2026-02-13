@@ -13,4 +13,19 @@ FactoryBot.define do
       file { Rails.root.join(filename) }
     end
   end
+
+  factory :fact, parent: :document, class: "Fact" do
+    filename { "fact-#{Time.current.to_i}.txt" }
+    link { nil }
+
+    trait :with_file do
+      after(:build) do |fact|
+        fact.file.attach(
+          io: StringIO.new("This is a fact."),
+          filename: fact.filename,
+          content_type: "text/plain"
+        )
+      end
+    end
+  end
 end

@@ -79,7 +79,8 @@ class DocumentsController < ApplicationController
 
   def document_from_params
     body = document_params[:body]
-    document = Document.new(document_params.except(:body).merge(chunking_profile: @chunking_profile))
+    model_class = body.present? ? Fact : Document
+    document = model_class.new(document_params.except(:body).merge(chunking_profile: @chunking_profile))
     if document_params[:file].present?
       document.filename = document_params[:file].original_filename
     elsif document_params[:link].present?

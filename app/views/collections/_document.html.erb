@@ -28,7 +28,7 @@
       <% if document.no_children? %>
         <div class="flex">
           <%= link_to "View", collection_document_path(document.collection, document), class: "rounded-lg bg-secondary-700 dark:bg-secondary-400 text-secondary-100 dark:text-secondary-900 py-1 px-4 disabled:bg-opacity-40 mr-2" %>
-          <% if document.content_type == "text/plain" %>
+          <% if document.is_a?(Fact) %>
             <%= link_to "Edit", edit_collection_document_path(document.collection, document), class: "rounded-lg bg-secondary-700 dark:bg-secondary-400 text-secondary-100 dark:text-secondary-900 py-1 px-4 disabled:bg-opacity-40 mr-2" %>
           <% end %>
           <% if document.stop_jobs %>
