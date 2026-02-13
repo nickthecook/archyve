@@ -2,7 +2,7 @@ class DocumentsController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :set_collection
-  before_action :set_document, only: %i[show destroy vectorize stop start]
+  before_action :set_document, only: %i[show destroy vectorize stop start edit update]
   before_action :set_stop_jobs_false, only: %i[destroy vectorize start]
 
   def show
@@ -24,6 +24,23 @@ class DocumentsController < ApplicationController
     @document = document_from_params
     Mediator.ingest(@document)
     redirect_to @document.collection
+  end
+
+  def edit
+    @collections = current_user.collections
+  end
+
+  def update
+    body = params.require(:document).permit(:body)[:body]
+    Helpers::DocumentResetHelper.new(@document).execute
+    @document.file.attach(
+      io: StringIO.new(body),
+      filename: @document.file.filename.to_s,
+      content_type: "text/plain"
+    )
+    @document.update!(title: body.truncate(80))
+    Mediator.ingest(@document)
+    redirect_to collection_path(@collection)
   end
 
   def destroy

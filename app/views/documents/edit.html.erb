@@ -1,0 +1,33 @@
+<div class="flex">
+  <%= render "shared/collection_list", collections: @collections, selected: @collection %>
+
+  <div id="collection_area" class="overflow-y-scroll no-scrollbar flex-1 h-screen bg-secondary-100 dark:bg-secondary-950 flextext-gray-700 dark:text-secondary-200">
+
+    <div class="flex flex-col h-full w-full justify-center items-center">
+      <div class="p-4">
+        <% flash[:error]&.each do |error| %>
+          <div class="rounded-lg px-2 p-1 bg-error-400 dark:bg-error-800"><%= error %></div>
+        <% end %>
+      </div>
+      <div class="w-1/2">
+        <%= form_for [@collection, @document] do |f| %>
+          <div class="rounded-lg border border-secondary-400 dark:border-secondary-600 p-8 mb-8">
+            <div class="pr-2 pb-2">Edit fact</div>
+            <div class="py-2 items-center flex">
+              <%= f.text_area :body,
+                value: @document.contents,
+                class: "w-full rounded-lg my-2 px-5 py-4 border border-secondary-400 dark:border-secondary-600 bg-secondary-50 dark:bg-secondary-925 flex-1",
+                rows: 10
+              %>
+            </div>
+          </div>
+          <div class="flex py-4 items-center">
+            <%= link_to "Cancel", collection_path(@collection), class: "rounded-lg px-4 py-2 text-center text-secondary-950 align-baseline dark:text-secondary-100 block font-medium border border-secondary-700 dark:border-secondary-400 bg-secondary-200 dark:bg-secondary-700 hover:bg-secondary-300 hover:dark:bg-secondary-500 ml-2" %>
+            <div class="flex-1"></div>
+            <%= f.submit "Update", class: "rounded-lg my-4 px-4 py-2 text-center text-secondary-100 dark:text-secondary-100 block font-medium bg-tertiary-600 dark:bg-tertiary-700 hover:bg-tertiary-800 hover:dark:bg-tertiary-400 cursor-pointer" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
