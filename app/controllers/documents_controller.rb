@@ -61,11 +61,20 @@ class DocumentsController < ApplicationController
   private
 
   def document_from_params
-    document = Document.new(document_params.merge(chunking_profile: @chunking_profile))
+    body = document_params[:body]
+    document = Document.new(document_params.except(:body).merge(chunking_profile: @chunking_profile))
     if document_params[:file].present?
       document.filename = document_params[:file].original_filename
     elsif document_params[:link].present?
       document.title = document_params[:link]
+    elsif body.present?
+      document.file.attach(
+        io: StringIO.new(document_params[:body]),
+        filename: "fact-#{Time.current.to_i}.txt",
+        content_type: "text/plain"
+      )
+      document.filename = document.file.filename.to_s
+      document.title = body.truncate(80)
     end
     document.collection = @collection
     document.user = current_user
@@ -75,11 +84,11 @@ class DocumentsController < ApplicationController
   end
 
   def chunking_params
-    params.require(:chunking_profile).permit(:method, :size, :overlap)
+    params.fetch(:chunking_profile, { method: "bytes", size: 1000, overlap: 0 }).permit(:method, :size, :overlap)
   end
 
   def document_params
-    params.require(:document).permit(:file, :link, :filename)
+    params.require(:document).permit(:file, :link, :filename, :body)
   end
 
   def set_document
