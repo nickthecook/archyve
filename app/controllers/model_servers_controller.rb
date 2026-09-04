@@ -7,7 +7,7 @@ class ModelServersController < ApplicationController
     respond_to do |format|
       format.html do
         if @model_server.valid?
-          SyncModelsJob.perform_async(@model_server.id) if @model_server.provider == "ollama"
+          SyncModelsJob.perform_async(@model_server.id) if @model_server.ollama_api?
 
           flash[:notice] = "Inference server created."
         else

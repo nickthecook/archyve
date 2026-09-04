@@ -90,7 +90,7 @@ ops opp
 - `Chunk`: Text segments from documents with embeddings stored in ChromaDB
 - `GraphEntity` / `GraphRelationship`: Knowledge Graph entities and their relationships, stored in Neo4j
 - `Conversation` / `Message`: Chat interactions between users and LLMs
-- `ModelServer`: LLM servers (Ollama, OpenAI, Azure OpenAI)
+- `ModelServer`: LLM servers (Ollama, llmman, OpenAI, Azure OpenAI)
 - `ModelConfig`: Specific models available on ModelServers (chat models vs embedding models)
 
 **State Machines:**
@@ -111,7 +111,7 @@ The `Mediator` service orchestrates document ingestion by determining the next s
 ### LLM Client Architecture
 
 `LlmClients::Client` is the abstract base class with provider-specific implementations:
-- `LlmClients::Ollama::Client`: Local Ollama support
+- `LlmClients::Ollama::Client`: Local Ollama support (also used for llmman)
 - `LlmClients::Openai::Client`: OpenAI API support
 - `LlmClients::Openai::AzureClient`: Azure OpenAI support
 

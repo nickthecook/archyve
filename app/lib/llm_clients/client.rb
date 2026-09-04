@@ -12,7 +12,7 @@ module LlmClients
     class << self
       def client_class_for(provider)
         case provider
-        when "ollama"
+        when "ollama", "llmman"
           LlmClients::Ollama::Client
         when "openai_azure"
           LlmClients::Openai::AzureClient

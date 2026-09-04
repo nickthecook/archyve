@@ -16,7 +16,7 @@ To configure Archyve with a ModelServer (an LLM server with an API), set the env
 ]
 ```
 
-`ollama` is currently the only supported provider.
+Supported providers are `ollama`, `llmman` (Ollama API on `http://localhost:17434`), `openai` and `openai_azure`.
 
 To configure Archyve with a ModelConfig (a particular LLM), set the environment variable `PROVISIONED_MODEL_CONFIGS` to an array like this:
 

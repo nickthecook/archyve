@@ -1,7 +1,7 @@
 module Ollama
   class SyncModels
     def initialize(model_server)
-      raise ArgumentError, "ModelServer is not an Ollama server" unless model_server.provider == "ollama"
+      raise ArgumentError, "ModelServer does not serve the Ollama API" unless model_server.ollama_api?
 
       @model_server = model_server
     end

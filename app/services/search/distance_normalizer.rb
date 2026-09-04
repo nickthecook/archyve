@@ -33,7 +33,7 @@ module Search
 
     def max_for_provider
       case model_server.provider
-      when "ollama"
+      when "ollama", "llmman"
         500.0
       when "openai", "openai_azure"
         2.0
@@ -42,7 +42,7 @@ module Search
 
     def min_for_provider
       case model_server.provider
-      when "ollama"
+      when "ollama", "llmman"
         100.0
       when "openai", "openai_azure"
         0.0

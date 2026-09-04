@@ -29,6 +29,7 @@ Archyve provides:
 For LLM servers, Archyve supports:
 
 - **Ollama**
+- **[llmman](https://github.com/llmmanorg/llmman)** (serves the Ollama API on port 17434)
 - **OpenAI** (including the Azure variant)
 
 The Getting Started section will walk you through setting up Archyve for use with Ollama.

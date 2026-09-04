@@ -22,6 +22,7 @@ class ModelServer < ApplicationRecord
     ollama: 1,
     openai_azure: 2,
     openai: 3,
+    llmman: 4,
   }, prefix: :provider
 
   # Require API key if ...
@@ -40,6 +41,11 @@ class ModelServer < ApplicationRecord
   # Return true for providers that require models to include an API version
   def api_version_required?
     provider_openai_azure?
+  end
+
+  # Return true for providers that serve the Ollama API (e.g. for model listing/sync)
+  def ollama_api?
+    provider_ollama? || provider_llmman?
   end
 
   class << self

@@ -48,7 +48,7 @@
     %>
       <i class="fa fa-trash"></i>
     <% end %>
-    <% if server.provider == "ollama" %>
+    <% if server.ollama_api? %>
       <%= button_to model_server_sync_models_path(server),
         class: "px-2 py-1 rounded-md hover:bg-secondary-300 hover:dark:bg-secondary-700",
         title: "Sync models from server..." do
