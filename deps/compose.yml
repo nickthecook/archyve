@@ -3,7 +3,8 @@ name: archyve2-deps
 # Local development dependencies for Archyve 2.
 # Postgres ships with pgvector prebuilt (pgvector/pgvector image), so the
 # `vector` extension is available for `enable_extension "vector"`.
-# Docling (document extraction) will be added here when we build ingestion.
+# Docling (docling-serve) does structure-aware document extraction; the app
+# posts uploaded bytes to it and gets back markdown + a structured DoclingDocument.
 
 services:
   postgres:
@@ -19,5 +20,19 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U archyve -d archyve2_development"]
       interval: 5s
+      timeout: 5s
+      retries: 10
+
+  docling:
+    # Structure-aware document extraction. CPU image (no GPU dep for local dev).
+    # UI playground at http://localhost:5001/ui, API docs at /docs.
+    image: quay.io/docling-project/docling-serve-cpu:latest
+    environment:
+      DOCLING_SERVE_ENABLE_UI: "1"
+    ports:
+      - "5001:5001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
+      interval: 10s
       timeout: 5s
       retries: 10
