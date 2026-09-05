@@ -1,0 +1,23 @@
+name: archyve2-deps
+
+# Local development dependencies for Archyve 2.
+# Postgres ships with pgvector prebuilt (pgvector/pgvector image), so the
+# `vector` extension is available for `enable_extension "vector"`.
+# Docling (document extraction) will be added here when we build ingestion.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: archyve
+      POSTGRES_PASSWORD: archyve
+      POSTGRES_DB: archyve2_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U archyve -d archyve2_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

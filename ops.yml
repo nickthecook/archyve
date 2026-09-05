@@ -1,0 +1,35 @@
+forwards:
+  deps: deps            # `ops deps <action>` runs in deps/ops.yml
+
+dependencies:
+  # `ops up` runs `docker compose up -d` in deps/; `ops down` runs `docker compose down`.
+  docker:
+    - deps
+  # Keep gems in sync when meeting dependencies.
+  custom:
+    - bundle check || bundle install
+
+actions:
+  server:
+    command: bin/dev
+    alias: s
+    load_secrets: true
+  console:
+    command: bin/rails console
+    alias: c
+    load_secrets: true
+  rails:
+    command: bin/rails
+    load_secrets: true
+  rake:
+    command: bin/rake
+  test:
+    command: RAILS_ENV=test bundle exec rspec
+    alias: t
+
+options:
+  exec:
+    load_secrets: true
+  environment:
+    # Map ops `dev` -> Rails `development`; other envs pass through unchanged.
+    RAILS_ENV: "`[ $environment == dev ] && echo -n development || echo -n $environment`"

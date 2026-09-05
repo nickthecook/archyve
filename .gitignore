@@ -33,6 +33,12 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Postgres container data (bind mount in deps/compose.yaml).
+/deps/pgdata/
+
+# ejson decryption keys (encrypted secrets.ejson files are safe to commit).
+/config/*/*.key
+
 
 /app/assets/builds/*
 !/app/assets/builds/.keep

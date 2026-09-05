@@ -1,0 +1,14 @@
+actions:
+  start:
+    command: docker compose up -d
+  stop:
+    command: docker compose down
+  ps:
+    command: docker compose ps
+  logs:
+    command: docker compose logs --tail 100 -f
+    alias: l
+  psql:
+    command: docker compose exec postgres psql -U archyve archyve2_development
+  sh:
+    command: docker compose exec postgres bash
