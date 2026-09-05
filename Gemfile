@@ -63,6 +63,9 @@ group :development, :test do
   # RSpec as the test framework (Minitest skipped at generate time)
   gem "rspec-rails"
 
+  # Test data builders
+  gem "factory_bot_rails"
+
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false
 
@@ -79,3 +82,5 @@ group :development do
 end
 
 gem "pry-rails", "~> 0.3.11"
+
+gem "fuubar", "~> 2.5"

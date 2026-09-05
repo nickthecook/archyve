@@ -1,0 +1,281 @@
+{
+  "document": {
+    "filename": "sample.md",
+    "md_content": null,
+    "json_content": {
+      "schema_name": "DoclingDocument",
+      "version": "1.10.0",
+      "name": "sample",
+      "origin": {
+        "mimetype": "text/markdown",
+        "binary_hash": 12527130719648081146,
+        "filename": "sample.md",
+        "uri": null
+      },
+      "furniture": {
+        "self_ref": "#/furniture",
+        "parent": null,
+        "children": [],
+        "content_layer": "furniture",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "body": {
+        "self_ref": "#/body",
+        "parent": null,
+        "children": [
+          {
+            "$ref": "#/texts/0"
+          },
+          {
+            "$ref": "#/texts/1"
+          },
+          {
+            "$ref": "#/groups/0"
+          },
+          {
+            "$ref": "#/texts/4"
+          },
+          {
+            "$ref": "#/texts/5"
+          },
+          {
+            "$ref": "#/texts/6"
+          },
+          {
+            "$ref": "#/texts/7"
+          },
+          {
+            "$ref": "#/texts/8"
+          },
+          {
+            "$ref": "#/texts/9"
+          },
+          {
+            "$ref": "#/texts/10"
+          }
+        ],
+        "content_layer": "body",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "groups": [
+        {
+          "self_ref": "#/groups/0",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/2"
+            },
+            {
+              "$ref": "#/texts/3"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "group",
+          "label": "inline"
+        }
+      ],
+      "texts": [
+        {
+          "self_ref": "#/texts/0",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "title",
+          "prov": [],
+          "orig": "Archyve Test Document",
+          "text": "Archyve Test Document",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/1",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Introduction",
+          "text": "Introduction",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 1
+        },
+        {
+          "self_ref": "#/texts/2",
+          "parent": {
+            "$ref": "#/groups/0"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Archyve is a retrieval-augmented generation system. It ingests documents from",
+          "text": "Archyve is a retrieval-augmented generation system. It ingests documents from",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/3",
+          "parent": {
+            "$ref": "#/groups/0"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "connectors and makes them searchable.",
+          "text": "connectors and makes them searchable.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/4",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Architecture",
+          "text": "Architecture",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 1
+        },
+        {
+          "self_ref": "#/texts/5",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Ingestion",
+          "text": "Ingestion",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 2
+        },
+        {
+          "self_ref": "#/texts/6",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Documents flow through Docling for extraction, then chunking, then embedding.",
+          "text": "Documents flow through Docling for extraction, then chunking, then embedding.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/7",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Retrieval",
+          "text": "Retrieval",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 2
+        },
+        {
+          "self_ref": "#/texts/8",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Retrieval is scoped to a collection and executed as a tool the model calls.",
+          "text": "Retrieval is scoped to a collection and executed as a tool the model calls.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/9",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Conclusion",
+          "text": "Conclusion",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 1
+        },
+        {
+          "self_ref": "#/texts/10",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "That is all for now.",
+          "text": "That is all for now.",
+          "formatting": null,
+          "hyperlink": null
+        }
+      ],
+      "pictures": [],
+      "tables": [],
+      "key_value_items": [],
+      "form_items": [],
+      "pages": {}
+    },
+    "html_content": null,
+    "text_content": null,
+    "doctags_content": null,
+    "doclang_content": null
+  },
+  "status": "success",
+  "errors": [],
+  "processing_time": 0.0015457759946002625,
+  "timings": {},
+  "confidence": {
+    "parse_score": null,
+    "layout_score": null,
+    "table_score": null,
+    "ocr_score": null,
+    "mean_score": null,
+    "low_score": null,
+    "mean_grade": "unspecified",
+    "low_grade": "unspecified"
+  }
+}
