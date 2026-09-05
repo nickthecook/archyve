@@ -26,6 +26,13 @@ gem "neighbor"
 # Multi-provider LLM client: tool calling + streaming (Ollama first)
 gem "ruby_llm"
 
+# HTTP client for outbound service calls (Docling, connectors). One Faraday
+# stack shared with RubyLLM; middleware gives us logging, retries, and
+# ActiveSupport::Notifications instrumentation for live pipeline stats.
+gem "faraday"
+gem "faraday-multipart"  # multipart file uploads to docling-serve
+gem "faraday-retry"      # backoff for slow/flaky local services
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 

@@ -26,6 +26,12 @@ actions:
   test:
     command: RAILS_ENV=test bundle exec rspec
     alias: t
+  lint:
+    command: bundle exec rubocop
+    alias: l
+  lint-fix:
+    command: bundle exec rubocop -a
+    alias: lf
 
 options:
   exec:

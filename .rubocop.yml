@@ -1,8 +1,10 @@
-# Omakase Ruby styling for Rails
+# Omakase Ruby styling for Rails — the relaxed "chef's choice" ruleset. Trying
+# this instead of a hand-tuned config; add house-style overrides below only when
+# omakase genuinely gets something wrong, not to re-impose strict defaults.
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+# House-style overrides where omakase gets it wrong for us:
+
+# `[:a, :b]`, not `[ :a, :b ]` — spaces inside array brackets read as noise.
+Layout/SpaceInsideArrayLiteralBrackets:
+  Enabled: false
