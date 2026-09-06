@@ -66,5 +66,17 @@ RSpec.describe Ingestion::DocumentUploader do
         expect(membership.source).to eq("manual")
       end
     end
+
+    context "when identical bytes exist but not yet in the target collection" do
+      let(:collection) { create(:collection) }
+      let(:collections) { [collection] }
+
+      before { described_class.call(file: StringIO.new(content), filename: "sample.md", content_type: "text/markdown") }
+
+      it "adds the existing document to the collection without re-ingesting" do
+        expect { upload }.not_to change(Document, :count)
+        expect(upload.collections).to contain_exactly(collection)
+      end
+    end
   end
 end

@@ -1,6 +1,49 @@
 require "rails_helper"
 
 RSpec.describe "Documents", type: :request do
+  describe "POST /documents" do
+    subject(:request) { post documents_path, params: }
+
+    before { allow(ProcessDocumentJob).to receive(:perform_later) }
+
+    let(:file) { fixture_file_upload("sample.md", "text/markdown") }
+
+    context "when uploading into a collection" do
+      let(:collection) { create(:collection, name: "Handbook") }
+      let(:params) { { file:, collection_slug: collection.slug } }
+
+      it "ingests the file and files it into the collection" do
+        request
+        expect(collection.reload.documents.count).to eq(1)
+      end
+
+      it "redirects back to the collection" do
+        request
+        expect(response).to redirect_to(collection_path(collection))
+      end
+    end
+
+    context "when uploading with no collection" do
+      let(:params) { { file: } }
+
+      it "redirects to the new document" do
+        request
+        expect(response).to redirect_to(Document.last)
+      end
+    end
+
+    context "when no file is chosen for a collection upload" do
+      let(:collection) { create(:collection) }
+      let(:params) { { collection_slug: collection.slug } }
+
+      it "returns to the collection with an alert" do
+        request
+        expect(response).to redirect_to(collection_path(collection))
+        expect(flash[:alert]).to be_present
+      end
+    end
+  end
+
   describe "GET /documents/:id" do
     subject(:request) { get document_path(document), headers: { "HTTP_REFERER" => referer } }
 

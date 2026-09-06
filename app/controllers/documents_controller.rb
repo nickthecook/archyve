@@ -13,11 +13,14 @@ class DocumentsController < ApplicationController
   end
 
   def create
+    collection = Collection.find_by(slug: params[:collection_slug]) if params[:collection_slug].present?
     file = params[:file]
-    return redirect_to(documents_path, alert: "Choose a file to upload.") if file.blank?
+    return redirect_to(collection || documents_path, alert: "Choose a file to upload.") if file.blank?
 
-    document = Ingestion::DocumentUploader.call(file: file)
-    redirect_to document, notice: "Uploaded “#{document.title}”. Processing…"
+    document = Ingestion::DocumentUploader.call(file: file, collections: Array(collection))
+    # Back to the collection when the upload targeted one, so the user sees it
+    # appear; otherwise to the document itself.
+    redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"
   end
 
   private

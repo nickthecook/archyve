@@ -20,6 +20,13 @@ class Document < ApplicationRecord
 
   validates :external_id, presence: true, uniqueness: { scope: :connector_id }
 
+  # "Unsorted": live documents in no collection. A derived view, not a real
+  # collection — a removed (tombstoned) doc is gone from its source, so it isn't
+  # unsorted, just dead.
+  scope :unsorted, -> {
+    where.not(status: "removed").where.not(id: CollectionMembership.active.select(:document_id))
+  }
+
   # Live-update the show page as the pipeline advances. Broadcast synchronously
   # from whatever updated the status (the job), not *_later — see the streaming
   # notes in the architecture: async broadcasts race and arrive out of order.

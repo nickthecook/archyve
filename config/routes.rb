@@ -15,6 +15,10 @@ Rails.application.routes.draw do
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"
   end
   resources :documents, only: [:index, :show, :create]
+  # "Unsorted" is a derived view (docs in no collection), not a collection — its
+  # own top-level route so it never collides with a collection slug.
+  get "unsorted", to: "unsorted#index"
+  post "unsorted/assign", to: "unsorted#assign", as: :assign_unsorted
   get "search", to: "search#index"
   get "chat", to: "chat#index"
   get "settings", to: "settings#index"

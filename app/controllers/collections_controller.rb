@@ -77,9 +77,9 @@ class CollectionsController < ApplicationController
     end
   end
 
-  # "Unsorted" = documents with zero active memberships. A derived view, not a
-  # real collection.
+  # "Unsorted" = live documents in no collection. A derived view, not a real
+  # collection (see Document.unsorted).
   def unsorted_count
-    Document.where.not(id: CollectionMembership.active.select(:document_id)).count
+    Document.unsorted.count
   end
 end

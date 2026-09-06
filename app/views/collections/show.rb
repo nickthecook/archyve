@@ -21,6 +21,7 @@ class Views::Collections::Show < Views::Base
     breadcrumb
     header_block
     search
+    upload
     add_documents
     @document_rows.any? ? document_list : empty_state
   end
@@ -92,6 +93,28 @@ class Views::Collections::Show < Views::Base
         span(class: "shrink-0 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted", title: "Search targets this collection") do
           span(class: "h-1.5 w-1.5 rounded-full bg-accent")
           plain "In #{@collection.name}"
+        end
+      end
+    end
+  end
+
+  # Upload a new file straight into this collection: it ingests through the
+  # manual-upload pipeline and lands here as a manual membership. The hidden
+  # collection_slug tells DocumentsController#create to file it and return here.
+  def upload
+    details(class: "mb-2 rounded-lg border border-line bg-ink/40") do
+      summary(class: "cursor-pointer list-none px-4 py-3 text-sm font-medium text-accent hover:text-accent-dim transition-colors") { "Upload a file" }
+      div(class: "border-t border-line p-4") do
+        form(action: documents_path, method: "post", enctype: "multipart/form-data", class: "flex items-center gap-4") do
+          input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+          input(type: "hidden", name: "collection_slug", value: @collection.slug)
+          input(
+            type: "file", name: "file", required: true,
+            class: "block w-full text-sm text-muted file:mr-4 file:rounded file:border-0 " \
+                   "file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-void " \
+                   "hover:file:bg-accent-dim file:cursor-pointer"
+          )
+          button(type: "submit", class: "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Upload" }
         end
       end
     end

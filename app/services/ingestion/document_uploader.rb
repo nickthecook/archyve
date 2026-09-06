@@ -26,7 +26,14 @@ module Ingestion
 
     def call
       document = connector.documents.find_or_initialize_by(external_id: checksum)
-      return document unless document.new_record? # identical bytes already ingested
+
+      # Identical bytes already ingested: don't re-ingest, but still honour the
+      # requested collections so "upload to this collection" works even when the
+      # file already exists elsewhere in the archive.
+      unless document.new_record?
+        add_to_collections(document)
+        return document
+      end
 
       # DB writes commit atomically; Rails 8 enqueues after commit, so the job
       # never fires for a document that rolled back.
@@ -47,11 +54,10 @@ module Ingestion
       @connector ||= Connectors::ManualUpload.first_or_create!(name: CONNECTOR_NAME)
     end
 
+    # Use the user-path add so an existing connector membership is never illegally
+    # downgraded (CollectionMembership.add is a no-op on an active connector row).
     def add_to_collections(document)
-      @collections.each do |collection|
-        membership = document.collection_memberships.find_or_initialize_by(collection: collection)
-        membership.update!(source: :manual, removed_at: nil)
-      end
+      @collections.each { |collection| CollectionMembership.add(document:, collection:) }
     end
 
     def checksum

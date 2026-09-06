@@ -162,7 +162,7 @@ class Views::Collections::Index < Views::Base
   # "Unsorted" is a derived view (documents with no active membership), not a
   # real collection — so it reads differently: dashed, quiet, set apart.
   def unsorted
-    div(class: "mt-6 flex items-center justify-between gap-3 rounded-lg border border-dashed border-line px-4 py-3") do
+    a(href: unsorted_path, class: "mt-6 flex items-center justify-between gap-3 rounded-lg border border-dashed border-line px-4 py-3 hover:border-line-2 transition-colors") do
       div do
         span(class: "text-sm text-muted") { "Unsorted" }
         span(class: "ml-2 text-xs text-faint") { "documents not in any collection" }
