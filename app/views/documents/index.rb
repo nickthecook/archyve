@@ -26,7 +26,7 @@ class Views::Documents::Index < Views::Base
       enctype: "multipart/form-data",
       class: "mb-10 rounded-lg border border-line bg-ink/40 p-5 shadow-sm flex items-center gap-4"
     ) do
-      input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(
         type: "file",
         name: "file",

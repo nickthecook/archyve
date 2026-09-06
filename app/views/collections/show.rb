@@ -106,7 +106,7 @@ class Views::Collections::Show < Views::Base
       summary(class: "cursor-pointer list-none px-4 py-3 text-sm font-medium text-accent hover:text-accent-dim transition-colors") { "Upload a file" }
       div(class: "border-t border-line p-4") do
         form(action: documents_path, method: "post", enctype: "multipart/form-data", class: "flex items-center gap-4") do
-          input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+          input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
           input(type: "hidden", name: "collection_slug", value: @collection.slug)
           input(
             type: "file", name: "file", required: true,
@@ -135,7 +135,7 @@ class Views::Collections::Show < Views::Base
 
   def picker_form
     form(action: collection_documents_path(@collection), method: "post", data: { controller: "list-filter" }) do
-      input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(
         type: "text", placeholder: "Filter documents", autocomplete: "off",
         data: { list_filter_target: "query", action: "input->list-filter#filter" },
@@ -188,7 +188,7 @@ class Views::Collections::Show < Views::Base
   def remove_button(document)
     form(action: collection_document_path(@collection, document), method: "post", class: "inline") do
       input(type: "hidden", name: "_method", value: "delete")
-      input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Remove" }
     end
   end

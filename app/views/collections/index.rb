@@ -92,7 +92,7 @@ class Views::Collections::Index < Views::Base
       summary(class: "cursor-pointer list-none rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "New collection" }
       div(class: "absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line-2 bg-ink p-3 shadow-lg") do
         form(action: collections_path, method: "post", class: "flex flex-col gap-2") do
-          input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+          input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
           input(
             type: "text", name: "collection[name]", placeholder: "Collection name", required: true, autofocus: true,
             class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
@@ -189,7 +189,7 @@ class Views::Collections::Index < Views::Base
   def updated(time)
     return "no activity yet" if time.nil?
 
-    "updated #{helpers.time_ago_in_words(time)} ago"
+    "updated #{time_ago_in_words(time)} ago"
   end
 
   def search_icon

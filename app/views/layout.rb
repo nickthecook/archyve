@@ -10,6 +10,10 @@ class Views::Layout < Phlex::HTML
   include Phlex::Rails::Helpers::JavaScriptImportmapTags
   include Phlex::Rails::Helpers::Flash
 
+  # No built-in adapter for cookies; register one so `cookies` works without the
+  # deprecated `helpers` proxy. (Layout is a plain Phlex::HTML, not Components::Base.)
+  register_value_helper :cookies
+
   def initialize(title: nil, contained: true)
     @title = title
     @contained = contained
@@ -40,7 +44,7 @@ class Views::Layout < Phlex::HTML
   # Honour the reduce-motion preference before first paint (no flash): the class
   # lets CSS suppress load animations and signals the JS animation controllers.
   def html_attrs
-    helpers.cookies[:reduce_motion] == "1" ? { class: "reduce-motion" } : {}
+    cookies[:reduce_motion] == "1" ? { class: "reduce-motion" } : {}
   end
 
   def contained

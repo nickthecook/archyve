@@ -22,7 +22,7 @@ class Views::Chrome < Components::Base
   private
 
   def nav_link(label, href)
-    active = helpers.current_page?(href)
+    active = current_page?(href)
     a(href: href, class: "transition-colors #{active ? 'text-accent' : 'text-muted hover:text-fg'}") { label }
   end
 

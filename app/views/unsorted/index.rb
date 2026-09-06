@@ -42,7 +42,7 @@ class Views::Unsorted::Index < Views::Base
   # then assign. One form so the selection and the collection submit together.
   def sorter
     form(action: assign_unsorted_path, method: "post", data: { controller: "list-filter" }) do
-      input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       toolbar
       document_list
     end

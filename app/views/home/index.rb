@@ -97,7 +97,7 @@ class Views::Home::Index < Views::Base
   def motion_toggle
     label(class: "motion-toggle", data: { controller: "motion" }) do
       input(
-        type: "checkbox", checked: helpers.cookies[:reduce_motion] == "1",
+        type: "checkbox", checked: cookies[:reduce_motion] == "1",
         data: { motion_target: "checkbox", action: "motion#toggle" }
       )
       span { "reduce motion" }
