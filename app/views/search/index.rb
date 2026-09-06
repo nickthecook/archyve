@@ -79,7 +79,7 @@ class Views::Search::Index < Views::Base
     document = chunk.document
     breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
 
-    a(href: document_path(document), class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors") do
+    a(href: document_path(document, anchor: ActionView::RecordIdentifier.dom_id(chunk)), class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors") do
       div(class: "mb-1.5 flex items-center justify-between gap-3") do
         span(class: "truncate text-sm font-medium text-fg") { document.title }
         span(class: "shrink-0 font-mono text-xs text-accent tabular-nums") { "#{similarity(embedding)}%" }

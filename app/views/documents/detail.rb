@@ -15,7 +15,7 @@ class Views::Documents::Detail < Components::Base
       id: ActionView::RecordIdentifier.dom_id(@document),
       # .to_s: Phlex renders a bare `true` as a valueless attribute and omits
       # `false`, which Stimulus boolean values can't read — they need "true"/"false".
-      data: { controller: "progress", progress_terminal_value: TERMINAL_STATUSES.include?(@document.status).to_s }
+      data: { controller: "progress chunk-highlight", progress_terminal_value: TERMINAL_STATUSES.include?(@document.status).to_s }
     ) do
       div(class: "flex items-center gap-3 mb-6") do
         render Views::Documents::StatusBadge.new(status: @document.status)
@@ -50,7 +50,13 @@ class Views::Documents::Detail < Components::Base
 
   def chunk_card(chunk)
     breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
-    article(class: "rounded-lg border border-line bg-ink/40 p-4") do
+    # id + scroll margin so a search result can deep-link straight to this chunk.
+    # (The flash on arrival is done in JS — see chunk_highlight_controller — because
+    # Turbo's pushState navigation doesn't trigger the CSS :target pseudo-class.)
+    article(
+      id: ActionView::RecordIdentifier.dom_id(chunk),
+      class: "scroll-mt-6 rounded-lg border border-line bg-ink/40 p-4"
+    ) do
       header(class: "mb-2 flex items-center justify-between gap-3") do
         span(class: "text-xs font-semibold uppercase tracking-wide text-faint") { "Chunk #{chunk.position + 1}" }
         span(class: "text-xs text-faint truncate") { breadcrumb } if breadcrumb.present?
