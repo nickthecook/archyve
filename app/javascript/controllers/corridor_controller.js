@@ -20,6 +20,7 @@ export default class extends Controller {
   VMAX = 1.3    // slots per second at cruise (≈ one 800ms step when isolated)
   ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
   LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
+  DRIFT = 0.18  // slots per second of always-on dolly, so the corridor breathes when idle
 
   connect() {
     this.NS = "http://www.w3.org/2000/svg"
@@ -62,6 +63,7 @@ export default class extends Controller {
     this.px = 0; this.py = 0; this.tpx = 0; this.tpy = 0
     this.lastLen = 0
     this.running = false
+    this.ambient = 0   // continuous idle drift, added to `current` only for rendering
 
     this._tick = this.tick.bind(this)
     this.render()
@@ -157,7 +159,7 @@ export default class extends Controller {
   }
 
   drawRing(o) {
-    let p = o.i - this.current
+    let p = o.i - this.current - this.ambient
     while (p < this.NEAR) p += this.RINGS
     while (p >= this.FAR) p -= this.RINGS
     const s = Math.pow(this.RATIO, p)
@@ -189,6 +191,13 @@ export default class extends Controller {
 
     this.walk(dt)
 
+    // Gentle always-on dolly. Kept separate from the walk system so typing and
+    // the drift don't fight; wraps each RINGS so it never grows unbounded.
+    if (!this.reduce) {
+      this.ambient += this.DRIFT * dt
+      if (this.ambient >= this.RINGS) this.ambient -= this.RINGS
+    }
+
     this.litAmt = this.lerp(this.litAmt, this.litTarget, this.reduce ? 1 : 0.1)
     if (Math.abs(this.litTarget - this.litAmt) < 0.002) this.litAmt = this.litTarget
     this.px = this.lerp(this.px, this.tpx, 0.1)
@@ -196,9 +205,11 @@ export default class extends Controller {
 
     this.render()
 
-    const still = this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
+    // The drift keeps the corridor moving forever, so only sleep the loop when
+    // motion is reduced and everything has otherwise settled.
+    const settled = this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
       Math.abs(this.tpx - this.px) < 0.004 && Math.abs(this.tpy - this.py) < 0.004
-    if (still) this.running = false
+    if (this.reduce && settled) this.running = false
     else this.raf = requestAnimationFrame(this._tick)
   }
 
