@@ -9,6 +9,8 @@
   max-width: 1040px;
   margin: 0 auto;
   overflow: hidden;
+  /* how long the three section links take to fade in on load — tweak me */
+  --facet-reveal-duration: 0.4s;
 }
 
 /* wordmark ------------------------------------------------------------- */
@@ -75,12 +77,21 @@
   text-decoration: none; color: inherit; padding: 0.5rem; border-radius: 2px; transition: transform 0.25s;
 }
 .corridor-stage .facet .name {
-  font-size: 1.02rem; font-weight: 550; color: var(--color-fg); display: flex; align-items: center; gap: 0.5rem;
+  font-size: 1.02rem; font-weight: 550; color: var(--color-fg);
+  /* animated underline: a gold line that grows under the text on hover */
+  background: linear-gradient(var(--color-accent), var(--color-accent)) no-repeat left bottom / 0% 1.5px;
+  padding-bottom: 2px;
+  transition: background-size 0.3s ease, color 0.25s ease;
 }
-.corridor-stage .facet .name::after { content: ""; width: 0; height: 1px; background: var(--color-accent); transition: width 0.3s ease; }
-.corridor-stage .facet:hover .name::after, .corridor-stage .facet:focus-visible .name::after { width: 1.6rem; }
+.corridor-stage .facet:hover .name, .corridor-stage .facet:focus-visible .name {
+  color: var(--color-accent); background-size: 100% 1.5px;
+}
+/* grow the underline from the same edge the text is anchored to */
+.corridor-stage .facet.chat .name { background-position: right bottom; }
+.corridor-stage .facet.settings .name { background-position: center bottom; }
 .corridor-stage .facet .glimpse { font-family: var(--font-mono); font-size: 0.76rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .corridor-stage .facet:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.corridor-stage .facet.reveal { animation-duration: var(--facet-reveal-duration); }
 .corridor-stage .facet.documents { left: 3%;  top: 25%; text-align: left;  align-items: flex-start; }
 .corridor-stage .facet.chat      { right: 3%; top: 25%; text-align: right; align-items: flex-end; }
 .corridor-stage .facet.settings  { left: 50%; bottom: 7.5%; transform: translateX(-50%); text-align: center; align-items: center; }
