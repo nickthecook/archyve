@@ -10,7 +10,10 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   resources :documents, only: [:index, :show, :create]
+  get "search", to: "search#index"
+  get "chat", to: "chat#index"
+  get "settings", to: "settings#index"
 
-  # Defines the root path route ("/")
-  root "documents#index"
+  # The landing: the archive corridor with search as the way in.
+  root "home#index"
 end

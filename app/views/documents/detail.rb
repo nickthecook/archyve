@@ -31,15 +31,15 @@ class Views::Documents::Detail < Components::Base
 
   def note
     if @document.pending? || @document.processing?
-      span(class: "text-sm text-slate-500") { "Extracting, chunking and embedding…" }
+      span(class: "text-sm text-muted") { "Extracting, chunking and embedding…" }
     elsif @document.processed?
       count = @document.chunks.size
-      span(class: "text-sm text-slate-500") { "#{count} #{'chunk'.pluralize(count)}" }
+      span(class: "text-sm text-muted") { "#{count} #{'chunk'.pluralize(count)}" }
     end
   end
 
   def failed_note
-    p(class: "text-sm text-red-700") { "Processing failed — check the logs and try re-uploading." }
+    p(class: "text-sm text-red-300") { "Processing failed — check the logs and try re-uploading." }
   end
 
   def chunks
@@ -50,12 +50,12 @@ class Views::Documents::Detail < Components::Base
 
   def chunk_card(chunk)
     breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
-    article(class: "rounded-lg border border-slate-200 bg-white p-4 shadow-sm") do
+    article(class: "rounded-lg border border-line bg-ink/40 p-4") do
       header(class: "mb-2 flex items-center justify-between gap-3") do
-        span(class: "text-xs font-semibold uppercase tracking-wide text-slate-400") { "Chunk #{chunk.position + 1}" }
-        span(class: "text-xs text-slate-400 truncate") { breadcrumb } if breadcrumb.present?
+        span(class: "text-xs font-semibold uppercase tracking-wide text-faint") { "Chunk #{chunk.position + 1}" }
+        span(class: "text-xs text-faint truncate") { breadcrumb } if breadcrumb.present?
       end
-      pre(class: "whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700") { chunk.content }
+      pre(class: "whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted") { chunk.content }
     end
   end
 end

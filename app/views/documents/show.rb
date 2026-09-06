@@ -8,11 +8,11 @@ class Views::Documents::Show < Views::Base
   end
 
   def view_template
-    a(href: documents_path, class: "text-sm text-slate-500 hover:text-slate-700") { "← All documents" }
+    a(href: documents_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← All documents" }
 
     header(class: "mt-3 mb-8") do
       h1(class: "text-2xl font-semibold tracking-tight") { @document.title }
-      p(class: "mt-1 text-sm text-slate-500") do
+      p(class: "mt-1 text-sm text-muted") do
         plain(@document.content_type.to_s)
         plain(" · via #{@document.connector.name}") if @document.connector
       end

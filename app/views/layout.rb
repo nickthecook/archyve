@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-# The application HTML shell, in Phlex instead of ERB. Page views wrap their
-# content in this via Views::Base#around_template, so there's one way to write
-# views. (Rendering a Phlex component from a controller bypasses Rails' ERB
-# layout lookup entirely, so the shell has to live here.)
+# The application HTML shell, in Phlex. Page views wrap their content in this via
+# Views::Base#around_template. Two modes: `contained` pages get the slim top bar
+# and a centred column; full-bleed pages (the landing) manage their own layout.
 class Views::Layout < Phlex::HTML
   include Phlex::Rails::Helpers::CSRFMetaTags
   include Phlex::Rails::Helpers::CSPMetaTag
@@ -11,8 +10,9 @@ class Views::Layout < Phlex::HTML
   include Phlex::Rails::Helpers::JavaScriptImportmapTags
   include Phlex::Rails::Helpers::Flash
 
-  def initialize(title: nil)
+  def initialize(title: nil, contained: true)
     @title = title
+    @contained = contained
   end
 
   def view_template
@@ -24,23 +24,25 @@ class Views::Layout < Phlex::HTML
         csrf_meta_tags
         csp_meta_tag
         stylesheet_link_tag("tailwind", "data-turbo-track": "reload")
+        stylesheet_link_tag("landing", "data-turbo-track": "reload")
         javascript_importmap_tags
       end
-      body(class: "bg-slate-50 text-slate-900 antialiased") do
-        main(class: "container mx-auto max-w-3xl px-5 py-12") do
-          render_flash
-          yield
-        end
+      body(class: "min-h-screen bg-base text-fg font-sans antialiased") do
+        @contained ? contained { yield } : yield
       end
     end
   end
 
   private
 
-  def render_flash
-    flash.each do |type, message|
-      color = type.to_sym == :alert ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-      div(class: "mb-4 rounded-md px-4 py-3 text-sm #{color}") { message }
+  def contained
+    render Views::Chrome.new
+    main(class: "mx-auto max-w-3xl px-5 py-10") do
+      flash.each do |type, message|
+        color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
+        div(class: "mb-6 rounded border px-4 py-3 text-sm #{color}") { message }
+      end
+      yield
     end
   end
 end

@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* Phlex views are Ruby, so point Tailwind's class scanner at them explicitly. */
+@source "../../../app/**/*.rb";
+
+/* Archyve brand tokens — the dark "corridor into the archive" palette. Exposed
+   as Tailwind theme values so utilities (bg-base, text-accent, border-line-2,
+   font-mono, …) are available across the app. */
+@theme {
+  --color-void:   #05070b;
+  --color-base:   #0b0f16;
+  --color-ink:    #121a26;
+  --color-line:   #223040;
+  --color-line-2: #33465c;
+  --color-fg:     #e8edf5;
+  --color-muted:  #8b96a8;
+  --color-faint:  #5b6577;
+  --color-accent: #e6b455;
+  --color-accent-dim: #b98a34;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+}

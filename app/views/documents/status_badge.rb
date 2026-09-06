@@ -5,11 +5,11 @@
 # broadcasts.
 class Views::Documents::StatusBadge < Components::Base
   COLORS = {
-    "pending" => "bg-slate-100 text-slate-600",
-    "processing" => "bg-amber-100 text-amber-800 animate-pulse",
-    "processed" => "bg-green-100 text-green-700",
-    "failed" => "bg-red-100 text-red-700",
-    "removed" => "bg-slate-200 text-slate-500"
+    "pending" => "bg-line/60 text-muted",
+    "processing" => "bg-accent/15 text-accent animate-pulse",
+    "processed" => "bg-emerald-500/15 text-emerald-300",
+    "failed" => "bg-red-500/15 text-red-300",
+    "removed" => "bg-line/40 text-faint"
   }.freeze
 
   def initialize(status:)

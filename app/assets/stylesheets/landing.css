@@ -1,0 +1,109 @@
+/* Bespoke styles for the archive-corridor landing. Everything is scoped under
+   .corridor-stage so it can't leak into the rest of the app. Brand tokens come
+   from the Tailwind @theme (:root custom properties). */
+
+.corridor-stage {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* wordmark ------------------------------------------------------------- */
+.corridor-stage .brand {
+  position: absolute; top: 4.2vh; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.7rem; z-index: 5;
+}
+.corridor-stage .brand svg { width: 20px; height: 18px; overflow: visible; }
+.corridor-stage .brand-name {
+  font-size: 0.78rem; letter-spacing: 0.42em; text-indent: 0.42em;
+  font-weight: 600; color: var(--color-muted);
+}
+
+/* the hall ------------------------------------------------------------- */
+.corridor-stage .hall { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; }
+.corridor-stage .hall-inner {
+  position: relative; width: min(80vh, 90vw, 660px); aspect-ratio: 1 / 0.86; transform: translateY(-14%);
+}
+.corridor-stage svg.rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.corridor-stage svg.rings polygon { fill: none; stroke-linejoin: round; }
+
+/* warm light from the vanishing point — off until the search is focused */
+.corridor-stage .glow {
+  position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%);
+  width: 62%; aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(230,180,85,0.30) 0%, rgba(230,180,85,0.09) 36%, transparent 66%);
+  filter: blur(8px); opacity: 0; transition: opacity 0.7s ease; z-index: 2; pointer-events: none;
+}
+.corridor-stage.is-lit .glow { opacity: 1; }
+
+/* search: the lit threshold at the end of the hall --------------------- */
+.corridor-stage .search { position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%); width: 72%; z-index: 6; }
+.corridor-stage .search-field {
+  display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1.1rem;
+  background: rgba(8, 12, 19, 0.72); border: 1px solid var(--color-line-2); border-radius: 2px;
+  backdrop-filter: blur(6px); transition: border-color 0.35s, box-shadow 0.35s, background 0.35s;
+}
+.corridor-stage .search-field:focus-within {
+  border-color: var(--color-accent); background: rgba(8, 12, 19, 0.82);
+  box-shadow: 0 0 0 1px var(--color-accent), 0 12px 55px -14px rgba(230,180,85,0.6);
+}
+.corridor-stage .search-field .icon { flex: none; color: var(--color-faint); transition: color 0.35s; }
+.corridor-stage .search-field:focus-within .icon { color: var(--color-accent); }
+.corridor-stage .search-field input {
+  flex: 1; background: none; border: none; outline: none; color: var(--color-fg);
+  font-family: var(--font-sans); font-size: 1rem; letter-spacing: 0.01em;
+}
+.corridor-stage .search-field input::placeholder { color: var(--color-faint); }
+.corridor-stage .search-field kbd {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-faint);
+  border: 1px solid var(--color-line); border-radius: 3px; padding: 0.1rem 0.35rem;
+}
+.corridor-stage .search-hint {
+  position: absolute; left: 0; right: 0; margin: 0.75rem 0 0; text-align: center;
+  font-size: 0.8rem; color: var(--color-muted); opacity: 0; transform: translateY(-3px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  text-shadow: 0 1px 10px var(--color-void), 0 0 4px var(--color-void); pointer-events: none;
+}
+.corridor-stage .search:focus-within .search-hint { opacity: 1; transform: translateY(0); }
+
+/* facet sections ------------------------------------------------------- */
+.corridor-stage .facet {
+  position: absolute; z-index: 5; display: flex; flex-direction: column; gap: 0.28rem;
+  text-decoration: none; color: inherit; padding: 0.5rem; border-radius: 2px; transition: transform 0.25s;
+}
+.corridor-stage .facet .name {
+  font-size: 1.02rem; font-weight: 550; color: var(--color-fg); display: flex; align-items: center; gap: 0.5rem;
+}
+.corridor-stage .facet .name::after { content: ""; width: 0; height: 1px; background: var(--color-accent); transition: width 0.3s ease; }
+.corridor-stage .facet:hover .name::after, .corridor-stage .facet:focus-visible .name::after { width: 1.6rem; }
+.corridor-stage .facet .glimpse { font-family: var(--font-mono); font-size: 0.76rem; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.corridor-stage .facet:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.corridor-stage .facet.documents { left: 3%;  top: 25%; text-align: left;  align-items: flex-start; }
+.corridor-stage .facet.chat      { right: 3%; top: 25%; text-align: right; align-items: flex-end; }
+.corridor-stage .facet.settings  { left: 50%; bottom: 7.5%; transform: translateX(-50%); text-align: center; align-items: center; }
+.corridor-stage .facet.settings:hover, .corridor-stage .facet.settings:focus-visible { transform: translateX(-50%) translateY(-2px); }
+.corridor-stage .facet.documents:hover { transform: translateX(3px); }
+.corridor-stage .facet.chat:hover { transform: translateX(-3px); }
+
+/* status --------------------------------------------------------------- */
+.corridor-stage .status {
+  position: absolute; bottom: 2.4vh; left: 50%; transform: translateX(-50%); display: flex; gap: 1.4rem;
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-faint); z-index: 5; white-space: nowrap;
+}
+.corridor-stage .status .dot { color: var(--color-accent); }
+
+@media (max-width: 560px) {
+  .corridor-stage .facet .glimpse { display: none; }
+  .corridor-stage .facet.documents, .corridor-stage .facet.chat { top: 18%; }
+  .corridor-stage .status { flex-direction: column; gap: 0.3rem; align-items: center; bottom: 1.4vh; }
+}
+
+/* load reveal ---------------------------------------------------------- */
+.corridor-stage .reveal { opacity: 0; animation: corridor-fade 0.9s ease forwards; }
+@keyframes corridor-fade { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .corridor-stage .reveal { animation: none; opacity: 1; }
+}
