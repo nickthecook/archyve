@@ -37,12 +37,22 @@ export default class extends Controller {
     this.cool = [42, 58, 78]
     this.warm = [242, 196, 99]
 
+    // Start from an empty rings group. Turbo Drive caches the page snapshot with
+    // our appended polygons still in it; without this, a Back navigation restores
+    // that snapshot and connect() appends a *second* set — a stale ghost corridor
+    // over the live one. Clearing first keeps the build idempotent.
+    this.ringsTarget.replaceChildren()
     this.polys = []
     for (let i = 0; i < this.RINGS; i++) {
       const p = document.createElementNS(this.NS, "polygon")
       this.ringsTarget.appendChild(p)
       this.polys.push({ el: p, i })
     }
+
+    // Strip the polygons before Turbo snapshots the page, so the cache matches
+    // the (empty) server-rendered rings and the Back preview never shows a ghost.
+    this._beforeCache = () => this.ringsTarget.replaceChildren()
+    document.addEventListener("turbo:before-cache", this._beforeCache)
 
     this.current = this.reduce ? 0 : 2.4   // dolly into place on load
     this.target = 0
@@ -59,7 +69,11 @@ export default class extends Controller {
     this.kick()
   }
 
-  disconnect() { if (this.raf) cancelAnimationFrame(this.raf) }
+  disconnect() {
+    if (this.raf) cancelAnimationFrame(this.raf)
+    document.removeEventListener("turbo:before-cache", this._beforeCache)
+    this.ringsTarget.replaceChildren()
+  }
 
   // --- input wiring (Stimulus actions) --------------------------------------
   step() {
