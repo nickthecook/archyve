@@ -47,6 +47,45 @@ RSpec.describe "Collections", type: :request do
     end
   end
 
+  describe "POST /collections/:slug/documents" do
+    subject(:request) { post collection_documents_path(collection), params: { document_ids: } }
+
+    let(:collection) { create(:collection, name: "House") }
+    let(:document) { create(:document) }
+
+    context "when adding a document not yet in the collection" do
+      let(:document_ids) { [document.id] }
+
+      it "adds it as a manual membership" do
+        expect { request }.to change { collection.documents.count }.by(1)
+      end
+
+      it "redirects with a confirmation" do
+        request
+        expect(flash[:notice]).to include("Added 1 document")
+      end
+    end
+
+    context "when adding a document already in the collection" do
+      let(:document_ids) { [document.id] }
+
+      before { create(:collection_membership, collection:, document:, source: "manual") }
+
+      it "is a no-op (idempotent), not an error" do
+        expect { request }.not_to change { collection.documents.count }
+      end
+    end
+
+    context "when nothing is selected" do
+      let(:document_ids) { [] }
+
+      it "says so rather than pretending to add" do
+        request
+        expect(flash[:notice]).to eq("No documents selected.")
+      end
+    end
+  end
+
   describe "DELETE /collections/:slug/documents/:id" do
     subject(:request) { delete collection_document_path(collection, document) }
 

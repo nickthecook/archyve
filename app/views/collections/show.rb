@@ -9,17 +9,19 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, connector_fed:)
+  def initialize(collection:, document_rows:, status_counts:, connector_fed:, candidates:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
     @connector_fed = connector_fed
+    @candidates = candidates
   end
 
   def view_template
     breadcrumb
     header_block
     search
+    add_documents
     @document_rows.any? ? document_list : empty_state
   end
 
@@ -93,6 +95,54 @@ class Views::Collections::Show < Views::Base
         end
       end
     end
+  end
+
+  # Add documents from the archive. A disclosure keeps the (potentially long)
+  # picker out of the way until wanted; inside, a filter narrows the candidate
+  # list and checkboxes add several at once — a live test of the picker paradigm
+  # the scope picker will reuse.
+  def add_documents
+    details(class: "mb-6 rounded-lg border border-line bg-ink/40") do
+      summary(class: "cursor-pointer list-none px-4 py-3 text-sm font-medium text-accent hover:text-accent-dim transition-colors") { "Add documents" }
+      div(class: "border-t border-line p-4") do
+        @candidates.any? ? picker_form : no_candidates
+      end
+    end
+  end
+
+  def picker_form
+    form(action: collection_documents_path(@collection), method: "post", data: { controller: "list-filter" }) do
+      input(type: "hidden", name: "authenticity_token", value: helpers.form_authenticity_token)
+      input(
+        type: "text", placeholder: "Filter documents", autocomplete: "off",
+        data: { list_filter_target: "query", action: "input->list-filter#filter" },
+        class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
+      )
+      div(class: "mt-3 max-h-64 overflow-y-auto rounded border border-line divide-y divide-line") do
+        @candidates.each { |document| candidate_row(document) }
+        no_candidate_matches
+      end
+      button(type: "submit", class: "mt-3 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Add selected" }
+    end
+  end
+
+  def candidate_row(document)
+    label(
+      class: "flex items-center gap-3 px-3 py-2 hover:bg-ink/60 cursor-pointer",
+      data: { list_filter_target: "item", name: document.title.to_s.downcase }
+    ) do
+      input(type: "checkbox", name: "document_ids[]", value: document.id, class: "size-4 shrink-0 accent-accent")
+      span(class: "min-w-0 flex-1 truncate text-sm text-fg") { document.title }
+      render Views::Documents::StatusBadge.new(status: document.status)
+    end
+  end
+
+  def no_candidate_matches
+    div(hidden: true, class: "px-3 py-6 text-center text-sm text-faint", data: { list_filter_target: "empty" }) { "No documents match your filter." }
+  end
+
+  def no_candidates
+    p(class: "text-sm text-faint") { "Every document is already in this collection. Upload a new one to add more." }
   end
 
   def document_list

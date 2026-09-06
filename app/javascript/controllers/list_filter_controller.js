@@ -1,9 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Narrows the collection list as you type. Pure client-side list-narrowing (a
-// "filter"), distinct from search "scope" — it never touches what a query
-// targets, only which cards are visible. Matches against each card's
-// data-name (lowercased server-side).
+// Narrows a list as you type — collection cards, document picker rows, anything
+// with item targets. Pure client-side list-narrowing (a "filter"), distinct from
+// search "scope": it never touches what a query targets, only which items are
+// visible. Matches against each item's data-name (lowercased server-side).
 export default class extends Controller {
   static targets = ["query", "item", "empty"]
 

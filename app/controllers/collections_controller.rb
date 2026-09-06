@@ -26,7 +26,8 @@ class CollectionsController < ApplicationController
       collection:,
       document_rows:,
       status_counts:,
-      connector_fed: collection.connectors.exists?
+      connector_fed: collection.connectors.exists?,
+      candidates: addable_documents(collection)
     )
   end
 
@@ -40,6 +41,13 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  # Documents the user could add: everything in the archive not already actively
+  # in this collection, and not tombstoned (a removed doc is gone from its source).
+  def addable_documents(collection)
+    already_in = collection.collection_memberships.active.select(:document_id)
+    Document.where.not(status: "removed").where.not(id: already_in).order(:title)
+  end
 
   def collection_params
     params.require(:collection).permit(:name)

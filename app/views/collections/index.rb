@@ -26,7 +26,7 @@ class Views::Collections::Index < Views::Base
     search
     # The filter controller must wrap both its query input (in the toolbar) and
     # the cards it narrows (in the grid) — targets have to be descendants.
-    div(data: { controller: "collections-filter" }) do
+    div(data: { controller: "list-filter" }) do
       toolbar
       @rows.any? ? grid : empty_state
     end
@@ -76,7 +76,7 @@ class Views::Collections::Index < Views::Base
       input(
         type: "text", placeholder: "Filter collections",
         autocomplete: "off",
-        data: { collections_filter_target: "query", action: "input->collections-filter#filter" },
+        data: { list_filter_target: "query", action: "input->list-filter#filter" },
         class: "flex-1 rounded border border-line bg-ink/40 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-line-2 transition-colors"
       )
       new_collection
@@ -106,7 +106,7 @@ class Views::Collections::Index < Views::Base
   def grid
     div(
       class: "grid grid-cols-1 gap-3 sm:grid-cols-2",
-      data: { collections_filter_target: "list" }
+      data: { list_filter_target: "list" }
     ) do
       @rows.each { |row| card(row) }
       no_matches
@@ -119,7 +119,7 @@ class Views::Collections::Index < Views::Base
     a(
       href: collection_path(collection),
       class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors",
-      data: { collections_filter_target: "item", name: collection.name.downcase }
+      data: { list_filter_target: "item", name: collection.name.downcase }
     ) do
       div(class: "mb-3 flex items-start justify-between gap-3") do
         span(class: "truncate text-sm font-medium text-fg") { collection.name }
@@ -182,7 +182,7 @@ class Views::Collections::Index < Views::Base
     div(
       hidden: true,
       class: "col-span-full rounded-lg border border-dashed border-line px-4 py-8 text-center text-sm text-faint",
-      data: { collections_filter_target: "empty" }
+      data: { list_filter_target: "empty" }
     ) { "No collections match your filter." }
   end
 

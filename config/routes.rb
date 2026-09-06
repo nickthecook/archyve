@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   resources :collections, only: [:index, :show, :create], param: :slug do
     # A user adding/removing a document to/from this collection (manual
     # memberships only; connector rows are retracted at the connector).
-    resources :documents, only: [:destroy], controller: "collection_memberships"
+    resources :documents, only: [:create, :destroy], controller: "collection_memberships"
   end
   resources :documents, only: [:index, :show, :create]
   get "search", to: "search#index"
