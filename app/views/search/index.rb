@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class Views::Search::Index < Views::Base
-  def initialize(query:, results:, error: nil)
+  def initialize(query:, results:, error: nil, scope: nil)
     @query = query
     @results = results
     @error = error
+    @scope = scope
   end
 
   def view_template
@@ -19,6 +20,7 @@ class Views::Search::Index < Views::Base
 
   def search_box
     form(action: search_path, method: "get", class: "mb-8") do
+      scope_fields
       div(class: "flex items-center gap-3 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
         svg(class: "text-faint", width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|
           s.circle(cx: "11", cy: "11", r: "7")
@@ -29,13 +31,32 @@ class Views::Search::Index < Views::Base
           autofocus: true, autocomplete: "off",
           class: "flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
         )
+        scope_chip
       end
+    end
+  end
+
+  # Re-emit the active scope so a follow-up query stays scoped. Array values
+  # (c) become repeated name="c[]" fields.
+  def scope_fields
+    return unless @scope
+
+    @scope.hidden_params.each do |name, value|
+      Array(value).each { |v| input(type: "hidden", name: "#{name}#{'[]' if value.is_a?(Array)}", value: v) }
+    end
+  end
+
+  def scope_chip
+    label = @scope ? "In #{@scope.label}" : "All collections"
+    span(class: "shrink-0 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
+      span(class: "h-1.5 w-1.5 rounded-full bg-accent")
+      plain label
     end
   end
 
   def prompt
     div(class: "text-center py-16") do
-      p(class: "text-sm text-muted") { "Search across every collection." }
+      p(class: "text-sm text-muted") { @scope ? "Search within #{@scope.label}." : "Search across every collection." }
     end
   end
 

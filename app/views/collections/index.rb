@@ -116,8 +116,9 @@ class Views::Collections::Index < Views::Base
   # data-name lets the client-side filter match without a round trip.
   def card(row)
     collection = row.collection
-    div(
-      class: "rounded-lg border border-line bg-ink/40 p-4",
+    a(
+      href: collection_path(collection),
+      class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors",
       data: { collections_filter_target: "item", name: collection.name.downcase }
     ) do
       div(class: "mb-3 flex items-start justify-between gap-3") do

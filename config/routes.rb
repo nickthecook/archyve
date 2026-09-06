@@ -9,7 +9,11 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  resources :collections, only: [:index, :create], param: :slug
+  resources :collections, only: [:index, :show, :create], param: :slug do
+    # A user adding/removing a document to/from this collection (manual
+    # memberships only; connector rows are retracted at the connector).
+    resources :documents, only: [:destroy], controller: "collection_memberships"
+  end
   resources :documents, only: [:index, :show, :create]
   get "search", to: "search#index"
   get "chat", to: "chat#index"

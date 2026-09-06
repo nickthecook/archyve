@@ -32,6 +32,14 @@ RSpec.describe Collection do
     end
   end
 
+  describe "#to_param" do
+    subject(:collection) { create(:collection, name: "Design Docs") }
+
+    it "is the slug, so URLs address the collection by slug" do
+      expect(collection.to_param).to eq("design-docs")
+    end
+  end
+
   describe "validations" do
     subject(:collection) { build(:collection, name:) }
 

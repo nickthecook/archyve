@@ -3,12 +3,31 @@ class CollectionsController < ApplicationController
   # cover only *active* memberships (the derived "current contents"); a removed
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].
   Row = Data.define(:collection, :documents_count, :status_counts, :connector_fed, :last_activity_at)
+  # A document as it sits in one collection: the document plus how it got here
+  # (its membership source), which decides whether the user may remove it.
+  DocumentRow = Data.define(:document, :source)
 
   def index
     collections = Collection.order(:name).to_a
     @rows = build_rows(collections)
     @unsorted_count = unsorted_count
     render Views::Collections::Index.new(rows: @rows, unsorted_count: @unsorted_count)
+  end
+
+  def show
+    collection = Collection.find_by!(slug: params[:slug])
+    memberships = collection.collection_memberships.active.includes(:document).to_a
+    document_rows = memberships
+      .sort_by { |membership| membership.document.title.to_s.downcase }
+      .map { |membership| DocumentRow.new(document: membership.document, source: membership.source) }
+    status_counts = memberships.each_with_object(Hash.new(0)) { |m, counts| counts[m.document.status] += 1 }
+
+    render Views::Collections::Show.new(
+      collection:,
+      document_rows:,
+      status_counts:,
+      connector_fed: collection.connectors.exists?
+    )
   end
 
   def create

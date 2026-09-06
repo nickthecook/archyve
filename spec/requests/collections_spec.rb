@@ -23,6 +23,54 @@ RSpec.describe "Collections", type: :request do
     end
   end
 
+  describe "GET /collections/:slug" do
+    subject(:request) { get collection_path(collection) }
+
+    let(:collection) { create(:collection, name: "House") }
+
+    context "when the collection has an active document" do
+      let(:document) { create(:document) }
+
+      before { create(:collection_membership, collection:, document:, source: "manual") }
+
+      it "lists the document" do
+        request
+        expect(response.body).to include(document.title)
+      end
+    end
+
+    context "when the collection is empty" do
+      it "renders an empty state" do
+        request
+        expect(response.body).to include("No documents in this collection yet.")
+      end
+    end
+  end
+
+  describe "DELETE /collections/:slug/documents/:id" do
+    subject(:request) { delete collection_document_path(collection, document) }
+
+    let(:collection) { create(:collection) }
+    let(:document) { create(:document) }
+
+    context "when the membership is manual" do
+      let!(:membership) { create(:collection_membership, collection:, document:, source: "manual") }
+
+      it "removes the document from the collection" do
+        expect { request }.to change { membership.reload.active? }.from(true).to(false)
+      end
+    end
+
+    context "when the membership is connector-fed" do
+      before { create(:collection_membership, :connector, collection:, document:) }
+
+      it "refuses and surfaces why" do
+        request
+        expect(flash[:alert]).to include("connector")
+      end
+    end
+  end
+
   describe "POST /collections" do
     subject(:request) { post collections_path, params: { collection: { name: } } }
 

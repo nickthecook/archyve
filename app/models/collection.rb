@@ -13,6 +13,10 @@ class Collection < ApplicationRecord
 
   before_validation :set_slug, on: :create
 
+  # Collections are addressed by slug (routes use `param: :slug`), so URL
+  # helpers must build /collections/:slug, not /collections/:id.
+  def to_param = slug
+
   private
 
   def set_slug
