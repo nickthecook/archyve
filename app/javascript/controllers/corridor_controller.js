@@ -23,7 +23,7 @@ export default class extends Controller {
 
   connect() {
     this.NS = "http://www.w3.org/2000/svg"
-    this.reduce = matchMedia("(prefers-reduced-motion: reduce)").matches
+    this.reduce = this.motionReduced
 
     const apex = [300, 44], bl = [70, 476], br = [530, 476]
     this.cx = (apex[0] + bl[0] + br[0]) / 3
@@ -86,6 +86,29 @@ export default class extends Controller {
   }
 
   rest() { this.tpx = 0; this.tpy = 0; this.kick() }
+
+  // True when either the OS setting or the site's reduce-motion cookie is on.
+  get motionReduced() {
+    return matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      document.documentElement.classList.contains("reduce-motion")
+  }
+
+  // Live response to the bottom-bar switch (motion:toggled). Turning it on
+  // settles the corridor to a static frame; turning it off resumes the loop.
+  motion(event) {
+    this.reduce = event ? event.detail.reduce : this.motionReduced
+    if (this.reduce) {
+      this.current = 0; this.target = 0; this.vel = 0
+      this.tpx = 0; this.tpy = 0; this.px = 0; this.py = 0
+      this.litTarget = this.element.classList.contains("is-lit") ? 1 : 0
+      this.litAmt = this.litTarget
+      if (this.raf) cancelAnimationFrame(this.raf)
+      this.running = false
+      this.render()
+    } else {
+      this.kick()
+    }
+  }
 
   // Phase is periodic in RINGS, so keep the walk counter small (invisible jump).
   normalize(v) { return v - Math.round(v / this.RINGS) * this.RINGS }

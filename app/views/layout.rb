@@ -17,7 +17,7 @@ class Views::Layout < Phlex::HTML
 
   def view_template
     doctype
-    html do
+    html(**html_attrs) do
       head do
         title { [@title, "Archyve"].compact.join(" · ") }
         meta(name: "viewport", content: "width=device-width,initial-scale=1")
@@ -36,6 +36,12 @@ class Views::Layout < Phlex::HTML
   end
 
   private
+
+  # Honour the reduce-motion preference before first paint (no flash): the class
+  # lets CSS suppress load animations and signals the JS animation controllers.
+  def html_attrs
+    helpers.cookies[:reduce_motion] == "1" ? { class: "reduce-motion" } : {}
+  end
 
   def contained
     render Views::Chrome.new

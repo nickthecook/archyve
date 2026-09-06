@@ -11,7 +11,7 @@ class Views::Home::Index < Views::Base
   def view_template
     div(
       class: "corridor-stage",
-      data: { controller: "corridor", action: "pointermove@window->corridor#peer pointerleave@window->corridor#rest" }
+      data: { controller: "corridor", action: "pointermove@window->corridor#peer pointerleave@window->corridor#rest motion:toggled@window->corridor#motion" }
     ) do
       brand
       hall
@@ -90,6 +90,17 @@ class Views::Home::Index < Views::Base
       end
       span { "embedding: #{@stats[:embedding_model]}" }
       span { "pgvector · #{@stats[:chunks]} chunks" }
+      motion_toggle
+    end
+  end
+
+  def motion_toggle
+    label(class: "motion-toggle", data: { controller: "motion" }) do
+      input(
+        type: "checkbox", checked: helpers.cookies[:reduce_motion] == "1",
+        data: { motion_target: "checkbox", action: "motion#toggle" }
+      )
+      span { "reduce motion" }
     end
   end
 end

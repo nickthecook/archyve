@@ -94,6 +94,14 @@
   font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-faint); z-index: 5; white-space: nowrap;
 }
 .corridor-stage .status .dot { color: var(--color-accent); }
+.corridor-stage .motion-toggle {
+  display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  color: var(--color-faint); transition: color 0.25s;
+}
+.corridor-stage .motion-toggle:hover { color: var(--color-muted); }
+.corridor-stage .motion-toggle input {
+  width: 0.85rem; height: 0.85rem; margin: 0; cursor: pointer; accent-color: var(--color-accent);
+}
 
 @media (max-width: 560px) {
   .corridor-stage .facet .glimpse { display: none; }
@@ -107,3 +115,5 @@
 @media (prefers-reduced-motion: reduce) {
   .corridor-stage .reveal { animation: none; opacity: 1; }
 }
+/* site-wide reduce-motion preference (bottom-bar switch / cookie) */
+.reduce-motion .corridor-stage .reveal { animation: none; opacity: 1; }
