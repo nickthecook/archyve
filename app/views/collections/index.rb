@@ -47,7 +47,7 @@ class Views::Collections::Index < Views::Base
   # The corridor search, scope preset to All. Scope is URL-encoded (c[]/doc); All
   # means no param, so the chip is a read-only indicator until the picker lands.
   def search
-    form(action: search_path, method: "get", class: "mb-4") do
+    form(action: search_path, method: "get", class: "mb-8") do
       div(class: "flex items-center gap-3 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
         search_icon
         input(
@@ -72,7 +72,7 @@ class Views::Collections::Index < Views::Base
 
   # Filter (narrows the list as you type) on the left; ways to add on the right.
   def toolbar
-    div(class: "mb-6 flex items-center gap-3") do
+    div(class: "mb-3 flex items-center gap-3") do
       input(
         type: "text", placeholder: "Filter collections",
         autocomplete: "off",
