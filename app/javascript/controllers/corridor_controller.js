@@ -2,12 +2,24 @@ import { Controller } from "@hotwired/stimulus"
 
 // The landing's signature: an infinite triangular corridor into the archive.
 // Flat-bottom triangles at geometric (perspective) depth that recycles, so we can
-// dolly forever. Every ring is driven each frame from one scalar `current` (how
-// far we've walked). Typing walks you in, deleting walks you back out; focusing
-// lights the far end; the pointer shifts the vanishing point. All on one rAF loop
-// that sleeps when nothing's moving.
+// dolly forever. Rings are driven each frame from one scalar `current` (how far
+// we've walked).
+//
+// Each keystroke walks one slot toward a `target` (typing walks in, deleting
+// walks out). Motion follows a trapezoidal velocity profile — accelerate from
+// rest, cruise at a constant speed, decelerate to a stop — so a lone keystroke
+// eases in and out over ~800ms while continuous typing flows smoothly at a
+// steady pace (velocity never drops to zero mid-walk, which is what made
+// per-step easing feel jerky). The target's lead over the current position is
+// capped, so you can't out-type the walk and it settles about one step after you
+// stop. Focus lights the far end; the pointer shifts the vanishing point. One rAF
+// loop that sleeps when nothing is moving.
 export default class extends Controller {
   static targets = ["rings", "input"]
+
+  VMAX = 1.5    // slots per second at cruise (≈ one 800ms step when isolated)
+  ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
+  LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
 
   connect() {
     this.NS = "http://www.w3.org/2000/svg"
@@ -32,8 +44,9 @@ export default class extends Controller {
       this.polys.push({ el: p, i })
     }
 
-    this.current = this.reduce ? 0 : 3   // rush into place on load
-    this.advance = 0
+    this.current = this.reduce ? 0 : 2.4   // dolly into place on load
+    this.target = 0
+    this.vel = 0
     this.litAmt = 0
     this.litTarget = 0
     this.px = 0; this.py = 0; this.tpx = 0; this.tpy = 0
@@ -42,34 +55,25 @@ export default class extends Controller {
 
     this._tick = this.tick.bind(this)
     this.render()
+    if (this.reduce) { this.current = 0; return }
     this.kick()
   }
 
-  disconnect() {
-    if (this.raf) cancelAnimationFrame(this.raf)
-  }
+  disconnect() { if (this.raf) cancelAnimationFrame(this.raf) }
 
-  // --- input wiring (Stimulus actions call these) ---------------------------
+  // --- input wiring (Stimulus actions) --------------------------------------
   step() {
-    let s = this.inputTarget.value.length - this.lastLen
+    const delta = this.inputTarget.value.length - this.lastLen
     this.lastLen = this.inputTarget.value.length
-    if (s === 0) s = 1
-    this.advance = this.clamp(this.advance + s, this.current - 5, this.current + 5)
+    const dir = delta < 0 ? -1 : 1
+
+    if (this.reduce) { this.current = this.normalize(this.current + dir); this.render(); return }
+    this.target = this.clamp(this.target + dir, this.current - this.LEAD, this.current + this.LEAD)
     this.kick()
   }
 
-  light() {
-    this.lastLen = this.inputTarget.value.length
-    this.element.classList.add("is-lit")
-    this.litTarget = 1
-    this.kick()
-  }
-
-  dim() {
-    this.element.classList.remove("is-lit")
-    this.litTarget = 0
-    this.kick()
-  }
+  light() { this.lastLen = this.inputTarget.value.length; this.element.classList.add("is-lit"); this.litTarget = 1; this.kick() }
+  dim() { this.element.classList.remove("is-lit"); this.litTarget = 0; this.kick() }
 
   peer(event) {
     if (this.reduce) return
@@ -80,6 +84,31 @@ export default class extends Controller {
   }
 
   rest() { this.tpx = 0; this.tpy = 0; this.kick() }
+
+  // Phase is periodic in RINGS, so keep the walk counter small (invisible jump).
+  normalize(v) { return v - Math.round(v / this.RINGS) * this.RINGS }
+
+  // Trapezoidal follow: accelerate toward target, but start braking once the
+  // remaining distance equals our stopping distance, so we ease to a clean stop.
+  walk(dt) {
+    const rem = this.target - this.current
+    const stopDist = (this.vel * this.vel) / (2 * this.ACCEL)
+    if (rem === 0 && this.vel === 0) return
+
+    if (Math.abs(rem) <= stopDist || Math.sign(rem) === 0) {
+      const braked = this.vel - Math.sign(this.vel) * this.ACCEL * dt
+      this.vel = Math.sign(braked) !== Math.sign(this.vel) ? 0 : braked
+    } else {
+      this.vel = this.clamp(this.vel + Math.sign(rem) * this.ACCEL * dt, -this.VMAX, this.VMAX)
+    }
+    this.current += this.vel * dt
+
+    if (Math.abs(this.target - this.current) < 0.002 && Math.abs(this.vel) < 0.02) {
+      this.current = this.normalize(this.target)
+      this.target = this.current
+      this.vel = 0
+    }
+  }
 
   // --- engine ---------------------------------------------------------------
   clamp(v, a, b) { return Math.min(b, Math.max(a, v)) }
@@ -115,9 +144,12 @@ export default class extends Controller {
   render() { for (const o of this.polys) this.drawRing(o) }
 
   tick() {
-    const e = this.reduce ? 1 : 0.16
-    this.current = this.lerp(this.current, this.advance, e)
-    if (Math.abs(this.advance - this.current) < 0.0008) this.current = this.advance
+    const now = performance.now()
+    const dt = Math.min((now - this.lastT) / 1000, 0.05)
+    this.lastT = now
+
+    this.walk(dt)
+
     this.litAmt = this.lerp(this.litAmt, this.litTarget, this.reduce ? 1 : 0.1)
     if (Math.abs(this.litTarget - this.litAmt) < 0.002) this.litAmt = this.litTarget
     this.px = this.lerp(this.px, this.tpx, 0.1)
@@ -125,16 +157,16 @@ export default class extends Controller {
 
     this.render()
 
-    const still = this.current === this.advance && this.litAmt === this.litTarget &&
+    const still = this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
       Math.abs(this.tpx - this.px) < 0.004 && Math.abs(this.tpy - this.py) < 0.004
-    if (still) {
-      this.running = false
-      const n = Math.round(this.current / this.RINGS) * this.RINGS
-      this.current -= n; this.advance -= n
-    } else {
-      this.raf = requestAnimationFrame(this._tick)
-    }
+    if (still) this.running = false
+    else this.raf = requestAnimationFrame(this._tick)
   }
 
-  kick() { if (!this.running) { this.running = true; this.raf = requestAnimationFrame(this._tick) } }
+  kick() {
+    if (this.running) return
+    this.running = true
+    this.lastT = performance.now()
+    this.raf = requestAnimationFrame(this._tick)
+  }
 }

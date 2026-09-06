@@ -21,8 +21,10 @@ class Views::Layout < Phlex::HTML
       head do
         title { [@title, "Archyve"].compact.join(" · ") }
         meta(name: "viewport", content: "width=device-width,initial-scale=1")
+        link(rel: "icon", href: "/icon.svg", type: "image/svg+xml")
         csrf_meta_tags
         csp_meta_tag
+        stylesheet_link_tag("fonts", "data-turbo-track": "reload")
         stylesheet_link_tag("tailwind", "data-turbo-track": "reload")
         stylesheet_link_tag("landing", "data-turbo-track": "reload")
         javascript_importmap_tags

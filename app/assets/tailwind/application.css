@@ -18,6 +18,7 @@
   --color-accent: #e6b455;
   --color-accent-dim: #b98a34;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  /* Active UI face — swap "IBM Plex Sans" ⇄ "Inter" (both self-hosted in fonts.css). */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
 }

@@ -1,3 +1,7 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#0b0f16"/>
+  <g transform="translate(4,6)" fill="none" stroke="#e6b455" stroke-linejoin="round">
+    <polygon points="12,1 23,19 1,19" stroke-width="1.6"/>
+    <polygon points="12,7 17.5,17 6.5,17" stroke-width="1" opacity="0.55"/>
+  </g>
 </svg>
