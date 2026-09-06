@@ -9,10 +9,3 @@
   font-display: swap;
   src: url("inter.woff2") format("woff2");
 }
-@font-face {
-  font-family: "IBM Plex Sans";
-  font-style: normal;
-  font-weight: 100 700;
-  font-display: swap;
-  src: url("ibm-plex-sans.woff2") format("woff2");
-}
