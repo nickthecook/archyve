@@ -85,7 +85,7 @@ class Views::Collections::Show < Views::Base
       div(class: "flex items-center gap-3 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
         search_icon
         input(
-          type: "text", name: "q", placeholder: "Search within #{@collection.name}",
+          type: "text", name: "q", placeholder: "Search",
           autocomplete: "off",
           class: "flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
         )

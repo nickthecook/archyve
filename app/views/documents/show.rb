@@ -3,12 +3,13 @@
 class Views::Documents::Show < Views::Base
   include Phlex::Rails::Helpers::TurboStreamFrom
 
-  def initialize(document:)
+  def initialize(document:, back:)
     @document = document
+    @back = back
   end
 
   def view_template
-    a(href: documents_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← All documents" }
+    a(href: @back.href, class: "text-sm text-muted hover:text-fg transition-colors") { "← #{@back.label}" }
 
     header(class: "mt-3 mb-8") do
       h1(class: "text-2xl font-semibold tracking-tight") { @document.title }
