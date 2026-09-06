@@ -4,7 +4,7 @@ class CollectionMembership < ApplicationRecord
 
   # How the document came to be in the collection.
   enum :source, {
-    connector_feed: "connector_feed",  # auto-joined because a connector feeds this collection
+    connector: "connector",  # auto-joined because a connector feeds this collection
     manual: "manual"                    # explicitly added by a user
   }
 

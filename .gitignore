@@ -45,3 +45,4 @@ config/dev
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+scratch.md

@@ -207,18 +207,18 @@ Membership is **materialized**, not computed at query time:
 
 ```
 collection_memberships(collection_id, document_id, source, removed_at)
-  source:     :connector_feed | :manual
+  source:     :connector | :manual
   removed_at: NULL = active member; set = tombstoned (won't be re-added by sync)
 ```
 
-- **Sync** ensures a `connector_feed` row exists for each produced doc in each
+- **Sync** ensures a `connector` row exists for each produced doc in each
   fed collection — UNLESS a tombstoned row exists (`removed_at` set). This is the
   "removed from collection" list, living in the membership table rather than as a
   separate overlay, so there is no per-query overlay computation.
 - **Manual add** → `manual` row. **Manual remove** → set `removed_at` (never
   hard-delete), so the next sync won't re-add it. **Re-add** → clear `removed_at`.
 - **`source` disambiguates the edge case:** if a connector stops feeding a
-  collection, retract `connector_feed` memberships but keep `manual` ones.
+  collection, retract `connector` memberships but keep `manual` ones.
 
 Deletion & lifecycle:
 - **No deleting individual documents** — they are source-owned. Remove from the
