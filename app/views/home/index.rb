@@ -11,7 +11,7 @@ class Views::Home::Index < Views::Base
   def view_template
     div(
       class: "corridor-stage",
-      data: { controller: "corridor", action: "pointermove->corridor#peer pointerleave->corridor#rest" }
+      data: { controller: "corridor", action: "pointermove@window->corridor#peer pointerleave@window->corridor#rest" }
     ) do
       brand
       hall

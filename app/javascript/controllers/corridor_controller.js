@@ -17,7 +17,7 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["rings", "input"]
 
-  VMAX = 1.5    // slots per second at cruise (≈ one 800ms step when isolated)
+  VMAX = 1.3    // slots per second at cruise (≈ one 800ms step when isolated)
   ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
   LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
 
@@ -78,8 +78,10 @@ export default class extends Controller {
   peer(event) {
     if (this.reduce) return
     const r = this.ringsTarget.getBoundingClientRect()
-    this.tpx = (event.clientX - (r.left + r.width / 2)) / r.width
-    this.tpy = (event.clientY - (r.top + r.height / 2)) / r.height
+    // Tracked window-wide, so the pointer can range well past the rings; clamp
+    // the offset so the parallax stays controlled toward the viewport edges.
+    this.tpx = this.clamp((event.clientX - (r.left + r.width / 2)) / r.width, -0.6, 0.6)
+    this.tpy = this.clamp((event.clientY - (r.top + r.height / 2)) / r.height, -0.6, 0.6)
     this.kick()
   }
 
