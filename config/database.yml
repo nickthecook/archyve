@@ -22,13 +22,27 @@ default: &default
 
 # Dev/test connect over TCP to the Postgres container in deps/compose.yaml.
 # All fields are env-overridable; defaults match the compose service.
+#
+# Development mirrors production's database layout: separate `queue` and `cable`
+# databases so Solid Queue and Solid Cable behave here the way they do there.
+# Notably, jobs run in a forked worker process, so an in-process cable adapter
+# would drop every broadcast a job makes — solid_cable is what carries them.
 development:
-  <<: *default
-  database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>
-  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
-  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
-  username: <%= ENV.fetch("DATABASE_USER", "archyve") %>
-  password: <%= ENV.fetch("DATABASE_PASSWORD", "archyve") %>
+  primary: &primary_development
+    <<: *default
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
+    username: <%= ENV.fetch("DATABASE_USER", "archyve") %>
+    password: <%= ENV.fetch("DATABASE_PASSWORD", "archyve") %>
+  queue:
+    <<: *primary_development
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_development
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>_cable
+    migrations_paths: db/cable_migrate
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

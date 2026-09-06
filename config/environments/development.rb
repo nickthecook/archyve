@@ -55,6 +55,14 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Run the real queue in development, not the in-memory :async adapter. Jobs
+  # then behave as they do in production: durable across restarts, executed in a
+  # worker process, with `limits_concurrency` and Solid Queue's recurring
+  # scheduler actually engaged. The supervisor is forked from Puma by the plugin
+  # in config/puma.rb, so `bin/dev` still starts everything.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true
 

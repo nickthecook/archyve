@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_134215) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_234925) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -85,6 +85,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_134215) do
     t.index ["connector_id"], name: "index_connector_collections_on_connector_id"
   end
 
+  create_table "connector_syncs", force: :cascade do |t|
+    t.bigint "connector_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "created_count", default: 0, null: false
+    t.text "error"
+    t.integer "failed_count", default: 0, null: false
+    t.datetime "finished_at"
+    t.integer "found_count", default: 0, null: false
+    t.integer "removed_count", default: 0, null: false
+    t.datetime "started_at", null: false
+    t.string "status", default: "running", null: false
+    t.integer "unchanged_count", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "updated_count", default: 0, null: false
+    t.index ["connector_id", "started_at"], name: "index_connector_syncs_on_connector_id_and_started_at"
+    t.index ["connector_id"], name: "index_connector_syncs_on_connector_id"
+  end
+
   create_table "connectors", force: :cascade do |t|
     t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
@@ -98,6 +116,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_134215) do
 
   create_table "documents", force: :cascade do |t|
     t.bigint "connector_id", null: false
+    t.bigint "connector_sync_id"
     t.string "content_type"
     t.datetime "created_at", null: false
     t.string "external_id", null: false
@@ -108,6 +127,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_134215) do
     t.datetime "updated_at", null: false
     t.index ["connector_id", "external_id"], name: "index_documents_on_connector_id_and_external_id", unique: true
     t.index ["connector_id"], name: "index_documents_on_connector_id"
+    t.index ["connector_sync_id"], name: "index_documents_on_connector_sync_id"
     t.index ["status"], name: "index_documents_on_status"
   end
 
@@ -129,6 +149,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_134215) do
   add_foreign_key "collection_memberships", "documents"
   add_foreign_key "connector_collections", "collections"
   add_foreign_key "connector_collections", "connectors"
+  add_foreign_key "connector_syncs", "connectors"
+  add_foreign_key "documents", "connector_syncs", on_delete: :nullify
   add_foreign_key "documents", "connectors"
   add_foreign_key "embeddings", "chunks"
 end
