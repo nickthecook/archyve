@@ -3,7 +3,7 @@
 # Slim top bar for contained pages — the triangle mark returns home, and the
 # three sections stand in for the landing's facets. No sidebar.
 class Views::Chrome < Components::Base
-  NAV = [["Documents", :documents_path], ["Chat", :chat_path], ["Settings", :settings_path]].freeze
+  NAV = [["Collections", :collections_path], ["Chat", :chat_path], ["Settings", :settings_path]].freeze
 
   def view_template
     header(class: "border-b border-line/60") do
