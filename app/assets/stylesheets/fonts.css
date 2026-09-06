@@ -3,9 +3,9 @@
    the first family in Tailwind's --font-sans. Propshaft rewrites the url()s to
    digested asset paths. */
 @font-face {
-  font-family: "Inter";
+  font-family: "IBM Plex Sans";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 100 700;
   font-display: swap;
-  src: url("inter.woff2") format("woff2");
+  src: url("ibm-plex-sans.woff2") format("woff2");
 }
