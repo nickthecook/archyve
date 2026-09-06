@@ -1,12 +1,19 @@
 # frozen_string_literal: true
 
+# Abstract base for full-page views. Wraps every page's template in the Phlex
+# layout, so a view only defines its content (and optionally #page_title).
+# Fragment components (badges, panels, broadcast targets) inherit from
+# Components::Base instead, so they render bare.
 class Views::Base < Components::Base
-  # The `Views::Base` is an abstract class for all your views.
-
-  # By default, it inherits from `Components::Base`, but you
-  # can change that to `Phlex::HTML` if you want to keep views and
-  # components independent.
-
-  # More caching options at https://www.phlex.fun/components/caching
   def cache_store = Rails.cache
+
+  private
+
+  def around_template
+    render Views::Layout.new(title: page_title) do
+      super
+    end
+  end
+
+  def page_title = nil
 end
