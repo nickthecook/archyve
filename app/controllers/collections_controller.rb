@@ -2,16 +2,20 @@ class CollectionsController < ApplicationController
   # One row per collection for the index. `documents_count` and `status_counts`
   # cover only *active* memberships (the derived "current contents"); a removed
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].
-  Row = Data.define(:collection, :documents_count, :status_counts, :connector_fed, :last_activity_at)
+  Row = Data.define(:collection, :documents_count, :status_counts, :source_fed, :last_activity_at)
   # A document as it sits in one collection: the document plus how it got here
-  # (its membership source), which decides whether the user may remove it.
-  DocumentRow = Data.define(:document, :source)
+  # (its membership origin), which decides whether the user may remove it.
+  DocumentRow = Data.define(:document, :origin)
 
   def index
     collections = Collection.order(:name).to_a
     @rows = build_rows(collections)
     @unsorted_count = unsorted_count
-    render Views::Collections::Index.new(rows: @rows, unsorted_count: @unsorted_count)
+    render Views::Collections::Index.new(
+      rows: @rows,
+      unsorted_count: @unsorted_count,
+      sources_count: Source.count
+    )
   end
 
   def show
@@ -19,14 +23,14 @@ class CollectionsController < ApplicationController
     memberships = collection.collection_memberships.active.includes(:document).to_a
     document_rows = memberships
       .sort_by { |membership| membership.document.title.to_s.downcase }
-      .map { |membership| DocumentRow.new(document: membership.document, source: membership.source) }
+      .map { |membership| DocumentRow.new(document: membership.document, origin: membership.origin) }
     status_counts = memberships.each_with_object(Hash.new(0)) { |m, counts| counts[m.document.status] += 1 }
 
     render Views::Collections::Show.new(
       collection:,
       document_rows:,
       status_counts:,
-      connector_fed: collection.connectors.exists?,
+      source_fed: collection.sources.exists?,
       candidates: addable_documents(collection)
     )
   end
@@ -54,13 +58,13 @@ class CollectionsController < ApplicationController
   end
 
   # Assemble every row from a fixed set of aggregate queries (no per-collection
-  # N+1): status breakdown, connector-fed set, and last activity.
+  # N+1): status breakdown, source-fed set, and last activity.
   def build_rows(collections)
     status_by_collection = CollectionMembership.active
       .joins(:document)
       .group(:collection_id, "documents.status")
       .count # => { [collection_id, status] => n }
-    fed = ConnectorCollection.distinct.pluck(:collection_id).to_set
+    fed = SourceCollection.distinct.pluck(:collection_id).to_set
     last_activity = CollectionMembership.active.group(:collection_id).maximum(:created_at)
 
     collections.map do |collection|
@@ -71,7 +75,7 @@ class CollectionsController < ApplicationController
         collection:,
         documents_count: status_counts.values.sum,
         status_counts:,
-        connector_fed: fed.include?(collection.id),
+        source_fed: fed.include?(collection.id),
         last_activity_at: last_activity[collection.id] || collection.updated_at
       )
     end

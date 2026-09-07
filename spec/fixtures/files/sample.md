@@ -3,7 +3,7 @@
 ## Introduction
 
 Archyve is a retrieval-augmented generation system. It ingests documents from
-connectors and makes them searchable.
+sources and makes them searchable.
 
 ## Architecture
 

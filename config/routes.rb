@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
   resources :collections, only: [:index, :show, :create], param: :slug do
     # A user adding/removing a document to/from this collection (manual
-    # memberships only; connector rows are retracted at the connector).
+    # memberships only; source rows are retracted at the source).
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"
   end
   resources :documents, only: [:index, :show, :create]
@@ -22,12 +22,11 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   get "chat", to: "chat#index"
   get "settings", to: "settings#index"
-  # Connectors are configured here for now; env-var and API configuration come
-  # later. "Sync now" is a POST because it starts work, not a page.
-  namespace :settings do
-    resources :connectors do
-      post :sync, on: :member
-    end
+  # Sources sit with the content they produce, not under Settings — managing
+  # them is a content job, and Settings is heading towards admin-only.
+  # "Sync now" is a POST because it starts work, not a page.
+  resources :sources do
+    post :sync, on: :member
   end
 
   # The landing: the archive corridor with search as the way in.

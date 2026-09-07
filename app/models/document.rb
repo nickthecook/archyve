@@ -1,13 +1,13 @@
 class Document < ApplicationRecord
-  belongs_to :connector
+  belongs_to :source
 
   # The sync run that last created or updated this document. Optional: manually
   # uploaded documents never had one, and it is nullified when an old run is
   # pruned. It is what lets a run report its own processing progress.
-  belongs_to :connector_sync, optional: true
+  belongs_to :source_sync, optional: true
 
   # Raw bytes for the document. For manual_upload this is the user's file; other
-  # connectors attach whatever they fetched so the pipeline has one input shape.
+  # sources attach whatever they fetched so the pipeline has one input shape.
   has_one_attached :file
 
   has_many :collection_memberships, dependent: :destroy
@@ -23,7 +23,7 @@ class Document < ApplicationRecord
     removed: "removed"
   }, default: "pending"
 
-  validates :external_id, presence: true, uniqueness: { scope: :connector_id }
+  validates :external_id, presence: true, uniqueness: { scope: :source_id }
 
   # "Unsorted": live documents in no collection. A derived view, not a real
   # collection — a removed (tombstoned) doc is gone from its source, so it isn't

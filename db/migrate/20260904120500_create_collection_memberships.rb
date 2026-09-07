@@ -3,7 +3,7 @@ class CreateCollectionMemberships < ActiveRecord::Migration[8.1]
     create_table :collection_memberships do |t|
       t.references :collection, null: false, foreign_key: true
       t.references :document, null: false, foreign_key: true
-      t.string :source, null: false             # connector | manual
+      t.string :origin, null: false             # feed | manual
       t.datetime :removed_at                      # tombstone: set = removed, survives re-sync
 
       t.timestamps

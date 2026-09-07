@@ -3,7 +3,7 @@ require "faraday/multipart"
 require "faraday/retry"
 
 # One place to build outbound HTTP connections so every service (Docling, Ollama
-# via RubyLLM uses its own, connectors later) shares the same middleware stack:
+# via RubyLLM uses its own, sources later) shares the same middleware stack:
 # retries with backoff, multipart uploads, and ActiveSupport::Notifications
 # instrumentation (which the live pipeline stats will subscribe to).
 module Http

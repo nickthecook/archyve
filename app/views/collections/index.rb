@@ -16,14 +16,16 @@ class Views::Collections::Index < Views::Base
     "removed" => "bg-faint"
   }.freeze
 
-  def initialize(rows:, unsorted_count:)
+  def initialize(rows:, unsorted_count:, sources_count:)
     @rows = rows
     @unsorted_count = unsorted_count
+    @sources_count = sources_count
   end
 
   def view_template
     heading
     search
+    sources
     # The filter controller must wrap both its query input (in the toolbar) and
     # the cards it narrows (in the grid) — targets have to be descendants.
     div(data: { controller: "list-filter" }) do
@@ -123,7 +125,7 @@ class Views::Collections::Index < Views::Base
     ) do
       div(class: "mb-3 flex items-start justify-between gap-3") do
         span(class: "truncate text-sm font-medium text-fg") { collection.name }
-        source_marker if row.connector_fed
+        source_marker if row.source_fed
       end
       meter(row.status_counts, row.documents_count)
       div(class: "mt-3 flex items-center justify-between text-xs") do
@@ -134,9 +136,9 @@ class Views::Collections::Index < Views::Base
   end
 
   def source_marker
-    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a connector") do
+    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a source") do
       span(class: "h-1.5 w-1.5 rounded-full bg-accent/70")
-      plain "Connector"
+      plain "Source"
     end
   end
 
@@ -161,6 +163,18 @@ class Views::Collections::Index < Views::Base
 
   # "Unsorted" is a derived view (documents with no active membership), not a
   # real collection — so it reads differently: dashed, quiet, set apart.
+  # Sources live with the content they produce rather than under Settings, so
+  # the way in is here — above the collections they feed.
+  def sources
+    a(href: sources_path, class: "mb-6 flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
+      div do
+        p(class: "text-sm font-medium text-fg") { "Sources" }
+        p(class: "mt-0.5 text-xs text-faint") { "Where documents come from — folders, and later object stores and wikis." }
+      end
+      span(class: "shrink-0 font-mono tabular-nums text-xs text-muted") { "#{@sources_count} #{'source'.pluralize(@sources_count)}" }
+    end
+  end
+
   def unsorted
     a(href: unsorted_path, class: "mt-6 flex items-center justify-between gap-3 rounded-lg border border-dashed border-line px-4 py-3 hover:border-line-2 transition-colors") do
       div do

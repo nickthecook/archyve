@@ -8,8 +8,8 @@ the system live in `architecture.md`; this is the queue.
 **Problem.** A sync can fail in three quite different ways, and today only the
 first is visible:
 
-1. **The scan failed.** `Connectors::Sync` records `status: "failed"` and the
-   exception on the `ConnectorSync` row, and the connector page shows it. This
+1. **The scan failed.** `Sources::Sync` records `status: "failed"` and the
+   exception on the `SourceSync` row, and the source page shows it. This
    case is done.
 2. **The scan succeeded, but individual items failed.** Counted in
    `failed_count` and shown as "errored", but *which* items and *why* is only in
@@ -17,7 +17,7 @@ first is visible:
    (Note these are bookkeeping failures inside `reconcile` — the scan never reads
    a file. Read and extraction failures land on the *document*, and want the same
    treatment from a different angle.)
-3. **The worker died mid-scan.** The run stays `running` forever. The connector
+3. **The worker died mid-scan.** The run stays `running` forever. The source
    page flags it as stalled after an hour, but nothing recovers it and nothing
    explains it.
 
@@ -27,9 +27,9 @@ text, per item, kept somewhere the UI can read.
 
 **Shape of the work.**
 
-- **Per-item failures need a home.** Options: a `connector_sync_items` table (a
+- **Per-item failures need a home.** Options: a `source_sync_items` table (a
   row per failure: external_id, error class, message, occurred_at), or a jsonb
-  `failures` column on `connector_sync` capped at N entries. The table is the
+  `failures` column on `source_sync` capped at N entries. The table is the
   honest version and supports "this file has failed every scan for a week"; the
   column is cheaper and probably enough to start. Leaning to the column, with
   the table as the upgrade path if per-item history turns out to matter.
@@ -40,30 +40,30 @@ text, per item, kept somewhere the UI can read.
   user to interpret a stack trace.
 - **Stalled runs need a sweeper.** A periodic job that finds `running` runs older
   than a threshold whose jobs are no longer in flight, marks them `failed` with
-  "worker did not report back", and leaves the connector free to sync again.
+  "worker did not report back", and leaves the source free to sync again.
   Solid Queue's own `Batch.sweep_stalled` is the model for the shape, though the
   bookkeeping here is ours.
-- **A place to look.** The connector page shows the last run; failures across
+- **A place to look.** The source page shows the last run; failures across
   runs probably want their own view ("documents that aren't ingesting"), since
   the natural question is about a *document* over time, not a *run*.
 
 **Related, already handled:** a document whose ingest failed is retried by the
-next scan — `Connectors::Sync#changed?` treats `failed` as changed. So the
+next scan — `Sources::Sync#changed?` treats `failed` as changed. So the
 failures above are visible-but-self-healing on the next interval, which is why
 this is a todo and not a bug.
 
 ## Later
 
-- **Connector config encryption.** `connectors.config` is plain jsonb. Fine for a
-  path; ActiveRecord Encryption needs wiring before the first connector that
+- **Source config encryption.** `sources.config` is plain jsonb. Fine for a
+  path; ActiveRecord Encryption needs wiring before the first source that
   holds credentials (S3 keys, a Bookstack token).
-- **Configurable file extensions per folder connector.** Note the hazard: a file
+- **Configurable file extensions per folder source.** Note the hazard: a file
   dropping out of the allowed list is not a file that left the source, so
   narrowing the list must go through the same `skip_reason` path that
   `max_file_size` uses, or it will tombstone documents.
-- **Large trees scan in one job.** `Connectors::Sync` walks the whole directory
+- **Large trees scan in one job.** `Sources::Sync` walks the whole directory
   in a single `SyncJob`. Fine for thousands of files; a million would want
   chunked or resumable scanning.
-- **Who may configure connectors.** Open question from `architecture.md` — likely
-  an app-admin role, distinct from per-collection admin, since connectors are
+- **Who may configure sources.** Open question from `architecture.md` — likely
+  an app-admin role, distinct from per-collection admin, since sources are
   global producers. Blocked on auth.

@@ -16,7 +16,7 @@ RSpec.describe "Unsorted", type: :request do
     context "when a document is in a collection" do
       let(:document) { create(:document, title: "Filed Note") }
 
-      before { create(:collection_membership, document:, collection: create(:collection), source: "manual") }
+      before { create(:collection_membership, document:, collection: create(:collection), origin: "manual") }
 
       it "excludes it" do
         request

@@ -1,19 +1,19 @@
 require "digest"
 
 module Ingestion
-  # Entry point for the manual_upload connector: takes a user's uploaded file,
-  # creates a Document owned by the shared manual_upload connector, attaches the
+  # Entry point for the manual_upload source: takes a user's uploaded file,
+  # creates a Document owned by the shared manual_upload source, attaches the
   # bytes, optionally adds it to collections, and enqueues the pipeline.
   #
   # The document's external_id is the file's content hash, so re-uploading the
   # exact same bytes is idempotent — it returns the existing Document instead of
-  # ingesting a duplicate (mirrors the connector sync "skip unchanged" rule).
+  # ingesting a duplicate (mirrors the source sync "skip unchanged" rule).
   #
   # No rescue here on purpose: everything that can raise is a real bug or outage
   # the caller (a controller) should surface. Expected pipeline failures (Docling
   # down, embedding errors) are handled in ProcessDocumentJob.
   class DocumentUploader
-    CONNECTOR_NAME = "Manual Upload".freeze
+    SOURCE_NAME = "Manual Upload".freeze
 
     def self.call(...) = new(...).call
 
@@ -25,7 +25,7 @@ module Ingestion
     end
 
     def call
-      document = connector.documents.find_or_initialize_by(external_id: checksum)
+      document = source.documents.find_or_initialize_by(external_id: checksum)
 
       # Identical bytes already ingested: don't re-ingest, but still honour the
       # requested collections so "upload to this collection" works even when the
@@ -50,12 +50,12 @@ module Ingestion
 
     private
 
-    def connector
-      @connector ||= Connectors::ManualUpload.first_or_create!(name: CONNECTOR_NAME)
+    def source
+      @source ||= Sources::ManualUpload.first_or_create!(name: SOURCE_NAME)
     end
 
-    # Use the user-path add so an existing connector membership is never illegally
-    # downgraded (CollectionMembership.add is a no-op on an active connector row).
+    # Use the user-path add so an existing feed membership is never illegally
+    # downgraded (CollectionMembership.add is a no-op on an active feed row).
     def add_to_collections(document)
       @collections.each { |collection| CollectionMembership.add(document:, collection:) }
     end

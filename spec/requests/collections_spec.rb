@@ -31,7 +31,7 @@ RSpec.describe "Collections", type: :request do
     context "when the collection has an active document" do
       let(:document) { create(:document) }
 
-      before { create(:collection_membership, collection:, document:, source: "manual") }
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
 
       it "lists the document" do
         request
@@ -69,7 +69,7 @@ RSpec.describe "Collections", type: :request do
     context "when adding a document already in the collection" do
       let(:document_ids) { [document.id] }
 
-      before { create(:collection_membership, collection:, document:, source: "manual") }
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
 
       it "is a no-op (idempotent), not an error" do
         expect { request }.not_to change { collection.documents.count }
@@ -93,19 +93,19 @@ RSpec.describe "Collections", type: :request do
     let(:document) { create(:document) }
 
     context "when the membership is manual" do
-      let!(:membership) { create(:collection_membership, collection:, document:, source: "manual") }
+      let!(:membership) { create(:collection_membership, collection:, document:, origin: "manual") }
 
       it "removes the document from the collection" do
         expect { request }.to change { membership.reload.active? }.from(true).to(false)
       end
     end
 
-    context "when the membership is connector-fed" do
-      before { create(:collection_membership, :connector, collection:, document:) }
+    context "when the membership is source-fed" do
+      before { create(:collection_membership, :feed, collection:, document:) }
 
       it "refuses and surfaces why" do
         request
-        expect(flash[:alert]).to include("connector")
+        expect(flash[:alert]).to include("source")
       end
     end
   end

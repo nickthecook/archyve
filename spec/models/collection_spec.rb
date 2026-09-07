@@ -77,15 +77,15 @@ RSpec.describe Collection do
     let(:document) { create(:document) }
 
     context "when the document has an active manual membership" do
-      before { create(:collection_membership, collection:, document:, source: "manual") }
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
 
       it "is included" do
         expect(documents).to include(document)
       end
     end
 
-    context "when the document has an active connector membership" do
-      before { create(:collection_membership, :connector, collection:, document:) }
+    context "when the document has an active feed membership" do
+      before { create(:collection_membership, :feed, collection:, document:) }
 
       it "is included" do
         expect(documents).to include(document)

@@ -15,7 +15,7 @@ RSpec.describe Document do
     end
 
     context "when the document has an active membership" do
-      before { create(:collection_membership, document:, collection: create(:collection), source: "manual") }
+      before { create(:collection_membership, document:, collection: create(:collection), origin: "manual") }
 
       it "is excluded" do
         expect(unsorted).not_to include(document)

@@ -15,7 +15,7 @@ RSpec.describe "Search", type: :request do
     before do
       create(:embedding, chunk: create(:chunk, document: inside))
       create(:embedding, chunk: create(:chunk, document: outside))
-      create(:collection_membership, collection:, document: inside, source: "manual")
+      create(:collection_membership, collection:, document: inside, origin: "manual")
     end
 
     context "when scoped to a collection" do

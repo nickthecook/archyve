@@ -26,7 +26,7 @@ gem "neighbor"
 # Multi-provider LLM client: tool calling + streaming (Ollama first)
 gem "ruby_llm"
 
-# HTTP client for outbound service calls (Docling, connectors). One Faraday
+# HTTP client for outbound service calls (Docling, sources). One Faraday
 # stack shared with RubyLLM; middleware gives us logging, retries, and
 # ActiveSupport::Notifications instrumentation for live pipeline stats.
 gem "faraday"

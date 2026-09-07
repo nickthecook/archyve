@@ -3,11 +3,11 @@
 # the plugin in config/puma.rb (SOLID_QUEUE_IN_PUMA=1, set in Procfile.dev).
 
 default: &default
-  # A fixed heartbeat, not a per-connector schedule: the job asks
-  # Connector.due_for_sync which connectors have passed their own interval, so
-  # intervals are configured per connector in the UI and never here.
-  enqueue_due_connector_syncs:
-    class: Connectors::EnqueueDueSyncsJob
+  # A fixed heartbeat, not a per-source schedule: the job asks
+  # Source.due_for_sync which sources have passed their own interval, so
+  # intervals are configured per source in the UI and never here.
+  enqueue_due_source_syncs:
+    class: Sources::EnqueueDueSyncsJob
     queue: ingestion
     schedule: every minute
 

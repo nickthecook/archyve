@@ -3,6 +3,9 @@ actions:
     command: docker compose up -d
   stop:
     command: docker compose down
+  restart:
+    command: docker compose restart
+    alias: r
   ps:
     command: docker compose ps
   logs:

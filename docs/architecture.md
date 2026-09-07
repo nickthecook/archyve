@@ -14,8 +14,8 @@ Status: pre-implementation. Decisions below are settled; open items are marked.
 - **Self-hosted / open-source ethos.** Local-first (Ollama), no dependence on
   SaaS AI credits to run.
 - **Real-time.** Streamed chat responses and live document-processing stats.
-- **Connector-first ingestion.** Documents come primarily from external sources
-  (local dir, S3, Bookstack, …) via a core connector framework; manual upload is
+- **Source-first ingestion.** Documents come primarily from external sources
+  (local dir, S3, Bookstack, …) via a core source framework; manual upload is
   the exception, not the norm.
 
 ## The stack
@@ -143,16 +143,16 @@ Design consequences:
   migration), use a **separate table/column per model** — never mix dimensions
   in one column.
 
-## Connector-first ingestion
+## Source-first ingestion
 
-The **primary** ingestion method is **connectors** to external storage systems
-(local directory, S3, Bookstack, …), not manual upload. Manual upload still
-exists but is the exception, not the expected long-term pattern. The connector
-framework is **core to the app**, not a bolt-on.
+The **primary** ingestion method is **sources** — connections to external
+storage systems (local directory, S3, Bookstack, …) — not manual upload.
+Manual upload still exists but is the exception, not the expected long-term
+pattern. The source framework is **core to the app**, not a bolt-on.
 
 Two layers, kept separate:
 
-1. **`Connector` (persisted config)** — a configured source instance: `type`
+1. **`Source` (persisted config)** — a configured source instance: `type`
    (`local_dir` / `s3` / `bookstack` / `manual_upload` / …), name, **encrypted**
    credentials/config (ActiveRecord Encryption), owning scope, sync schedule,
    and sync **cursor/state**.
@@ -165,52 +165,52 @@ Two layers, kept separate:
    - capability flags: `supports_incremental?`, `supports_webhooks?`.
 
 > **As built (2026-09-06), these two layers are one.** The STI subclass is both
-> the persisted config and the driver: `Connectors::Folder` holds its config in
-> `config` jsonb *and* implements the interface. The registry is `Connector::TYPES`.
+> the persisted config and the driver: `Sources::Folder` holds its config in
+> `config` jsonb *and* implements the interface. The registry is `Source::TYPES`.
 > Splitting them would have bought a stateless-adapter seam that nothing yet
 > needs, at the cost of a second parallel hierarchy — so the word "adapter" does
 > not appear in the code, and the interface is called the **sync contract**:
-> `#each_item` (yielding `Connector::Item`) and `#read(external_id)`. Revisit if a
-> connector ever needs its driver without a database row behind it. The two
+> `#each_item` (yielding `Source::Item`) and `#read(external_id)`. Revisit if a
+> source ever needs its driver without a database row behind it. The two
 > capability flags above aren't built either; `.supports_sync?` is the only one
 > so far.
 
 **Provider-agnostic sync engine.** Diffs current source items against stored
-`Document`s (keyed by `connector_id` + `external_id`) → create / update / delete:
+`Document`s (keyed by `source_id` + `external_id`) → create / update / delete:
 - **Version token unchanged → skip.** Critical: re-ingest means re-embed (the
   expensive op), so change detection keeps large syncs cheap.
 - **Version changed → re-ingest** that one doc (re-extract, re-chunk, re-embed).
 - **Item gone from source → tombstone** and remove its chunks.
 
-**Scheduling:** poll-first via Solid Queue recurring jobs, per-connector
+**Scheduling:** poll-first via Solid Queue recurring jobs, per-source
 interval. Webhooks/push (S3 events, Bookstack webhooks) added later behind
 `supports_webhooks?` — same sync engine, different trigger.
 
-**Manual upload is just a `manual_upload` connector** — keeps a single ingestion
+**Manual upload is just a `manual_upload` source** — keeps a single ingestion
 + progress code path.
 
-Data-model impact: `Document` gains `connector_id`, `external_id`,
-`source_version`, `source_metadata`, and a lifecycle status. Connectors get
-first-class UI (list / configure / sync-now / per-connector processing stats),
+Data-model impact: `Document` gains `source_id`, `external_id`,
+`source_version`, `source_metadata`, and a lifecycle status. Sources get
+first-class UI (list / configure / sync-now / per-source processing stats),
 feeding the real-time pipeline-stats feature.
 
-### Connectors, Documents, and Collections (relationship model)
+### Sources, Documents, and Collections (relationship model)
 
-Decided: **connectors produce Documents; collections are a membership / query /
-access layer over Documents.** A connector is NOT owned by a collection.
+Decided: **sources produce Documents; collections are a membership / query /
+access layer over Documents.** A source is NOT owned by a collection.
 
-- `Document` is owned by (produced by) a **connector**.
+- `Document` is owned by (produced by) a **source**.
 - `Collection ↔ Document` is **many-to-many**. A document can belong to many
   collections; its bytes, chunks, and **embeddings are stored once**.
   Collection-scoped search is a **filter** over eligible documents — never
   duplicated storage or re-processing.
-- **Rationale:** connector-per-collection would mean duplicating the connector,
+- **Rationale:** source-per-collection would mean duplicating the source,
   re-processing every document, and storing duplicate embeddings to share a set
   across collections. That cost is far worse than the relational complexity of
-  decoupling. (Model inspired by Onyx: one connector → many "document sets".)
+  decoupling. (Model inspired by Onyx: one source → many "document sets".)
 
 Routing (how documents land in collections):
-- A connector **"feeds" one or more collections** (`connector ↔ collection`
+- A source **"feeds" one or more collections** (`source ↔ collection`
   join). Newly-produced documents **auto-join** those collections on sync.
 - Plus manual add/remove of individual documents to/from a collection.
 
@@ -218,25 +218,25 @@ Membership is **materialized**, not computed at query time:
 
 ```
 collection_memberships(collection_id, document_id, source, removed_at)
-  source:     :connector | :manual
+  source:     :source | :manual
   removed_at: NULL = active member; set = tombstoned (won't be re-added by sync)
 ```
 
-- **Sync** ensures a `connector` row exists for each produced doc in each
+- **Sync** ensures a `source` row exists for each produced doc in each
   fed collection — UNLESS a tombstoned row exists (`removed_at` set). This is the
   "removed from collection" list, living in the membership table rather than as a
   separate overlay, so there is no per-query overlay computation.
 - **Manual add** → `manual` row. **Manual remove** → set `removed_at` (never
   hard-delete), so the next sync won't re-add it. **Re-add** → clear `removed_at`.
-- **`source` disambiguates the edge case:** if a connector stops feeding a
-  collection, retract `connector` memberships but keep `manual` ones.
+- **`source` disambiguates the edge case:** if a source stops feeding a
+  collection, retract `source` memberships but keep `manual` ones.
 
 Deletion & lifecycle:
 - **No deleting individual documents** — they are source-owned. Remove from the
   source and re-sync (tombstones them). Keeps the corpus a faithful mirror.
 - **Remove-from-collection = membership tombstone only** (see above) — never
   deletes the document or embeddings (it may live in other collections).
-- **Deleting a connector** cascades to its documents + chunks + embeddings.
+- **Deleting a source** cascades to its documents + chunks + embeddings.
 
 Query-time:
 - The **RAG retrieval tool operates within a collection** (or the set the
@@ -272,8 +272,8 @@ Access to documents is granted **through collections**.
   starts single-select**; a multi-select widget is a self-contained later view
   change with no ripple into retrieval/DB. If single-collection turns out to be
   all we want, nothing is lost — just never ship the widget.
-- Open: **who may create/configure connectors** — likely an app-admin / dedicated
-  role, distinct from per-collection admin, since connectors are global producers.
+- Open: **who may create/configure sources** — likely an app-admin / dedicated
+  role, distinct from per-collection admin, since sources are global producers.
 
 ## Streaming & transports
 
@@ -322,13 +322,13 @@ a thin adapter over the same core.
 
 ## Open items (to settle during implementation)
 
-- Who may create/configure connectors (app-admin vs a dedicated role).
-- Exact `Connector` config UI/validation per adapter type.
+- Who may create/configure sources (app-admin vs a dedicated role).
+- Exact `Source` config UI/validation per adapter type.
 
 ## Resolved decisions (previously open)
 
-- **Connector ↔ collection:** connectors produce Documents; collections are a
-  many-to-many membership/query/access layer. Connectors "feed" collections;
+- **Source ↔ collection:** sources produce Documents; collections are a
+  many-to-many membership/query/access layer. Sources "feed" collections;
   documents auto-join fed collections + manual add/remove. (See relationship
   model above.)
 - **Sync trigger:** poll-first via Solid Queue recurring jobs. Webhooks deferred

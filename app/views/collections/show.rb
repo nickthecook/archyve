@@ -9,11 +9,11 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, connector_fed:, candidates:)
+  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
-    @connector_fed = connector_fed
+    @source_fed = source_fed
     @candidates = candidates
   end
 
@@ -42,7 +42,7 @@ class Views::Collections::Show < Views::Base
     header(class: "mb-7") do
       div(class: "mb-2 flex items-center justify-between gap-3") do
         h1(class: "text-2xl font-semibold tracking-tight") { @collection.name }
-        source_marker if @connector_fed
+        source_marker if @source_fed
       end
       meter
       p(class: "mt-3 text-sm text-muted") { count_summary }
@@ -73,9 +73,9 @@ class Views::Collections::Show < Views::Base
   end
 
   def source_marker
-    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a connector") do
+    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a source") do
       span(class: "h-1.5 w-1.5 rounded-full bg-accent/70")
-      plain "Connector"
+      plain "Source"
     end
   end
 
@@ -180,7 +180,7 @@ class Views::Collections::Show < Views::Base
       a(href: document_path(document), class: "min-w-0 flex-1 truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
       div(class: "flex shrink-0 items-center gap-3") do
         render Views::Documents::StatusBadge.new(status: document.status)
-        row.source == "manual" ? remove_button(document) : connector_tag
+        row.origin == "manual" ? remove_button(document) : source_tag
       end
     end
   end
@@ -193,9 +193,9 @@ class Views::Collections::Show < Views::Base
     end
   end
 
-  # A connector-fed row isn't user-removable — it's retracted at the connector.
-  def connector_tag
-    span(class: "text-xs text-faint", title: "Fed by a connector — remove it at the source") { "Connector" }
+  # A source-fed row isn't user-removable — it's retracted at the source.
+  def source_tag
+    span(class: "text-xs text-faint", title: "Fed by a source — remove it at the source") { "Source" }
   end
 
   def empty_state

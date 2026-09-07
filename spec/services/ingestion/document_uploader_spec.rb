@@ -17,8 +17,8 @@ RSpec.describe Ingestion::DocumentUploader do
         expect { upload }.to change(Document, :count).by(1)
       end
 
-      it "owns it with the manual upload connector" do
-        expect(upload.connector).to be_a(Connectors::ManualUpload)
+      it "owns it with the manual upload source" do
+        expect(upload.source).to be_a(Sources::ManualUpload)
       end
 
       it "attaches the uploaded bytes" do
@@ -63,7 +63,7 @@ RSpec.describe Ingestion::DocumentUploader do
 
       it "records the membership as manually sourced" do
         membership = upload.collection_memberships.first
-        expect(membership.source).to eq("manual")
+        expect(membership.origin).to eq("manual")
       end
     end
 

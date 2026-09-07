@@ -1,6 +1,6 @@
 class Collection < ApplicationRecord
-  has_many :connector_collections, dependent: :destroy
-  has_many :connectors, through: :connector_collections
+  has_many :source_collections, dependent: :destroy
+  has_many :sources, through: :source_collections
 
   has_many :collection_memberships, dependent: :destroy
   has_many :active_memberships,

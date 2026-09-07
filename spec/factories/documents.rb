@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :document do
-    association :connector
+    association :source
     sequence(:external_id) { |n| "ext-#{n}" }
     title { "Sample Document" }
     content_type { "text/markdown" }

@@ -58,8 +58,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_013751) do
     t.bigint "collection_id", null: false
     t.datetime "created_at", null: false
     t.bigint "document_id", null: false
+    t.string "origin", null: false
     t.datetime "removed_at"
-    t.string "source", null: false
     t.datetime "updated_at", null: false
     t.index ["collection_id", "document_id"], name: "index_collection_memberships_on_collection_id_and_document_id", unique: true
     t.index ["collection_id", "removed_at"], name: "index_collection_memberships_on_collection_id_and_removed_at"
@@ -75,61 +75,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_013751) do
     t.index ["slug"], name: "index_collections_on_slug", unique: true
   end
 
-  create_table "connector_collections", force: :cascade do |t|
-    t.bigint "collection_id", null: false
-    t.bigint "connector_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["collection_id"], name: "index_connector_collections_on_collection_id"
-    t.index ["connector_id", "collection_id"], name: "index_connector_collections_on_connector_id_and_collection_id", unique: true
-    t.index ["connector_id"], name: "index_connector_collections_on_connector_id"
-  end
-
-  create_table "connector_syncs", force: :cascade do |t|
-    t.bigint "connector_id", null: false
-    t.datetime "created_at", null: false
-    t.integer "created_count", default: 0, null: false
-    t.text "error"
-    t.integer "failed_count", default: 0, null: false
-    t.datetime "finished_at"
-    t.integer "found_count", default: 0, null: false
-    t.integer "removed_count", default: 0, null: false
-    t.integer "skipped_count", default: 0, null: false
-    t.integer "stale_count", default: 0, null: false
-    t.datetime "started_at", null: false
-    t.string "status", default: "running", null: false
-    t.integer "unchanged_count", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.integer "updated_count", default: 0, null: false
-    t.index ["connector_id", "started_at"], name: "index_connector_syncs_on_connector_id_and_started_at"
-    t.index ["connector_id"], name: "index_connector_syncs_on_connector_id"
-  end
-
-  create_table "connectors", force: :cascade do |t|
-    t.jsonb "config", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.datetime "last_synced_at"
-    t.string "name", null: false
-    t.jsonb "state", default: {}, null: false
-    t.string "type", null: false
-    t.datetime "updated_at", null: false
-    t.index ["type"], name: "index_connectors_on_type"
-  end
-
   create_table "documents", force: :cascade do |t|
-    t.bigint "connector_id", null: false
-    t.bigint "connector_sync_id"
     t.string "content_type"
     t.datetime "created_at", null: false
     t.string "external_id", null: false
+    t.bigint "source_id", null: false
     t.jsonb "source_metadata", default: {}, null: false
+    t.bigint "source_sync_id"
     t.string "source_version"
     t.string "status", default: "pending", null: false
     t.string "title"
     t.datetime "updated_at", null: false
-    t.index ["connector_id", "external_id"], name: "index_documents_on_connector_id_and_external_id", unique: true
-    t.index ["connector_id"], name: "index_documents_on_connector_id"
-    t.index ["connector_sync_id"], name: "index_documents_on_connector_sync_id"
+    t.index ["source_id", "external_id"], name: "index_documents_on_source_id_and_external_id", unique: true
+    t.index ["source_id"], name: "index_documents_on_source_id"
+    t.index ["source_sync_id"], name: "index_documents_on_source_sync_id"
     t.index ["status"], name: "index_documents_on_status"
   end
 
@@ -144,15 +103,56 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_013751) do
     t.index ["embedding"], name: "index_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
   end
 
+  create_table "source_collections", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "source_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id"], name: "index_source_collections_on_collection_id"
+    t.index ["source_id", "collection_id"], name: "index_source_collections_on_source_id_and_collection_id", unique: true
+    t.index ["source_id"], name: "index_source_collections_on_source_id"
+  end
+
+  create_table "source_syncs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "created_count", default: 0, null: false
+    t.text "error"
+    t.integer "failed_count", default: 0, null: false
+    t.datetime "finished_at"
+    t.integer "found_count", default: 0, null: false
+    t.integer "removed_count", default: 0, null: false
+    t.integer "skipped_count", default: 0, null: false
+    t.bigint "source_id", null: false
+    t.integer "stale_count", default: 0, null: false
+    t.datetime "started_at", null: false
+    t.string "status", default: "running", null: false
+    t.integer "unchanged_count", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "updated_count", default: 0, null: false
+    t.index ["source_id", "started_at"], name: "index_source_syncs_on_source_id_and_started_at"
+    t.index ["source_id"], name: "index_source_syncs_on_source_id"
+  end
+
+  create_table "sources", force: :cascade do |t|
+    t.jsonb "config", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "last_synced_at"
+    t.string "name", null: false
+    t.jsonb "state", default: {}, null: false
+    t.string "type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["type"], name: "index_sources_on_type"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "chunks", "documents"
   add_foreign_key "collection_memberships", "collections"
   add_foreign_key "collection_memberships", "documents"
-  add_foreign_key "connector_collections", "collections"
-  add_foreign_key "connector_collections", "connectors"
-  add_foreign_key "connector_syncs", "connectors"
-  add_foreign_key "documents", "connector_syncs", on_delete: :nullify
-  add_foreign_key "documents", "connectors"
+  add_foreign_key "documents", "source_syncs", on_delete: :nullify
+  add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"
+  add_foreign_key "source_collections", "collections"
+  add_foreign_key "source_collections", "sources"
+  add_foreign_key "source_syncs", "sources"
 end

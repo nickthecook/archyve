@@ -15,7 +15,7 @@ class Views::Documents::Show < Views::Base
       h1(class: "text-2xl font-semibold tracking-tight") { @document.title }
       p(class: "mt-1 text-sm text-muted") do
         plain(@document.content_type.to_s)
-        plain(" · via #{@document.connector.name}") if @document.connector
+        plain(" · via #{@document.source.name}") if @document.source
       end
     end
 

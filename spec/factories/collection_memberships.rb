@@ -2,10 +2,10 @@ FactoryBot.define do
   factory :collection_membership do
     association :collection
     association :document
-    source { "manual" }
+    origin { "manual" }
 
-    trait :connector do
-      source { "connector" }
+    trait :feed do
+      origin { "feed" }
     end
 
     trait :removed do
