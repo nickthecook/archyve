@@ -54,6 +54,25 @@ this is a todo and not a bug.
 
 ## Later
 
+- **Retrieval discrimination is weak on short queries.** Observed 2026-09-07:
+  "fireplace model" scored a kitchen-installation chunk at 61% against 65% for
+  the actual fireplace manual. The usual cause is absent nomic task prefixes,
+  and those are correctly applied (`Embeddings::Embed`), so it isn't that.
+  Candidates, roughly in value order:
+  - **Hybrid retrieval.** Dense embeddings alone miss exact tokens — model
+    numbers, part codes — which is precisely what a query like this is made of.
+    Postgres already has `tsvector`; fuse BM25 and dense ranks with RRF. Likely
+    the largest single win, and no new infrastructure.
+  - **Rerank the top ~50** with a cross-encoder. Directly targets the
+    "everything scores 0.6" symptom, at the cost of a second model.
+  - **Check what the breadcrumb prefix is doing.** `Ingestion::Chunker` prefixes
+    each chunk with its heading path; on short chunks that generic
+    manual/installation language may be a large share of the embedded text and
+    is identical across unrelated manuals.
+  - **Stop showing cosine as a percentage.** `(1 - distance) * 100` is a
+    compressed, non-linear scale where 61 and 65 look adjacent and aren't.
+    Rank, or a normalised score, would mislead less.
+
 - **Unscoped lookups still outstanding.** From the 2026-09-07 sweep. Each is
   deliberate at this stage, listed so they aren't rediscovered one report at a
   time:
