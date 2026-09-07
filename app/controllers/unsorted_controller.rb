@@ -4,14 +4,17 @@ class UnsortedController < ApplicationController
   def index
     render Views::Unsorted::Index.new(
       documents: Document.unsorted.order(:title),
-      collections: Collection.order(:name)
+      # Only offer somewhere you could actually file them.
+      collections: Collection.manageable_by(Current.user).order(:name)
     )
   end
 
   # Assign the selected unsorted documents to a collection (manual membership).
   # Once added they're no longer unsorted, so they drop off this list.
+  # Filing needs operator on the destination, not merely the global role — the
+  # same rule as uploading into a collection.
   def assign
-    collection = Collection.find_by!(slug: params[:collection_slug])
+    collection = Collection.manageable_by(Current.user).find_by!(slug: params[:collection_slug])
     documents = Document.where(id: Array(params[:document_ids]).reject(&:blank?))
 
     documents.each { |document| CollectionMembership.add(document:, collection:) }

@@ -16,8 +16,12 @@ class DocumentsController < ApplicationController
     render Views::Documents::Show.new(document: Document.find(params[:id]), back: back_link)
   end
 
+  # Uploading into a collection needs operator *on that collection*, not just
+  # the global role, so the target is looked up through manageable_by. Finding
+  # it unscoped and falling back to nil would be worse than refusing: the file
+  # would silently land in Unsorted instead of where it was aimed.
   def create
-    collection = Collection.find_by(slug: params[:collection_slug]) if params[:collection_slug].present?
+    collection = target_collection
     file = params[:file]
     return redirect_to(collection || documents_path, alert: "Choose a file to upload.") if file.blank?
 
@@ -46,6 +50,12 @@ class DocumentsController < ApplicationController
 
   private
 
+  def target_collection
+    return if params[:collection_slug].blank?
+
+    Collection.manageable_by(Current.user).find_by!(slug: params[:collection_slug])
+  end
+
   # Resolve the back link from the referrer, so a document opened from a
   # collection returns to that collection, from search back to the results, etc.
   # Falls back to the Collections section home when the referrer is unknown.
@@ -53,7 +63,7 @@ class DocumentsController < ApplicationController
     path = referer_path
     slug = path&.match(%r{\A/collections/([^/]+)\z})&.captures&.first
 
-    if slug && (collection = Collection.find_by(slug:))
+    if slug && (collection = Collection.readable_by(Current.user).find_by(slug:))
       BackLink.new(label: collection.name, href: collection_path(collection))
     elsif path == documents_path
       BackLink.new(label: "All documents", href: documents_path)

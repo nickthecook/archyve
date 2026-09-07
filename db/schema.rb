@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_141621) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_154313) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -65,6 +65,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_141621) do
     t.index ["collection_id", "removed_at"], name: "index_collection_memberships_on_collection_id_and_removed_at"
     t.index ["collection_id"], name: "index_collection_memberships_on_collection_id"
     t.index ["document_id"], name: "index_collection_memberships_on_document_id"
+  end
+
+  create_table "collection_users", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "role", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["collection_id", "user_id"], name: "index_collection_users_on_collection_id_and_user_id", unique: true
+    t.index ["collection_id"], name: "index_collection_users_on_collection_id"
+    t.index ["user_id"], name: "index_collection_users_on_user_id"
   end
 
   create_table "collections", force: :cascade do |t|
@@ -171,6 +182,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_141621) do
   add_foreign_key "chunks", "documents"
   add_foreign_key "collection_memberships", "collections"
   add_foreign_key "collection_memberships", "documents"
+  add_foreign_key "collection_users", "collections"
+  add_foreign_key "collection_users", "users"
   add_foreign_key "documents", "source_syncs", on_delete: :nullify
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"

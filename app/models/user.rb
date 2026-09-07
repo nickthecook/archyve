@@ -13,15 +13,15 @@ class User < ApplicationRecord
   # what makes that index mean what it looks like it means.
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
-  # A capability *ceiling*, not a grant. Ordered smallest to largest so
-  # `at_least?` is a comparison and so the per-collection and per-source grants
-  # coming later can be combined with `min` — a grant can raise you no higher
-  # than your role, which is what makes self-granting harmless.
+  # A capability *ceiling*, not a grant:
   #
   #   user     — chat and search, nothing to manage
   #   operator — + sources, collections, documents, filing
   #   admin    — + settings and user management, everywhere, no grant needed
-  enum :role, { user: 0, operator: 1, admin: 2 }, default: :user, validate: true
+  #
+  # A per-object grant can raise you no higher than this, which is what makes
+  # self-granting harmless — see #role_on.
+  include Roleable
 
   validates :email_address, presence: true, uniqueness: true
 
@@ -32,10 +32,39 @@ class User < ApplicationRecord
   validate :last_admin_keeps_their_role
   before_destroy :refuse_to_delete_the_last_admin
 
-  # Roles are ordered, so "may they do operator things?" is `>=`, never a list
-  # of equality checks that has to be revisited every time a role is added.
-  def at_least?(minimum)
-    self.class.roles.fetch(role) >= self.class.roles.fetch(minimum.to_s)
+  # Effective role on one collection or source.
+  #
+  # The global role is a ceiling on the *kind* of thing you can do — chat,
+  # content, the system — not a rung on the same ladder as the grant. So this is
+  # a two-band rule, not `min`:
+  #
+  #   admin    — everything, everywhere, no grant needed
+  #   operator — the grant exactly as written, up to and including admin *of
+  #              that collection*. Managing a collection, its people included,
+  #              is content ownership, which is precisely what an operator is
+  #              for; a numeric min would cap them at operator and leave every
+  #              access change waiting on a system admin.
+  #   user     — read at most, whatever the grant says. Chat-only means
+  #              chat-only, and a grant can't widen it.
+  #
+  # nil means no access at all. Deliberately not :user — a missing grant is
+  # absence, not the weakest presence, and returning :user here would silently
+  # hand every operator read access to every collection.
+  def role_on(record)
+    return :admin if admin?
+
+    granted = record.granted_role_for(self)
+    return nil if granted.nil?
+    return :user if user?
+
+    granted.to_sym
+  end
+
+  def may_on?(record, minimum)
+    effective = role_on(record)
+    return false if effective.nil?
+
+    Roleable::ROLES.fetch(effective) >= Roleable::ROLES.fetch(minimum.to_sym)
   end
 
   private

@@ -31,6 +31,8 @@ RSpec.describe "Unsorted", type: :request do
     let(:collection) { create(:collection, name: "Handbook") }
     let(:document) { create(:document) }
 
+    before { create(:collection_user, :operator, collection:, user: current_user) }
+
     context "when documents are selected" do
       let(:document_ids) { [document.id] }
 
@@ -41,6 +43,24 @@ RSpec.describe "Unsorted", type: :request do
       it "confirms the assignment" do
         request
         expect(flash[:notice]).to include("Added 1 document to Handbook")
+      end
+    end
+
+    # Filing is a change to what a collection's readers see, so it needs
+    # operator on the destination and not merely the global role.
+    context "when the destination is one they can only read" do
+      let(:document_ids) { [document.id] }
+
+      # Replaces the operator grant above with a reader's.
+      before { CollectionUser.find_by!(collection:, user: current_user).update!(role: :user) }
+
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "files nothing" do
+        expect { request }.not_to change(CollectionMembership, :count)
       end
     end
 

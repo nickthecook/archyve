@@ -19,10 +19,14 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  resources :collections, only: [:index, :show, :create], param: :slug do
+  resources :collections, only: [:index, :show, :create, :destroy], param: :slug do
     # A user adding/removing a document to/from this collection (manual
     # memberships only; source rows are retracted at the source).
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"
+    # Who may use this collection. Managed by whoever administers the
+    # collection, not only by a system admin — owning content includes deciding
+    # who sees it.
+    resources :people, only: [:index, :create, :update, :destroy], controller: "collection_users"
   end
   # Downloading is open to any signed-in user; browsing the archive is not.
   # That asymmetry is deliberate — a reader reaches a document through a chat

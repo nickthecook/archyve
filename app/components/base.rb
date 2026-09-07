@@ -21,6 +21,12 @@ class Components::Base < Phlex::HTML
     Current.user&.at_least?(minimum)
   end
 
+  # The per-object counterpart: whether the signed-in user reaches a minimum
+  # role *on this collection or source*, grant and ceiling combined.
+  def may_on?(record, minimum)
+    Current.user&.may_on?(record, minimum)
+  end
+
   if Rails.env.development?
     def before_template
       comment { "Before #{self.class.name}" }

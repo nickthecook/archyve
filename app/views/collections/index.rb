@@ -166,7 +166,7 @@ class Views::Collections::Index < Views::Base
   # Sources live with the content they produce rather than under Settings, so
   # the way in is here — above the collections they feed.
   def sources
-    a(href: sources_path, class: "mb-6 flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
+    a(href: sources_path, class: "mb-8 flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
       div do
         p(class: "text-sm font-medium text-fg") { "Sources" }
         p(class: "mt-0.5 text-xs text-faint") { "Where documents come from — folders, and later object stores and wikis." }

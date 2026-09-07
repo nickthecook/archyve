@@ -102,6 +102,53 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # The two axes combined. The global role caps the *kind* of thing you can do;
+  # the grant says where. It is not a numeric minimum of the two — see #role_on.
+  describe "#role_on" do
+    subject(:user) { create(:user, role: account_role) }
+
+    let(:collection) { create(:collection) }
+    let(:result) { user.role_on(collection) }
+
+    context "when they hold no grant on it" do
+      let(:account_role) { :operator }
+
+      it "is nil, meaning no access rather than the weakest access" do
+        expect(result).to be_nil
+      end
+    end
+
+    context "when an operator is granted admin of the collection" do
+      let(:account_role) { :operator }
+
+      before { create(:collection_user, :admin, collection:, user:) }
+
+      # Owning a collection includes deciding who uses it. Capping this at
+      # operator would leave every access change waiting on a system admin.
+      it "gives them admin of it" do
+        expect(result).to eq(:admin)
+      end
+    end
+
+    context "when a chat-only account is granted admin of the collection" do
+      let(:account_role) { :user }
+
+      before { create(:collection_user, :admin, collection:, user:) }
+
+      it "still only reads, because the account role is the ceiling" do
+        expect(result).to eq(:user)
+      end
+    end
+
+    context "when an admin holds no grant at all" do
+      let(:account_role) { :admin }
+
+      it "reaches it anyway" do
+        expect(result).to eq(:admin)
+      end
+    end
+  end
+
   describe "#at_least?" do
     subject(:user) { build(:user, role:) }
 

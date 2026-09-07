@@ -7,6 +7,8 @@ RSpec.describe "Collections", type: :request do
     context "when collections exist" do
       let!(:collection) { create(:collection, name: "Handbook") }
 
+      before { collection.grant_admin_to!(current_user) }
+
       it "renders them" do
         request
         expect(response.body).to include("Handbook")
@@ -27,6 +29,8 @@ RSpec.describe "Collections", type: :request do
     subject(:request) { get collection_path(collection) }
 
     let(:collection) { create(:collection, name: "House") }
+
+    before { collection.grant_admin_to!(current_user) }
 
     context "when the collection has an active document" do
       let(:document) { create(:document) }
@@ -51,6 +55,8 @@ RSpec.describe "Collections", type: :request do
     subject(:request) { post collection_documents_path(collection), params: { document_ids: } }
 
     let(:collection) { create(:collection, name: "House") }
+
+    before { collection.grant_admin_to!(current_user) }
     let(:document) { create(:document) }
 
     context "when adding a document not yet in the collection" do
@@ -89,6 +95,8 @@ RSpec.describe "Collections", type: :request do
   describe "DELETE /collections/:slug/documents/:id" do
     subject(:request) { delete collection_document_path(collection, document) }
 
+    before { collection.grant_admin_to!(current_user) }
+
     let(:collection) { create(:collection) }
     let(:document) { create(:document) }
 
@@ -106,6 +114,75 @@ RSpec.describe "Collections", type: :request do
       it "refuses and surfaces why" do
         request
         expect(flash[:alert]).to include("source")
+      end
+    end
+  end
+
+  describe "GET /collections/:slug as a reader" do
+    subject(:request) { get collection_path(collection) }
+
+    let(:collection) { create(:collection, name: "House") }
+
+    before { create(:collection_user, collection:, user: current_user) }
+
+    it "renders" do
+      request
+      expect(response).to have_http_status(:ok)
+    end
+
+    # Filing needs operator on the collection, so don't offer it.
+    it "offers no upload" do
+      request
+      expect(response.body).not_to include("Upload")
+    end
+
+    it "offers no way to delete the collection" do
+      request
+      expect(response.body).not_to include("Delete this collection")
+    end
+  end
+
+  describe "DELETE /collections/:slug" do
+    subject(:request) { delete collection_path(collection) }
+
+    let(:collection) { create(:collection, name: "Doomed") }
+    let!(:document) { create(:document) }
+
+    before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+    context "when the operator administers the collection" do
+      before { collection.grant_admin_to!(current_user) }
+
+      it "deletes it" do
+        expect { request }.to change(Collection, :count).by(-1)
+      end
+
+      # The shelf goes, not the books: documents belong to the source that
+      # produced them.
+      it "keeps the documents" do
+        request
+        expect(Document.exists?(document.id)).to be(true)
+      end
+
+      it "leaves a document that was only here unsorted" do
+        request
+        expect(Document.unsorted).to include(document)
+      end
+    end
+
+    context "when the operator can only file documents into it" do
+      before { create(:collection_user, :operator, collection:, user: current_user) }
+
+      it "refuses" do
+        expect { request }.not_to change(Collection, :count)
+      end
+    end
+
+    context "when signed in as a system admin with no grant" do
+      before { sign_in(create(:user, :admin)) }
+
+      it "deletes it" do
+        expect { request }.to change(Collection, :count).by(-1)
       end
     end
   end

@@ -10,6 +10,8 @@ RSpec.describe "Documents", type: :request do
 
     context "when uploading into a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
+
+      before { create(:collection_user, :operator, collection:, user: current_user) }
       let(:params) { { file:, collection_slug: collection.slug } }
 
       it "ingests the file and files it into the collection" do
@@ -20,6 +22,25 @@ RSpec.describe "Documents", type: :request do
       it "redirects back to the collection" do
         request
         expect(response).to redirect_to(collection_path(collection))
+      end
+    end
+
+    # The global role says they may upload; the grant says where. Without the
+    # second check an operator could file documents into any collection they
+    # could merely see.
+    context "when uploading into a collection they can only read" do
+      let(:collection) { create(:collection, name: "Handbook") }
+      let(:params) { { file: fixture_file_upload("sample.md", "text/markdown"), collection_slug: collection.slug } }
+
+      before { create(:collection_user, collection:, user: current_user) }
+
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "ingests nothing" do
+        expect { request }.not_to change(Document, :count)
       end
     end
 
@@ -34,6 +55,8 @@ RSpec.describe "Documents", type: :request do
 
     context "when no file is chosen for a collection upload" do
       let(:collection) { create(:collection) }
+
+      before { create(:collection_user, :operator, collection:, user: current_user) }
       let(:params) { { collection_slug: collection.slug } }
 
       it "returns to the collection with an alert" do
@@ -51,6 +74,8 @@ RSpec.describe "Documents", type: :request do
 
     context "when arrived from a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
+
+      before { create(:collection_user, collection:, user: current_user) }
       let(:referer) { "http://www.example.com#{collection_path(collection)}" }
 
       it "links back to that collection" do

@@ -236,6 +236,8 @@ RSpec.describe "Sources", type: :request do
         }
       end
 
+      before { create(:collection_user, :operator, collection:, user: current_user) }
+
       it "feeds them" do
         post sources_path, params: params
         expect(Source.last.collections).to include(collection)
@@ -259,6 +261,7 @@ RSpec.describe "Sources", type: :request do
       let(:document) { create(:document, source: source, status: "processed") }
 
       before do
+        create(:collection_user, :operator, collection:, user: current_user)
         source.collections << collection
         CollectionMembership.feed!(document: document, collection: collection)
       end
@@ -267,6 +270,63 @@ RSpec.describe "Sources", type: :request do
         patch source_path(source),
           params: { source: { name: source.name, path: root, collection_ids: [""] } }
         expect(CollectionMembership.find_by(document: document, collection: collection)).not_to be_active
+      end
+    end
+  end
+
+  describe "PATCH /sources/:id feed picker" do
+    let(:source) { create(:folder_source, path: root) }
+    let(:mine) { create(:collection, name: "Mine") }
+    let(:theirs) { create(:collection, name: "Theirs") }
+
+    before { create(:collection_user, :operator, collection: mine, user: current_user) }
+
+    # Feeding a collection decides what its readers see, so it belongs to the
+    # collection rather than to whoever owns the source.
+    context "when a collection they don't manage is submitted" do
+      it "is not fed" do
+        patch source_path(source),
+          params: { source: { name: source.name, path: root, collection_ids: [theirs.id] } }
+        expect(source.reload.collections).not_to include(theirs)
+      end
+    end
+
+    # update_fed_collections diffs the full list and tombstones what's missing,
+    # so submitting only the collections you can see would unfile another team's
+    # documents without ever showing you they existed.
+    context "when the source already feeds a collection they can't see" do
+      let(:document) { create(:document, source:, status: "processed") }
+
+      before do
+        source.collections << theirs
+        CollectionMembership.feed!(document:, collection: theirs)
+      end
+
+      it "leaves that feed in place" do
+        patch source_path(source),
+          params: { source: { name: source.name, path: root, collection_ids: [mine.id] } }
+        expect(source.reload.collections).to include(theirs)
+      end
+
+      it "does not retract its memberships" do
+        patch source_path(source),
+          params: { source: { name: source.name, path: root, collection_ids: [mine.id] } }
+        expect(CollectionMembership.find_by(document:, collection: theirs)).to be_active
+      end
+
+      it "still feeds the one they chose" do
+        patch source_path(source),
+          params: { source: { name: source.name, path: root, collection_ids: [mine.id] } }
+        expect(source.reload.collections).to include(mine)
+      end
+    end
+
+    context "when the picker is rendered" do
+      before { theirs }
+
+      it "offers only collections they manage" do
+        get edit_source_path(source)
+        expect(response.body).not_to include("Theirs")
       end
     end
   end

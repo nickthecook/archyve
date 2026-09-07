@@ -10,7 +10,7 @@ class CollectionsController < ApplicationController
   DocumentRow = Data.define(:document, :origin)
 
   def index
-    collections = Collection.order(:name).to_a
+    collections = Collection.readable_by(Current.user).order(:name).to_a
     @rows = build_rows(collections)
     @unsorted_count = unsorted_count
     render Views::Collections::Index.new(
@@ -21,7 +21,7 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    collection = Collection.find_by!(slug: params[:slug])
+    collection = Collection.readable_by(Current.user).find_by!(slug: params[:slug])
     memberships = collection.collection_memberships.active.includes(:document).to_a
     document_rows = memberships
       .sort_by { |membership| membership.document.title.to_s.downcase }
@@ -40,10 +40,22 @@ class CollectionsController < ApplicationController
   def create
     collection = Collection.new(collection_params)
     if collection.save
+      collection.grant_admin_to!(Current.user)
       redirect_to collections_path, notice: "Created “#{collection.name}”."
     else
       redirect_to collections_path, alert: collection.errors.full_messages.to_sentence
     end
+  end
+
+  # Deleting a collection unfiles its documents; it never destroys them. They
+  # belong to the source that produced them, so what goes is the shelf, not the
+  # books — anything that was only here becomes Unsorted. Gated on administering
+  # *this* collection, so an operator can delete their own without a system
+  # admin, and can't touch anybody else's.
+  def destroy
+    collection = Collection.administrable_by(Current.user).find_by!(slug: params[:slug])
+    collection.destroy
+    redirect_to collections_path, notice: "Deleted “#{collection.name}”. Its documents are still in the archive."
   end
 
   private

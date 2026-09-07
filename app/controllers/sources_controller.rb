@@ -87,11 +87,27 @@ class SourcesController < ApplicationController
     params.require(:source).permit(:name, :path, :sync_interval_minutes, collection_ids: [])
   end
 
+  # What this source should feed after the save.
+  #
+  # Two rules, both load-bearing. Only collections this person manages can be
+  # *chosen* — feeding a collection decides what its readers see, so it belongs
+  # to the collection, not to whoever happens to own the source. And feeds to
+  # collections they can't see are carried over untouched: update_fed_collections
+  # diffs the full list and tombstones everything missing from it, so submitting
+  # only the visible ones would silently unfile another team's documents.
   def selected_collections
-    Collection.where(id: source_params.fetch(:collection_ids, []).reject(&:blank?))
+    chosen = manageable_collections.where(id: source_params.fetch(:collection_ids, []).reject(&:blank?))
+    invisible = @source ? @source.collections.where.not(id: manageable_collections.select(:id)) : Collection.none
+
+    Collection.where(id: chosen.select(:id)).or(Collection.where(id: invisible.select(:id)))
   end
 
+  # Offered in the feed picker: only collections this person manages.
   def all_collections
-    Collection.order(:name)
+    manageable_collections.order(:name)
+  end
+
+  def manageable_collections
+    Collection.manageable_by(Current.user)
   end
 end

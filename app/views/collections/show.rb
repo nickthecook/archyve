@@ -21,14 +21,59 @@ class Views::Collections::Show < Views::Base
     breadcrumb
     header_block
     search
-    upload
-    add_documents
+    # Don't offer what will be refused: filing needs operator on this
+    # collection, and a reader granted `user` has only search and chat here.
+    if may_on?(@collection, :operator)
+      upload
+      add_documents
+    end
     @document_rows.any? ? document_list : empty_state
+    delete_collection
   end
 
   private
 
   def page_title = @collection.name
+
+  # Deliberately plain and at the bottom, not a red button next to the title.
+  # The confirmation says what survives, because "delete collection" reads like
+  # it might take the documents with it — it doesn't.
+  def delete_collection
+    return unless may_on?(@collection, :admin)
+
+    div(class: "mt-10 border-t border-line/60 pt-5 flex items-center justify-between gap-4") do
+      div do
+        p(class: "text-sm text-muted") { "Delete this collection" }
+        p(class: "mt-0.5 text-xs text-faint") do
+          "Its documents stay in the archive. Any that are only in this collection become Unsorted."
+        end
+      end
+      form(
+        action: collection_path(@collection),
+        method: "post",
+        class: "shrink-0",
+        data: { turbo_confirm: "Delete “#{@collection.name}”? Its documents stay in the archive, but this can't be undone." }
+      ) do
+        input(type: "hidden", name: "_method", value: "delete")
+        input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+        button(
+          type: "submit",
+          class: "rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors cursor-pointer"
+        ) { "Delete" }
+      end
+    end
+  end
+
+  # Only for whoever administers this collection — an operator granted filing
+  # rights here has no business handing out access.
+  def people_link
+    return unless may_on?(@collection, :admin)
+
+    a(
+      href: collection_people_path(@collection),
+      class: "text-xs text-muted hover:text-fg transition-colors"
+    ) { "People" }
+  end
 
   def breadcrumb
     nav(class: "mb-5 flex items-center gap-2 text-xs text-faint") do
@@ -42,7 +87,10 @@ class Views::Collections::Show < Views::Base
     header(class: "mb-7") do
       div(class: "mb-2 flex items-center justify-between gap-3") do
         h1(class: "text-2xl font-semibold tracking-tight") { @collection.name }
-        source_marker if @source_fed
+        div(class: "flex shrink-0 items-center gap-4") do
+          source_marker if @source_fed
+          people_link
+        end
       end
       meter
       p(class: "mt-3 text-sm text-muted") { count_summary }
@@ -180,7 +228,11 @@ class Views::Collections::Show < Views::Base
       a(href: document_path(document), class: "min-w-0 flex-1 truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
       div(class: "flex shrink-0 items-center gap-3") do
         render Views::Documents::StatusBadge.new(status: document.status)
-        row.origin == "manual" ? remove_button(document) : source_tag
+        if row.origin != "manual"
+          source_tag
+        elsif may_on?(@collection, :operator)
+          remove_button(document)
+        end
       end
     end
   end
@@ -201,7 +253,14 @@ class Views::Collections::Show < Views::Base
   def empty_state
     div(class: "rounded-lg border border-dashed border-line px-4 py-12 text-center") do
       p(class: "text-sm text-muted") { "No documents in this collection yet." }
-      p(class: "mt-1 text-xs text-faint") { "Upload a file or add one from your archive." }
+      # Don't tell a reader to upload something they have no way to upload.
+      p(class: "mt-1 text-xs text-faint") do
+        if may_on?(@collection, :operator)
+          "Upload a file or add one from your archive."
+        else
+          "Whoever manages this collection hasn't added anything yet."
+        end
+      end
     end
   end
 

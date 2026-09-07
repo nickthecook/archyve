@@ -275,7 +275,7 @@ not access control; the controller gate is.
 
 Because the role is a ceiling, **self-granting is structurally harmless**: an
 operator can create a collection and make themselves its admin and still never
-reach settings. The two axes combine with `min`.
+reach settings.
 
 The last admin can neither be demoted nor deleted. That guard is a validation
 and a `before_destroy` on `User`, not a controller check, so no path — console,
@@ -304,14 +304,38 @@ Downloads stream through the controller rather than redirecting to an Active
 Storage blob URL: a signed blob URL is reachable by anyone holding it, which
 would put the archive one forwarded link away from anybody.
 
-**Per-object grants (not built).** Access to documents is granted **through
-collections**.
+**Per-collection grants (built 2026-09-07).** Access to documents is granted
+**through collections**.
 
-- **`collection_users`** join: `user ↔ collection` with `role` ∈
-  `read` / `read_write` / `admin`.
-  - `read` — query the collection.
-  - `read_write` — + manually add/remove document memberships, trigger sync.
-  - `admin` — + edit collection settings, manage feeds & user roles, delete.
+- **`collection_users`** join: `user ↔ collection` with the same ordered `role`
+  vocabulary as the global one (`Roleable`), so the two are comparable.
+  - `user` — search it, and draw on it in chat.
+  - `operator` — + add and remove document memberships by hand.
+  - `admin` — + manage its people and delete it. Deleting unfiles documents;
+    it never destroys them, since they belong to the source that produced them,
+    and anything that was only in that collection becomes Unsorted.
+- **A missing row means no access**, not weak access. `User#role_on` returns
+  `nil`, deliberately not `:user`: absence is not the weakest presence, and
+  conflating them would hand every operator read access to every collection.
+- Whoever creates a collection is granted `admin` on it. Otherwise an operator
+  immediately can't manage what they just made, and only a system admin could
+  rescue them.
+
+**How the two axes combine — a two-band ceiling, not `min`.** The global role
+caps the *kind* of thing you can do (chat / content / system); it is not another
+rung on the same ladder:
+
+- global `admin` — everything, everywhere, no grant needed.
+- global `operator` — the grant exactly as written, up to and including `admin`
+  **of that collection**. Managing a collection, its people included, is content
+  ownership, which is what an operator is for.
+- global `user` — reads at most, whatever the grant says. Chat-only means
+  chat-only; a grant cannot widen it.
+
+A numeric `min` was the original plan and is wrong: `min(operator, admin)` is
+`operator`, which would mean an HR operator could not grant a colleague access
+to the HR collection, leaving every access change waiting on a system admin.
+That contradicts the whole point of appointing operators.
 - **Multi-collection query:** retrieval takes a **set of collection IDs** from
   day one (same query shape as one — `document_id ∈ (active members of ANY of the
   user's readable selected collections)`, **de-duplicated**). This is cheap
