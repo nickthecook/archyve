@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_06_234925) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_013751) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -94,6 +94,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_234925) do
     t.datetime "finished_at"
     t.integer "found_count", default: 0, null: false
     t.integer "removed_count", default: 0, null: false
+    t.integer "skipped_count", default: 0, null: false
+    t.integer "stale_count", default: 0, null: false
     t.datetime "started_at", null: false
     t.string "status", default: "running", null: false
     t.integer "unchanged_count", default: 0, null: false

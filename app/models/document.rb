@@ -1,6 +1,11 @@
 class Document < ApplicationRecord
   belongs_to :connector
 
+  # The sync run that last created or updated this document. Optional: manually
+  # uploaded documents never had one, and it is nullified when an old run is
+  # pruned. It is what lets a run report its own processing progress.
+  belongs_to :connector_sync, optional: true
+
   # Raw bytes for the document. For manual_upload this is the user's file; other
   # connectors attach whatever they fetched so the pipeline has one input shape.
   has_one_attached :file

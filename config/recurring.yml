@@ -1,15 +1,22 @@
-# examples:
-#   periodic_cleanup:
-#     class: CleanSoftDeletedRecordsJob
-#     queue: background
-#     args: [ 1000, { batch_size: 500 } ]
-#     schedule: every hour
-#   periodic_cleanup_with_command:
-#     command: "SoftDeletedRecord.due.delete_all"
-#     priority: 2
-#     schedule: at 5am every day
+# Recurring tasks, run by the Solid Queue scheduler. The scheduler only exists
+# inside a running supervisor — in development that is the one Puma forks via
+# the plugin in config/puma.rb (SOLID_QUEUE_IN_PUMA=1, set in Procfile.dev).
+
+default: &default
+  # A fixed heartbeat, not a per-connector schedule: the job asks
+  # Connector.due_for_sync which connectors have passed their own interval, so
+  # intervals are configured per connector in the UI and never here.
+  enqueue_due_connector_syncs:
+    class: Connectors::EnqueueDueSyncsJob
+    queue: ingestion
+    schedule: every minute
+
+development:
+  <<: *default
 
 production:
+  <<: *default
+
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12

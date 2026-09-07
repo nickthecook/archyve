@@ -164,6 +164,17 @@ Two layers, kept separate:
    - `fetch(item)` → raw bytes + content-type (streamed).
    - capability flags: `supports_incremental?`, `supports_webhooks?`.
 
+> **As built (2026-09-06), these two layers are one.** The STI subclass is both
+> the persisted config and the driver: `Connectors::Folder` holds its config in
+> `config` jsonb *and* implements the interface. The registry is `Connector::TYPES`.
+> Splitting them would have bought a stateless-adapter seam that nothing yet
+> needs, at the cost of a second parallel hierarchy — so the word "adapter" does
+> not appear in the code, and the interface is called the **sync contract**:
+> `#each_item` (yielding `Connector::Item`) and `#read(external_id)`. Revisit if a
+> connector ever needs its driver without a database row behind it. The two
+> capability flags above aren't built either; `.supports_sync?` is the only one
+> so far.
+
 **Provider-agnostic sync engine.** Diffs current source items against stored
 `Document`s (keyed by `connector_id` + `external_id`) → create / update / delete:
 - **Version token unchanged → skip.** Critical: re-ingest means re-embed (the

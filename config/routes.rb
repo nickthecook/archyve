@@ -22,6 +22,13 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   get "chat", to: "chat#index"
   get "settings", to: "settings#index"
+  # Connectors are configured here for now; env-var and API configuration come
+  # later. "Sync now" is a POST because it starts work, not a page.
+  namespace :settings do
+    resources :connectors do
+      post :sync, on: :member
+    end
+  end
 
   # The landing: the archive corridor with search as the way in.
   root "home#index"
