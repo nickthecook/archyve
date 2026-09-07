@@ -32,6 +32,34 @@ class Document < ApplicationRecord
     where.not(status: "removed").where.not(id: CollectionMembership.active.select(:document_id))
   }
 
+  # Two different questions, deliberately kept apart.
+  #
+  # **Retrievable** — what a query may draw on. Strictly through collections,
+  # which is what the access model says: a document in no collection is in
+  # nobody's corpus. This is the one that governs search, and chat when it
+  # lands.
+  scope :retrievable_by, ->(user) {
+    next all if user.admin?
+
+    where(id: CollectionMembership.active
+      .where(collection_id: Collection.readable_by(user).select(:id))
+      .select(:document_id))
+  }
+
+  # **Reachable** — what a person may open or download directly. Everything
+  # retrievable, plus two cases that aren't reached through a collection at all:
+  # documents from a source you own (your own uploads, always yours), and — for
+  # operators — unfiled documents, because /unsorted is the queue for filing
+  # exactly those and you cannot file what you cannot open.
+  scope :reachable_by, ->(user) {
+    next all if user.admin?
+
+    reachable = retrievable_by(user).or(where(source_id: user.sources.select(:id)))
+    next reachable unless user.at_least?(:operator)
+
+    reachable.or(unsorted)
+  }
+
   # Live-update the show page as the pipeline advances. Broadcast synchronously
   # from whatever updated the status (the job), not *_later — see the streaming
   # notes in the architecture: async broadcasts race and arrive out of order.

@@ -9,11 +9,11 @@ class DocumentsController < ApplicationController
   BackLink = Data.define(:label, :href)
 
   def index
-    render Views::Documents::Index.new(documents: Document.order(created_at: :desc))
+    render Views::Documents::Index.new(documents: Document.reachable_by(Current.user).order(created_at: :desc))
   end
 
   def show
-    render Views::Documents::Show.new(document: Document.find(params[:id]), back: back_link)
+    render Views::Documents::Show.new(document: Document.reachable_by(Current.user).find(params[:id]), back: back_link)
   end
 
   # Uploading into a collection needs operator *on that collection*, not just
@@ -39,7 +39,7 @@ class DocumentsController < ApplicationController
   # Reads the whole file into memory, as Ingestion::DocumentUploader does on the
   # way in. Fine while documents are small; revisit the two together.
   def download
-    document = Document.find(params[:id])
+    document = Document.reachable_by(Current.user).find(params[:id])
     return head(:not_found) unless document.file.attached?
 
     send_data document.file.download,

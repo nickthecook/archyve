@@ -4,22 +4,45 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
   subject(:request) { get download_document_path(document) }
 
   let(:document) { create(:document, :with_file) }
+  let(:collection) { create(:collection) }
 
-  before { sign_in(create(:user, *traits)) }
-
-  # The point of the whole step: a reader who was pointed at a document can
-  # fetch it, without being able to browse the archive to find others.
+  # A reader reaches a document through a citation or a search result, so the
+  # download has to work for them — but only for documents they could have been
+  # cited, or the scoping on retrieval would be bypassable by guessing an id.
   context "when signed in as a plain user" do
-    let(:traits) { [] }
+    before { sign_in(create(:user)) }
 
-    it "hands over the file" do
-      request
-      expect(response).to have_http_status(:ok)
+    context "when the document is in a collection they can read" do
+      before do
+        create(:collection_membership, collection:, document:, origin: "manual")
+        create(:collection_user, collection:, user: current_user)
+      end
+
+      it "hands over the file" do
+        request
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "sends it as an attachment" do
+        request
+        expect(response.headers["Content-Disposition"]).to include("attachment")
+      end
     end
 
-    it "sends it as an attachment" do
-      request
-      expect(response.headers["Content-Disposition"]).to include("attachment")
+    context "when the document is in a collection they cannot read" do
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when the document is in no collection at all" do
+      it "is refused, since nothing grants it" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     it "still refuses the archive listing" do
@@ -29,17 +52,43 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
   end
 
   context "when signed in as an operator" do
-    let(:traits) { [:operator] }
+    before { sign_in(create(:user, :operator)) }
 
-    it "hands over the file" do
-      request
-      expect(response).to have_http_status(:ok)
+    # /unsorted is the queue for filing exactly these, and you can't file what
+    # you can't open.
+    context "when the document is unfiled" do
+      it "hands over the file" do
+        request
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when the document is filed in a collection they have no grant on" do
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    # Your own uploads are always yours, collection or not.
+    context "when the document came from a source they own" do
+      let(:document) { create(:document, :with_file, source: create(:source, user: current_user)) }
+
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+      it "hands over the file" do
+        request
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
   context "when the document has no file attached" do
-    let(:traits) { [:operator] }
     let(:document) { create(:document) }
+
+    before { sign_in(create(:user, :admin)) }
 
     it "is not found" do
       request

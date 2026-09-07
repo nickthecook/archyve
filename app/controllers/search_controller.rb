@@ -16,13 +16,23 @@ class SearchController < ApplicationController
 
   private
 
-  # Cosine-nearest chunks for the query, optionally narrowed to the scope's
-  # documents. Embedding the query hits Ollama over the network, so a failure
-  # degrades to a friendly message rather than a 500.
+  # Cosine-nearest chunks for the query, narrowed by two independent filters:
+  # what this person may read at all, and what they asked to search. Both are
+  # subqueries rather than plucked id lists, so a large archive stays in SQL.
+  #
+  # This is where access control is enforced for retrieval — the chat tool will
+  # come through the same path. Embedding the query hits Ollama over the
+  # network, so a failure degrades to a friendly message rather than a 500.
   def retrieve(query)
     vector = Embeddings::Embed.query(query)
     relation = Embedding.where(embedding_model: Embedding::DEFAULT_MODEL)
-    relation = relation.joins(chunk: :document).where(documents: { id: @scope.document_ids }) if @scope
+
+    filters = [retrievable_document_ids, @scope&.document_ids].compact
+    unless filters.empty?
+      relation = relation.joins(chunk: :document)
+      filters.each { |ids| relation = relation.where(documents: { id: ids }) }
+    end
+
     relation
       .nearest_neighbors(:embedding, vector, distance: "cosine")
       .includes(chunk: :document)
@@ -33,19 +43,39 @@ class SearchController < ApplicationController
     []
   end
 
+  # What this query may draw on, as a subquery; nil means unrestricted.
+  #
+  # Document.retrievable_by is strictly collection-based, deliberately narrower
+  # than .reachable_by: a document in no collection is in nobody's corpus, even
+  # though an operator can open it from /unsorted to file it.
+  def retrievable_document_ids
+    return nil if Current.user.admin?
+
+    Document.retrievable_by(Current.user).select(:id)
+  end
+
   # Turn the URL (c[] collection slugs, doc id) into a Scope, or nil for All.
+  #
+  # Slugs naming a collection this person can't read are dropped rather than
+  # rejected: erroring would confirm the collection exists. A `doc` they can't
+  # read is kept as an id but never resolves to a title, and intersects with the
+  # readable filter above to nothing.
   def resolve_scope
     doc_id = params[:doc].presence
     slugs = Array(params[:c]).reject(&:blank?)
 
     if doc_id
-      document = Document.find_by(id: doc_id)
+      document = readable_documents.find_by(id: doc_id)
       Scope.new(label: document&.title || "one document", document_ids: [doc_id], hidden_params: { "doc" => doc_id })
     elsif slugs.any?
-      collections = Collection.where(slug: slugs).to_a
+      collections = Collection.readable_by(Current.user).where(slug: slugs).to_a
       document_ids = CollectionMembership.active.where(collection: collections).distinct.pluck(:document_id)
       label = collections.map(&:name).to_sentence.presence || "these collections"
       Scope.new(label:, document_ids:, hidden_params: { "c" => collections.map(&:slug) })
     end
+  end
+
+  def readable_documents
+    Document.retrievable_by(Current.user)
   end
 end

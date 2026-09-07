@@ -295,14 +295,34 @@ download is a property of the **source**, not of the reader's role
 
 So chat and search behave identically for an operator and a plain user. An
 operator's extra reach is *browsing* the archive, a different entry point:
-`/documents` is `operator`, the download is not. That is friction, not a
-boundary — a reader holding a document id can fetch it — and it is deliberate.
-The archive's contents are as reachable as the personas that answer questions
-about them; what the role prevents is enumeration.
+`/documents` is `operator`, the download is not. The download is nonetheless
+scoped to what the reader could have been cited (`Document.reachable_by`), so
+holding an id is not enough — what the role additionally prevents is
+enumeration.
 
 Downloads stream through the controller rather than redirecting to an Active
 Storage blob URL: a signed blob URL is reachable by anyone holding it, which
 would put the archive one forwarded link away from anybody.
+
+**Retrieval scoping (built 2026-09-07).** Two questions about a document, kept
+deliberately apart as `Document.retrievable_by` and `Document.reachable_by`:
+
+- **Retrievable** — what a query may draw on. Strictly through collections: a
+  document in no collection is in nobody's corpus. Governs search, and chat when
+  it lands. This is where access control is enforced for retrieval.
+- **Reachable** — what a person may open or download directly. Everything
+  retrievable, plus two cases that don't come through a collection: documents
+  from a source you own (your own uploads stay yours), and, for operators,
+  unfiled documents — `/unsorted` is the queue for filing exactly those, and you
+  cannot file what you cannot open.
+
+Admins are unrestricted on both. Scoping the download matters as much as scoping
+the query: without it, retrieval scoping is bypassable by guessing an id.
+
+Scope parameters resolve through the same filter. A `c[]` slug naming a
+collection the reader can't see is **dropped rather than rejected** — erroring
+would confirm the collection exists — and a `doc` id they can't read never
+resolves to a title, so the scope label leaks nothing.
 
 **Per-collection grants (built 2026-09-07).** Access to documents is granted
 **through collections**.
