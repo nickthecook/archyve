@@ -79,13 +79,31 @@ class Views::Search::Index < Views::Base
     document = chunk.document
     breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
 
-    a(href: document_path(document, anchor: ActionView::RecordIdentifier.dom_id(chunk)), class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors") do
+    # A div, not a link: the card carries its own actions, and an anchor can't
+    # contain anchors.
+    div(class: "rounded-lg border border-line bg-ink/40 p-4") do
       div(class: "mb-1.5 flex items-center justify-between gap-3") do
         span(class: "truncate text-sm font-medium text-fg") { document.title }
         span(class: "shrink-0 font-mono text-xs text-accent tabular-nums") { "#{similarity(embedding)}%" }
       end
       span(class: "block text-xs text-faint truncate mb-2") { breadcrumb } if breadcrumb.present?
       p(class: "text-sm leading-relaxed text-muted") { chunk.content.truncate(260) }
+      actions(document, chunk)
+    end
+  end
+
+  # Getting the document is the same for everyone — download it, or follow it to
+  # its source. Inspecting how retrieval chunked it is an operator's tool, so it
+  # sits behind the role rather than being the card's primary action.
+  def actions(document, chunk)
+    div(class: "mt-3 flex items-center gap-4 border-t border-line/60 pt-3") do
+      render Views::Documents::Access.new(document:)
+      if may?(:operator)
+        a(
+          href: document_path(document, anchor: ActionView::RecordIdentifier.dom_id(chunk)),
+          class: "text-xs text-faint hover:text-fg transition-colors"
+        ) { "Inspect chunks" }
+      end
     end
   end
 

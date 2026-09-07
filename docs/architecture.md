@@ -281,6 +281,29 @@ The last admin can neither be demoted nor deleted. That guard is a validation
 and a `before_destroy` on `User`, not a controller check, so no path — console,
 seeds, a future API — can leave Archyve unadministrable.
 
+**Reaching a document (built 2026-09-07).** Whether a reader gets a link or a
+download is a property of the **source**, not of the reader's role
+(`Source.user_accessible_links?`):
+
+- A source that can hand out an address the reader's browser can follow gets
+  linked to. The reader lands on the live document with whatever permissions
+  and history the source keeps.
+- One that can't is downloaded from Archyve. A folder can't — the file lives at
+  a path on the Archyve host and no reader is sitting at that machine — and
+  neither can manual upload. Both are download-only, and nothing returns true
+  yet.
+
+So chat and search behave identically for an operator and a plain user. An
+operator's extra reach is *browsing* the archive, a different entry point:
+`/documents` is `operator`, the download is not. That is friction, not a
+boundary — a reader holding a document id can fetch it — and it is deliberate.
+The archive's contents are as reachable as the personas that answer questions
+about them; what the role prevents is enumeration.
+
+Downloads stream through the controller rather than redirecting to an Active
+Storage blob URL: a signed blob URL is reachable by anyone holding it, which
+would put the archive one forwarded link away from anybody.
+
 **Per-object grants (not built).** Access to documents is granted **through
 collections**.
 

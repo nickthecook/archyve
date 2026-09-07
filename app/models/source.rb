@@ -93,6 +93,24 @@ class Source < ApplicationRecord
   # single implicit source created on first upload, not something you add.
   def self.user_creatable? = false
 
+  # Whether this source can produce a link the *reader's browser* can follow.
+  #
+  # A folder can't: the documents live at a path on the Archyve host, and nobody
+  # reading chat results is sitting at that machine, so a file:// link is
+  # useless. Manual upload can't either — Archyve is where the file lives. Both
+  # are therefore download-only. A wiki or object store with a web UI can, and
+  # should link out rather than hand over a copy: the reader gets the live
+  # document, with whatever permissions and history the source keeps.
+  #
+  # Nothing returns true yet. The first source type that can — Bookstack, S3
+  # with a console — implements both this and #document_url, and that is also
+  # when documents grow a stored URL to return.
+  def self.user_accessible_links? = false
+
+  # This document's address in the source, or nil. Only meaningful when
+  # .user_accessible_links? is true.
+  def document_url(_document) = nil
+
   # Shown in the source type picker.
   def self.type_label = name.demodulize.underscore.humanize
   def self.description = ""
@@ -103,6 +121,7 @@ class Source < ApplicationRecord
   end
 
   def supports_sync? = self.class.supports_sync?
+  def user_accessible_links? = self.class.user_accessible_links?
 
   # --- sync contract (see the class comment) ---------------------------------
 

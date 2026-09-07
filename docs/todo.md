@@ -54,6 +54,12 @@ this is a todo and not a bug.
 
 ## Later
 
+- **A stored URL per document.** `Source.user_accessible_links?` and
+  `#document_url` exist but nothing returns true, because neither of the two
+  source types can produce a followable address. The first that can (Bookstack,
+  an object store with a console) needs `Source::Item` to carry a URL and
+  `documents` to store one — deliberately not added ahead of something that can
+  populate it.
 - **Source config encryption.** `sources.config` is plain jsonb. Fine for a
   path; ActiveRecord Encryption needs wiring before the first source that
   holds credentials (S3 keys, a Bookstack token).

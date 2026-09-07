@@ -18,6 +18,34 @@ RSpec.describe "Search", type: :request do
       create(:collection_membership, collection:, document: inside, origin: "manual")
     end
 
+    # Reaching the document is the same for everyone; inspecting how retrieval
+    # chunked it is an operator's tool. See Views::Documents::Access.
+    context "when a result's source can't hand out a followable link" do
+      let(:params) { { q: "anything" } }
+      let(:inside) { create(:document, :with_file, title: "Inside Report") }
+
+      context "when signed in as a plain user" do
+        before { sign_in(create(:user)) }
+
+        it "offers the document as a download" do
+          request
+          expect(response.body).to include("/documents/#{inside.id}/download")
+        end
+
+        it "does not offer the chunk view" do
+          request
+          expect(response.body).not_to include("Inspect chunks")
+        end
+      end
+
+      context "when signed in as an operator" do
+        it "also offers the chunk view" do
+          request
+          expect(response.body).to include("Inspect chunks")
+        end
+      end
+    end
+
     context "when scoped to a collection" do
       let(:params) { { q: "anything", c: collection.slug } }
 

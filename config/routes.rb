@@ -24,7 +24,12 @@ Rails.application.routes.draw do
     # memberships only; source rows are retracted at the source).
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"
   end
-  resources :documents, only: [:index, :show, :create]
+  # Downloading is open to any signed-in user; browsing the archive is not.
+  # That asymmetry is deliberate — a reader reaches a document through a chat
+  # citation or a search result, not by enumerating the shelf.
+  resources :documents, only: [:index, :show, :create] do
+    get :download, on: :member
+  end
   # "Unsorted" is a derived view (docs in no collection), not a collection — its
   # own top-level route so it never collides with a collection slug.
   get "unsorted", to: "unsorted#index"

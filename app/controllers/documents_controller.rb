@@ -1,5 +1,7 @@
 class DocumentsController < ApplicationController
-  require_role :operator
+  # Browsing the archive is an operator job; fetching one document you were
+  # pointed at is not. See the download route.
+  require_role :operator, except: :download
 
   # Where the "back" link on a document points. A document is collection-agnostic
   # (it lives in many collections), so its URL carries no context — the only
@@ -23,6 +25,23 @@ class DocumentsController < ApplicationController
     # Back to the collection when the upload targeted one, so the user sees it
     # appear; otherwise to the document itself.
     redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"
+  end
+
+  # Hand over the bytes. Streamed through the controller rather than redirecting
+  # to an Active Storage blob URL on purpose: a signed blob URL is reachable by
+  # anyone holding it, which would put the archive's contents one forwarded link
+  # away from anybody. This way the request is authenticated every time.
+  #
+  # Reads the whole file into memory, as Ingestion::DocumentUploader does on the
+  # way in. Fine while documents are small; revisit the two together.
+  def download
+    document = Document.find(params[:id])
+    return head(:not_found) unless document.file.attached?
+
+    send_data document.file.download,
+      filename: document.file.filename.to_s,
+      type: document.file.content_type,
+      disposition: "attachment"
   end
 
   private
