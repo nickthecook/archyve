@@ -64,6 +64,7 @@ this is a todo and not a bug.
 - **Large trees scan in one job.** `Sources::Sync` walks the whole directory
   in a single `SyncJob`. Fine for thousands of files; a million would want
   chunked or resumable scanning.
-- **Who may configure sources.** Open question from `architecture.md` — likely
-  an app-admin role, distinct from per-collection admin, since sources are
-  global producers. Blocked on auth.
+- **Per-collection and per-source grants.** The global role is built; the
+  second axis isn't. Needs `collection_users`, `source_users`, retrieval scoped
+  to readable collections, and the feed picker moved to the collection page.
+  (The "who may configure sources" question is settled: `operator`.)

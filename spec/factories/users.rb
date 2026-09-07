@@ -5,5 +5,13 @@ FactoryBot.define do
     # Lazily resolved, so load order between support files and factories doesn't
     # matter — see spec/support/authentication.rb.
     password { AuthenticationHelpers::PASSWORD }
+
+    trait :operator do
+      role { :operator }
+    end
+
+    trait :admin do
+      role { :admin }
+    end
   end
 end

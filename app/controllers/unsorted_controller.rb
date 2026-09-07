@@ -1,4 +1,6 @@
 class UnsortedController < ApplicationController
+  require_role :operator
+
   def index
     render Views::Unsorted::Index.new(
       documents: Document.unsorted.order(:title),

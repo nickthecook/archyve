@@ -102,6 +102,81 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "#at_least?" do
+    subject(:user) { build(:user, role:) }
+
+    let(:result) { user.at_least?(:operator) }
+
+    context "when the user's role is below it" do
+      let(:role) { :user }
+
+      it "is false" do
+        expect(result).to be(false)
+      end
+    end
+
+    context "when the user's role is exactly it" do
+      let(:role) { :operator }
+
+      it "is true" do
+        expect(result).to be(true)
+      end
+    end
+
+    # Ordered roles are the whole point: an admin passes an operator gate
+    # without being named in it.
+    context "when the user's role is above it" do
+      let(:role) { :admin }
+
+      it "is true" do
+        expect(result).to be(true)
+      end
+    end
+  end
+
+  # Guards the state that makes Archyve unadministrable. Enforced on the record
+  # rather than in a controller so no path — console, seeds, a future API — can
+  # route around it.
+  describe "the last admin" do
+    subject(:admin) { create(:user, :admin) }
+
+    context "when they are the only admin and are demoted" do
+      let(:result) { admin.update(role: :operator) }
+
+      it "is refused" do
+        expect(result).to be(false)
+      end
+
+      it "keeps the role" do
+        result
+        expect(admin.reload.role).to eq("admin")
+      end
+    end
+
+    context "when they are the only admin and are destroyed" do
+      let(:result) { admin.destroy }
+
+      it "is refused" do
+        expect(result).to be(false)
+      end
+
+      it "keeps the account" do
+        result
+        expect(User.exists?(admin.id)).to be(true)
+      end
+    end
+
+    context "when another admin exists" do
+      let(:result) { admin.update(role: :operator) }
+
+      before { create(:user, :admin) }
+
+      it "allows the demotion" do
+        expect(result).to be(true)
+      end
+    end
+  end
+
   # The failure this guards against: an admin removing a departing employee and
   # silently destroying every document that person ever uploaded, because a
   # Source destroys its documents and the documents cascade to chunks and

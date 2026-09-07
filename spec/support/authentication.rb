@@ -6,7 +6,9 @@ module AuthenticationHelpers
   # user is always signable-in with this.
   PASSWORD = "sufficiently-long-password".freeze
 
-  def sign_in(user = create(:user), password: PASSWORD)
+  # Defaults to an operator: the least privileged role that can reach the
+  # surfaces most request specs exercise. Pass a user to test a boundary.
+  def sign_in(user = create(:user, :operator), password: PASSWORD)
     post session_path, params: { email_address: user.email_address, password: }
     user
   end

@@ -1,4 +1,6 @@
 class CollectionsController < ApplicationController
+  require_role :operator
+
   # One row per collection for the index. `documents_count` and `status_counts`
   # cover only *active* memberships (the derived "current contents"); a removed
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].

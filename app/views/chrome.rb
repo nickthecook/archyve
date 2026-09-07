@@ -1,9 +1,16 @@
 # frozen_string_literal: true
 
 # Slim top bar for contained pages — the triangle mark returns home, and the
-# three sections stand in for the landing's facets. No sidebar.
+# sections stand in for the landing's facets. No sidebar.
 class Views::Chrome < Components::Base
-  NAV = [["Collections", :collections_path], ["Chat", :chat_path], ["Settings", :settings_path]].freeze
+  # Label, path helper, and the minimum role that can reach it. Filtered rather
+  # than shown-and-refused: a link that bounces you is worse than no link. The
+  # landing's facets are filtered the same way.
+  NAV = [
+    ["Collections", :collections_path, :operator],
+    ["Chat", :chat_path, :user],
+    ["Settings", :settings_path, :admin]
+  ].freeze
 
   def view_template
     header(class: "border-b border-line/60") do
@@ -14,7 +21,7 @@ class Views::Chrome < Components::Base
         end
         div(class: "flex items-center gap-6") do
           nav(class: "flex items-center gap-6 text-sm") do
-            NAV.each { |label, path| nav_link(label, public_send(path)) }
+            visible_nav.each { |label, path, _| nav_link(label, public_send(path)) }
           end
           account if Current.user
         end
@@ -24,23 +31,37 @@ class Views::Chrome < Components::Base
 
   private
 
-  # Who you are, and the way out. Reads Current.user directly rather than a
-  # helper adapter — it is a plain CurrentAttributes lookup, not the deprecated
-  # `helpers` proxy the rest of this file avoids.
+  def visible_nav
+    NAV.select { |_, _, minimum| may?(minimum) }
+  end
+
+  # Who you are, and what only you can do: preferences and the way out. Reads
+  # Current.user directly rather than a helper adapter — it is a plain
+  # CurrentAttributes lookup, not the deprecated `helpers` proxy this file
+  # avoids. Same details/summary disclosure as the "New collection" menu.
   def account
-    div(class: "flex items-center gap-3 border-l border-line/60 pl-6") do
-      span(class: "hidden sm:inline text-xs text-faint") { Current.user.email_address }
-      sign_out
+    details(class: "relative") do
+      summary(class: "cursor-pointer list-none text-sm text-muted hover:text-fg transition-colors") do
+        Current.user.email_address
+      end
+      div(class: "absolute right-0 z-10 mt-2 w-56 rounded-lg border border-line-2 bg-ink py-1 shadow-lg") do
+        menu_link("Preferences", account_path)
+        sign_out
+      end
     end
   end
 
+  def menu_link(label, href)
+    a(href: href, class: "block px-4 py-2 text-sm text-muted hover:text-fg hover:bg-void/40 transition-colors") { label }
+  end
+
   def sign_out
-    form(action: session_path, method: "post", class: "inline") do
+    form(action: session_path, method: "post") do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "text-sm text-muted hover:text-fg transition-colors cursor-pointer"
+        class: "block w-full px-4 py-2 text-left text-sm text-muted hover:text-fg hover:bg-void/40 transition-colors cursor-pointer"
       ) { "Sign out" }
     end
   end

@@ -258,7 +258,31 @@ Query-time:
 
 ## Multi-user & access control
 
-Access to documents is granted **through collections**.
+Two axes, not one.
+
+**Global role (built 2026-09-07)** — `users.role` ∈ `user` / `operator` /
+`admin`, an integer enum so the values are *ordered*. This is a **capability
+ceiling**, and the gate on everything that isn't scoped to a collection:
+
+- `user` — chat and search. No management surfaces at all.
+- `operator` — + sources, collections, documents, filing.
+- `admin` — + settings and people, everywhere, needing no per-object grant.
+
+Enforced by the `Authorization` concern (`require_role :operator`), beside the
+`Authentication` one. Views filter affordances with `may?(:operator)` — the nav
+in `Views::Chrome::NAV` and the landing's facets both do — but hiding a link is
+not access control; the controller gate is.
+
+Because the role is a ceiling, **self-granting is structurally harmless**: an
+operator can create a collection and make themselves its admin and still never
+reach settings. The two axes combine with `min`.
+
+The last admin can neither be demoted nor deleted. That guard is a validation
+and a `before_destroy` on `User`, not a controller check, so no path — console,
+seeds, a future API — can leave Archyve unadministrable.
+
+**Per-object grants (not built).** Access to documents is granted **through
+collections**.
 
 - **`collection_users`** join: `user ↔ collection` with `role` ∈
   `read` / `read_write` / `admin`.
@@ -272,8 +296,14 @@ Access to documents is granted **through collections**.
   starts single-select**; a multi-select widget is a self-contained later view
   change with no ripple into retrieval/DB. If single-collection turns out to be
   all we want, nothing is lost — just never ship the widget.
-- Open: **who may create/configure sources** — likely an app-admin / dedicated
-  role, distinct from per-collection admin, since sources are global producers.
+- **Who may create/configure sources: `operator`** (settled 2026-09-07). Sources
+  are global producers, so they are gated by the global role rather than by any
+  per-collection grant. Changing which collections a source *feeds* is a
+  separate question and belongs to the collection: ownership of what readers see
+  sits with the collection, not with the source producing it.
+- A source-level grant, when it lands, needs only `operator` / `admin` — a
+  source `user` role has no meaning, since seeing a source is implied by seeing
+  a collection it feeds.
 
 ## Streaming & transports
 

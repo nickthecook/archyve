@@ -15,9 +15,15 @@ class Views::Home::Index < Views::Base
     ) do
       brand
       hall
-      facet("documents", "Collections", collections_path, "#{@stats[:collections]} collections · #{@stats[:documents]} documents")
+      # Each facet is absolutely positioned by its own class, so a role that
+      # can't reach one simply leaves that corner of the corridor empty.
+      if may?(:operator)
+        facet("documents", "Collections", collections_path, "#{@stats[:collections]} collections · #{@stats[:documents]} documents")
+      end
       facet("chat", "Chat", chat_path, @stats[:last_chat] || "start a conversation")
-      facet("settings", "Settings", settings_path, "#{@stats[:embedding_model]} · #{@stats[:host]}")
+      if may?(:admin)
+        facet("settings", "Settings", settings_path, "#{@stats[:embedding_model]} · #{@stats[:host]}")
+      end
       status
     end
   end

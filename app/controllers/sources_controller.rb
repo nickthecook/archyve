@@ -1,4 +1,6 @@
 class SourcesController < ApplicationController
+  require_role :operator
+
   before_action :set_source, only: [:show, :edit, :update, :destroy, :sync]
 
   def index

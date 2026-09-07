@@ -20,24 +20,25 @@ setting = lambda do |name, development_default|
 end
 
 admin_email = setting.call("ARCHYVE_ADMIN_EMAIL", "admin@archyve.local")
-admin_password = setting.call("ARCHYVE_ADMIN_PASSWORD", "archyve-development-password")
+admin_password = setting.call("ARCHYVE_ADMIN_PASSWORD", "password")
 
 admin = User.find_or_initialize_by(email_address: admin_email)
 admin.password = admin_password
+admin.role = :admin
 admin.save!
 puts "Break-glass admin: #{admin.email_address}"
 
-# Development-only cast for clicking around. Named for the roles they will hold
-# once roles land, so this list doesn't need rewriting then — for now every
-# account is equal.
+# Development-only cast for clicking around: one of each role, so every gate can
+# be seen from both sides without editing anything.
 if Rails.env.development?
   {
-    "operator@archyve.local" => "archyve-development-password",
-    "user@archyve.local" => "archyve-development-password"
-  }.each do |email_address, password|
+    "operator@archyve.local" => :operator,
+    "user@archyve.local" => :user
+  }.each do |email_address, role|
     user = User.find_or_initialize_by(email_address:)
-    user.password = password
+    user.password = "password"
+    user.role = role
     user.save!
-    puts "Development user: #{user.email_address}"
+    puts "Development #{role}: #{user.email_address}"
   end
 end

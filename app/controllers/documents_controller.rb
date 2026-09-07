@@ -1,4 +1,6 @@
 class DocumentsController < ApplicationController
+  require_role :operator
+
   # Where the "back" link on a document points. A document is collection-agnostic
   # (it lives in many collections), so its URL carries no context — the only
   # signal of where the user came from is the referrer.

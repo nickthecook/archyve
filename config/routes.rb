@@ -6,6 +6,11 @@ Rails.application.routes.draw do
   # and local accounts become break-glass only.
   resource :session, only: [:new, :create, :destroy]
 
+  # Your own account: the only place a non-admin changes their own password.
+  # Reached from the account menu in the top bar, not from Settings — Settings
+  # is administration, which most people can't see.
+  resource :account, only: [:show, :update]
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
@@ -27,6 +32,10 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   get "chat", to: "chat#index"
   get "settings", to: "settings#index"
+  # Administration. Admin-only, and distinct from /account above.
+  namespace :settings do
+    resources :users, except: [:show]
+  end
   # Sources sit with the content they produce, not under Settings — managing
   # them is a content job, and Settings is heading towards admin-only.
   # "Sync now" is a POST because it starts work, not a page.

@@ -7,7 +7,13 @@ class Views::Settings::Index < Views::Base
       p(class: "mt-1 text-sm text-muted") { "Models, inference servers, and preferences." }
     end
 
-    h2(class: "mb-3 text-sm font-medium text-fg") { "Inference" }
+    section_link(
+      "People",
+      "Who can sign in, and how much of Archyve they see.",
+      settings_users_path
+    )
+
+    h2(class: "mt-8 mb-3 text-sm font-medium text-fg") { "Inference" }
     dl(class: "rounded-lg border border-line bg-ink/40 divide-y divide-line") do
       row("Embedding model", Embedding::DEFAULT_MODEL)
       row("Embedding dimensions", Embedding::DIMENSIONS.to_s)
@@ -21,6 +27,18 @@ class Views::Settings::Index < Views::Base
   private
 
   def page_title = "Settings"
+
+  # A section of settings that has its own page, as opposed to the read-only
+  # rows below it.
+  def section_link(title, description, href)
+    a(href: href, class: "flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
+      div do
+        p(class: "text-sm font-medium text-fg") { title }
+        p(class: "mt-0.5 text-xs text-faint") { description }
+      end
+      span(class: "shrink-0 text-muted") { "→" }
+    end
+  end
 
   def row(label, value)
     div(class: "flex items-center justify-between px-5 py-3.5") do

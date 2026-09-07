@@ -13,6 +13,14 @@ class Components::Base < Phlex::HTML
   # No built-in adapter for cookies; register one so `cookies` works here too.
   register_value_helper :cookies
 
+  # Whether the signed-in user reaches a minimum role. Views use this to filter
+  # affordances they shouldn't offer; controllers enforce the same thing with
+  # `require_role`. Both are needed — hiding a link is not access control, and
+  # showing one that bounces you is just a worse link.
+  def may?(minimum)
+    Current.user&.at_least?(minimum)
+  end
+
   if Rails.env.development?
     def before_template
       comment { "Before #{self.class.name}" }

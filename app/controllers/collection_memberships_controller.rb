@@ -1,4 +1,6 @@
 class CollectionMembershipsController < ApplicationController
+  require_role :operator
+
   # Add one or more documents to a collection (the user path). Idempotent per
   # CollectionMembership.add: a document already actively in the collection is
   # left as-is (never downgraded), so re-adding is safe.
