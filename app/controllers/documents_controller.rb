@@ -17,7 +17,7 @@ class DocumentsController < ApplicationController
     file = params[:file]
     return redirect_to(collection || documents_path, alert: "Choose a file to upload.") if file.blank?
 
-    document = Ingestion::DocumentUploader.call(file: file, collections: Array(collection))
+    document = Ingestion::DocumentUploader.call(file: file, user: Current.user, collections: Array(collection))
     # Back to the collection when the upload targeted one, so the user sees it
     # appear; otherwise to the document itself.
     redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"

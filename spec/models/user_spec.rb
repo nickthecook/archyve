@@ -102,6 +102,33 @@ RSpec.describe User, type: :model do
     end
   end
 
+  # The failure this guards against: an admin removing a departing employee and
+  # silently destroying every document that person ever uploaded, because a
+  # Source destroys its documents and the documents cascade to chunks and
+  # embeddings. The owner goes; the archive stays.
+  describe "#sources" do
+    subject(:user) { create(:user) }
+
+    let!(:source) { create(:source, user:) }
+    let!(:document) { create(:document, source:) }
+
+    context "when the user is destroyed" do
+      before { user.destroy }
+
+      it "keeps the source" do
+        expect(Source.exists?(source.id)).to be(true)
+      end
+
+      it "leaves the source unowned" do
+        expect(source.reload.user).to be_nil
+      end
+
+      it "keeps the documents the source produced" do
+        expect(Document.exists?(document.id)).to be(true)
+      end
+    end
+  end
+
   describe "#sessions" do
     subject(:user) { create(:user) }
 

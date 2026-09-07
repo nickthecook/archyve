@@ -1,24 +1,31 @@
 require "digest"
 
 module Ingestion
-  # Entry point for the manual_upload source: takes a user's uploaded file,
-  # creates a Document owned by the shared manual_upload source, attaches the
-  # bytes, optionally adds it to collections, and enqueues the pipeline.
+  # Entry point for manual upload: takes a user's uploaded file, creates a
+  # Document owned by *that user's own* upload source, attaches the bytes,
+  # optionally adds it to collections, and enqueues the pipeline.
+  #
+  # One upload source per person, not one for the whole install. A shared
+  # singleton made manual upload the odd type out — every other source has an
+  # owner who manages it — and left nobody able to own their own uploads.
   #
   # The document's external_id is the file's content hash, so re-uploading the
   # exact same bytes is idempotent — it returns the existing Document instead of
   # ingesting a duplicate (mirrors the source sync "skip unchanged" rule).
+  # Note that dedup is now per-uploader: two people uploading identical bytes
+  # get a document each. That is the honest reading of ownership — one person
+  # deleting their upload must not delete another's — and unlike per-collection
+  # duplication it doesn't multiply with membership.
   #
   # No rescue here on purpose: everything that can raise is a real bug or outage
   # the caller (a controller) should surface. Expected pipeline failures (Docling
   # down, embedding errors) are handled in ProcessDocumentJob.
   class DocumentUploader
-    SOURCE_NAME = "Manual Upload".freeze
-
     def self.call(...) = new(...).call
 
-    def initialize(file:, filename: nil, content_type: nil, collections: [])
+    def initialize(file:, user:, filename: nil, content_type: nil, collections: [])
       @file = file
+      @user = user
       @filename = filename || file.try(:original_filename) || "upload"
       @content_type = content_type || file.try(:content_type) || "application/octet-stream"
       @collections = Array(collections)
@@ -50,8 +57,12 @@ module Ingestion
 
     private
 
+    # The uploader's own source, created on their first upload. Named for them
+    # so the sources list reads as a list of owners; the name is a snapshot, not
+    # a derived value, so a later email change doesn't rewrite history.
     def source
-      @source ||= Sources::ManualUpload.first_or_create!(name: SOURCE_NAME)
+      @source ||= Sources::ManualUpload.create_with(name: "Uploads — #{@user.email_address}")
+        .find_or_create_by!(user: @user)
     end
 
     # Use the user-path add so an existing feed membership is never illegally

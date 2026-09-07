@@ -2,12 +2,15 @@ require "rails_helper"
 
 RSpec.describe Ingestion::DocumentUploader do
   subject(:upload) do
-    described_class.call(file: file, filename: "sample.md", content_type: "text/markdown", collections: collections)
+    described_class.call(
+      file: file, user: user, filename: "sample.md", content_type: "text/markdown", collections: collections
+    )
   end
 
   let(:content) { "# Title\n\nBody text." }
   let(:file) { StringIO.new(content) }
   let(:collections) { [] }
+  let(:user) { create(:user) }
 
   before { allow(ProcessDocumentJob).to receive(:perform_later) }
 
@@ -17,8 +20,16 @@ RSpec.describe Ingestion::DocumentUploader do
         expect { upload }.to change(Document, :count).by(1)
       end
 
-      it "owns it with the manual upload source" do
+      it "owns it with a manual upload source" do
         expect(upload.source).to be_a(Sources::ManualUpload)
+      end
+
+      it "owns that source with the uploader" do
+        expect(upload.source.user).to eq(user)
+      end
+
+      it "names the source for the uploader" do
+        expect(upload.source.name).to eq("Uploads — #{user.email_address}")
       end
 
       it "attaches the uploaded bytes" do
@@ -39,9 +50,38 @@ RSpec.describe Ingestion::DocumentUploader do
       end
     end
 
-    context "when the same bytes were already uploaded" do
+    context "when the same person uploads a second, different file" do
       before do
-        described_class.call(file: StringIO.new(content), filename: "sample.md", content_type: "text/markdown")
+        described_class.call(file: StringIO.new("something else"), user: user, filename: "other.md")
+      end
+
+      it "reuses their existing upload source" do
+        expect { upload }.not_to change(Sources::ManualUpload, :count)
+      end
+    end
+
+    context "when a different person uploads" do
+      let(:other_user) { create(:user) }
+
+      before do
+        described_class.call(file: StringIO.new(content), user: other_user, filename: "sample.md")
+      end
+
+      it "gives them their own upload source" do
+        expect(upload.source).not_to eq(Sources::ManualUpload.find_by(user: other_user))
+      end
+
+      # Dedup is per-source, and sources are now per-person, so identical bytes
+      # from two people are two documents. Deliberate: one person removing their
+      # upload must not remove the other's.
+      it "does not dedup across people" do
+        expect { upload }.to change(Document, :count).by(1)
+      end
+    end
+
+    context "when the same bytes were already uploaded by the same person" do
+      before do
+        described_class.call(file: StringIO.new(content), user: user, filename: "sample.md")
       end
 
       it "does not create a duplicate document" do
@@ -61,7 +101,7 @@ RSpec.describe Ingestion::DocumentUploader do
         expect(upload.collections).to contain_exactly(collection)
       end
 
-      it "records the membership as manually sourced" do
+      it "records the membership as manually originated" do
         membership = upload.collection_memberships.first
         expect(membership.origin).to eq("manual")
       end
@@ -71,7 +111,7 @@ RSpec.describe Ingestion::DocumentUploader do
       let(:collection) { create(:collection) }
       let(:collections) { [collection] }
 
-      before { described_class.call(file: StringIO.new(content), filename: "sample.md", content_type: "text/markdown") }
+      before { described_class.call(file: StringIO.new(content), user: user, filename: "sample.md") }
 
       it "adds the existing document to the collection without re-ingesting" do
         expect { upload }.not_to change(Document, :count)

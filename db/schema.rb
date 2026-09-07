@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_125318) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_130823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -150,7 +150,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_125318) do
     t.jsonb "state", default: {}, null: false
     t.string "type", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["type"], name: "index_sources_on_type"
+    t.index ["user_id"], name: "index_manual_upload_sources_on_user_id", unique: true, where: "((type)::text = 'Sources::ManualUpload'::text)"
+    t.index ["user_id"], name: "index_sources_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -173,4 +176,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_125318) do
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
   add_foreign_key "source_syncs", "sources"
+  add_foreign_key "sources", "users", on_delete: :nullify
 end

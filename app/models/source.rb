@@ -52,6 +52,11 @@ class Source < ApplicationRecord
   # empty until the class happens to have been touched.
   TYPES = %w[Sources::Folder Sources::ManualUpload].freeze
 
+  # Only manual upload is owned by a person — every other type is a shared
+  # producer with no owner, so this is optional. Nullified rather than cascaded
+  # when the owner is deleted; see the AddUserToSources migration.
+  belongs_to :user, optional: true
+
   has_many :source_collections, dependent: :destroy
   has_many :collections, through: :source_collections
   has_many :documents, dependent: :destroy
