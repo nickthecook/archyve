@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  include Authentication
   # Views are Phlex components that carry their own Views::Layout shell, so skip
   # Rails' ERB layout lookup (otherwise pages get double-wrapped).
   layout false
