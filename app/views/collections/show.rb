@@ -9,12 +9,14 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:)
+  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:, sources:, attachable_sources:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
     @source_fed = source_fed
     @candidates = candidates
+    @sources = sources
+    @attachable_sources = attachable_sources
   end
 
   def view_template
@@ -24,6 +26,7 @@ class Views::Collections::Show < Views::Base
     # Don't offer what will be refused: filing needs operator on this
     # collection, and a reader granted `user` has only search and chat here.
     if may_on?(@collection, :operator)
+      sources_panel
       upload
       add_documents
     end
@@ -34,6 +37,76 @@ class Views::Collections::Show < Views::Base
   private
 
   def page_title = @collection.name
+
+  # What this collection draws on. It lives here rather than on the source
+  # because feeding decides what this collection's readers see — that belongs
+  # to whoever owns the collection, not to whoever owns the credentials.
+  def sources_panel
+    details(class: "mb-6 rounded-lg border border-line bg-ink/40", open: @sources.none?) do
+      summary(class: "cursor-pointer list-none px-5 py-3.5 flex items-center justify-between gap-3") do
+        span(class: "text-sm text-muted") { "Sources" }
+        span(class: "font-mono tabular-nums text-xs text-faint") { fed_summary }
+      end
+      div(class: "border-t border-line/60 px-5 py-4") do
+        @sources.any? ? fed_list : no_sources
+        attach_form if @attachable_sources.any?
+      end
+    end
+  end
+
+  def fed_summary
+    return "none" if @sources.none?
+
+    "#{@sources.size} #{'source'.pluralize(@sources.size)}"
+  end
+
+  def fed_list
+    ul(class: "mb-4 divide-y divide-line/60") do
+      @sources.each do |source|
+        li(class: "flex items-center justify-between gap-3 py-2.5") do
+          span(class: "truncate text-sm text-fg") { source.name }
+          detach_button(source)
+        end
+      end
+    end
+  end
+
+  # No grant on the source needed: you may always stop drawing on something.
+  def detach_button(source)
+    form(
+      action: collection_source_path(@collection, source),
+      method: "post",
+      class: "shrink-0",
+      data: { turbo_confirm: "Stop “#{@collection.name}” drawing on #{source.name}? Documents it fed here are removed from this collection; nothing is deleted." }
+    ) do
+      input(type: "hidden", name: "_method", value: "delete")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors cursor-pointer") { "Detach" }
+    end
+  end
+
+  def no_sources
+    p(class: "mb-4 text-xs text-faint") do
+      "Nothing feeds this collection yet — its documents were all filed by hand."
+    end
+  end
+
+  def attach_form
+    form(action: collection_sources_path(@collection), method: "post", class: "flex flex-wrap items-end gap-3") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      div(class: "flex-1 basis-56 min-w-0") do
+        label(class: "block mb-2 text-xs text-faint", for: "collection_source_id") { "Draw on another source" }
+        select(id: "collection_source_id", name: "source_id", required: true, class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg outline-none focus:border-accent transition-colors") do
+          option(value: "", disabled: true, selected: true) { "Choose a source…" }
+          @attachable_sources.each { |source| option(value: source.id) { source.name } }
+        end
+      end
+      button(
+        type: "submit",
+        class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors cursor-pointer"
+      ) { "Attach" }
+    end
+  end
 
   # Deliberately plain and at the bottom, not a red button next to the title.
   # The confirmation says what survives, because "delete collection" reads like

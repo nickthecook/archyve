@@ -41,6 +41,7 @@ class Views::Sources::Show < Views::Base
         end
       end
       div(class: "flex shrink-0 items-center gap-2") do
+        people_link if may_on?(@source, :admin)
         a(
           href: edit_source_path(@source),
           class: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
@@ -48,6 +49,15 @@ class Views::Sources::Show < Views::Base
         sync_button if @source.supports_sync?
       end
     end
+  end
+
+  # Delegating a source is an administrator's job; an operator granted the
+  # source can configure and sync it, not hand it to anyone else.
+  def people_link
+    a(
+      href: source_people_path(@source),
+      class: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+    ) { "People" }
   end
 
   def sync_button

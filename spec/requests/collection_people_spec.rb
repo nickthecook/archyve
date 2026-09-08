@@ -17,6 +17,11 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
         request
         expect(response).to have_http_status(:ok)
       end
+
+      it "says which kind of thing it is managing" do
+        request
+        expect(response.body).to include("Collection")
+      end
     end
 
     # Filing documents into a collection is not the same as handing out access.
@@ -54,6 +59,20 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
 
     it "grants access" do
       expect { request }.to change { collection.collection_users.count }.by(1)
+    end
+
+    # A grant to a system admin is a no-op — they reach every collection
+    # already — and it was that no-op that sorted first in the person list.
+    it "does not offer system admins as candidates" do
+      admin = create(:user, :admin, email_address: "boss@example.com")
+      get collection_people_path(collection)
+      expect(response.body).not_to include(admin.email_address)
+    end
+
+    it "requires a person to be chosen rather than defaulting to one" do
+      target # the form only renders when there is somebody to add
+      get collection_people_path(collection)
+      expect(response.body).to include("Choose someone")
     end
 
     context "when they already have a grant" do

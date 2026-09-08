@@ -55,11 +55,20 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
     before { sign_in(create(:user, :operator)) }
 
     # /unsorted is the queue for filing exactly these, and you can't file what
-    # you can't open.
-    context "when the document is unfiled" do
+    # you can't open — but only for sources they manage.
+    context "when the document is unfiled and from a source they manage" do
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
       it "hands over the file" do
         request
         expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when the document is unfiled and from a source they don't manage" do
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -72,11 +81,10 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
       end
     end
 
-    # Your own uploads are always yours, collection or not.
+    # Your own uploads are always yours: owning a source counts as
+    # administering it, with no grant row needed.
     context "when the document came from a source they own" do
       let(:document) { create(:document, :with_file, source: create(:source, user: current_user)) }
-
-      before { create(:collection_membership, collection:, document:, origin: "manual") }
 
       it "hands over the file" do
         request

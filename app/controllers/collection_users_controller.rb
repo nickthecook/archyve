@@ -61,9 +61,13 @@ class CollectionUsersController < ApplicationController
     @collection = Collection.administrable_by(Current.user).find_by!(slug: params[:collection_slug])
   end
 
-  # People who don't already have a grant here. Everyone is offerable, including
-  # plain users — that is the point of a grant on a collection they chat against.
+  # People who don't already have a grant here. Plain users are offerable — that
+  # is the point of a grant on a collection they chat against — but system
+  # admins are not: they reach every collection without one, so granting them
+  # anything is a no-op, and it was the no-op that sorted first in the list.
   def candidates
-    User.where.not(id: @collection.collection_users.select(:user_id)).order(:email_address)
+    User.where.not(role: :admin)
+      .where.not(id: @collection.collection_users.select(:user_id))
+      .order(:email_address)
   end
 end

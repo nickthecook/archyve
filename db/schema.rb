@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_154313) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_214337) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -153,6 +153,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_154313) do
     t.index ["source_id"], name: "index_source_syncs_on_source_id"
   end
 
+  create_table "source_users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "role", default: 1, null: false
+    t.bigint "source_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["source_id", "user_id"], name: "index_source_users_on_source_id_and_user_id", unique: true
+    t.index ["source_id"], name: "index_source_users_on_source_id"
+    t.index ["user_id"], name: "index_source_users_on_user_id"
+  end
+
   create_table "sources", force: :cascade do |t|
     t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
@@ -191,5 +202,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_154313) do
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
   add_foreign_key "source_syncs", "sources"
+  add_foreign_key "source_users", "sources"
+  add_foreign_key "source_users", "users"
   add_foreign_key "sources", "users", on_delete: :nullify
 end

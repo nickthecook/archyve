@@ -1,9 +1,12 @@
 class UnsortedController < ApplicationController
   require_role :operator
 
+  # Unfiled documents from sources this person manages. Before source grants
+  # existed this listed every unfiled document to every operator, because a
+  # folder source had no owner to scope it by.
   def index
     render Views::Unsorted::Index.new(
-      documents: Document.unsorted.order(:title),
+      documents: Document.unsorted.reachable_by(Current.user).order(:title),
       # Only offer somewhere you could actually file them.
       collections: Collection.manageable_by(Current.user).order(:name)
     )

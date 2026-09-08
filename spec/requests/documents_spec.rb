@@ -72,11 +72,16 @@ RSpec.describe "Documents", type: :request do
 
     let(:document) { create(:document, title: "Blueprint") }
 
+    # Reaching a document means retrieving it through a collection or managing
+    # the source that produced it; these examples are about the back link, so
+    # they take the simpler of the two.
+    before { create(:source_user, :admin, source: document.source, user: current_user) }
+
     context "when arrived from a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
+      let(:referer) { "http://www.example.com#{collection_path(collection)}" }
 
       before { create(:collection_user, collection:, user: current_user) }
-      let(:referer) { "http://www.example.com#{collection_path(collection)}" }
 
       it "links back to that collection" do
         request

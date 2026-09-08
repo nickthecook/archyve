@@ -57,12 +57,64 @@ class Source < ApplicationRecord
   # when the owner is deleted; see the AddUserToSources migration.
   belongs_to :user, optional: true
 
+  has_many :source_users, dependent: :destroy
+  has_many :users, through: :source_users
+
   has_many :source_collections, dependent: :destroy
   has_many :collections, through: :source_collections
   has_many :documents, dependent: :destroy
   has_many :syncs, class_name: "SourceSync", dependent: :destroy
 
   validates :name, presence: true
+
+  # Everything this person may configure, sync or delete. Ownership counts as a
+  # grant: your own upload source is yours without anyone having to say so.
+  scope :manageable_by, ->(user) {
+    next none unless user.at_least?(:operator)
+    next all if user.admin?
+
+    where(id: SourceUser.where(user:, role: [:operator, :admin]).select(:source_id))
+      .or(where(user_id: user.id))
+  }
+
+  # Everything this person may feed into a collection they administer. Any
+  # grant will do, including the weakest: `user` means exactly "you may draw on
+  # this", which is the whole point of that role. Deliberately wider than
+  # manageable_by — attaching a source is not configuring it, and the person who
+  # owns a collection is rarely the person who owns the credentials.
+  scope :attachable_by, ->(user) {
+    next none unless user.at_least?(:operator)
+    next all if user.admin?
+
+    where(id: SourceUser.where(user:).select(:source_id)).or(where(user_id: user.id))
+  }
+
+  # Everything they may hand out authority over. Same shape, narrowed to admin
+  # grants — and ownership again, since you administer what you own.
+  scope :administrable_by, ->(user) {
+    next none unless user.at_least?(:operator)
+    next all if user.admin?
+
+    where(id: SourceUser.where(user:, role: :admin).select(:source_id)).or(where(user_id: user.id))
+  }
+
+  # The grant, or nil. Same question Collection answers, so User#role_on works
+  # against either without knowing which it has.
+  #
+  # Owning a source implies administering it. That is what keeps a per-user
+  # upload source working without a redundant grant row beside the user_id that
+  # already says whose it is.
+  def granted_role_for(user)
+    return "admin" if user_id.present? && user_id == user.id
+
+    source_users.find_by(user:)&.role
+  end
+
+  # A source has no grants until it has one, so whoever adds it gets it —
+  # otherwise an operator can't manage the source they just created.
+  def grant_admin_to!(user)
+    source_users.create!(user:, role: :admin)
+  end
 
   # Types that can be polled. Manual upload can't — its documents arrive by
   # someone dropping a file on the page, so there is nothing to scan.

@@ -73,20 +73,13 @@ this is a todo and not a bug.
     compressed, non-linear scale where 61 and 65 look adjacent and aren't.
     Rank, or a normalised score, would mislead less.
 
-- **Unscoped lookups still outstanding.** From the 2026-09-07 sweep. Each is
-  deliberate at this stage, listed so they aren't rediscovered one report at a
-  time:
-  - `SourcesController#set_source` finds any source by id. There are no
-    per-source grants yet; the global `operator` role is the only gate.
-  - `DocumentsController#show`, and the document lookups in
-    `CollectionMembershipsController` and `UnsortedController#assign`, are
-    unscoped by id. Consistent while `/documents` is operator-wide and there are
-    no per-document grants — revisit if document visibility ever narrows.
-  - `UnsortedController#index` lists every unfiled document to any operator,
-    rather than only those from sources they own. That needs per-source grants
-    (they don't exist yet) — a folder source has no owner, so scoping it now
-    would hide unfiled documents from everybody. `Document.reachable_by` is
-    written to match this: operators reach unfiled documents deliberately.
+- **Document lookups that are still by bare id.** The document *selections* in
+  `CollectionMembershipsController#create` and `UnsortedController#assign`, and
+  the removal in `#destroy`, take ids without filtering by reachability. The
+  destination collection is scoped, so this can only pull a document you can't
+  otherwise see *into a collection you manage* — where you would then see it
+  anyway. Worth closing with `Document.reachable_by` when convenient; not a
+  privilege escalation.
 
 - **A stored URL per document.** `Source.user_accessible_links?` and
   `#document_url` exist but nothing returns true, because neither of the two

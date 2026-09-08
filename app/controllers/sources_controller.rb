@@ -4,7 +4,7 @@ class SourcesController < ApplicationController
   before_action :set_source, only: [:show, :edit, :update, :destroy, :sync]
 
   def index
-    render Views::Sources::Index.new(sources: Source.order(:name))
+    render Views::Sources::Index.new(sources: Source.manageable_by(Current.user).order(:name))
   end
 
   def show
@@ -27,6 +27,7 @@ class SourcesController < ApplicationController
     source.assign_attributes(source_params.except(:collection_ids))
 
     if source.save
+      source.grant_admin_to!(Current.user)
       source.update_fed_collections(selected_collections)
       redirect_to source_path(source), notice: "Created “#{source.name}”."
     else
@@ -68,7 +69,7 @@ class SourcesController < ApplicationController
   private
 
   def set_source
-    @source = Source.find(params[:id])
+    @source = Source.manageable_by(Current.user).find(params[:id])
   end
 
   # The type comes from the URL. Only types a person may actually add are

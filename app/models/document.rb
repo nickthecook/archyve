@@ -47,17 +47,18 @@ class Document < ApplicationRecord
   }
 
   # **Reachable** — what a person may open or download directly. Everything
-  # retrievable, plus two cases that aren't reached through a collection at all:
-  # documents from a source you own (your own uploads, always yours), and — for
-  # operators — unfiled documents, because /unsorted is the queue for filing
-  # exactly those and you cannot file what you cannot open.
+  # retrievable, plus everything produced by a source they manage.
+  #
+  # That second clause is what makes /unsorted work: an unfiled document is in
+  # no collection, so nothing retrieves it, but whoever manages the source that
+  # produced it can still open it — and filing it is exactly what they are
+  # there to do. It also covers your own uploads, since owning a source counts
+  # as administering it.
   scope :reachable_by, ->(user) {
     next all if user.admin?
+    next retrievable_by(user) unless user.at_least?(:operator)
 
-    reachable = retrievable_by(user).or(where(source_id: user.sources.select(:id)))
-    next reachable unless user.at_least?(:operator)
-
-    reachable.or(unsorted)
+    retrievable_by(user).or(where(source_id: Source.manageable_by(user).select(:id)))
   }
 
   # Live-update the show page as the pipeline advances. Broadcast synchronously

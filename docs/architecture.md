@@ -304,6 +304,47 @@ Downloads stream through the controller rather than redirecting to an Active
 Storage blob URL: a signed blob URL is reachable by anyone holding it, which
 would put the archive one forwarded link away from anybody.
 
+**Per-source grants (built 2026-09-07).** `source_users` grants one person
+standing with one source:
+
+- `user` — may feed this source into a collection they administer.
+- `operator` — + change its config, trigger a sync.
+- `admin` — + manage its people, and delete it.
+
+The `user` role is not "may read this source". It is "may draw on it", and it
+exists because **configuring a source and drawing on it are different mandates
+held by different people**. In an organisation IT owns the credentials and the
+team owning a collection decides what feeds it. Without this role, letting a
+collection's owner attach a source would mean handing them the credentials —
+or routing every attachment through a system admin, which is a ticket per
+collection rather than a grant per team.
+
+(An earlier iteration had no `user` role here, reasoning that seeing a source
+exists is implied by seeing a collection it feeds. That was circular: it assumed
+the source was already attached. This is the grant that attaches it.)
+- **Owning a source implies administering it.** A per-user upload source carries
+  a `user_id` and no grant row; `Source#granted_role_for` returns `admin` for
+  its owner, which is what keeps those working without a redundant row.
+- Whoever adds a source is granted `admin` on it, as with collections.
+
+**Feeding is governed by the collection, not the source**, because it decides
+what the collection's readers see. It can be driven from either end:
+
+- **From the collection** (`CollectionSourcesController`) — attaching needs
+  `operator` on the collection *and any grant on the source*; detaching needs
+  only the collection side, since you may always stop drawing on something, and
+  a revoked source grant must not leave a collection permanently fed by
+  something its owner can't detach.
+- **From the source** (`SourcesController#selected_collections`) — offers only
+  collections that person manages.
+
+Both go through `Source#update_fed_collections`, which files existing documents
+into a newly fed collection and retracts the memberships it had asserted in a
+dropped one. It **diffs the full list and tombstones everything absent from
+it**, so both paths derive that list from the *source's* current collections
+rather than from what the person can see. Without that, one operator saving a
+shared source silently unfiles another team's documents.
+
 **Retrieval scoping (built 2026-09-07).** Two questions about a document, kept
 deliberately apart as `Document.retrievable_by` and `Document.reachable_by`:
 
@@ -311,10 +352,11 @@ deliberately apart as `Document.retrievable_by` and `Document.reachable_by`:
   document in no collection is in nobody's corpus. Governs search, and chat when
   it lands. This is where access control is enforced for retrieval.
 - **Reachable** — what a person may open or download directly. Everything
-  retrievable, plus two cases that don't come through a collection: documents
-  from a source you own (your own uploads stay yours), and, for operators,
-  unfiled documents — `/unsorted` is the queue for filing exactly those, and you
-  cannot file what you cannot open.
+  retrievable, plus everything produced by a source they manage. That second
+  clause is what makes `/unsorted` work: an unfiled document is in no
+  collection, so nothing retrieves it, but whoever manages the source that
+  produced it can open it — and filing it is what they are there to do. It
+  covers your own uploads too, since owning a source counts as administering it.
 
 Admins are unrestricted on both. Scoping the download matters as much as scoping
 the query: without it, retrieval scoping is bypassable by guessing an id.

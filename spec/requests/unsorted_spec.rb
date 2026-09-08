@@ -7,9 +7,21 @@ RSpec.describe "Unsorted", type: :request do
     context "when a document is in no collection" do
       let!(:document) { create(:document, title: "Loose Note") }
 
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
       it "lists it" do
         request
         expect(response.body).to include("Loose Note")
+      end
+    end
+
+    # The queue is for filing what you produced, not everything nobody filed.
+    context "when an unfiled document came from a source they don't manage" do
+      let!(:document) { create(:document, title: "Someone Else's Note") }
+
+      it "is not listed" do
+        request
+        expect(response.body).not_to include("Someone Else's Note")
       end
     end
 

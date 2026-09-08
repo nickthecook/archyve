@@ -1,6 +1,41 @@
 require "rails_helper"
 
 RSpec.describe Source do
+  # Ownership is a grant. A per-user upload source has a user_id and no
+  # source_users row, and its owner still administers it.
+  describe "#granted_role_for" do
+    subject(:source) { create(:source, user: owner) }
+
+    let(:owner) { create(:user, :operator) }
+    let(:result) { source.granted_role_for(person) }
+
+    context "when asked about the owner" do
+      let(:person) { owner }
+
+      it "is admin, with no grant row needed" do
+        expect(result).to eq("admin")
+      end
+    end
+
+    context "when asked about someone with an explicit grant" do
+      let(:person) { create(:user, :operator) }
+
+      before { create(:source_user, source:, user: person) }
+
+      it "is that grant" do
+        expect(result).to eq("operator")
+      end
+    end
+
+    context "when asked about someone with neither" do
+      let(:person) { create(:user, :operator) }
+
+      it "is nil, meaning no access" do
+        expect(result).to be_nil
+      end
+    end
+  end
+
   describe ".syncable_types" do
     it "includes sources that can be scanned" do
       expect(described_class.syncable_types).to include("Sources::Folder")

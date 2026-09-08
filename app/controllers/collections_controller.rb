@@ -33,7 +33,9 @@ class CollectionsController < ApplicationController
       document_rows:,
       status_counts:,
       source_fed: collection.sources.exists?,
-      candidates: addable_documents(collection)
+      candidates: addable_documents(collection),
+      sources: collection.sources.order(:name),
+      attachable_sources: attachable_sources(collection)
     )
   end
 
@@ -65,6 +67,14 @@ class CollectionsController < ApplicationController
   def addable_documents(collection)
     already_in = collection.collection_memberships.active.select(:document_id)
     Document.where.not(status: "removed").where.not(id: already_in).order(:title)
+  end
+
+  # Sources this person may feed into the collection, minus the ones already
+  # doing so. Any grant on the source qualifies — attaching is not configuring.
+  def attachable_sources(collection)
+    Source.attachable_by(Current.user)
+      .where.not(id: collection.sources.select(:id))
+      .order(:name)
   end
 
   def collection_params

@@ -27,6 +27,9 @@ Rails.application.routes.draw do
     # collection, not only by a system admin — owning content includes deciding
     # who sees it.
     resources :people, only: [:index, :create, :update, :destroy], controller: "collection_users"
+    # Which sources feed this collection. Lives here, not on the source,
+    # because it decides what this collection's readers see.
+    resources :sources, only: [:create, :destroy], controller: "collection_sources"
   end
   # Downloading is open to any signed-in user; browsing the archive is not.
   # That asymmetry is deliberate — a reader reaches a document through a chat
@@ -50,6 +53,9 @@ Rails.application.routes.draw do
   # "Sync now" is a POST because it starts work, not a page.
   resources :sources do
     post :sync, on: :member
+    # Who may manage this source. Not who may read its documents — that is
+    # decided by the collections it feeds.
+    resources :people, only: [:index, :create, :update, :destroy], controller: "source_users"
   end
 
   # The landing: the archive corridor with search as the way in.

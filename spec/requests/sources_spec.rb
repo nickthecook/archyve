@@ -7,7 +7,10 @@ RSpec.describe "Sources", type: :request do
 
   describe "GET /sources" do
     context "with sources configured" do
-      before { create(:folder_source, name: "Reference library", path: root) }
+      before do
+        source = create(:folder_source, name: "Reference library", path: root)
+        create(:source_user, :admin, source:, user: current_user)
+      end
 
       it "lists them" do
         get sources_path
@@ -25,6 +28,8 @@ RSpec.describe "Sources", type: :request do
 
   describe "GET /sources/:id" do
     let(:source) { create(:folder_source, name: "Reference library", path: root) }
+
+    before { create(:source_user, :admin, source:, user: current_user) }
 
     context "with a source that has never synced" do
       it "renders" do
@@ -248,6 +253,8 @@ RSpec.describe "Sources", type: :request do
   describe "PATCH /sources/:id" do
     let(:source) { create(:folder_source, path: root) }
 
+    before { create(:source_user, :admin, source:, user: current_user) }
+
     context "with a new interval" do
       it "saves it" do
         patch source_path(source),
@@ -276,6 +283,8 @@ RSpec.describe "Sources", type: :request do
 
   describe "PATCH /sources/:id feed picker" do
     let(:source) { create(:folder_source, path: root) }
+
+    before { create(:source_user, :admin, source:, user: current_user) }
     let(:mine) { create(:collection, name: "Mine") }
     let(:theirs) { create(:collection, name: "Theirs") }
 
@@ -335,6 +344,8 @@ RSpec.describe "Sources", type: :request do
     context "with a syncable source" do
       let(:source) { create(:folder_source, path: root) }
 
+      before { create(:source_user, :admin, source:, user: current_user) }
+
       it "enqueues a scan" do
         expect { post sync_source_path(source) }
           .to have_enqueued_job(Sources::SyncJob).with(source)
@@ -343,6 +354,8 @@ RSpec.describe "Sources", type: :request do
 
     context "with a source that has nothing to scan" do
       let(:source) { create(:manual_upload_source) }
+
+      before { create(:source_user, :admin, source:, user: current_user) }
 
       it "does not enqueue anything" do
         expect { post sync_source_path(source) }
@@ -358,6 +371,8 @@ RSpec.describe "Sources", type: :request do
 
   describe "DELETE /sources/:id" do
     let!(:source) { create(:folder_source, path: root) }
+
+    before { create(:source_user, :admin, source:, user: current_user) }
 
     context "with documents produced by the source" do
       before { create(:document, source: source) }
