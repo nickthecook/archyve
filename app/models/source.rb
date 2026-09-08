@@ -29,6 +29,10 @@ class Source < ApplicationRecord
   # sync contract above.
   MissingImplementationError = Class.new(StandardError)
 
+  # Raised when a source that files per-document is asked to feed a collection
+  # wholesale. See .feeds_collections?.
+  CannotFeedCollectionsError = Class.new(StandardError)
+
   # One thing in a source, as the sync engine sees it. Defined here rather than
   # per source because it *is* the contract: Sources::Sync reads these
   # fields and nothing else, so every source describes its source the same way.
@@ -84,9 +88,14 @@ class Source < ApplicationRecord
   # owns a collection is rarely the person who owns the credentials.
   scope :attachable_by, ->(user) {
     next none unless user.at_least?(:operator)
-    next all if user.admin?
 
-    where(id: SourceUser.where(user:).select(:source_id)).or(where(user_id: user.id))
+    grants = if user.admin?
+      all
+    else
+      where(id: SourceUser.where(user:).select(:source_id)).or(where(user_id: user.id))
+    end
+
+    grants.where(type: feeding_types)
   }
 
   # Everything they may hand out authority over. Same shape, narrowed to admin
@@ -118,6 +127,11 @@ class Source < ApplicationRecord
 
   # Types that can be polled. Manual upload can't — its documents arrive by
   # someone dropping a file on the page, so there is nothing to scan.
+  # Types whose documents can join a collection wholesale.
+  def self.feeding_types
+    TYPES.select { |type| type.constantize.feeds_collections? }
+  end
+
   def self.syncable_types
     TYPES.select { |type| type.constantize.supports_sync? }
   end
@@ -139,6 +153,15 @@ class Source < ApplicationRecord
   # Subclasses that can be scanned override this and implement the two methods
   # below. Manual upload doesn't: its documents arrive by someone dropping a file
   # on the page, so there is nothing to scan.
+  # Whether a *standing* feed makes sense for this type — every document it
+  # produces, now and in future, joining the collections it feeds.
+  #
+  # Manual upload says no. Its documents are filed one at a time, by a person
+  # who picks the collection as they upload; a standing feed would mean every
+  # file that person ever uploads silently joins, which is not what "upload this
+  # to the handbook" asked for.
+  def self.feeds_collections? = true
+
   def self.supports_sync? = false
 
   # Whether a person can add one of these from the UI. Manual upload exists as a
@@ -173,6 +196,7 @@ class Source < ApplicationRecord
   end
 
   def supports_sync? = self.class.supports_sync?
+  def feeds_collections? = self.class.feeds_collections?
   def user_accessible_links? = self.class.user_accessible_links?
 
   # --- sync contract (see the class comment) ---------------------------------
@@ -203,6 +227,10 @@ class Source < ApplicationRecord
   # Only the source's own rows move. `feed!` and `unfeed!` leave a membership
   # a person made exactly where it is.
   def update_fed_collections(new_collections)
+    if new_collections.any? && !feeds_collections?
+      raise CannotFeedCollectionsError, "#{self.class.name} files documents one at a time; it can't feed a collection"
+    end
+
     added = new_collections - collections
     dropped = collections - new_collections
 

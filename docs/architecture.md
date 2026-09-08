@@ -338,6 +338,14 @@ what the collection's readers see. It can be driven from either end:
 - **From the source** (`SourcesController#selected_collections`) — offers only
   collections that person manages.
 
+**Not every type can be fed from.** `Source.feeds_collections?` is false for
+manual upload: its documents are filed one at a time by whoever uploads them,
+choosing the collection as they go, so a standing feed would mean every file
+that person ever uploads silently joins — which is not what "upload this to the
+handbook" asked for. The predicate sits alongside `.supports_sync?` and
+`.user_creatable?`, and `update_fed_collections` refuses regardless of which UI
+asked, so the rule holds even if a screen forgets it.
+
 Both go through `Source#update_fed_collections`, which files existing documents
 into a newly fed collection and retracts the memberships it had asserted in a
 dropped one. It **diffs the full list and tombstones everything absent from

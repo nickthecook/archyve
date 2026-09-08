@@ -1,6 +1,46 @@
 require "rails_helper"
 
 RSpec.describe Source do
+  # Manual upload files documents one at a time, chosen as you upload. A
+  # standing feed would mean every future upload by that person silently joined
+  # the collection.
+  describe "#update_fed_collections" do
+    subject(:source) { create(:manual_upload_source) }
+
+    let(:collection) { create(:collection) }
+
+    context "when a manual upload source is asked to feed a collection" do
+      it "refuses" do
+        expect { source.update_fed_collections([collection]) }
+          .to raise_error(Source::CannotFeedCollectionsError)
+      end
+    end
+
+    # Called unconditionally on save in some paths; an empty list is a no-op,
+    # not an attempt to feed anything.
+    context "when it is asked to feed nothing" do
+      it "is allowed" do
+        expect { source.update_fed_collections([]) }.not_to raise_error
+      end
+    end
+  end
+
+  describe ".attachable_by" do
+    subject(:result) { described_class.attachable_by(user) }
+
+    let(:user) { create(:user, :admin) }
+    let!(:folder) { create(:folder_source) }
+    let!(:uploads) { create(:manual_upload_source) }
+
+    it "offers a folder source" do
+      expect(result).to include(folder)
+    end
+
+    it "does not offer a manual upload source, even to an admin" do
+      expect(result).not_to include(uploads)
+    end
+  end
+
   # Ownership is a grant. A per-user upload source has a user_id and no
   # source_users row, and its owner still administers it.
   describe "#granted_role_for" do

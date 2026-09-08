@@ -29,8 +29,10 @@ class Views::Sources::Form < Components::Base
         interval_input
       end
 
-      field("Feeds collections", "Documents from this source automatically join these. Documents you filed by hand stay where you put them.") do
-        collection_checkboxes
+      if @source.feeds_collections?
+        field("Feeds collections", "Documents from this source automatically join these. Documents you filed by hand stay where you put them.") do
+          collection_checkboxes
+        end
       end
 
       actions

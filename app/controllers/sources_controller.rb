@@ -28,7 +28,7 @@ class SourcesController < ApplicationController
 
     if source.save
       source.grant_admin_to!(Current.user)
-      source.update_fed_collections(selected_collections)
+      source.update_fed_collections(selected_collections) if source.feeds_collections?
       redirect_to source_path(source), notice: "Created “#{source.name}”."
     else
       render Views::Sources::New.new(source:, collections: all_collections),
@@ -42,7 +42,7 @@ class SourcesController < ApplicationController
 
   def update
     if @source.update(source_params.except(:collection_ids))
-      @source.update_fed_collections(selected_collections)
+      @source.update_fed_collections(selected_collections) if @source.feeds_collections?
       redirect_to source_path(@source), notice: "Saved."
     else
       render Views::Sources::Edit.new(source: @source, collections: all_collections),

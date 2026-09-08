@@ -57,6 +57,22 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
       end
     end
 
+    # Filed per document at upload time; a standing feed would sweep in
+    # everything that person uploads from then on.
+    context "when the source is someone's manual upload source" do
+      let(:source) { create(:manual_upload_source, user: operator) }
+
+      it "is refused" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "is not offered in the picker" do
+        get collection_path(collection)
+        expect(response.body).not_to include(source.name)
+      end
+    end
+
     context "when they only read the collection" do
       before do
         CollectionUser.find_by!(collection:, user: operator).update!(role: :user)
