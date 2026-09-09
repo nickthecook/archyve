@@ -22,6 +22,15 @@ Rails.application.configure do
   config.consider_all_requests_local = true
   config.cache_store = :null_store
 
+  # Fixed encryption keys, deliberately not secret: the test database is
+  # recreated constantly, so nothing encrypted here outlives a run. Without
+  # them, any spec touching an `encrypts` attribute raises — `ops test` doesn't
+  # load secrets, and ops's environment stays `dev` even when RAILS_ENV is test,
+  # so config/test/config.yml would never be read.
+  config.active_record.encryption.primary_key = "test" * 8
+  config.active_record.encryption.deterministic_key = "deterministic" * 3
+  config.active_record.encryption.key_derivation_salt = "salt" * 8
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 

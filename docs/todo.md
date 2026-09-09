@@ -87,9 +87,35 @@ this is a todo and not a bug.
   an object store with a console) needs `Source::Item` to carry a URL and
   `documents` to store one — deliberately not added ahead of something that can
   populate it.
-- **Source config encryption.** `sources.config` is plain jsonb. Fine for a
-  path; ActiveRecord Encryption needs wiring before the first source that
-  holds credentials (S3 keys, a Bookstack token).
+- **Source credential encryption.** Needed before the first source that holds
+  credentials (S3 keys, a Bookstack token). Fine today: a folder source's
+  config is just a path and an interval.
+
+  **Do not encrypt `sources.config` wholesale.** `Source.due_for_sync` extracts
+  `config->>'sync_interval_minutes'` *in SQL*, and the scheduler runs it every
+  minute. Encrypting the column doesn't raise — the extraction just reads
+  ciphertext and scheduling quietly goes wrong, while `store_accessor` keeps
+  working in Ruby so it still looks fine. Add a separate encrypted column for
+  secrets and leave `config` readable by SQL.
+
+  **Keys come from the environment, not credentials.** The railtie splats
+  `**app.config.active_record.encryption` *after* the credentials lookup, so
+  setting these in `config/application.rb` overrides it:
+
+      enc = config.active_record.encryption
+      enc.primary_key         = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
+      enc.deterministic_key   = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
+      enc.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
+
+  Generate a set with `bin/rails db:encryption:init`, put them (and
+  `SECRET_KEY_BASE`, which Rails reads from ENV natively and which is unrelated
+  — nothing in AR encryption derives from it) in each environment's
+  `secrets.ejson`. Each key raises only when read, so `primary_key` and
+  `key_derivation_salt` are the two that matter; `deterministic_key` is needed
+  only for `encrypts ..., deterministic: true`, i.e. columns you want to query
+  by. Set all three anyway rather than discover the third later. Assigning nil *overrides* rather than falling back, so guard
+  with `if ENV[...]` if the credentials fallback should survive. Nothing in this
+  app reads credentials, so `master.key` need never reach a server.
 - **Configurable file extensions per folder source.** Note the hazard: a file
   dropping out of the allowed list is not a file that left the source, so
   narrowing the list must go through the same `skip_reason` path that

@@ -38,5 +38,23 @@ module Archyve2
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # Active Record encryption keys come from the environment, not credentials,
+    # so every environment can hold its own without anyone managing a master.key
+    # — ops loads them from config/<env>/secrets.ejson. The railtie splats
+    # `config.active_record.encryption` *after* its credentials lookup, so these
+    # win. Guarded, because assigning nil would override the credentials
+    # fallback rather than defer to it.
+    #
+    # Losing these makes every encrypted column permanently unreadable — they
+    # are not derived from SECRET_KEY_BASE, or from anything else.
+    {
+      primary_key: "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY",
+      deterministic_key: "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY",
+      key_derivation_salt: "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"
+    }.each do |setting, variable|
+      value = ENV[variable].presence
+      config.active_record.encryption.public_send(:"#{setting}=", value) if value
+    end
   end
 end
