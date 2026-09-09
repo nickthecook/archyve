@@ -9,7 +9,7 @@ class Views::Collections::Index < Views::Base
   # Segment colours for the status meter, ordered as they stack left-to-right.
   # Shares the status vocabulary of Views::Documents::StatusBadge.
   METER = {
-    "processed" => "bg-emerald-400",
+    "processed" => "bg-emerald-600",
     "processing" => "bg-accent",
     "pending" => "bg-line-2",
     "failed" => "bg-red-400",
@@ -24,8 +24,9 @@ class Views::Collections::Index < Views::Base
 
   def view_template
     heading
-    search
     sources
+    search
+    rule
     # The filter controller must wrap both its query input (in the toolbar) and
     # the cards it narrows (in the grid) — targets have to be descendants.
     div(data: { controller: "list-filter" }) do
@@ -44,6 +45,10 @@ class Views::Collections::Index < Views::Base
       h1(class: "text-2xl font-semibold tracking-tight") { "Collections" }
       p(class: "mt-1 text-sm text-muted") { "Every set of documents in the archive, and how far each has been processed." }
     end
+  end
+
+  def rule
+    hr(class: "mb-8 border-line")
   end
 
   # The corridor search, scope preset to All. Scope is URL-encoded (c[]/doc); All
@@ -161,20 +166,24 @@ class Views::Collections::Index < Views::Base
     end
   end
 
-  # "Unsorted" is a derived view (documents with no active membership), not a
-  # real collection — so it reads differently: dashed, quiet, set apart.
   # Sources live with the content they produce rather than under Settings, so
-  # the way in is here — above the collections they feed.
+  # the way in is here — above the collections they feed. It is a doorway, not
+  # a list item, so it deliberately breaks the card vocabulary below it: an
+  # accent rail down the left edge, the only one on the page.
   def sources
-    a(href: sources_path, class: "mb-8 flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
-      div do
+    a(href: sources_path, class: "group mb-8 flex items-center gap-4 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-5 py-4 hover:bg-ink transition-colors") do
+      span(class: "grid h-9 w-9 shrink-0 place-items-center rounded bg-accent/10 text-accent") { source_icon }
+      div(class: "min-w-0 flex-1") do
         p(class: "text-sm font-medium text-fg") { "Sources" }
         p(class: "mt-0.5 text-xs text-faint") { "Where documents come from — folders, and later object stores and wikis." }
       end
       span(class: "shrink-0 font-mono tabular-nums text-xs text-muted") { "#{@sources_count} #{'source'.pluralize(@sources_count)}" }
+      chevron
     end
   end
 
+  # "Unsorted" is a derived view (documents with no active membership), not a
+  # real collection — so it reads differently: dashed, quiet, set apart.
   def unsorted
     a(href: unsorted_path, class: "mt-6 flex items-center justify-between gap-3 rounded-lg border border-dashed border-line px-4 py-3 hover:border-line-2 transition-colors") do
       div do
@@ -204,6 +213,21 @@ class Views::Collections::Index < Views::Base
     return "no activity yet" if time.nil?
 
     "updated #{time_ago_in_words(time)} ago"
+  end
+
+  def source_icon
+    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
+      s.path(d: "M3 8a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z")
+    end
+  end
+
+  # Nudges right on hover — an affordance, never something to wait for.
+  def chevron
+    svg(
+      class: "shrink-0 text-faint transition-transform group-hover:translate-x-0.5",
+      width: "16", height: "16", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor",
+      stroke_width: "2", aria_hidden: "true"
+    ) { |s| s.path(d: "m9 6 6 6-6 6") }
   end
 
   def search_icon
