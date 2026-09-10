@@ -96,7 +96,13 @@ class Views::Collections::Index < Views::Base
 
   def new_collection
     details(class: "relative shrink-0 group") do
-      summary(class: "cursor-pointer list-none rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "New collection" }
+      # Outlined, not solid: this only opens the disclosure. Solid brass is
+      # reserved for the Create submit below — the action that commits.
+      summary(
+        class: "cursor-pointer list-none rounded border border-accent/60 bg-accent/10 px-3 py-2 " \
+               "text-sm font-medium text-accent hover:bg-accent/20 hover:border-accent " \
+               "group-open:bg-accent/20 group-open:border-accent transition-colors"
+      ) { "New collection" }
       div(class: "absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line-2 bg-ink p-3 shadow-lg") do
         form(action: collections_path, method: "post", class: "flex flex-col gap-2") do
           input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
