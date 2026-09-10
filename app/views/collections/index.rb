@@ -173,18 +173,16 @@ class Views::Collections::Index < Views::Base
   end
 
   # Sources live with the content they produce rather than under Settings, so
-  # the way in is here — above the collections they feed. It is a doorway, not
-  # a list item, so it deliberately breaks the card vocabulary below it: an
-  # accent rail down the left edge, the only one on the page.
+  # the way in is here — above the rule, in the zone for links that leave this
+  # page. See Views::Doorway and docs/design.md.
   def sources
-    a(href: sources_path, class: "group mb-8 flex items-center gap-4 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-5 py-4 hover:bg-ink transition-colors") do
-      span(class: "grid h-9 w-9 shrink-0 place-items-center rounded bg-accent/10 text-accent") { source_icon }
-      div(class: "min-w-0 flex-1") do
-        p(class: "text-sm font-medium text-fg") { "Sources" }
-        p(class: "mt-0.5 text-xs text-faint") { "Where documents come from — folders, and later object stores and wikis." }
-      end
-      span(class: "shrink-0 font-mono tabular-nums text-xs text-muted") { "#{@sources_count} #{'source'.pluralize(@sources_count)}" }
-      chevron
+    div(class: "mb-8") do
+      render Views::Doorway.new(
+        href: sources_path,
+        title: "Sources",
+        description: "Where documents come from — folders, and later object stores and wikis.",
+        meta: "#{@sources_count} #{'source'.pluralize(@sources_count)}"
+      ) { source_icon }
     end
   end
 
@@ -227,14 +225,6 @@ class Views::Collections::Index < Views::Base
     end
   end
 
-  # Nudges right on hover — an affordance, never something to wait for.
-  def chevron
-    svg(
-      class: "shrink-0 text-faint transition-transform group-hover:translate-x-0.5",
-      width: "16", height: "16", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor",
-      stroke_width: "2", aria_hidden: "true"
-    ) { |s| s.path(d: "m9 6 6 6-6 6") }
-  end
 
   def search_icon
     svg(class: "text-faint", width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|

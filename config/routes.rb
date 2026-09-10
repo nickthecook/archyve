@@ -44,6 +44,10 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   get "chat", to: "chat#index"
   get "settings", to: "settings#index"
+  # The living style guide (docs/design.md renders itself here). Admin-only: it
+  # is a maker's tool, but it ships so the deployed app can be checked against
+  # its own rules.
+  get "styleguide", to: "styleguide#index"
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
     resources :users, except: [:show]

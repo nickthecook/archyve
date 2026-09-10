@@ -1,17 +1,25 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
+  def initialize(people_count:)
+    @people_count = people_count
+  end
+
   def view_template
     header(class: "mb-8") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Settings" }
       p(class: "mt-1 text-sm text-muted") { "Models, inference servers, and preferences." }
     end
 
-    section_link(
-      "People",
-      "Who can sign in, and how much of Archyve they see.",
-      settings_users_path
-    )
+    # A link out of this page, so it wears the rail. The "Inference" heading
+    # below does the job the rule does elsewhere — it separates *and* names
+    # the zone, so a rule as well would be redundant. See docs/design.md.
+    render Views::Doorway.new(
+      href: settings_users_path,
+      title: "People",
+      description: "Who can sign in, and how much of Archyve they see.",
+      meta: "#{@people_count} #{'person'.pluralize(@people_count)}"
+    ) { people_icon }
 
     h2(class: "mt-8 mb-3 text-sm font-medium text-fg") { "Inference" }
     dl(class: "rounded-lg border border-line bg-ink/40 divide-y divide-line") do
@@ -28,15 +36,11 @@ class Views::Settings::Index < Views::Base
 
   def page_title = "Settings"
 
-  # A section of settings that has its own page, as opposed to the read-only
-  # rows below it.
-  def section_link(title, description, href)
-    a(href: href, class: "flex items-center justify-between gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors") do
-      div do
-        p(class: "text-sm font-medium text-fg") { title }
-        p(class: "mt-0.5 text-xs text-faint") { description }
-      end
-      span(class: "shrink-0 text-muted") { "→" }
+  def people_icon
+    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
+      s.circle(cx: "9", cy: "8", r: "3.2")
+      s.path(d: "M3.5 19a5.5 5.5 0 0 1 11 0")
+      s.path(d: "M16 5.6a3.2 3.2 0 0 1 0 4.8M17.5 13.4A5.5 5.5 0 0 1 20.5 19")
     end
   end
 

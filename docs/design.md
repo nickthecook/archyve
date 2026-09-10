@@ -6,6 +6,10 @@ block of `app/assets/tailwind/application.css`, and prose copies of hex codes
 drift. If you want to know what `accent` *is*, read the CSS. This is what it
 *means*.
 
+**`/styleguide`** (admin-only) renders these rules from the real components —
+palette, doorways, the button ladder, status badges. Prose drifts; that page
+can't. Check a change there before trusting this file.
+
 Tailwind scans Phlex views via `@source "../../../app/**/*.rb"`. All views are
 Phlex classes under `app/views/`; there is no ERB.
 
@@ -49,6 +53,11 @@ text-accent`) and a trailing chevron that nudges `group-hover:translate-x-0.5`.
 
 Hover changes the **background**, not the border: `hover:border-line-2` sets all
 four border colours and would stomp the accent rail.
+
+A doorway is *singular* — one link out, sitting above the page's content. When
+the links out **are** the content (a menu page like `Views::Sources::ChooseType`,
+where every row leads elsewhere), they stay cards. A rail on every row is a rail
+on none.
 
 ## One box costume
 

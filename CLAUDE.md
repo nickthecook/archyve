@@ -8,6 +8,8 @@ embeddings, and are grouped into **collections** people can search and chat over
 - **Design rules** — `docs/design.md` (zones, box vocabulary, accent ladder).
   Read before touching a view.
 - **Open work** — `docs/todo.md`.
+- **Living style guide** — `/styleguide` in the running app (admin-only),
+  rendering the real components.
 
 ## Commands
 
