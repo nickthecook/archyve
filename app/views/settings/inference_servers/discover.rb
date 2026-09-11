@@ -91,10 +91,11 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       div(class: "min-w-0 flex-1") do
         div(class: "flex flex-wrap items-center gap-2") do
           span(class: "font-mono text-sm text-fg") { model.name }
-          tag("tools") if model.supports_tools
+          tag("tools") if model.supports_tools && @server.reports_tool_support?
           tag("#{model.dimensions}d") if model.dimensions
         end
         p(class: "mt-0.5 text-xs text-faint") { blocked || detail(model) }
+        tool_choice(model) unless blocked || @server.reports_tool_support?
         carried(model)
       end
       kind_control(model, blocked)
@@ -120,12 +121,28 @@ class Views::Settings::InferenceServers::Discover < Views::Base
     parts.join(" · ")
   end
 
+  # Where tool support is inferred rather than declared, it is offered as a
+  # ticked box instead of a pill — the person adding the model usually knows
+  # better than a pattern match on its id does, and getting this wrong is what
+  # decides whether the model can do retrieval in chat at all.
+  def tool_choice(model)
+    label(class: "mt-1.5 flex items-center gap-2 cursor-pointer") do
+      input(
+        type: "checkbox", name: "supports_tools[#{model.name}]", value: "1",
+        checked: model.supports_tools.present?, class: "accent-accent"
+      )
+      span(class: "text-xs text-muted") { "Can call tools#{" — #{@server.type_label} doesn't say, this is a guess" if model.supports_tools.nil?}" }
+    end
+  end
+
   # What discovery already worked out, carried through the form so importing
   # doesn't have to ask the server all over again.
   def carried(model)
     input(type: "hidden", name: "context_windows[#{model.name}]", value: model.context_window) if model.context_window
     input(type: "hidden", name: "dimensions[#{model.name}]", value: model.dimensions) if model.dimensions
-    input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1") if model.supports_tools
+    if model.supports_tools && @server.reports_tool_support?
+      input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1")
+    end
   end
 
   # A select where the provider couldn't say, a fixed value where it could.

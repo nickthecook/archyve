@@ -113,6 +113,12 @@ RSpec.describe InferenceServer do
         expect(discovered.find { |m| m.name.start_with?("gemma") }.supports_tools).to be(true)
       end
 
+      # Ollama declares capabilities per model, so false here means the server
+      # said no — not that nobody asked.
+      it "declares tool support authoritatively" do
+        expect(described_class.reports_tool_support?).to be(true)
+      end
+
       context "when /api/show fails for one model" do
         let(:gemma_show) { [500, {}, "boom"] }
 
@@ -163,6 +169,68 @@ RSpec.describe InferenceServer do
 
     it "does not require an address" do
       expect(build(:openai_server, base_url: nil)).to be_valid
+    end
+
+    describe "#available_models" do
+      subject(:discovered) { create(:openai_server).available_models }
+
+      let(:listed) do
+        [
+          model_info("gpt-4o", context_window: 128_000, capabilities: %w[function_calling vision]),
+          model_info("gpt-5.6-luna", context_window: 128_000, capabilities: %w[function_calling reasoning]),
+          model_info("some-unreleased-model", context_window: 4_096, capabilities: [])
+        ]
+      end
+
+      def model_info(id, context_window:, capabilities:)
+        instance_double(RubyLLM::Model::Info, id:, context_window:, capabilities:)
+      end
+
+      before do
+        allow(RubyLLM::Provider).to receive(:resolve).with(:openai)
+          .and_return(class_double(RubyLLM::Providers::OpenAI, new: instance_double(
+            RubyLLM::Providers::OpenAI, list_models: listed
+          )))
+      end
+
+      it "reports every model the endpoint lists" do
+        expect(discovered.map(&:name)).to include("gpt-4o", "some-unreleased-model")
+      end
+
+      # The bug this spec exists for: capabilities were being dropped, so every
+      # OpenAI model imported claiming it couldn't call tools.
+      it "reads tool support from the capabilities" do
+        expect(discovered.find { |m| m.name == "gpt-4o" }.supports_tools).to be(true)
+      end
+
+      it "reads the context window" do
+        expect(discovered.find { |m| m.name == "gpt-4o" }.context_window).to eq(128_000)
+      end
+
+      # An OpenAI-compatible /v1/models reports neither figure, so RubyLLM
+      # pattern-matches the id. For an id it has no pattern for it falls back to
+      # 4,096 tokens and no function calling — guesses, which must not be stored
+      # as though the endpoint had said them.
+      context "with a model RubyLLM doesn't recognise" do
+        subject(:model) { discovered.find { |m| m.name == "some-unreleased-model" } }
+
+        it "reports tool support as unknown rather than false" do
+          expect(model.supports_tools).to be_nil
+        end
+
+        it "reports no context window rather than the 4,096 fallback" do
+          expect(model.context_window).to be_nil
+        end
+      end
+
+      # No /v1/models anywhere reports what a model is for.
+      it "leaves kind for a person to decide" do
+        expect(discovered.map(&:kind)).to all(be_nil)
+      end
+    end
+
+    it "does not declare tool support authoritatively" do
+      expect(described_class.reports_tool_support?).to be(false)
     end
 
     describe "#llm_context" do

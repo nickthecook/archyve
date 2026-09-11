@@ -8,7 +8,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
   end
 
   def view_template
-    breadcrumb
+    back_link
     heading
     check_panel
     chat_models
@@ -20,14 +20,14 @@ class Views::Settings::InferenceServers::Show < Views::Base
 
   def page_title = @server.name
 
-  def breadcrumb
-    div(class: "mb-1 text-xs text-faint") do
-      a(href: settings_inference_servers_path, class: "hover:text-muted transition-colors") { "Inference" }
+  def back_link
+    a(href: settings_inference_servers_path, class: "text-sm text-muted hover:text-fg transition-colors") do
+      "← Inference"
     end
   end
 
   def heading
-    header(class: "mb-7 flex items-start justify-between gap-4") do
+    header(class: "mt-3 mb-7 flex items-start justify-between gap-4") do
       div(class: "min-w-0") do
         div(class: "flex items-center gap-2") do
           h1(class: "text-2xl font-semibold tracking-tight") { @server.name }

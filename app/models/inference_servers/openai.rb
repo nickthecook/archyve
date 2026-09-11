@@ -13,6 +13,11 @@ module InferenceServers
   # and the import screen asks. That isn't a shortcoming worth coding around —
   # the endpoint genuinely doesn't know.
   class OpenAI < InferenceServer
+    # What RubyLLM calls tool support in a Model::Info's capabilities, and the
+    # family it reports for an id it has no pattern for.
+    FUNCTION_CALLING = "function_calling".freeze
+    UNKNOWN_FAMILY = "other".freeze
+
     before_validation :normalize_base_url
 
     validates :api_key, presence: true
@@ -35,13 +40,34 @@ module InferenceServers
     end
 
     # => Array<Discovered>. No kind — see the class comment.
+    #
+    # Context window and tool support are worth taking from RubyLLM, but only
+    # where it actually recognises the model. For anything else its capability
+    # module falls back to defaults — 4,096 tokens and no function calling —
+    # and those are pattern-matching guesses, not something the endpoint said.
+    # Reported as nil so the import screen asks instead of writing a confident
+    # wrong answer into the row.
     def available_models
       provider.list_models.map do |info|
-        Discovered.new(name: info.id, context_window: info.context_window)
+        known = recognized?(info.id)
+
+        Discovered.new(
+          name: info.id,
+          context_window: (info.context_window if known),
+          supports_tools: (info.capabilities.include?(FUNCTION_CALLING) if known)
+        )
       end
     end
 
     private
+
+    # RubyLLM's marker for "I have no pattern for this id" — every recognised
+    # family returns its own name. Reaching into the capability module is a
+    # coupling, but the alternative is inferring recognition from the fallback
+    # values themselves, which breaks silently the day they change.
+    def recognized?(model_id)
+      RubyLLM::Providers::OpenAI::Capabilities.model_family(model_id) != UNKNOWN_FAMILY
+    end
 
     def provider
       RubyLLM::Provider.resolve(ruby_llm_provider).new(llm_context.config)

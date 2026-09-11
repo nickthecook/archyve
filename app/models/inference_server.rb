@@ -28,12 +28,17 @@ class InferenceServer < ApplicationRecord
   #
   # Defined here rather than per subclass because it *is* the discovery
   # contract: the import screen reads these fields and nothing else, so every
-  # provider describes its models the same way. Everything but the name is
-  # optional, because providers differ enormously in how much they will tell
-  # you — `kind: nil` means "this provider can't say", and the human classifies
-  # it. That is a real answer, not a failure.
+  # provider describes its models the same way.
+  #
+  # Every field but the name is optional, because providers differ enormously in
+  # how much they will tell you. **nil means "not reported" and is a real
+  # answer** — `kind: nil` and `supports_tools: nil` both mean "ask a person",
+  # which is different from `supports_tools: false`, a provider actually saying
+  # the model can't call tools. Collapsing the two would put a confident wrong
+  # claim on the screen, and "can't call tools" is a claim worth being right
+  # about: it decides whether a model can do retrieval in chat at all.
   Discovered = Data.define(:name, :kind, :context_window, :dimensions, :supports_tools) do
-    def initialize(name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: false)
+    def initialize(name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: nil)
       super
     end
   end
@@ -69,6 +74,15 @@ class InferenceServer < ApplicationRecord
   def self.requires_api_key? = false
   def self.requires_base_url? = true
 
+  # Whether this provider *declares* tool support, as opposed to it being
+  # inferred. Ollama declares it per model; an OpenAI-compatible endpoint says
+  # nothing, so RubyLLM pattern-matches the model id — usefully, but it gets
+  # gpt-3.5-turbo wrong, and it can't know anything about a model released after
+  # the gem. Where the answer is inferred the import screen offers it as a
+  # ticked box rather than a fact, because the person adding the model usually
+  # knows better than the pattern does.
+  def self.reports_tool_support? = false
+
   def self.creatable_types
     TYPES.map(&:constantize).select(&:user_creatable?)
   end
@@ -76,6 +90,7 @@ class InferenceServer < ApplicationRecord
   def type_label = self.class.type_label
   def requires_api_key? = self.class.requires_api_key?
   def requires_base_url? = self.class.requires_base_url?
+  def reports_tool_support? = self.class.reports_tool_support?
 
   # The per-call RubyLLM config for this server.
   #

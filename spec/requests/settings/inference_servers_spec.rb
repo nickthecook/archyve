@@ -207,6 +207,38 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       expect(response.body).to include("kinds[mystery:latest]")
     end
 
+    # Ollama declares capabilities, so its rows state tool support.
+    it "doesn't ask about tools when the server declares them" do
+      request
+      expect(response.body).not_to include("supports_tools[gemma4:latest]\" type=\"checkbox")
+    end
+
+    context "when the provider only infers tool support" do
+      let(:server) { create(:openai_server) }
+      let(:discovered) do
+        [
+          InferenceServer::Discovered.new(name: "gpt-5.6-luna", context_window: 128_000, supports_tools: true),
+          InferenceServer::Discovered.new(name: "some-unreleased-model")
+        ]
+      end
+
+      before do
+        allow_any_instance_of(InferenceServers::OpenAI).to receive(:available_models).and_return(discovered)
+      end
+
+      # The person adding the model usually knows better than a pattern match
+      # on its id, and this is what decides whether it can do retrieval at all.
+      it "offers tool support as a ticked box rather than a fact" do
+        request
+        expect(response.body).to include(%(name="supports_tools[gpt-5.6-luna]"))
+      end
+
+      it "says so when the guess has nothing behind it" do
+        request
+        expect(response.body).to include("this is a guess")
+      end
+    end
+
     context "when a model is already imported" do
       before { create(:inference_model, inference_server: server, name: "gemma4:latest") }
 
