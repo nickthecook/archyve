@@ -65,6 +65,25 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
     end
   end
 
+  describe "the inference settings" do
+    let(:path) { settings_inference_servers_path }
+
+    context "when signed in as an operator" do
+      let(:traits) { [:operator] }
+
+      # An operator manages content. Repointing Archyve at a different LLM host
+      # is system administration, which is why InferenceServer has no per-object
+      # grant to soften this.
+      include_examples "refused"
+    end
+
+    context "when signed in as an admin" do
+      let(:traits) { [:admin] }
+
+      include_examples "allowed"
+    end
+  end
+
   describe "a page open to everyone" do
     let(:path) { chat_path }
 

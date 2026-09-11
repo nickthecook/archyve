@@ -143,6 +143,46 @@ Design consequences:
   migration), use a **separate table/column per model** — never mix dimensions
   in one column.
 
+### As built (2026-09-11): `InferenceServer` + `InferenceModel`
+
+Provider config lives in two tables rather than in the environment. An
+**`InferenceServer`** is an endpoint plus credentials — STI, the same shape as
+`Source` (`TYPES` registry, `config` jsonb via `store_accessor`, a separate
+**encrypted `api_key` column**, never a secret inside the jsonb). An
+**`InferenceModel`** is one model on one server, with `kind` (`chat` /
+`embedding`, expected to grow), `dimensions`, `context_window` and
+`supports_tools`.
+
+Three consequences worth knowing before touching this:
+
+- **`RubyLLM.configure` no longer sets provider keys.** RubyLLM's provider
+  settings are global and single-slot — one `config.ollama_api_base` per process
+  — so two Ollama hosts could never coexist through it, and an initializer
+  cannot read the database anyway. Each server builds its own
+  `RubyLLM::Context` in `#llm_context`, and inference goes through that.
+- **RubyLLM does not speak native Ollama.** `RubyLLM::Providers::Ollama`
+  subclasses the OpenAI provider and talks to `/v1/models`, which reports only
+  ids — and it fills the gap by hardcoding the same capability list onto every
+  model, so through that endpoint `nomic-embed-text` claims it can call
+  functions. Discovery therefore goes direct to `GET /api/tags` +
+  `POST /api/show`, which declare `capabilities` (`embedding` vs `completion`,
+  and `tools`) along with context length and embedding dimensions. Inference
+  still goes through RubyLLM. `InferenceServers::OpenAI` has no equivalent —
+  an OpenAI-compatible `/v1/models` genuinely doesn't know — so its discovered
+  models come back with `kind: nil` and the import screen asks.
+- **The embedding model is guarded by the corpus, not by a flag.**
+  `InferenceModel` refuses an embedder while vectors produced by a *different*
+  model exist, because those are what a switch would strand. With an empty
+  corpus it's just a setup step, and re-declaring the model the corpus is
+  already full of is not a change at all — which is how an install predating
+  these rows describes itself. `dimensions` is validated against
+  `Embedding::DIMENSIONS`, so a model that cannot physically fit the
+  `vector(768)` column can never become the archive's embedder.
+
+Nothing is seeded unless `OLLAMA_API_BASE` is set: **zero servers is a
+legitimate state**, and the pages say "not configured" rather than reporting an
+unreachable localhost nobody asked for.
+
 ## Source-first ingestion
 
 The **primary** ingestion method is **sources** — connections to external

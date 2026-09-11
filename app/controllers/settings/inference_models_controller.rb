@@ -1,0 +1,87 @@
+module Settings
+  # Models on one server. Always nested: a model without a server has no
+  # address to be reached at, so there is no top-level list of them.
+  class InferenceModelsController < ApplicationController
+    require_role :admin
+
+    before_action :set_server
+    before_action :set_model, only: [:edit, :update, :destroy]
+    before_action :refuse_frozen_embedding, only: [:update, :destroy]
+
+    def new
+      render Views::Settings::InferenceModels::New.new(
+        server: @server,
+        model: @server.inference_models.new(kind: :chat),
+        embedding_locked: embedding_locked?
+      )
+    end
+
+    def create
+      model = @server.inference_models.new(model_params)
+
+      if model.save
+        redirect_to settings_inference_server_path(@server), notice: "Added #{model.name}."
+      else
+        render Views::Settings::InferenceModels::New.new(
+          server: @server, model:, embedding_locked: embedding_locked?
+        ), status: :unprocessable_entity
+      end
+    end
+
+    def edit
+      render Views::Settings::InferenceModels::Edit.new(server: @server, model: @model)
+    end
+
+    def update
+      if @model.update(model_params.except(:kind))
+        redirect_to settings_inference_server_path(@server), notice: "Saved #{@model.name}."
+      else
+        render Views::Settings::InferenceModels::Edit.new(server: @server, model: @model),
+          status: :unprocessable_entity
+      end
+    end
+
+    def destroy
+      @model.destroy!
+      redirect_to settings_inference_server_path(@server), notice: "Removed #{@model.name}."
+    end
+
+    private
+
+    def set_server
+      @server = InferenceServer.find(params[:inference_server_id])
+    end
+
+    def set_model
+      @model = @server.inference_models.find(params[:id])
+    end
+
+    # The embedding model can't be edited away or deleted once the corpus holds
+    # vectors it produced — doing either would leave every stored embedding
+    # naming a model Archyve no longer knows how to reach, and searches would
+    # quietly return nothing.
+    #
+    # The views hide these controls too. Both are needed: hiding a link is not
+    # access control, and this is the half that a curl can't route around.
+    # Creating is refused by InferenceModel itself, since that guard has to hold
+    # for imports as well.
+    def refuse_frozen_embedding
+      return unless @model.embedding? && Embedding.exists?
+
+      redirect_to settings_inference_server_path(@server),
+        alert: "#{Embedding.count} chunks are embedded with #{@model.name}. Changing the embedding model " \
+               "means re-embedding the archive, which Archyve can't do yet."
+    end
+
+    def embedding_locked? = Embedding.exists?
+
+    # `kind` is permitted on create and dropped on update: a chat model that
+    # became an embedding model would strand nothing, but an embedding model
+    # that became a chat model would orphan the corpus. Changing kind means
+    # deleting and re-adding, which the guard above makes people think about.
+    def model_params
+      params.require(:inference_model)
+        .permit(:name, :display_name, :kind, :dimensions, :context_window, :supports_tools, :enabled, :preferred)
+    end
+  end
+end

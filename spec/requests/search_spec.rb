@@ -4,6 +4,12 @@ RSpec.describe "Search", type: :request do
   describe "GET /search" do
     subject(:request) { get search_path, params: }
 
+    # Declared first so it exists before any embedding does — InferenceModel
+    # refuses a new embedder once the corpus holds vectors another one produced.
+    # Its name matches what the :embedding factory stamps on each vector, which
+    # is what the retrieval filter matches on.
+    let!(:embedding_model) { create(:embedding_model) }
+
     # Only the network hop to Ollama is stubbed; the nearest-neighbor query and
     # the collection scope join run for real against the test database.
     before { allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 }) }

@@ -1,0 +1,19 @@
+{
+  "capabilities": [
+    "embedding"
+  ],
+  "details": {
+    "parent_model": "",
+    "format": "gguf",
+    "family": "nomic-bert",
+    "families": [
+      "nomic-bert"
+    ],
+    "parameter_size": "137M",
+    "quantization_level": "F16"
+  },
+  "model_info": {
+    "nomic-bert.context_length": 2048,
+    "nomic-bert.embedding_length": 768
+  }
+}

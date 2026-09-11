@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_214337) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_193100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -114,6 +114,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_214337) do
     t.index ["embedding"], name: "index_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
   end
 
+  create_table "inference_models", force: :cascade do |t|
+    t.integer "context_window"
+    t.datetime "created_at", null: false
+    t.integer "dimensions"
+    t.string "display_name"
+    t.boolean "enabled", default: true, null: false
+    t.bigint "inference_server_id", null: false
+    t.integer "kind", default: 0, null: false
+    t.string "name", null: false
+    t.boolean "preferred", default: false, null: false
+    t.boolean "supports_tools", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.index ["inference_server_id", "name"], name: "index_inference_models_on_inference_server_id_and_name", unique: true
+    t.index ["inference_server_id"], name: "index_inference_models_on_inference_server_id"
+    t.index ["kind"], name: "index_inference_models_on_single_embedding", unique: true, where: "(kind = 1)"
+    t.index ["preferred"], name: "index_inference_models_on_preferred_chat", unique: true, where: "(preferred AND (kind = 0))"
+  end
+
+  create_table "inference_servers", force: :cascade do |t|
+    t.text "api_key"
+    t.jsonb "config", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.string "last_check_error"
+    t.string "last_check_status"
+    t.datetime "last_checked_at"
+    t.string "name", null: false
+    t.string "type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_inference_servers_on_name", unique: true
+    t.index ["type"], name: "index_inference_servers_on_type"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
@@ -198,6 +230,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_214337) do
   add_foreign_key "documents", "source_syncs", on_delete: :nullify
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"
+  add_foreign_key "inference_models", "inference_servers"
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"

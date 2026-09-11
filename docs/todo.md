@@ -116,6 +116,21 @@ this is a todo and not a bug.
   by. Set all three anyway rather than discover the third later. Assigning nil *overrides* rather than falling back, so guard
   with `if ENV[...]` if the credentials fallback should survive. Nothing in this
   app reads credentials, so `master.key` need never reach a server.
+- **Re-embedding the corpus.** The one piece `InferenceModel` points at and
+  refuses without. Changing the embedding model strands every existing vector
+  (different models, different vector spaces), so the model validates that no
+  embedding from another model exists before allowing one — which means the
+  embedder is effectively fixed for the life of an archive today. The job is:
+  set the new model, re-embed every chunk, swap atomically. Note the schema
+  constraint from architecture.md — `embeddings.embedding` is a `vector(768)`
+  with one HNSW index, so a **different-dimension** model needs a new column or
+  table, not just a new job. Same-dimension swaps are the easy first case.
+  Until this exists, the UI says so in as many words rather than offering a
+  control that quietly breaks search.
+- **Nothing verifies a chat model before it is imported.** "Check" proves the
+  server answers and discovery reports what it has, but an imported model is
+  never actually prompted. A model that is pulled but broken looks fine until
+  the first conversation.
 - **Configurable file extensions per folder source.** Note the hazard: a file
   dropping out of the allowed list is not a file that left the source, so
   narrowing the list must go through the same `skip_reason` path that

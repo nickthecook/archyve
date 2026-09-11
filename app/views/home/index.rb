@@ -22,7 +22,7 @@ class Views::Home::Index < Views::Base
       end
       facet("chat", "Chat", chat_path, @stats[:last_chat] || "start a conversation")
       if may?(:admin)
-        facet("settings", "Settings", settings_path, "#{@stats[:embedding_model]} · #{@stats[:host]}")
+        facet("settings", "Settings", settings_path, inference_glimpse)
       end
       status
     end
@@ -88,13 +88,21 @@ class Views::Home::Index < Views::Base
     end
   end
 
+  # A fresh install has no inference server at all, so the corridor has to have
+  # something honest to say before anything is configured.
+  def inference_glimpse
+    return "inference not configured" if @stats[:embedding_model].nil?
+
+    [@stats[:embedding_model], @stats[:host]].compact.join(" · ")
+  end
+
   def status
     div(class: "status reveal", style: "animation-delay:.9s") do
       span do
         span(class: "dot") { "●" }
-        plain(" #{@stats[:host]} connected")
+        plain(@stats[:host] ? " #{@stats[:host]} connected" : " no inference server")
       end
-      span { "embedding: #{@stats[:embedding_model]}" }
+      span { @stats[:embedding_model] ? "embedding: #{@stats[:embedding_model]}" : "embedding: not configured" }
       span { "pgvector · #{@stats[:chunks]} chunks" }
       motion_toggle
     end

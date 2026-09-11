@@ -24,8 +24,11 @@ class SearchController < ApplicationController
   # come through the same path. Embedding the query hits Ollama over the
   # network, so a failure degrades to a friendly message rather than a 500.
   def retrieve(query)
+    model = InferenceModel.active_embedding
+    return no_embedding_model if model.nil?
+
     vector = Embeddings::Embed.query(query)
-    relation = Embedding.where(embedding_model: Embedding::DEFAULT_MODEL)
+    relation = Embedding.where(embedding_model: model.name)
 
     filters = [retrievable_document_ids, @scope&.document_ids].compact
     unless filters.empty?
@@ -39,7 +42,19 @@ class SearchController < ApplicationController
       .first(RESULT_LIMIT)
   rescue StandardError => e
     Rails.logger.error("search failed: #{e.class}: #{e.message}")
-    @error = "Couldn't reach the embedding model. Check that Ollama is running and #{Embedding::DEFAULT_MODEL} is pulled."
+    @error = "Couldn't reach #{model&.inference_server&.name || 'the embedding model'}. " \
+             "Check that it's running and #{model&.name} is pulled."
+    []
+  end
+
+  # Not the same failure as an unreachable host, so not the same message: there
+  # is nothing to reach yet. Only admins can fix it, so only they are told how.
+  def no_embedding_model
+    @error = if Current.user.admin?
+      "No embedding model is configured. Add one under Settings › Inference."
+    else
+      "Search isn't available yet — no embedding model is configured."
+    end
     []
   end
 

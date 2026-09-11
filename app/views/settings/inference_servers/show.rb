@@ -1,0 +1,210 @@
+# frozen_string_literal: true
+
+# One server: whether Archyve can reach it, and what it may use it for.
+class Views::Settings::InferenceServers::Show < Views::Base
+  def initialize(server:, embedded_chunk_count:)
+    @server = server
+    @embedded_chunk_count = embedded_chunk_count
+  end
+
+  def view_template
+    breadcrumb
+    heading
+    check_panel
+    chat_models
+    embedding_model
+    danger_zone
+  end
+
+  private
+
+  def page_title = @server.name
+
+  def breadcrumb
+    div(class: "mb-1 text-xs text-faint") do
+      a(href: settings_inference_servers_path, class: "hover:text-muted transition-colors") { "Inference" }
+    end
+  end
+
+  def heading
+    header(class: "mb-7 flex items-start justify-between gap-4") do
+      div(class: "min-w-0") do
+        div(class: "flex items-center gap-2") do
+          h1(class: "text-2xl font-semibold tracking-tight") { @server.name }
+          span(class: "rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { @server.type_label }
+        end
+        p(class: "mt-1 truncate font-mono text-sm text-muted") { @server.base_url.presence || "api.openai.com" }
+      end
+      div(class: "flex shrink-0 items-center gap-2") do
+        check_button
+        a(href: edit_settings_inference_server_path(@server), class: quiet_button) { "Edit" }
+      end
+    end
+  end
+
+  # Outlined, not solid: checking verifies, it doesn't commit anything. See the
+  # accent ladder in docs/design.md.
+  def check_button
+    form(action: check_settings_inference_server_path(@server), method: "post", class: "inline") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(type: "submit", class: outlined_button) { "Check" }
+    end
+  end
+
+  def check_panel
+    div(class: "mb-8 rounded-lg border border-line bg-ink/40 px-5 py-4") do
+      if !@server.checked?
+        p(class: "text-sm text-muted") { "Not checked yet." }
+        p(class: "mt-1 text-xs text-faint") { "Check to confirm Archyve can reach this server before relying on it." }
+      elsif @server.reachable?
+        p(class: "text-sm text-fg") { "Answered #{time_ago_in_words(@server.last_checked_at)} ago." }
+        p(class: "mt-1 text-xs text-faint") { "Fetch models to see what it can run." }
+      else
+        p(class: "text-sm text-red-300") { "Unreachable as of #{time_ago_in_words(@server.last_checked_at)} ago." }
+        p(class: "mt-1 break-words font-mono text-xs text-red-300/70") { @server.last_check_error.to_s }
+      end
+    end
+  end
+
+  def chat_models
+    section(class: "mb-8") do
+      div(class: "mb-3 flex items-center justify-between gap-3") do
+        h2(class: "text-sm font-medium text-fg") { "Chat models" }
+        div(class: "flex items-center gap-2") do
+          a(href: discover_settings_inference_server_path(@server), class: outlined_button) { "Fetch models" }
+          a(href: new_settings_inference_server_model_path(@server), class: quiet_button) { "Add manually" }
+        end
+      end
+
+      models = @server.inference_models.select(&:chat?).sort_by(&:name)
+      models.any? ? model_list(models) : no_chat_models
+    end
+  end
+
+  def model_list(models)
+    ul(class: "rounded-lg border border-line bg-ink/40 divide-y divide-line") do
+      models.each { |model| model_row(model) }
+    end
+  end
+
+  def model_row(model)
+    li(class: "flex items-center justify-between gap-3 px-5 py-4") do
+      div(class: "min-w-0") do
+        div(class: "flex items-center gap-2") do
+          a(
+            href: edit_settings_inference_server_model_path(@server, model),
+            class: "truncate font-mono text-sm text-fg hover:text-accent transition-colors"
+          ) { model.name }
+          tag("preferred") if model.preferred?
+          tag("tools") if model.supports_tools?
+          tag("disabled") unless model.enabled?
+        end
+        p(class: "mt-0.5 text-xs text-faint") { model_detail(model) }
+      end
+      remove(model)
+    end
+  end
+
+  def model_detail(model)
+    parts = []
+    parts << model.display_name if model.display_name.present?
+    parts << "#{delimited(model.context_window)} token context" if model.context_window
+    parts << "can't call tools — retrieval won't work in chat" unless model.supports_tools?
+    parts.join(" · ")
+  end
+
+  def tag(text)
+    span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { text }
+  end
+
+  def no_chat_models
+    div(class: "rounded-lg border border-dashed border-line px-4 py-10 text-center") do
+      p(class: "text-sm text-muted") { "No chat models from this server." }
+      p(class: "mt-1 text-xs text-faint") { "Fetch models to see what it has." }
+    end
+  end
+
+  # The embedding model gets the dashed-quiet costume the app uses for things
+  # that aren't quite ordinary records — it is one per archive, not one of many,
+  # and mostly it cannot be changed at all.
+  def embedding_model
+    model = @server.inference_models.find(&:embedding?)
+
+    section(class: "mb-8") do
+      h2(class: "mb-3 text-sm font-medium text-fg") { "Embedding model" }
+      model ? embedding_panel(model) : no_embedding_model
+    end
+  end
+
+  def embedding_panel(model)
+    div(class: "rounded-lg border border-dashed border-line px-5 py-4") do
+      div(class: "flex items-center justify-between gap-3") do
+        span(class: "font-mono text-sm text-fg") { model.name }
+        span(class: "font-mono tabular-nums text-xs text-muted") { "#{model.dimensions} dimensions" }
+      end
+      p(class: "mt-2 text-xs text-faint") { embedding_note }
+      div(class: "mt-3") { remove(model) } unless frozen_corpus?
+    end
+  end
+
+  def embedding_note
+    if frozen_corpus?
+      "#{delimited(@embedded_chunk_count)} chunks are embedded with this model. Vectors from " \
+        "different models aren't comparable, so changing it means re-embedding the whole archive — which " \
+        "Archyve can't do yet."
+    else
+      "Nothing is embedded yet, so this can still be changed. Once documents are processed it's fixed."
+    end
+  end
+
+  def no_embedding_model
+    div(class: "rounded-lg border border-dashed border-line px-4 py-10 text-center") do
+      p(class: "text-sm text-muted") { "No embedding model." }
+      p(class: "mt-1 text-xs text-faint") do
+        "Documents can't be processed and search can't run until one is configured."
+      end
+    end
+  end
+
+  def frozen_corpus? = @embedded_chunk_count.positive?
+
+  # No phlex-rails adapter for this one is registered on Components::Base, and
+  # registering it app-wide for a single call site would be the tail wagging the
+  # dog. Sources::Folder reaches for ActiveSupport::NumberHelper the same way.
+  def delimited(number) = ActiveSupport::NumberHelper.number_to_delimited(number)
+
+  def danger_zone
+    form(action: settings_inference_server_path(@server), method: "post", class: "mt-12") do
+      input(type: "hidden", name: "_method", value: "delete")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(
+        type: "submit",
+        class: "text-xs text-faint hover:text-red-300 transition-colors cursor-pointer"
+      ) { "Remove this server and its models" }
+      p(class: "mt-1 text-xs text-faint") do
+        "Documents already embedded keep their vectors — they record which model produced them."
+      end
+    end
+  end
+
+  def remove(model)
+    form(action: settings_inference_server_model_path(@server, model), method: "post", class: "inline") do
+      input(type: "hidden", name: "_method", value: "delete")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(
+        type: "submit",
+        class: "shrink-0 text-xs text-faint hover:text-red-300 transition-colors cursor-pointer"
+      ) { "Remove" }
+    end
+  end
+
+  def outlined_button
+    "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm text-accent hover:bg-accent/20 " \
+      "hover:border-accent transition-colors cursor-pointer"
+  end
+
+  def quiet_button
+    "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
+      "transition-colors cursor-pointer"
+  end
+end

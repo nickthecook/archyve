@@ -5,13 +5,19 @@ class HomeController < ApplicationController
 
   private
 
+  # Nil until somebody configures a server; the landing says so rather than
+  # inventing a default that nothing is actually talking to.
+  def embedding_model
+    @embedding_model ||= InferenceModel.active_embedding
+  end
+
   def stats
     {
       collections: Collection.count,
       documents: Document.count,
       chunks: Chunk.count,
-      embedding_model: Embedding::DEFAULT_MODEL,
-      host: URI(ENV.fetch("OLLAMA_API_BASE", "http://localhost:11434/v1")).host,
+      embedding_model: embedding_model&.name,
+      host: embedding_model&.inference_server&.base_url.presence&.then { |url| URI(url).host },
       last_chat: nil
     }
   end

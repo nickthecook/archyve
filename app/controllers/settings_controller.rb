@@ -2,6 +2,10 @@ class SettingsController < ApplicationController
   require_role :admin
 
   def index
-    render Views::Settings::Index.new(people_count: User.count)
+    render Views::Settings::Index.new(
+      people_count: User.count,
+      server_count: InferenceServer.count,
+      model_count: InferenceModel.count
+    )
   end
 end

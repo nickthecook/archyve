@@ -56,10 +56,13 @@ class ProcessDocumentJob < ApplicationJob
     end
   end
 
+  # embedding_model stays a free-text string on the row rather than a foreign
+  # key: it is the durable record of what produced this vector, and has to
+  # outlive the InferenceModel being renamed or deleted.
   def embed(chunk)
     chunk.embeddings.create!(
       embedding: Embeddings::Embed.document(chunk.content),
-      embedding_model: Embedding::DEFAULT_MODEL
+      embedding_model: InferenceModel.active_embedding.name
     )
   end
 end

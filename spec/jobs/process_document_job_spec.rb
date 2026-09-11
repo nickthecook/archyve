@@ -9,6 +9,10 @@ RSpec.describe ProcessDocumentJob do
   let(:client) { instance_double(Docling::Client, convert: docling_result) }
   let(:vector) { Array.new(Embedding::DIMENSIONS) { 0.1 } }
 
+  # The job stamps each vector with the corpus's embedding model, so one has to
+  # exist for it to name.
+  let!(:embedding_model) { create(:embedding_model) }
+
   before do
     allow(Docling::Client).to receive(:new).and_return(client)
     allow(Embeddings::Embed).to receive(:document).and_return(vector)
@@ -27,7 +31,7 @@ RSpec.describe ProcessDocumentJob do
 
       it "embeds each chunk with the corpus model" do
         job.perform(document)
-        expect(document.chunks.first.embeddings.first.embedding_model).to eq(Embedding::DEFAULT_MODEL)
+        expect(document.chunks.first.embeddings.first.embedding_model).to eq(embedding_model.name)
       end
     end
 

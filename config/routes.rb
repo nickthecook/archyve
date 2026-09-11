@@ -51,6 +51,20 @@ Rails.application.routes.draw do
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
     resources :users, except: [:show]
+    # Where Archyve sends prompts. Under Settings rather than beside Sources:
+    # a source is content, an inference server is system administration, and
+    # only an admin has any business repointing the app at a different LLM.
+    resources :inference_servers do
+      # Both POSTs because they do something rather than show something.
+      # "Check" is synchronous — one HTTP call with one outcome — unlike a
+      # source sync, which is a job.
+      post :check, on: :member
+      get :discover, on: :member
+      post :import, on: :member
+      # A model without a server is meaningless, so it is managed inside one.
+      resources :models, only: [:new, :create, :edit, :update, :destroy],
+        controller: "inference_models"
+    end
   end
   # Sources sit with the content they produce, not under Settings — managing
   # them is a content job, and Settings is heading towards admin-only.

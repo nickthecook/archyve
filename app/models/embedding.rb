@@ -1,8 +1,8 @@
 class Embedding < ApplicationRecord
-  # The active embedding model for the corpus. Changing this is a corpus-wide
-  # decision that requires re-embedding (embeddings across models aren't
-  # comparable). Kept here for now; move to config when we support switching.
-  DEFAULT_MODEL = "nomic-embed-text:v1.5".freeze
+  # The width of the `embedding` column: a vector(768) with a single cosine
+  # HNSW index. A schema fact rather than a setting, which is why it stayed a
+  # constant when the model id moved to InferenceModel — that row is validated
+  # against this, since a model of any other width could not be stored here.
   DIMENSIONS = 768
 
   has_neighbors :embedding

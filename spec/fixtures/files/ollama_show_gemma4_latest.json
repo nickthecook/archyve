@@ -1,0 +1,23 @@
+{
+  "capabilities": [
+    "completion",
+    "vision",
+    "audio",
+    "tools",
+    "thinking"
+  ],
+  "details": {
+    "parent_model": "",
+    "format": "gguf",
+    "family": "gemma4",
+    "families": [
+      "gemma4"
+    ],
+    "parameter_size": "8.0B",
+    "quantization_level": "Q4_K_M"
+  },
+  "model_info": {
+    "gemma4.context_length": 131072,
+    "gemma4.embedding_length": 2560
+  }
+}
