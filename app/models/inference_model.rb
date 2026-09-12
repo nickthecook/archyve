@@ -30,6 +30,12 @@ class InferenceModel < ApplicationRecord
 
   scope :usable, -> { where(enabled: true) }
 
+  # Chat models that can actually do the job. Archyve's retrieval is a tool the
+  # model calls, not context stuffed into the prompt — a model that can't call
+  # tools can't decide *whether* to search or *what* to search for, which is the
+  # part worth having. So this is the set chat may offer, not a preference.
+  scope :for_chat, -> { usable.chat.where(supports_tools: true) }
+
   # The corpus's embedding model, or nil.
   #
   # Returns nil rather than raising because "nothing is configured yet" is a
@@ -39,6 +45,11 @@ class InferenceModel < ApplicationRecord
   def self.active_embedding
     usable.embedding.first
   end
+
+  # The chat model a new conversation gets, or nil. `preferred` wins; failing
+  # that, any tool-capable chat model, so a fresh install with one imported
+  # model works without anyone visiting Settings to anoint it.
+  def self.default_chat = for_chat.order(preferred: :desc, id: :asc).first
 
   def label = display_name.presence || name
 

@@ -38,6 +38,26 @@ class Segment < ApplicationRecord
   # this", which a failure must never be mistaken for.
   def found_nothing? = retrieval? && !failed? && hits.empty?
 
+  # How this segment reads when it is replayed to the model as history.
+  #
+  # Past retrievals are replayed rather than dropped, so a follow-up like "which
+  # of those needs the bastion?" still has the passages to work from. They are
+  # replayed from the stored snippets — what the model was actually shown —
+  # rather than re-read from the chunks, which may since have been reingested.
+  #
+  # This is a flattening: the tool call and its result come back as prose inside
+  # the assistant's own turn rather than as a real tool exchange, because
+  # reconstructing that would mean storing provider tool-call ids we have no
+  # other use for. Worth revisiting if a model ever gets confused about who
+  # searched.
+  def for_history
+    return content if text?
+    return "[searched the archive; retrieval was unavailable]" if failed?
+    return "[searched the archive for #{quoted_queries} — no matches]" if hits.empty?
+
+    ["[searched the archive for #{quoted_queries}]", *hits.map { history_line(it) }].join("\n")
+  end
+
   # Records what a Retrieval::Outcome found, as it was found. The snippet and
   # heading path are copied rather than read through the chunk: reingesting a
   # document destroys its chunks, and a transcript that reads through would
@@ -53,5 +73,14 @@ class Segment < ApplicationRecord
         heading_path: hit.heading_path.presence
       )
     end
+  end
+
+  private
+
+  def quoted_queries = Array(queries).map { "“#{it}”" }.to_sentence
+
+  def history_line(hit)
+    section = hit.heading_path.present? ? " (#{hit.heading_path})" : ""
+    "[#{hit.handle}] #{hit.document_title}#{section}: #{hit.snippet}"
   end
 end
