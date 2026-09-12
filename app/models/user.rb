@@ -7,6 +7,11 @@ class User < ApplicationRecord
   # every document they ever uploaded, along with its chunks and embeddings.
   has_many :sources, dependent: :nullify
 
+  # :destroy, unlike sources above, because the opposite reasoning applies. A
+  # conversation is personal correspondence with the archive, not content the
+  # archive holds — nobody else can read it, so nothing survives its author.
+  has_many :conversations, dependent: :destroy
+
   # Sign-in is by email, so identity has to be case- and whitespace-insensitive:
   # "Nick@Example.com " and "nick@example.com" are one account, not two. The
   # unique index is on the stored value, so normalizing before validation is

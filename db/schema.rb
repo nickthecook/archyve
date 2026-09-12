@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_162636) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -86,6 +86,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_162636) do
     t.index ["slug"], name: "index_collections_on_slug", unique: true
   end
 
+  create_table "conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "inference_model_id"
+    t.jsonb "scope", default: {}, null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["inference_model_id"], name: "index_conversations_on_inference_model_id"
+    t.index ["user_id"], name: "index_conversations_on_user_id"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.string "content_type"
     t.datetime "created_at", null: false
@@ -112,6 +123,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_162636) do
     t.index ["chunk_id", "embedding_model"], name: "index_embeddings_on_chunk_id_and_embedding_model", unique: true
     t.index ["chunk_id"], name: "index_embeddings_on_chunk_id"
     t.index ["embedding"], name: "index_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
+  end
+
+  create_table "hits", force: :cascade do |t|
+    t.bigint "chunk_id"
+    t.datetime "created_at", null: false
+    t.float "distance", null: false
+    t.bigint "document_id"
+    t.string "document_title", null: false
+    t.integer "handle", null: false
+    t.string "heading_path"
+    t.float "score", null: false
+    t.bigint "segment_id", null: false
+    t.text "snippet", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chunk_id"], name: "index_hits_on_chunk_id"
+    t.index ["document_id"], name: "index_hits_on_document_id"
+    t.index ["segment_id", "handle"], name: "index_hits_on_segment_id_and_handle", unique: true
+    t.index ["segment_id"], name: "index_hits_on_segment_id"
   end
 
   create_table "inference_models", force: :cascade do |t|
@@ -144,6 +173,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_162636) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_inference_servers_on_name", unique: true
     t.index ["type"], name: "index_inference_servers_on_type"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.bigint "conversation_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", null: false
+    t.integer "role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "position"], name: "index_messages_on_conversation_id_and_position", unique: true
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
+  end
+
+  create_table "segments", force: :cascade do |t|
+    t.integer "candidate_count"
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.string "failure_kind"
+    t.integer "kind", null: false
+    t.bigint "message_id", null: false
+    t.integer "position", null: false
+    t.jsonb "queries", default: [], null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id", "position"], name: "index_segments_on_message_id_and_position", unique: true
+    t.index ["message_id"], name: "index_segments_on_message_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -235,10 +288,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_162636) do
   add_foreign_key "collection_memberships", "documents"
   add_foreign_key "collection_users", "collections"
   add_foreign_key "collection_users", "users"
+  add_foreign_key "conversations", "inference_models", on_delete: :nullify
+  add_foreign_key "conversations", "users"
   add_foreign_key "documents", "source_syncs", on_delete: :nullify
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"
+  add_foreign_key "hits", "chunks", on_delete: :nullify
+  add_foreign_key "hits", "documents", on_delete: :nullify
+  add_foreign_key "hits", "segments"
   add_foreign_key "inference_models", "inference_servers"
+  add_foreign_key "messages", "conversations"
+  add_foreign_key "segments", "messages"
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
