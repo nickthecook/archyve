@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 class Views::Search::Index < Views::Base
-  def initialize(query:, results:, error: nil, scope: nil)
+  def initialize(query:, outcome:, scope: nil)
     @query = query
-    @results = results
-    @error = error
+    @outcome = outcome
     @scope = scope
   end
 
   def view_template
     search_box
-    error_panel if @error
+    error_panel if @outcome.failed?
     @query.blank? ? prompt : results
   end
 
@@ -60,35 +59,52 @@ class Views::Search::Index < Views::Base
     end
   end
 
+  # Nothing configured is not the same failure as an unreachable host, so it is
+  # not the same message: there is nothing to reach yet. Only admins can fix
+  # that, so only they are told how.
   def error_panel
-    div(class: "mb-6 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300") { @error }
+    div(class: "mb-6 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300") { failure_message }
+  end
+
+  def failure_message
+    failure = @outcome.failure
+    return unreachable_message(failure) unless failure.not_configured?
+
+    if may?(:admin)
+      "No embedding model is configured. Add one under Settings › Inference."
+    else
+      "Search isn't available yet — no embedding model is configured."
+    end
+  end
+
+  def unreachable_message(failure)
+    "Couldn't reach #{failure.server_name || 'the embedding model'}. " \
+      "Check that it's running and #{failure.model_name} is pulled."
   end
 
   def results
-    if @results.empty?
+    hits = @outcome.hits
+
+    if hits.empty?
       div(class: "text-center py-16") { p(class: "text-sm text-muted") { "No matches for “#{@query}”." } }
       return
     end
 
-    p(class: "mb-4 text-xs font-mono text-faint") { "#{@results.size} #{'result'.pluralize(@results.size)}" }
-    div(class: "space-y-3") { @results.each { |embedding| result_card(embedding) } }
+    p(class: "mb-4 text-xs font-mono text-faint") { "#{hits.size} #{'result'.pluralize(hits.size)}" }
+    div(class: "space-y-3") { hits.each { |hit| result_card(hit) } }
   end
 
-  def result_card(embedding)
-    chunk = embedding.chunk
-    document = chunk.document
-    breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
-
+  def result_card(hit)
     # A div, not a link: the card carries its own actions, and an anchor can't
     # contain anchors.
     div(class: "rounded-lg border border-line bg-ink/40 p-4") do
       div(class: "mb-1.5 flex items-center justify-between gap-3") do
-        span(class: "truncate text-sm font-medium text-fg") { document.title }
-        span(class: "shrink-0 font-mono text-xs text-accent tabular-nums") { "#{similarity(embedding)}%" }
+        span(class: "truncate text-sm font-medium text-fg") { hit.document.title }
+        span(class: "shrink-0 font-mono text-xs text-accent tabular-nums") { "#{hit.similarity}%" }
       end
-      span(class: "block text-xs text-faint truncate mb-2") { breadcrumb } if breadcrumb.present?
-      p(class: "text-sm leading-relaxed text-muted") { chunk.content.truncate(260) }
-      actions(document, chunk)
+      span(class: "block text-xs text-faint truncate mb-2") { hit.heading_path } if hit.heading_path.present?
+      p(class: "text-sm leading-relaxed text-muted") { hit.chunk.content.truncate(260) }
+      actions(hit.document, hit.chunk)
     end
   end
 
@@ -105,10 +121,5 @@ class Views::Search::Index < Views::Base
         ) { "Inspect chunks" }
       end
     end
-  end
-
-  # cosine distance (0 identical … 2 opposite) → a friendly similarity percentage
-  def similarity(embedding)
-    ((1 - embedding.neighbor_distance) * 100).round.clamp(0, 100)
   end
 end

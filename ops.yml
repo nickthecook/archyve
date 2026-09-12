@@ -12,17 +12,11 @@ dependencies:
 actions:
   server:
     command: bin/dev
-    alias: s
-    load_secrets: true
-  console:
-    command: bin/rails console
-    alias: c
     load_secrets: true
   rails:
     command: bin/rails
     load_secrets: true
-  rake:
-    command: bin/rake
+  rake: bin/rake
   test:
     command: RAILS_ENV=test bundle exec rspec
     alias: t
