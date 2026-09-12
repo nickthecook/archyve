@@ -113,12 +113,6 @@ RSpec.describe InferenceServer do
         expect(discovered.find { |m| m.name.start_with?("gemma") }.supports_tools).to be(true)
       end
 
-      # Ollama declares capabilities per model, so false here means the server
-      # said no — not that nobody asked.
-      it "declares tool support authoritatively" do
-        expect(described_class.reports_tool_support?).to be(true)
-      end
-
       context "when /api/show fails for one model" do
         let(:gemma_show) { [500, {}, "boom"] }
 
@@ -223,14 +217,93 @@ RSpec.describe InferenceServer do
         end
       end
 
-      # No /v1/models anywhere reports what a model is for.
-      it "leaves kind for a person to decide" do
-        expect(discovered.map(&:kind)).to all(be_nil)
-      end
-    end
+      context "classifying the real OpenAI catalogue" do
+        subject(:model) { described_class.new.send(:describe, model_info(id, context_window: 128_000, capabilities: [])) }
 
-    it "does not declare tool support authoritatively" do
-      expect(described_class.reports_tool_support?).to be(false)
+        # /v1/models says nothing about purpose, so this comes from RubyLLM's
+        # family patterns — a guess at the id, which is why an unmatched id
+        # falls through to "ask" rather than to a default.
+        {
+          "gpt-4o" => :chat,
+          "gpt-4o-search-preview" => :chat,
+          "text-embedding-3-small" => :embedding
+        }.each do |id, kind|
+          context "with #{id}" do
+            let(:id) { id }
+
+            it "classifies it as #{kind}" do
+              expect(model.kind).to eq(kind)
+            end
+          end
+        end
+
+        # The distinction that is easy to get backwards: a different *input* is
+        # a capability of a chat model, a different *call* is not a chat model
+        # at all. Getting this wrong files gpt-4o-audio somewhere the chat
+        # picker can't see it.
+        context "with gpt-4o-audio-preview" do
+          let(:id) { "gpt-4o-audio-preview" }
+
+          it "is still a chat model, because audio is an input not a call" do
+            expect(model.kind).to eq(:chat)
+          end
+
+          it "is importable" do
+            expect(model).not_to be_skipped
+          end
+        end
+
+        {
+          "whisper-1" => "transcription",
+          "tts-1" => "speech-synthesis",
+          "gpt-image-1" => "image",
+          "omni-moderation-latest" => "moderation",
+          "davinci-002" => "legacy completion"
+        }.each do |id, description|
+          context "with #{id}" do
+            let(:id) { id }
+
+            # Archyve has chat and embedding, so there is no honest kind for
+            # these. Reported rather than filtered out, the way a skipped file
+            # still appears in a source scan.
+            it "is skipped as #{description}" do
+              expect(model.skip_reason).to include(description)
+            end
+
+            it "gets no kind" do
+              expect(model.kind).to be_nil
+            end
+          end
+        end
+
+        # Recognisable, but unusable: this API never reports dimensions and the
+        # column is a fixed 768.
+        context "with an OpenAI embedding model" do
+          let(:id) { "text-embedding-3-large" }
+
+          it "is skipped" do
+            expect(model).to be_skipped
+          end
+
+          it "points at the manual form" do
+            expect(model.skip_reason).to include("by hand")
+          end
+        end
+
+        context "with an id RubyLLM has no pattern for" do
+          let(:id) { "gpt-7-unreleased" }
+
+          it "leaves kind for a person to decide" do
+            expect(model.kind).to be_nil
+          end
+
+          # Not skipped — unknown is not the same as unusable, and this is
+          # where every model released after the gem lands.
+          it "is still importable" do
+            expect(model).not_to be_skipped
+          end
+        end
+      end
     end
 
     describe "#llm_context" do

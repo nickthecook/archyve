@@ -37,10 +37,18 @@ class InferenceServer < ApplicationRecord
   # the model can't call tools. Collapsing the two would put a confident wrong
   # claim on the screen, and "can't call tools" is a claim worth being right
   # about: it decides whether a model can do retrieval in chat at all.
-  Discovered = Data.define(:name, :kind, :context_window, :dimensions, :supports_tools) do
-    def initialize(name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: nil)
+  #
+  # `skip_reason` is nil when the model is importable, and set when the server
+  # has it but Archyve won't take it — a speech or image model has no honest
+  # `kind` to be filed under. Deliberately the same word, and the same meaning,
+  # as Source::Item#skip_reason: reported rather than filtered out, because a
+  # model that quietly vanished from the list just sends someone looking for it.
+  Discovered = Data.define(:name, :kind, :context_window, :dimensions, :supports_tools, :skip_reason) do
+    def initialize(name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: nil, skip_reason: nil)
       super
     end
+
+    def skipped? = skip_reason.present?
   end
 
   # Concrete server types, in the order they should be offered in the UI.
@@ -74,14 +82,6 @@ class InferenceServer < ApplicationRecord
   def self.requires_api_key? = false
   def self.requires_base_url? = true
 
-  # Whether this provider *declares* tool support, as opposed to it being
-  # inferred. Ollama declares it per model; an OpenAI-compatible endpoint says
-  # nothing, so RubyLLM pattern-matches the model id — usefully, but it gets
-  # gpt-3.5-turbo wrong, and it can't know anything about a model released after
-  # the gem. Where the answer is inferred the import screen offers it as a
-  # ticked box rather than a fact, because the person adding the model usually
-  # knows better than the pattern does.
-  def self.reports_tool_support? = false
 
   def self.creatable_types
     TYPES.map(&:constantize).select(&:user_creatable?)
@@ -90,7 +90,6 @@ class InferenceServer < ApplicationRecord
   def type_label = self.class.type_label
   def requires_api_key? = self.class.requires_api_key?
   def requires_base_url? = self.class.requires_base_url?
-  def reports_tool_support? = self.class.reports_tool_support?
 
   # The per-call RubyLLM config for this server.
   #

@@ -48,10 +48,6 @@ module InferenceServers
       "A local or self-hosted Ollama. No key needed unless it sits behind a proxy."
     end
 
-    # /api/show declares each model's capabilities outright, so nothing here is
-    # a guess and the import screen can state it rather than ask.
-    def self.reports_tool_support? = true
-
     def ruby_llm_provider = :ollama
 
     # RubyLLM talks to the OpenAI-compatible endpoint, which lives under /v1.

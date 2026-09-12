@@ -2,11 +2,16 @@
 
 # What the server says it can run, ticked into Archyve.
 #
-# Discovery answers different amounts depending on the provider. Ollama's native
-# API declares each model's capabilities, so kind, context window, dimensions
-# and tool support all arrive filled in. An OpenAI-compatible /v1/models is a
-# list of ids and nothing else, so those rows carry a kind picker instead —
-# which is the honest rendering, not a gap.
+# What discovery reports is taken as fact here. For Ollama it is: /api/show
+# declares each model's capabilities. For OpenAI it is RubyLLM pattern-matching
+# the model id, which is a good guess rather than a report — an earlier version
+# said so on every row, and the hedging cost more in confusion than it bought in
+# accuracy. Anything discovery gets wrong is fixable on the model's own form.
+#
+# A chat model that can't call tools is shown but not importable: Archyve gives
+# the model retrieval as a tool, so one that can't call tools can hold a
+# conversation without ever reaching the archive, which is the only reason to
+# add it. Embedding models are exempt — they never call anything.
 class Views::Settings::InferenceServers::Discover < Views::Base
   def initialize(server:, discovered:, existing:, embedding_locked:, has_embedding_model:)
     @server = server
@@ -18,7 +23,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
 
   def view_template
     div(class: "mb-1 text-xs text-faint") do
-      a(href: settings_inference_server_path(@server), class: "hover:text-muted transition-colors") { @server.name }
+      a(href: settings_inference_server_path(@server), class: "hover:text-muted transition-colors") { "← #{@server.name}" }
     end
 
     header(class: "mb-7") do
@@ -34,8 +39,24 @@ class Views::Settings::InferenceServers::Discover < Views::Base
   def page_title = "Models on #{@server.name}"
 
   def subtitle
-    "#{@discovered.size} #{'model'.pluralize(@discovered.size)} reported. Tick the ones Archyve may use."
+    importable = rows.count { |_model, blocked| blocked.nil? }
+    skipped = rows.size - importable
+    sentence = "#{@discovered.size} #{'model'.pluralize(@discovered.size)} reported, #{importable} importable."
+    skipped.positive? ? "#{sentence} Tick the ones Archyve may use; the rest are listed below with why." : "#{sentence} Tick the ones Archyve may use."
   end
+
+  # Three bands, most useful first. Each row's reason is worked out once here so
+  # the ordering and the row itself agree.
+  def rows
+    @rows ||= @discovered
+      .map { |model| [model, blocked_reason(model, @existing.include?(model.name))] }
+      .sort_by { |model, blocked| [band(model, blocked), model.name] }
+  end
+
+  # Importable first. With a hundred-odd models on a real OpenAI account the top
+  # of the list should be the handful someone actually came for; everything
+  # Archyve can't take sits below with its reason.
+  def band(_model, blocked) = blocked ? 1 : 0
 
   # The same list-filter controller the document picker and collections grid
   # use — a long model list is exactly the case it exists for.
@@ -58,7 +79,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       )
 
       div(class: "max-h-[28rem] overflow-y-auto rounded-lg border border-line bg-ink/40 divide-y divide-line") do
-        @discovered.each { |model| row(model) }
+        rows.each { |model, blocked| row(model, blocked) }
       end
 
       p(class: "text-xs text-faint", data: { list_filter_target: "empty" }, hidden: true) { "No models match." }
@@ -76,10 +97,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
     end
   end
 
-  def row(model)
-    already = @existing.include?(model.name)
-    blocked = blocked_reason(model, already)
-
+  def row(model, blocked)
     label(
       class: "flex items-start gap-3 px-5 py-3.5 #{blocked ? 'opacity-50' : 'cursor-pointer hover:bg-ink/60'} transition-colors",
       data: { list_filter_target: "item", name: model.name.downcase }
@@ -91,11 +109,10 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       div(class: "min-w-0 flex-1") do
         div(class: "flex flex-wrap items-center gap-2") do
           span(class: "font-mono text-sm text-fg") { model.name }
-          tag("tools") if model.supports_tools && @server.reports_tool_support?
           tag("#{model.dimensions}d") if model.dimensions
         end
-        p(class: "mt-0.5 text-xs text-faint") { blocked || detail(model) }
-        tool_choice(model) unless blocked || @server.reports_tool_support?
+        note = blocked || detail(model).presence
+        p(class: "mt-0.5 text-xs text-faint") { note } if note
         carried(model)
       end
       kind_control(model, blocked)
@@ -103,36 +120,39 @@ class Views::Settings::InferenceServers::Discover < Views::Base
   end
 
   # Why a row can't be ticked, or nil. Said out loud on the row rather than
-  # leaving a checkbox that silently does nothing.
+  # leaving a checkbox that silently does nothing — or, worse, leaving a speech
+  # model tickable so it files itself as a chat model and breaks the first time
+  # anything asks it to hold a conversation.
   def blocked_reason(model, already)
     return "Already imported." if already
-    return unless model.kind.to_s == "embedding"
+    return model.skip_reason if model.skipped?
+    return embedding_blocked_reason if model.kind.to_s == "embedding"
+
+    # Everything else is treated as a chat model, and a chat model earns its
+    # place here by being able to call tools. **Embedding models are exempt** —
+    # they are asked to turn text into a vector and never call anything, so
+    # requiring tool support of them would block the one model the archive
+    # cannot work without.
+    "Can't call tools, so it couldn't draw on the archive in chat." unless model.supports_tools
+  end
+
+  def embedding_blocked_reason
     return "Archyve already has an embedding model." if @has_embedding_model
     return unless @embedding_locked
 
     "The archive is already embedded — changing the embedding model needs a re-embed, which Archyve can't do yet."
   end
 
+  # Deliberately says nothing when the provider couldn't classify the model.
+  # The row already shows that: it sits below the tool-capable ones with an
+  # unticked box and a kind picker beside it. Spelling it out as well put a
+  # sentence of hedging on most rows of a hundred-model list, which read as a
+  # problem rather than as the ordinary state of an API that reports ids.
   def detail(model)
     parts = []
     parts << "#{ActiveSupport::NumberHelper.number_to_delimited(model.context_window)} token context" if model.context_window
     parts << "reported as an embedding model" if model.kind.to_s == "embedding"
-    parts << "the server didn't say what this model is for" if model.kind.nil?
     parts.join(" · ")
-  end
-
-  # Where tool support is inferred rather than declared, it is offered as a
-  # ticked box instead of a pill — the person adding the model usually knows
-  # better than a pattern match on its id does, and getting this wrong is what
-  # decides whether the model can do retrieval in chat at all.
-  def tool_choice(model)
-    label(class: "mt-1.5 flex items-center gap-2 cursor-pointer") do
-      input(
-        type: "checkbox", name: "supports_tools[#{model.name}]", value: "1",
-        checked: model.supports_tools.present?, class: "accent-accent"
-      )
-      span(class: "text-xs text-muted") { "Can call tools#{" — #{@server.type_label} doesn't say, this is a guess" if model.supports_tools.nil?}" }
-    end
   end
 
   # What discovery already worked out, carried through the form so importing
@@ -140,9 +160,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
   def carried(model)
     input(type: "hidden", name: "context_windows[#{model.name}]", value: model.context_window) if model.context_window
     input(type: "hidden", name: "dimensions[#{model.name}]", value: model.dimensions) if model.dimensions
-    if model.supports_tools && @server.reports_tool_support?
-      input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1")
-    end
+    input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1") if model.supports_tools
   end
 
   # A select where the provider couldn't say, a fixed value where it could.

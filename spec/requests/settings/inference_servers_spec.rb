@@ -177,12 +177,19 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
   describe "GET /settings/inference_servers/:id/discover" do
     subject(:request) { get discover_settings_inference_server_path(server) }
 
+    # Scoped to one row on purpose: asserting against the whole page let text
+    # from a neighbouring row satisfy a claim about this one.
+    def row_for(name)
+      response.body[/data-name="#{Regexp.escape(name)}".*?<\/label>/m].to_s
+    end
+
     let(:server) { create(:ollama_server) }
     let(:discovered) do
       [
         InferenceServer::Discovered.new(name: "gemma4:latest", kind: :chat, context_window: 131_072, supports_tools: true),
         InferenceServer::Discovered.new(name: "nomic-embed-text:v1.5", kind: :embedding, dimensions: 768),
-        InferenceServer::Discovered.new(name: "mystery:latest")
+        InferenceServer::Discovered.new(name: "mystery:latest", supports_tools: true),
+        InferenceServer::Discovered.new(name: "toolless:latest", kind: :chat, supports_tools: false)
       ]
     end
 
@@ -195,11 +202,6 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       expect(response.body).to include("gemma4:latest").and include("mystery:latest")
     end
 
-    it "marks a model that can call tools" do
-      request
-      expect(response.body).to include("tools")
-    end
-
     # An OpenAI-compatible endpoint can't say what a model is for, and neither
     # can Ollama if /api/show failed. The picker asks rather than guessing.
     it "offers a kind picker for a model it couldn't classify" do
@@ -207,10 +209,24 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       expect(response.body).to include("kinds[mystery:latest]")
     end
 
-    # Ollama declares capabilities, so its rows state tool support.
-    it "doesn't ask about tools when the server declares them" do
+    # Archyve hands the model retrieval as a tool, so a chat model that can't
+    # call one can never reach the archive — there is nothing to import.
+    it "refuses a chat model that can't call tools" do
       request
-      expect(response.body).not_to include("supports_tools[gemma4:latest]\" type=\"checkbox")
+      expect(row_for("toolless:latest")).to include("Can&#39;t call tools")
+    end
+
+    # The exemption that matters: an embedder is asked for a vector and calls
+    # nothing, so the tool rule must not touch the one model the archive can't
+    # work without.
+    it "still allows an embedding model, which never calls tools" do
+      request
+      expect(row_for("nomic-embed-text:v1.5")).not_to include("Can&#39;t call tools")
+    end
+
+    it "leaves that embedding model tickable" do
+      request
+      expect(row_for("nomic-embed-text:v1.5")).not_to include("disabled")
     end
 
     context "when the provider only infers tool support" do
@@ -226,16 +242,33 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
         allow_any_instance_of(InferenceServers::OpenAI).to receive(:available_models).and_return(discovered)
       end
 
-      # The person adding the model usually knows better than a pattern match
-      # on its id, and this is what decides whether it can do retrieval at all.
-      it "offers tool support as a ticked box rather than a fact" do
+      # Discovery's answer is taken as fact and carried through the form; the
+      # page never asks the person to confirm it.
+      it "carries the discovered tool support without asking" do
         request
-        expect(response.body).to include(%(name="supports_tools[gpt-5.6-luna]"))
+        expect(row_for("gpt-5.6-luna")).to include(%(type="hidden" name="supports_tools[gpt-5.6-luna]"))
       end
 
-      it "says so when the guess has nothing behind it" do
+      it "offers no checkbox to override it" do
         request
-        expect(response.body).to include("this is a guess")
+        expect(row_for("gpt-5.6-luna")).not_to include(%(type="checkbox" name="supports_tools))
+      end
+    end
+
+    describe "the order of the list" do
+      let(:discovered) do
+        [
+          InferenceServer::Discovered.new(name: "z-with-tools", kind: :chat, supports_tools: true),
+          InferenceServer::Discovered.new(name: "a-no-tools", kind: :chat, supports_tools: false),
+          InferenceServer::Discovered.new(name: "a-skipped", skip_reason: "Archyve has no use for an image model."),
+          InferenceServer::Discovered.new(name: "a-with-tools", kind: :chat, supports_tools: true)
+        ]
+      end
+
+      it "puts what can be imported above what can't" do
+        request
+        expect(response.body.scan(/data-name="([^"]+)"/).flatten)
+          .to eq(["a-with-tools", "z-with-tools", "a-no-tools", "a-skipped"])
       end
     end
 
