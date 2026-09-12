@@ -22,3 +22,32 @@
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
 }
+
+/* The spinning brand mark — see Views::Spinner, which supplies the angle and
+   the cycle length as custom properties. Only the travel-to-hold split lives
+   here, because keyframe stops can't be custom properties: each beat spends
+   its first 64% travelling and the last 36% held still. */
+@keyframes brand-spin {
+  0%   { transform: rotate(0deg);               animation-timing-function: var(--spin-ease); }
+  32%  { transform: rotate(var(--spin-to));     }
+  50%  { transform: rotate(var(--spin-to));     animation-timing-function: var(--spin-ease); }
+  82%  { transform: rotate(var(--spin-around)); }
+  100% { transform: rotate(var(--spin-around)); }
+}
+
+@keyframes brand-breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+.brand-spin {
+  transform-origin: 50% 50%;
+  animation: brand-spin var(--spin-cycle) infinite;
+}
+
+/* The one motion in the app that reduced-motion doesn't simply switch off:
+   it reports that work is happening, so removing it removes the signal. It
+   breathes in place instead. */
+@media (prefers-reduced-motion: reduce) {
+  .brand-spin { animation: brand-breathe 1.8s ease-in-out infinite; }
+}

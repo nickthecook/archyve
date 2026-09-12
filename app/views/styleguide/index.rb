@@ -42,6 +42,7 @@ class Views::Styleguide::Index < Views::Base
     section("Cards", "pattern") { cards }
     section("Derived & empty", "pattern") { derived }
     section("Numerals", "pattern") { numerals }
+    section("Working", "component") { spinners }
   end
 
   private
@@ -141,6 +142,31 @@ class Views::Styleguide::Index < Views::Base
           span(class: "text-sm text-muted") { "Row" }
           span(class: "font-mono tabular-nums text-sm text-fg") { n.to_s }
         end
+      end
+    end
+  end
+
+  # Three sizes at once, because the beat reads differently small: at 12px the
+  # flip is most of what you see, at 24px the travel is.
+  def spinners
+    div(class: "rounded-lg border border-line bg-ink/40 p-4") do
+      div(class: "flex items-center gap-6") do
+        [12, 15, 24].each do |size|
+          div(class: "flex items-center gap-2.5") do
+            span(class: "grid h-7 w-7 place-items-center rounded bg-accent/10 text-accent") do
+              render Views::Spinner.new(size:)
+            end
+            span(class: "font-mono text-[0.65rem] text-faint tabular-nums") { "#{size}px" }
+          end
+        end
+        span(class: "ml-2 flex items-center gap-2 text-faint") do
+          render Views::Spinner.new(size: 15)
+          span(class: "text-xs") { "inherits colour" }
+        end
+      end
+      p(class: "mt-4 text-xs text-faint") do
+        plain "#{Views::Spinner::DEGREES}° a beat, #{Views::Spinner::BEAT_MS}ms a beat. "
+        plain "Reduced motion holds it still and breathes instead."
       end
     end
   end
