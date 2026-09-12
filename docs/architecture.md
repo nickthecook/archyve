@@ -150,10 +150,19 @@ Provider config lives in two tables rather than in the environment. An
 `Source` (`TYPES` registry, `config` jsonb via `store_accessor`, a separate
 **encrypted `api_key` column**, never a secret inside the jsonb). An
 **`InferenceModel`** is one model on one server, with `kind` (`chat` /
-`embedding`, expected to grow), `dimensions`, `context_window` and
-`supports_tools`.
+`embedding`), `dimensions`, `context_window` and `supports_tools`.
 
-Three consequences worth knowing before touching this:
+**Where the `kind` / capability line falls.** `kind` is *which call drives the
+model* — RubyLLM's `complete` / `embed` / `paint` / `transcribe` verbs. Anything
+that is a different *input* to the same call is a capability column beside
+`supports_tools`, not a kind. So `gpt-4o` accepting images and `gemma4`
+accepting audio are both still `kind: :chat`; `whisper` and `dall-e` would be
+new kinds if Archyve ever transcribes or paints. Ollama draws the same line for
+us — gemma4 reports `["completion", "vision", "audio", "tools", "thinking"]`,
+where `completion` is the kind and the rest are capabilities of it. Get this
+backwards and `gpt-4o` ends up filed under `:vision`, invisible to chat.
+
+Four consequences worth knowing before touching this:
 
 - **`RubyLLM.configure` no longer sets provider keys.** RubyLLM's provider
   settings are global and single-slot — one `config.ollama_api_base` per process
@@ -167,9 +176,21 @@ Three consequences worth knowing before touching this:
   functions. Discovery therefore goes direct to `GET /api/tags` +
   `POST /api/show`, which declare `capabilities` (`embedding` vs `completion`,
   and `tools`) along with context length and embedding dimensions. Inference
-  still goes through RubyLLM. `InferenceServers::OpenAI` has no equivalent —
-  an OpenAI-compatible `/v1/models` genuinely doesn't know — so its discovered
-  models come back with `kind: nil` and the import screen asks.
+  still goes through RubyLLM.
+- **OpenAI discovery is inference, not report.** An OpenAI-compatible
+  `/v1/models` returns ids and nothing else, so `InferenceServers::OpenAI`
+  classifies with RubyLLM's `Capabilities.model_family` id patterns: chat,
+  embedding, or a `skip_reason` for families Archyve has no kind for (image,
+  transcription, speech, moderation, legacy completion). Those skips retire
+  themselves as kinds are added. An id RubyLLM has no pattern for lands in
+  family `other` and yields `kind: nil` — the picker then asks. **Import
+  requires tool support**: a chat model that can't call tools is listed but
+  disabled, since retrieval reaches the model as a tool and one that can't call
+  it can never touch the archive. Embedding models are exempt — they call
+  nothing. `nil` (no pattern) is treated as "no" here, which hides dated
+  snapshots like `gpt-4-0613`; their undated equivalents are usually in the
+  list, and *Add manually* takes anything. Loosening it means blocking only
+  known-`false`.
 - **The embedding model is guarded by the corpus, not by a flag.**
   `InferenceModel` refuses an embedder while vectors produced by a *different*
   model exist, because those are what a switch would strand. With an empty
