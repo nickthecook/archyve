@@ -27,14 +27,42 @@ RSpec.describe Chat::Turn do
       end
     end
 
-    context "when a delta is blank" do
+    context "when a delta is empty" do
       before do
         turn.append("")
         turn.finish
       end
 
       it "starts no segment for it" do
-        expect(segments).to be_empty
+        expect(segments.select(&:text?)).to be_empty
+      end
+    end
+
+    # Models stream whitespace as its own chunks. Dropping those — which
+    # `blank?` would — deletes every paragraph break and list newline, and the
+    # answer arrives as "while the door is open:1.Open the battery cover".
+    context "when the model streams its newlines separately" do
+      before do
+        turn.append("Steps:")
+        turn.append("\n\n")
+        turn.append("1. Open the cover.")
+        turn.finish
+      end
+
+      it "keeps the breaks between the words" do
+        expect(segments.first.content).to eq("Steps:\n\n1. Open the cover.")
+      end
+    end
+
+    context "when the model streams whitespace before saying anything" do
+      before do
+        turn.append("\n")
+        turn.append("Steps:")
+        turn.finish
+      end
+
+      it "still records what it went on to say" do
+        expect(segments.first.content).to eq("\nSteps:")
       end
     end
   end
@@ -95,6 +123,85 @@ RSpec.describe Chat::Turn do
 
       it "leaves no empty text segment in front of it" do
         expect(segments.map(&:kind)).to eq(["retrieval"])
+      end
+    end
+  end
+
+  describe "waiting for the model" do
+    context "while the turn is still running" do
+      it "reports itself in progress from the moment it exists" do
+        expect(turn.message).to be_in_progress
+      end
+
+      it "says it is thinking, before anything has been said" do
+        expect(turn.message.waiting_on).to eq("Thinking…")
+      end
+    end
+
+    # The long gap: retrieval has returned and the model is re-reading six
+    # chunks before its first token. This is the one that looked like a hang.
+    context "after a search has returned but before the model speaks" do
+      before do
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(Retrieval::Outcome.new(hits: [], candidate_count: 4))
+      end
+
+      it "says it is reading what came back" do
+        expect(turn.message.waiting_on).to eq("Reading the results…")
+      end
+    end
+
+    # Streaming prose is its own evidence of progress.
+    context "while prose is streaming" do
+      before { turn.append("Production credentials ") }
+
+      it "shows nothing extra" do
+        expect(turn.message.waiting_on).to be_nil
+      end
+    end
+
+    context "once the turn is done" do
+      before { turn.append("Done."); turn.finish }
+
+      it "is no longer in progress" do
+        expect(turn.message.reload).not_to be_in_progress
+      end
+
+      it "stops waiting on anything" do
+        expect(turn.message.reload.waiting_on).to be_nil
+      end
+    end
+
+    context "when the turn failed" do
+      before { turn.fail!("Couldn't reach tensor.") }
+
+      it "stops waiting rather than spinning behind the error" do
+        expect(turn.message.reload).not_to be_in_progress
+      end
+    end
+  end
+
+  describe "#finish" do
+    # Otherwise the page spins for good: the spinner renders on "nothing yet",
+    # and nothing distinguishes that from a turn that ended having said nothing.
+    context "when the model returned nothing at all" do
+      before { turn.finish }
+
+      it "says so rather than leaving the turn thinking" do
+        expect(turn.message.error).to eq("The model finished without answering.")
+      end
+    end
+
+    context "when the model searched but never wrote prose" do
+      before do
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(Retrieval::Outcome.new(hits: [], candidate_count: 0))
+        turn.finish
+      end
+
+      # The retrieval panel is on the page, so the turn isn't a blank box.
+      it "does not call that an empty turn" do
+        expect(turn.message.error).to be_nil
       end
     end
   end

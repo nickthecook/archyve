@@ -7,8 +7,13 @@
 # dom_id computed directly, no route helpers on the streaming path — so it can
 # be rendered to a string outside a request, the same way
 # Views::Documents::Detail is.
-class Views::Chat::Turn < Components::Base
+class Views::Conversations::Message < Components::Base
   def self.dom_id(message) = ActionView::RecordIdentifier.dom_id(message)
+
+  # The container new turns are appended into. Lives here rather than on the
+  # page view because Chat::Turn needs it from outside a request, and the two
+  # ids have to agree or a turn arrives in nothing.
+  def self.thread_dom_id(conversation) = ActionView::RecordIdentifier.dom_id(conversation, :thread)
 
   def initialize(message:)
     @message = message
@@ -38,29 +43,34 @@ class Views::Chat::Turn < Components::Base
   def from_assistant
     @message.segments.each { |segment| render_segment(segment) }
     broken if @message.failed?
-    thinking if empty?
+    waiting
   end
 
   def render_segment(segment)
-    segment.text? ? prose(segment) : render(Views::Chat::Retrieval.new(segment:))
+    segment.text? ? prose(segment) : render(Views::Conversations::Retrieval.new(segment:))
   end
 
   def prose(segment)
     return if segment.content.blank?
 
     div(class: "text-[0.95rem] leading-relaxed text-muted whitespace-pre-wrap") do
-      render Views::Chat::Cited.new(segment:)
+      render Views::Conversations::Cited.new(segment:)
     end
   end
 
-  # The gap between "the job started" and the model's first token. Without it
-  # the turn is an empty box and the page looks stuck.
-  def thinking
+  # The gaps where the model is working and the page has nothing to show: before
+  # the first token, and — the long one — after a search, while it reads six
+  # chunks before saying anything. Once prose is streaming the text is its own
+  # evidence of progress, so nothing is rendered then. See Message#waiting_on.
+  def waiting
+    label = @message.waiting_on
+    return if label.nil?
+
     div(class: "flex items-center gap-2.5 text-faint") do
       span(class: "grid h-7 w-7 place-items-center rounded bg-accent/10 text-accent") do
         render Views::Spinner.new(size: 15)
       end
-      span(class: "text-xs") { "Thinking…" }
+      span(class: "text-xs") { label }
     end
   end
 
@@ -76,9 +86,5 @@ class Views::Chat::Turn < Components::Base
       end
       span { @message.error }
     end
-  end
-
-  def empty?
-    !@message.failed? && @message.segments.none? { it.retrieval? || it.content.present? }
   end
 end

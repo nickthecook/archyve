@@ -59,7 +59,7 @@ RSpec.describe "An unconfigured install", :unauthenticated, type: :request do
   end
 
   describe "chat" do
-    subject(:request) { get chat_path }
+    subject(:request) { get conversations_path }
 
     it "renders" do
       request

@@ -85,7 +85,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   end
 
   describe "a page open to everyone" do
-    let(:path) { chat_path }
+    let(:path) { conversations_path }
 
     context "when signed in as a user" do
       let(:traits) { [] }

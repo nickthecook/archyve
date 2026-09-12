@@ -8,7 +8,7 @@ class Views::Chrome < Components::Base
   # landing's facets are filtered the same way.
   NAV = [
     ["Collections", :collections_path, :operator],
-    ["Chat", :chat_path, :user],
+    ["Chat", :conversations_path, :user],
     ["Settings", :settings_path, :admin]
   ].freeze
 

@@ -42,7 +42,14 @@ Rails.application.routes.draw do
   get "unsorted", to: "unsorted#index"
   post "unsorted/assign", to: "unsorted#assign", as: :assign_unsorted
   get "search", to: "search#index"
-  get "chat", to: "chat#index"
+  # The section is "Chat"; the records are conversations. `path:` keeps the URL
+  # reading the way the nav does without naming the model something it isn't.
+  # A conversation is private to its author, so there is no index anyone else
+  # can reach and no per-conversation sharing to grant.
+  resources :conversations, only: [:index, :show, :create, :destroy], path: "chat" do
+    # Asking is creating a message; the answer is a job, not a response body.
+    resources :messages, only: [:create]
+  end
   get "settings", to: "settings#index"
   # The living style guide (docs/design.md renders itself here). Admin-only: it
   # is a maker's tool, but it ships so the deployed app can be checked against

@@ -20,7 +20,7 @@ class Views::Home::Index < Views::Base
       if may?(:operator)
         facet("documents", "Collections", collections_path, "#{@stats[:collections]} collections · #{@stats[:documents]} documents")
       end
-      facet("chat", "Chat", chat_path, @stats[:last_chat] || "start a conversation")
+      facet("chat", "Chat", conversations_path, @stats[:last_chat] || "start a conversation")
       if may?(:admin)
         facet("settings", "Settings", settings_path, inference_glimpse)
       end

@@ -28,16 +28,35 @@ module Chat
       @buffer = +""
       @text_segment = nil
       @broadcast_at = Time.current - BROADCAST_INTERVAL
+      @on_page = false
+      # Immediately, before a single token exists. A replace can only land on an
+      # element that is already in the DOM, and the page was rendered before
+      # this message existed — so the turn has to be *appended* once first, or
+      # every broadcast for it goes nowhere and the page just sits there.
+      #
+      # Doing it here rather than on the first delta also means the spinner
+      # shows while the model is still thinking, which is the whole gap it
+      # exists to cover.
+      broadcast!
     end
 
     # One streamed delta of prose.
+    #
+    # Empty, not blank. A delta of "\n\n" is blank by Rails' reckoning, and
+    # skipping those silently deletes every paragraph break and list newline in
+    # the answer — the model streams whitespace as its own chunks, so the prose
+    # arrives as "…while the door is open:1.Open the battery compartment".
     def append(delta)
-      return if delta.blank?
+      return if delta.nil? || delta.empty?
 
       @buffer << delta
-      # Created with the first delta already in it, not empty and filled in
-      # later: a text segment with no text is a meaningless row, and Segment
-      # validates that rather than tolerating it for the length of a stream.
+      # Nothing to open a segment for until something that isn't whitespace has
+      # arrived: Segment requires content, and " " doesn't count as present.
+      return if @text_segment.nil? && @buffer.blank?
+
+      # Created with the buffer already in it, not empty and filled in later: a
+      # text segment with no text is a meaningless row, and Segment validates
+      # that rather than tolerating it for the length of a stream.
       @text_segment ||= create_segment(:text, content: @buffer.dup)
       broadcast if due?
     end
@@ -62,7 +81,12 @@ module Chat
 
     def finish
       flush_text
-      broadcast!
+      # A turn that ends having said nothing is indistinguishable, on the page,
+      # from one still thinking — the spinner renders on "no content yet" and
+      # would spin for good. Models do occasionally return an empty completion
+      # after a tool result, so say so rather than leaving the page pretending.
+      @message.update!(error: "The model finished without answering.") if said_nothing?
+      complete!
       @message
     end
 
@@ -73,11 +97,18 @@ module Chat
     def fail!(error)
       flush_text
       @message.update!(error: error)
-      broadcast!
+      complete!
       @message
     end
 
     private
+
+    # Stops the page waiting. Every exit from a turn goes through here, so a
+    # path that forgets it leaves a spinner running for good.
+    def complete!
+      @message.update!(completed_at: Time.current)
+      broadcast!
+    end
 
     def create_segment(kind, **attributes)
       @message.segments.create!(
@@ -88,14 +119,22 @@ module Chat
     # Persist what's buffered and stop appending to that segment — the next
     # delta starts a new one, after the retrieval that interrupted it.
     def flush_text
-      return if @text_segment.nil?
-
-      @text_segment.update!(content: @buffer.dup)
+      @text_segment&.update!(content: @buffer.dup)
       @text_segment = nil
+      # Cleared even with no segment to write it to: what's left in that case is
+      # whitespace the model emitted before saying anything, and carrying it
+      # into the next segment would indent it for no reason.
       @buffer = +""
     end
 
     def due? = Time.current - @broadcast_at >= BROADCAST_INTERVAL
+
+    # A search on its own counts as having said something: the retrieval panel
+    # is visible, so the turn isn't a blank box even when no prose followed.
+    def said_nothing?
+      @message.error.blank? &&
+        @message.segments.reload.none? { it.retrieval? || it.content.present? }
+    end
 
     def broadcast
       # update_columns, not update!: this runs on every tick of a stream, the
@@ -110,14 +149,25 @@ module Chat
       broadcast!
     end
 
+    # Append once to put the turn on the page, replace it thereafter. The
+    # append is what a Turbo `replace` cannot do — create an element that isn't
+    # there — and the replace is what keeps the rest of the transcript from
+    # being re-rendered on every tick of the stream.
     def broadcast!
       @broadcast_at = Time.current
       @message.reload
-      Turbo::StreamsChannel.broadcast_replace_to(
-        @conversation,
-        target: Views::Chat::Turn.dom_id(@message),
-        html: Views::Chat::Turn.new(message: @message).call
-      )
+      html = Views::Conversations::Message.new(message: @message).call
+
+      if @on_page
+        Turbo::StreamsChannel.broadcast_replace_to(
+          @conversation, target: Views::Conversations::Message.dom_id(@message), html: html
+        )
+      else
+        Turbo::StreamsChannel.broadcast_append_to(
+          @conversation, target: Views::Conversations::Message.thread_dom_id(@conversation), html: html
+        )
+        @on_page = true
+      end
     end
   end
 end

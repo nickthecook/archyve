@@ -11,7 +11,7 @@
 # Three states, and they must not look alike: running, found something, and the
 # two ways of finding nothing. A search that couldn't run is not an empty
 # archive — see Segment.
-class Views::Chat::Retrieval < Components::Base
+class Views::Conversations::Retrieval < Components::Base
   def initialize(segment:)
     @segment = segment
   end

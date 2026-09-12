@@ -11,7 +11,7 @@
 # Handles are resolved against the retrieval segment *preceding* this prose in
 # the same turn, because that is the set the model was looking at when it wrote
 # them. Handle 1 means something different in each block.
-class Views::Chat::Cited < Components::Base
+class Views::Conversations::Cited < Components::Base
   MARKER = /\[(\d{1,2})\]/
 
   def initialize(segment:)

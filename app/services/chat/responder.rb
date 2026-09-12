@@ -55,20 +55,21 @@ module Chat
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))
-      # `calls:` is RubyLLM's own ceiling on tool rounds in a single turn — the
-      # guard against a confused model searching in circles. It stops calling
-      # the tool and answers with what it has.
-      chat.with_tool(tool(turn), calls: Setting.chat_max_tool_rounds)
+      chat.with_tool(tool(turn))
       replay(chat)
       chat
     end
 
+    # The round limit is the tool's own — RubyLLM's `calls:` counts tool calls
+    # within one response, not rounds within a turn, and passing a number to it
+    # raises.
     def tool(turn)
       Retrieval::Tool.new(
         user: @conversation.user,
         scope: @conversation.retrieval_scope,
         scope_label: @conversation.scope_label,
         limit: Setting.chat_result_limit,
+        max_rounds: Setting.chat_max_tool_rounds,
         observer: turn
       )
     end

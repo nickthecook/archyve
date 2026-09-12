@@ -22,5 +22,19 @@ class Message < ApplicationRecord
 
   def failed? = error.present?
 
+  # Whether the model is still working on this turn. A user's turn is complete
+  # the moment it exists; only an assistant's is ever in flight.
+  def in_progress? = assistant? && completed_at.nil?
+
+  # What the page should say it is waiting for. The gap after a search is the
+  # long one — the model re-reads everything it was handed before its first
+  # token — and it is the gap most likely to look like a hang.
+  def waiting_on
+    return unless in_progress?
+    return "Reading the results…" if segments.last&.retrieval?
+
+    "Thinking…" if segments.none? { it.content.present? }
+  end
+
   def next_segment_position = (segments.maximum(:position) || 0) + 1
 end
