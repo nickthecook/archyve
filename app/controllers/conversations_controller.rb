@@ -64,7 +64,7 @@ class ConversationsController < ApplicationController
   # The models chat may offer, which is not every model configured: retrieval is
   # a tool the model calls, so one that can't call tools can't do this job at
   # all. See InferenceModel.for_chat.
-  def choosable_models = InferenceModel.for_chat.includes(:inference_server).order(:name)
+  def choosable_models = InferenceModel.choosable_for_chat
 
   # A model the person picked, if it is one they could have been offered.
   # Looked up through `for_chat` rather than by id alone: the id arrives in a
@@ -74,16 +74,6 @@ class ConversationsController < ApplicationController
     id && InferenceModel.for_chat.find_by(id: id)
   end
 
-  # Chat needs a tool-capable chat model and an embedding model, and says which
-  # is missing rather than failing on the first question. Admins are told where
-  # to fix it; everyone else is told it isn't ready, since only an admin can.
-  def unavailable_reason
-    return if InferenceModel.default_chat && InferenceModel.active_embedding
-
-    if Current.user.admin?
-      "Chat needs a tool-capable chat model and an embedding model. Add them under Settings › Inference."
-    else
-      "Chat isn't available yet — an admin needs to configure a chat model."
-    end
-  end
+  # Shared with the landing, whose bar asks a question too — see Chat::Availability.
+  def unavailable_reason = Chat::Availability.reason_for(Current.user)
 end

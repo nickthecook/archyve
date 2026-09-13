@@ -41,35 +41,41 @@
 }
 .corridor-stage.is-lit .glow { opacity: 1; }
 
-/* search: the lit threshold at the end of the hall --------------------- */
-.corridor-stage .search { position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%); width: 72%; z-index: 6; }
-.corridor-stage .search-field {
+/* the threshold at the end of the hall: asks, or searches before a chat
+   model exists ------------------------------------------------------------ */
+.corridor-stage .ask { position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%); width: 72%; z-index: 6; }
+.corridor-stage .ask-field {
   display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1.1rem;
   background: rgba(8, 12, 19, 0.72); border: 1px solid var(--color-line-2); border-radius: 2px;
   backdrop-filter: blur(6px); transition: border-color 0.35s, box-shadow 0.35s, background 0.35s;
 }
-.corridor-stage .search-field:focus-within {
+.corridor-stage .ask-field:focus-within {
   border-color: var(--color-accent); background: rgba(8, 12, 19, 0.82);
   box-shadow: 0 0 0 1px var(--color-accent), 0 12px 55px -14px rgba(230,180,85,0.6);
 }
-.corridor-stage .search-field .icon { flex: none; color: var(--color-faint); transition: color 0.35s; }
-.corridor-stage .search-field:focus-within .icon { color: var(--color-accent); }
-.corridor-stage .search-field input {
+.corridor-stage .ask-field .icon { flex: none; color: var(--color-faint); transition: color 0.35s; }
+.corridor-stage .ask-field:focus-within .icon { color: var(--color-accent); }
+.corridor-stage .ask-field input {
   flex: 1; background: none; border: none; outline: none; color: var(--color-fg);
   font-family: var(--font-sans); font-size: 1rem; letter-spacing: 0.01em;
 }
-.corridor-stage .search-field input::placeholder { color: var(--color-faint); }
-.corridor-stage .search-field kbd {
+.corridor-stage .ask-field input::placeholder { color: var(--color-faint); }
+.corridor-stage .ask-field kbd {
   font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-faint);
   border: 1px solid var(--color-line); border-radius: 3px; padding: 0.1rem 0.35rem;
 }
-.corridor-stage .search-hint {
-  position: absolute; left: 0; right: 0; margin: 0.75rem 0 0; text-align: center;
+.corridor-stage .ask-hint {
+  position: absolute; left: 0; right: 0; margin: 0.75rem 0 0;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;
   font-size: 0.8rem; color: var(--color-muted); opacity: 0; transform: translateY(-3px);
   transition: opacity 0.35s ease, transform 0.35s ease;
   text-shadow: 0 1px 10px var(--color-void), 0 0 4px var(--color-void); pointer-events: none;
 }
-.corridor-stage .search:focus-within .search-hint { opacity: 1; transform: translateY(0); }
+/* The model picker lives in here, so the line has to take a click — but only
+   once it is visible, or the corridor would hold an invisible control. */
+.corridor-stage .ask:focus-within .ask-hint {
+  opacity: 1; transform: translateY(0); pointer-events: auto;
+}
 
 /* facet sections ------------------------------------------------------- */
 .corridor-stage .facet {

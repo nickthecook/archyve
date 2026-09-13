@@ -35,6 +35,11 @@ class InferenceModel < ApplicationRecord
   # tools can't decide *whether* to search or *what* to search for, which is the
   # part worth having. So this is the set chat may offer, not a preference.
   scope :for_chat, -> { usable.chat.where(supports_tools: true) }
+  # The list a picker offers. Named separately from `for_chat` because the two
+  # surfaces that ask a question — the chat composer and the landing bar — have
+  # to offer the same models in the same order, and that is easy to let drift
+  # when each builds its own chain.
+  scope :choosable_for_chat, -> { for_chat.includes(:inference_server).order(:name) }
 
   # The corpus's embedding model, or nil.
   #

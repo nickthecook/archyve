@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
-# The landing: the archive corridor. The search is the way in (a real query),
+# The landing: the archive corridor. The bar is the way in (a real question),
 # the three facets are the sections, and the corridor dollies as you type — the
 # motion lives in corridor_controller.js.
 class Views::Home::Index < Views::Base
-  def initialize(stats:)
+  def initialize(stats:, models: [], model: nil, unavailable: nil)
     @stats = stats
+    @models = models
+    @model = model
+    @unavailable = unavailable
   end
 
   def view_template
@@ -20,7 +23,7 @@ class Views::Home::Index < Views::Base
       if may?(:operator)
         facet("documents", "Collections", collections_path, "#{@stats[:collections]} collections · #{@stats[:documents]} documents")
       end
-      facet("chat", "Chat", conversations_path, @stats[:last_chat] || "start a conversation")
+      facet("chat", "Chat", conversations_path, @stats[:last_chat] || "see past chats")
       if may?(:admin)
         facet("settings", "Settings", settings_path, inference_glimpse)
       end
@@ -51,25 +54,67 @@ class Views::Home::Index < Views::Base
           aria_hidden: "true", style: "animation-delay:.2s", data: { corridor_target: "rings" }
         )
         div(class: "glow")
-        search
+        threshold
       end
     end
   end
 
-  def search
-    div(class: "search reveal", style: "animation-delay:.4s") do
-      form(action: search_path, method: "get") do
-        label(class: "search-field") do
-          search_icon
-          input(
-            type: "text", name: "q", placeholder: "Search your archive",
-            aria_label: "Search your archive", autocomplete: "off",
-            data: { corridor_target: "input", action: "input->corridor#step focus->corridor#light blur->corridor#dim" }
-          )
-          kbd { "↵" }
+  # The lit threshold at the end of the hall. It asks rather than searches: an
+  # answer drawn from the archive beats a list of chunks, and retrieval still
+  # happens — as a tool the model calls, which the transcript then shows.
+  def threshold
+    div(class: "ask reveal", style: "animation-delay:.4s") do
+      @unavailable ? search_form : ask_form
+    end
+  end
+
+  def ask_form
+    form(action: conversations_path, method: "post") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      field(name: "message", placeholder: "Consult the archive") { ask_icon }
+      # The hint line is the only furniture the corridor gains, and it gains it
+      # on focus rather than at rest: which model answers is worth a choice, but
+      # not worth a control sitting in the threshold competing with the question.
+      p(class: "ask-hint") do
+        span { "Draws on everything you can read" }
+        if @models.any?
+          span { "·" }
+          render Views::Conversations::ModelPicker.new(models: @models, selected: @model, caption: nil)
         end
       end
-      p(class: "search-hint") { "Ask anything across every collection" }
+    end
+  end
+
+  # No chat model, so the bar does the thing that still works. A bar that posted
+  # a question nothing could answer would be the one dishonest thing in the
+  # corridor — and the hint says which, since the status strip only hints at it.
+  def search_form
+    form(action: search_path, method: "get") do
+      field(name: "q", placeholder: "Search your archive") { search_icon }
+      p(class: "ask-hint") { @unavailable }
+    end
+  end
+
+  # Both bars are the same threshold: same lit field, same corridor wiring, so
+  # the only difference a reader sees is what it is called and where it goes.
+  def field(name:, placeholder:, &icon)
+    label(class: "ask-field") do
+      icon.call
+      input(
+        type: "text", name: name, placeholder: placeholder,
+        aria_label: placeholder, autocomplete: "off",
+        data: { corridor_target: "input", action: "input->corridor#step focus->corridor#light blur->corridor#dim" }
+      )
+      kbd { "↵" }
+    end
+  end
+
+  # A bubble, sharp-cornered like the brand mark: this is the one place in the
+  # app where you say something rather than look something up.
+  def ask_icon
+    svg(class: "icon", width: "17", height: "17", viewbox: "0 0 24 24", fill: "none",
+        stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|
+      s.path(d: "M4 4h16v12H9l-5 4V4Z")
     end
   end
 

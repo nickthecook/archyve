@@ -22,6 +22,24 @@ RSpec.describe "An unconfigured install", :unauthenticated, type: :request do
       request
       expect(response.body).to include("not configured")
     end
+
+    # The bar asks a question once there is something to answer it. With no
+    # chat model it does the thing that still works rather than posting a
+    # question into the void.
+    it "falls back to searching" do
+      request
+      expect(response.body).to include(%(action="#{search_path}")).and include(%(name="q"))
+    end
+
+    it "does not offer to start a chat" do
+      request
+      expect(response.body).not_to include(%(action="#{conversations_path}"))
+    end
+
+    it "says why, where the hint goes" do
+      request
+      expect(response.body).to include("Chat needs a tool-capable chat model")
+    end
   end
 
   describe "search" do

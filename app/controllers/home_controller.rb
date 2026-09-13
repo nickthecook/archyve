@@ -1,6 +1,11 @@
 class HomeController < ApplicationController
   def index
-    render Views::Home::Index.new(stats: stats)
+    render Views::Home::Index.new(
+      stats: stats,
+      models: InferenceModel.choosable_for_chat,
+      model: InferenceModel.default_chat,
+      unavailable: Chat::Availability.reason_for(Current.user)
+    )
   end
 
   private
