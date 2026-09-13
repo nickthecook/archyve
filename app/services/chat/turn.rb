@@ -18,6 +18,25 @@ module Chat
     # last word of a turn is never left waiting for a tick that doesn't come.
     BROADCAST_INTERVAL = 0.1
 
+    # Ticks per write. Every tick stages the buffer on the segment in memory —
+    # that is what the broadcast renders from, so the page is never behind —
+    # but only every Nth tick puts it in the database.
+    #
+    # The row is what a crash leaves behind, and what a page load reads. A
+    # reader is barely affected: a browser arriving mid-turn renders content up
+    # to N ticks old and the next broadcast corrects it within a tick. A crash
+    # is the real cost — up to N ticks of prose lost from a turn that, having
+    # crashed, never completed anyway.
+    #
+    # Worth it because the write is not the expensive part: `content` grows all
+    # turn, and past ~2KB Postgres moves it out of line, so every tick
+    # re-chunks the whole value into TOAST storage and orphans the last copy.
+    # The bytes written across a turn go with the square of the tick count, so
+    # the saving grows with the length of the answer.
+    #
+    # 1 writes on every tick, which is what this did before.
+    WRITE_EVERY = [ENV.fetch("ARCHYVE_CHAT_WRITE_EVERY", "5").to_i, 1].max
+
     attr_reader :message
 
     def initialize(conversation, model: nil)
@@ -31,6 +50,7 @@ module Chat
       @thinking_segment = nil
       @broadcast_at = Time.current - BROADCAST_INTERVAL
       @hits = {}
+      @ticks = 0
       @on_page = false
       # Immediately, before a single token exists. A replace can only land on an
       # element that is already in the DOM, and the page was rendered before
@@ -194,19 +214,44 @@ module Chat
     end
 
     def broadcast
-      # update_columns, not update!: this runs on every tick of a stream, the
-      # content is rewritten wholesale each time, and there is nothing to
-      # validate that create! didn't already.
-      #
-      # .dup matters. Handing the live buffer to an attribute and then appending
-      # to it mutates the value ActiveRecord diffs against, so the record stops
-      # looking dirty and the final write silently does nothing — the turn ends
-      # holding whatever was in the buffer at the last broadcast.
       @broadcast_at = Time.current
-      @text_segment&.update_columns(content: @buffer.dup, updated_at: Time.current)
-      @thinking_segment&.update_columns(content: @thinking_buffer.dup, updated_at: Time.current)
+      @ticks += 1
+      stage(@text_segment, @buffer)
+      stage(@thinking_segment, @thinking_buffer)
+      write_staged if (@ticks % WRITE_EVERY).zero?
       broadcast_segment(@text_segment)
       broadcast_segment(@thinking_segment)
+    end
+
+    # In memory only. The view renders `segment.content`, the attribute, so a
+    # staged buffer is enough to keep every broadcast current between writes.
+    #
+    # The .dup is belt and braces. Assignment keeps the object it is handed —
+    # reads cast a fresh copy off it, which is why this is easy to miss — and
+    # update_columns does no casting at all. A live buffer that reached
+    # update_columns would become the value dirty tracking compares against,
+    # and every write after it would look like a no-op. What actually closes
+    # that door is write_segment passing `segment.content`, already a copy.
+    def stage(segment, buffer)
+      return if segment.nil?
+
+      segment.content = buffer.dup
+    end
+
+    def write_staged
+      write_segment(@text_segment)
+      write_segment(@thinking_segment)
+    end
+
+    # update_columns, not update!: this runs throughout a stream, the content is
+    # rewritten wholesale each time, and there is nothing to validate that
+    # create! didn't already. Skipped entirely when nothing has been staged
+    # since the last write, which is the case for a turn that has stopped
+    # talking to search.
+    def write_segment(segment)
+      return if segment.nil? || !segment.content_changed?
+
+      segment.update_columns(content: segment.content, updated_at: Time.current)
     end
 
     # One segment, to the element the page already has for it. Nothing else on
@@ -228,14 +273,16 @@ module Chat
     # being re-rendered on every tick of the stream.
     def broadcast!
       @broadcast_at = Time.current
+      # This renders from the database, not from the segments held here, so
+      # anything a tick staged and hasn't written yet would render stale.
+      write_staged
       # Re-read with everything the render touches already in hand, rather than
       # #reload followed by a walk that lazy-loads its way down. The view renders
       # *every* segment each tick, and a retrieval segment asks each of its hits
       # for a document title — so left lazy that is a Hit query plus a Document
       # query per distinct document, per retrieval segment, per tick. The
-      # update_columns in #broadcast clears the query cache immediately before, so
-      # none of it is ever served from cache: real round trips, ten times a second,
-      # for the length of a turn.
+      # writes a turn makes clear the query cache as it goes, so little of it is
+      # ever served from cache: real round trips, for the length of a turn.
       @message = Message.includes(:inference_model, segments: { hits: :document }).find(@message.id)
       html = Views::Conversations::Message.new(message: @message).call
 

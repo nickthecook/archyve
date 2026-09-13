@@ -286,70 +286,180 @@ RSpec.describe Chat::Turn do
     end
   end
 
-# Streaming replaces only the segment being written to; anything that adds or
-# closes a segment replaces the whole message. A segment-level replace can
-# neither create an element the page hasn't got nor repaint the spinner above
-# it, so getting this split wrong leaves a turn that streams into nothing or
-# spins forever with prose underneath it.
-describe "broadcasting" do
-  let(:message_target) { Views::Conversations::Message.dom_id(turn.message) }
-  let(:live_segment) { segments.find(&:text?) }
+  # Streaming replaces only the segment being written to; anything that adds or
+  # closes a segment replaces the whole message. A segment-level replace can
+  # neither create an element the page hasn't got nor repaint the spinner above
+  # it, so getting this split wrong leaves a turn that streams into nothing or
+  # spins forever with prose underneath it.
+  describe "broadcasting" do
+    let(:message_target) { Views::Conversations::Message.dom_id(turn.message) }
+    let(:live_segment) { segments.find(&:text?) }
 
-  # Every append is due, so a delta that opens no segment still ticks.
-  before do
-    stub_const("Chat::Turn::BROADCAST_INTERVAL", 0)
-    allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
-  end
-
-  context "when a delta opens a text segment" do
-    before { turn.append("Credentials rotate.") }
-
-    it "replaces the whole message" do
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
-        .with(conversation, hash_including(target: message_target))
-    end
-  end
-
-  context "when a delta only extends the segment already open" do
+    # Every append is due, so a delta that opens no segment still ticks.
     before do
-      turn.append("Credentials ")
-      turn.append("rotate every 90 days.")
+      stub_const("Chat::Turn::BROADCAST_INTERVAL", 0)
+      allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
     end
 
-    it "replaces that segment" do
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
-        .with(conversation, hash_including(target: Views::Conversations::Segment.dom_id(live_segment)))
+    context "when a delta opens a text segment" do
+      before { turn.append("Credentials rotate.") }
+
+      it "replaces the whole message" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, hash_including(target: message_target))
+      end
+    end
+
+    context "when a delta only extends the segment already open" do
+      before do
+        turn.append("Credentials ")
+        turn.append("rotate every 90 days.")
+      end
+
+      it "replaces that segment" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, hash_including(target: Views::Conversations::Segment.dom_id(live_segment)))
+      end
+    end
+
+    # The map Chat::Turn keeps from the search is what makes this possible
+    # without walking every segment of the message on each tick.
+    context "when prose extends a segment written after a search" do
+      let(:document) { create(:document, title: "Credential Policy") }
+      let(:chunk) { create(:chunk, document: document) }
+      let(:outcome) do
+        Retrieval::Outcome.new(
+          hits: [Retrieval::Hit.new(chunk: chunk, document: document, distance: 0.1, score: 1.0, handle: 1)],
+          candidate_count: 1
+        )
+      end
+
+      before do
+        turn.retrieval_started(["credential rotation"])
+        turn.retrieval_finished(outcome)
+        turn.append("Rotation is annual [1]")
+        turn.append(" per policy.")
+      end
+
+      it "resolves the citation in the segment it broadcasts" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, hash_including(
+            target: Views::Conversations::Segment.dom_id(live_segment),
+            html: /href="\/documents\/#{document.id}"/
+          ))
+      end
     end
   end
 
-  # The map Chat::Turn keeps from the search is what makes this possible
-  # without walking every segment of the message on each tick.
-  context "when prose extends a segment written after a search" do
-    let(:document) { create(:document, title: "Credential Policy") }
-    let(:chunk) { create(:chunk, document: document) }
-    let(:outcome) do
-      Retrieval::Outcome.new(
-        hits: [Retrieval::Hit.new(chunk: chunk, document: document, distance: 0.1, score: 1.0, handle: 1)],
-        candidate_count: 1
-      )
-    end
+  # A tick stages the buffer in memory and only sometimes writes it. The page
+  # must not be able to tell; a crash is the only thing that can.
+  describe "writing while streaming" do
+    let(:persisted) { Segment.find(segments.first.id).content }
 
     before do
-      turn.retrieval_started(["credential rotation"])
-      turn.retrieval_finished(outcome)
-      turn.append("Rotation is annual [1]")
-      turn.append(" per policy.")
+      stub_const("Chat::Turn::BROADCAST_INTERVAL", 0)
+      stub_const("Chat::Turn::WRITE_EVERY", 5)
+      allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
     end
 
-    it "resolves the citation in the segment it broadcasts" do
-      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
-        .with(conversation, hash_including(
-          target: Views::Conversations::Segment.dom_id(live_segment),
-          html: /href="\/documents\/#{document.id}"/
-        ))
+    context "when deltas arrive between writes" do
+      before do
+        turn.append("Credentials ")
+        turn.append("rotate ")
+        turn.append("every 90 days.")
+      end
+
+      it "leaves the row behind the stream" do
+        expect(persisted).to eq("Credentials ")
+      end
+
+      it "broadcasts the staged content anyway" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, hash_including(html: /rotate every 90 days\./))
+      end
+    end
+
+    context "when the turn ends between writes" do
+      before do
+        turn.append("Credentials ")
+        turn.append("rotate ")
+        turn.append("every 90 days.")
+        turn.finish
+      end
+
+      # The flush writes whatever the ticks didn't, so an orderly ending never
+      # loses a word — only a crash can.
+      it "writes everything the ticks skipped" do
+        expect(persisted).to eq("Credentials rotate every 90 days.")
+      end
+    end
+
+    context "when a search interrupts between writes" do
+      let(:outcome) { Retrieval::Outcome.new(hits: [], candidate_count: 0) }
+
+      before do
+        turn.append("Let me ")
+        turn.append("check.")
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(outcome)
+      end
+
+      # retrieval_started renders the message from the database, so staged
+      # content has to reach the row before it does.
+      it "writes the staged content before rendering from the row" do
+        expect(persisted).to eq("Let me check.")
+      end
+    end
+
+    # A thinking delta opens a segment, which renders the whole message from the
+    # database — while the text segment above it holds staged content that no
+    # tick has written yet.
+    context "when reasoning interrupts prose between writes" do
+      let(:persisted) { Segment.find(segments.find(&:text?).id).content }
+
+      before do
+        turn.append("Before ")
+        turn.append("more ")
+        turn.append_thinking("Reconsidering.")
+      end
+
+      it "writes the staged prose before rendering from the row" do
+        expect(persisted).to eq("Before more ")
+      end
+    end
+
+    # Once a write has happened, the segment compares against whatever object it
+    # was handed. Hand it the live buffer rather than a copy and appending to that
+    # buffer moves both sides of the comparison at once: the record stops looking
+    # dirty, and every write after the first silently does nothing.
+    context "when deltas keep arriving after a write" do
+      before do
+        stub_const("Chat::Turn::WRITE_EVERY", 2)
+        turn.append("a ")
+        turn.append("b ")
+        turn.append("c ")
+        turn.append("d ")
+        turn.append("e")
+        turn.finish
+      end
+
+      it "keeps writing what the stream adds" do
+        expect(persisted).to eq("a b c d e")
+      end
+    end
+
+    context "when every tick writes" do
+      before do
+        stub_const("Chat::Turn::WRITE_EVERY", 1)
+        turn.append("Credentials ")
+        turn.append("rotate.")
+      end
+
+      it "keeps the row current" do
+        expect(persisted).to eq("Credentials rotate.")
+      end
     end
   end
-end
 
   describe "#fail!" do
     context "when the turn couldn't happen" do
