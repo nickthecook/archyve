@@ -14,8 +14,24 @@ default: &default
 development:
   <<: *default
 
+  # Development turns autotrim off (config/cable.yml), so nothing prunes
+  # solid_cable_messages on broadcast any more — this does it out of band.
+  # With autotrim off the job skips its per-write dice roll and trims on every
+  # run, deleting up to trim_batch_size rows in one transaction.
+  trim_solid_cable_messages:
+    class: SolidCable::TrimJob
+    queue: default
+    schedule: every minute
+
 production:
   <<: *default
+
+  # Autotrim is off here too (config/cable.yml), so this is the only thing
+  # pruning solid_cable_messages.
+  trim_solid_cable_messages:
+    class: SolidCable::TrimJob
+    queue: default
+    schedule: every minute
 
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"

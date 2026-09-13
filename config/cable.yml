@@ -9,7 +9,21 @@ development:
     database:
       writing: cable
   polling_interval: 0.1.seconds
-  message_retention: 1.day
+  # A subscriber starts from the current max id (the adapter's `add_channel`
+  # seeds each channel with `Message.maximum(:id)`), so these rows are never
+  # replayed to anyone who reconnects — retention only has to outlast the gap
+  # between polls of a live listener, which is 0.1s. The 1.day default kept
+  # ~57k rows and 34MB a day to protect a window measured in seconds.
+  message_retention: 10.minutes
+  # Trimming on broadcast is a synchronous `TrimJob.perform_now` in the publish
+  # path, and with a retention window longer than a session it can't even find
+  # anything to delete — pure cost while a user watches a turn stream. Trimmed
+  # out of band instead; see trim_solid_cable_messages in config/recurring.yml.
+  autotrim: false
+  # A single run deletes at most this many rows, and with autotrim off there is
+  # no per-write dice roll to spread the work — one bounded delete per minute.
+  # Sized well above the observed ~2.4k rows/hour so a burst can't outrun it.
+  trim_batch_size: 1000
 
 test:
   adapter: test
@@ -20,4 +34,16 @@ production:
     database:
       writing: cable
   polling_interval: 0.1.seconds
-  message_retention: 1.day
+  # Same reasoning as development: a subscriber seeds each channel with
+  # Message.maximum(:id) and never replays, so retention only has to outlast a
+  # live listener's poll gap. Held at an hour rather than development's ten
+  # minutes — a process that stalls here has further to fall behind, and the
+  # headroom costs little once trimming is no longer tied to broadcast volume.
+  message_retention: 1.hour
+  # No synchronous TrimJob in the publish path; trimmed out of band by
+  # trim_solid_cable_messages in config/recurring.yml.
+  autotrim: false
+  # One bounded delete per minute, 600k rows/hour of capacity. Unlike autotrim,
+  # a fixed schedule doesn't scale itself with load, so the batch is sized for
+  # a busy hour rather than an average one.
+  trim_batch_size: 10000
