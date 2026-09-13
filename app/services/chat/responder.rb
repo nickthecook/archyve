@@ -28,8 +28,11 @@ module Chat
     end
 
     def call
-      turn = Turn.new(@conversation)
+      # Resolved before the turn exists, so the turn is stamped with the model
+      # that was asked even when the answer never happens — a failed turn that
+      # can't say which model failed is a support question waiting to be asked.
       model = chat_model
+      turn = Turn.new(@conversation, model: model)
 
       return turn.fail!(no_model_message) if model.nil?
       return turn.fail!(no_tools_message(model)) unless model.supports_tools?

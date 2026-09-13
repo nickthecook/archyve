@@ -52,6 +52,36 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    context "when a model is picked" do
+      let(:picked) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
+      let(:params) { { message: "anything", inference_model_id: picked.id } }
+
+      it "asks that model" do
+        request
+        expect(Conversation.last.inference_model).to eq(picked)
+      end
+    end
+
+    # The id arrives in a form field, and a model that can't call tools can't
+    # search the archive — so the choice is looked up through what chat may
+    # offer rather than by id alone.
+    context "when the picked model isn't one chat can offer" do
+      let(:toolless) { create(:inference_model, kind: "chat", supports_tools: false, name: "no-tools") }
+      let(:params) { { message: "anything", inference_model_id: toolless.id } }
+
+      before { create(:inference_model, kind: "chat", supports_tools: true, name: "usable") }
+
+      it "falls back to a model that can" do
+        request
+        expect(Conversation.last.inference_model).to eq(InferenceModel.default_chat)
+      end
+
+      it "does not ask the model that was posted" do
+        request
+        expect(Conversation.last.inference_model).not_to eq(toolless)
+      end
+    end
+
     context "when the question is blank" do
       let(:params) { { message: "   " } }
 
@@ -76,6 +106,46 @@ RSpec.describe "Conversations", type: :request do
         create(:segment, message: create(:message, conversation:), content: "How do we rotate credentials?")
         request
         expect(response.body).to include("How do we rotate credentials?")
+      end
+
+      context "when more than one model can answer" do
+        before do
+          create(:inference_model, kind: "chat", supports_tools: true, name: "small-model")
+          create(:inference_model, kind: "chat", supports_tools: true, name: "big-model")
+          request
+        end
+
+        it "offers them in the composer" do
+          expect(response.body).to include("small-model", "big-model")
+        end
+      end
+
+      # The state a fresh install is in: one model, nothing to choose between.
+      context "when only one model can answer" do
+        before { request }
+
+        it "still says which one is about to answer" do
+          expect(response.body).to include(chat_model.label)
+        end
+
+        it "offers no choice to make" do
+          expect(response.body).not_to include('name="inference_model_id"')
+        end
+      end
+
+      context "when a turn was answered by a model" do
+        let(:model) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
+
+        before do
+          message = create(:message, conversation:, role: "assistant", inference_model: model,
+                                     completed_at: Time.current)
+          create(:segment, message:, content: "Every 90 days.")
+          request
+        end
+
+        it "says which one" do
+          expect(response.body).to include("big-model")
+        end
       end
 
       context "when the model reasoned before answering" do
@@ -139,6 +209,29 @@ RSpec.describe "Conversations", type: :request do
       it "adds nothing" do
         expect { request }.not_to change(Message, :count)
       end
+    end
+  end
+
+  describe "POST /chat/:conversation_id/messages, switching model" do
+    subject(:request) do
+      post conversation_messages_path(conversation), params: { message: "And the Stripe keys?",
+                                                               inference_model_id: picked.id }
+    end
+
+    let(:was) { create(:inference_model, kind: "chat", supports_tools: true, name: "small-model") }
+    let(:picked) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
+    let(:conversation) { create(:conversation, user: current_user, inference_model: was) }
+
+    # Sticky on purpose: a switch that lasted one turn and silently reverted
+    # would be a setting that lies about itself the moment you look away.
+    it "switches the conversation to it" do
+      request
+      expect(conversation.reload.inference_model).to eq(picked)
+    end
+
+    it "still records the question" do
+      request
+      expect(conversation.messages.last.text).to eq("And the Stripe keys?")
     end
   end
 

@@ -20,10 +20,10 @@ module Chat
 
     attr_reader :message
 
-    def initialize(conversation)
+    def initialize(conversation, model: nil)
       @conversation = conversation
       @message = conversation.messages.create!(
-        role: :assistant, position: conversation.next_message_position
+        role: :assistant, position: conversation.next_message_position, inference_model: model
       )
       @buffer = +""
       @text_segment = nil

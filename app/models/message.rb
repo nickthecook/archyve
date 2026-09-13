@@ -6,6 +6,11 @@
 class Message < ApplicationRecord
   belongs_to :conversation, touch: true
 
+  # Which model wrote this turn, for assistant turns. Optional twice over: a
+  # user's turn was written by a person, and an admin removing a model nullifies
+  # the reference rather than rewriting history.
+  belongs_to :inference_model, optional: true
+
   has_many :segments, -> { order(:position) }, dependent: :destroy, inverse_of: :message
 
   enum :role, { user: 0, assistant: 1 }, validate: true

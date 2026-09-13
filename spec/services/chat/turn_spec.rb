@@ -67,6 +67,26 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  describe "the turn itself" do
+    # So a transcript can still say which model wrote a turn after the
+    # conversation has been switched to another one.
+    context "when a model is given" do
+      subject(:turn) { described_class.new(conversation, model: model) }
+
+      let(:model) { create(:inference_model, kind: "chat", supports_tools: true) }
+
+      it "stamps it on the turn" do
+        expect(turn.message.inference_model).to eq(model)
+      end
+    end
+
+    context "when there is no model to name" do
+      it "leaves the turn unattributed rather than guessing" do
+        expect(turn.message.inference_model).to be_nil
+      end
+    end
+  end
+
   describe "#append_thinking" do
     context "when the model reasons before answering" do
       before do

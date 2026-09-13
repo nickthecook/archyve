@@ -11,6 +11,8 @@ class ConversationsController < ApplicationController
     render Views::Conversations::Index.new(
       conversations: Current.user.conversations.recent.limit(30),
       collections: readable_collections,
+      models: choosable_models,
+      model: InferenceModel.default_chat,
       scope: Retrieval::Scope.from_params(params, user: Current.user),
       unavailable: unavailable_reason
     )
@@ -19,7 +21,8 @@ class ConversationsController < ApplicationController
   def show
     render Views::Conversations::Show.new(
       conversation: @conversation,
-      messages: @conversation.messages.includes(segments: :hits),
+      messages: @conversation.messages.includes(:inference_model, segments: :hits),
+      models: choosable_models,
       unavailable: unavailable_reason
     )
   end
@@ -32,7 +35,8 @@ class ConversationsController < ApplicationController
     return redirect_to conversations_path, alert: "Ask something to start a chat." if question.blank?
 
     conversation = Current.user.conversations.create!(
-      scope: scope_spec, inference_model: InferenceModel.default_chat, title: question.truncate(80)
+      scope: scope_spec, inference_model: chosen_model || InferenceModel.default_chat,
+      title: question.truncate(80)
     )
     Chat::Ask.call(conversation, question)
     redirect_to conversation_path(conversation)
@@ -56,6 +60,19 @@ class ConversationsController < ApplicationController
   end
 
   def readable_collections = Collection.readable_by(Current.user).order(:name)
+
+  # The models chat may offer, which is not every model configured: retrieval is
+  # a tool the model calls, so one that can't call tools can't do this job at
+  # all. See InferenceModel.for_chat.
+  def choosable_models = InferenceModel.for_chat.includes(:inference_server).order(:name)
+
+  # A model the person picked, if it is one they could have been offered.
+  # Looked up through `for_chat` rather than by id alone: the id arrives in a
+  # form field, and nothing stops someone posting the id of the embedding model.
+  def chosen_model
+    id = params[:inference_model_id].presence
+    id && InferenceModel.for_chat.find_by(id: id)
+  end
 
   # Chat needs a tool-capable chat model and an embedding model, and says which
   # is missing rather than failing on the first question. Admins are told where

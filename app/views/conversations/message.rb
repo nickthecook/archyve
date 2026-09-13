@@ -44,6 +44,18 @@ class Views::Conversations::Message < Components::Base
     @message.segments.each { |segment| render_segment(segment) }
     broken if @message.failed?
     waiting
+    attribution
+  end
+
+  # Which model wrote this. Quiet and per-turn rather than stated once at the
+  # top, because the model can be switched mid-conversation — and when it has
+  # been, "which one said that?" is exactly the question the transcript should
+  # already have answered. Absent on an old turn whose model row has since been
+  # removed, which is honest: we no longer know what it was called.
+  def attribution
+    return if @message.in_progress? || @message.inference_model.nil?
+
+    div(class: "font-mono text-[0.7rem] text-faint") { @message.inference_model.label }
   end
 
   def render_segment(segment)

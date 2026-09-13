@@ -7,9 +7,11 @@
 # so there is no setup screen. Past conversations sit below the rule as this
 # page's content.
 class Views::Conversations::Index < Views::Base
-  def initialize(conversations:, collections:, scope: nil, unavailable: nil)
+  def initialize(conversations:, collections:, models: [], model: nil, scope: nil, unavailable: nil)
     @conversations = conversations
     @collections = collections
+    @models = models
+    @model = model
     @scope = scope
     @unavailable = unavailable
   end
@@ -57,6 +59,7 @@ class Views::Conversations::Index < Views::Base
       )
       div(class: "flex flex-wrap items-center gap-3 border-t border-line/60 pt-3") do
         scope_picker
+        model_picker(@model)
         button(
           type: "submit", disabled: @unavailable.present?,
           class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-void hover:bg-accent-dim transition-colors"
@@ -74,6 +77,10 @@ class Views::Conversations::Index < Views::Base
       @collections.each { |collection| scope_chip(collection) }
       span(class: "text-xs text-faint") { "everything you can read, unless you narrow it" } if @collections.empty?
     end
+  end
+
+  def model_picker(selected)
+    render Views::Conversations::ModelPicker.new(models: @models, selected: selected)
   end
 
   def scope_chip(collection)

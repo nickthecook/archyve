@@ -5,9 +5,10 @@
 class Views::Conversations::Show < Views::Base
   include Phlex::Rails::Helpers::TurboStreamFrom
 
-  def initialize(conversation:, messages:, unavailable: nil)
+  def initialize(conversation:, messages:, models:, unavailable: nil)
     @conversation = conversation
     @messages = messages
+    @models = models
     @unavailable = unavailable
   end
 
@@ -71,6 +72,7 @@ class Views::Conversations::Show < Views::Base
           span(class: "h-1.5 w-1.5 rounded-full bg-accent")
           plain @conversation.scope_label
         end
+        render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
         button(
           type: "submit", disabled: @unavailable.present?,
           class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-void hover:bg-accent-dim transition-colors"
