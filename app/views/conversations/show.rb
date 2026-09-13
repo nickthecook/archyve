@@ -34,7 +34,7 @@ class Views::Conversations::Show < Views::Base
   # It belongs to the conversation rather than to any one message, and the only
   # way to change it is a new chat — so the banner says both.
   def scope_banner
-    div(class: "mt-3 mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-4 py-3") do
+    div(class: "mt-3 mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 bg-ink/60 px-4 py-3") do
       span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Drawing on" }
       span(class: "text-sm text-fg") { @conversation.scope_label }
       span(class: "ml-auto text-xs text-faint") do
