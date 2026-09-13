@@ -50,11 +50,12 @@ class Views::Documents::Detail < Components::Base
 
   def chunk_card(chunk)
     breadcrumb = Array(chunk.structure["heading_path"]).join(" › ")
-    # id + scroll margin so a search result can deep-link straight to this chunk.
-    # (The flash on arrival is done in JS — see chunk_highlight_controller — because
-    # Turbo's pushState navigation doesn't trigger the CSS :target pseudo-class.)
+    # id + scroll margin so a search result or a chat citation can deep-link
+    # straight to this chunk. (The flash on arrival is done in JS — see
+    # chunk_highlight_controller — because Turbo's pushState navigation doesn't
+    # trigger the CSS :target pseudo-class.)
     article(
-      id: ActionView::RecordIdentifier.dom_id(chunk),
+      id: chunk.anchor,
       class: "scroll-mt-6 rounded-lg border border-line bg-ink/40 p-4"
     ) do
       header(class: "mb-2 flex items-center justify-between gap-3") do

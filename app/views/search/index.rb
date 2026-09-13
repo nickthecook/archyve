@@ -116,7 +116,7 @@ class Views::Search::Index < Views::Base
       render Views::Documents::Access.new(document:)
       if may?(:operator)
         a(
-          href: document_path(document, anchor: ActionView::RecordIdentifier.dom_id(chunk)),
+          href: document_path(document, anchor: chunk.anchor),
           class: "text-xs text-faint hover:text-fg transition-colors"
         ) { "Inspect chunks" }
       end

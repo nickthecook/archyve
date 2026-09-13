@@ -79,8 +79,35 @@ RSpec.describe Chat::Prose do
     context "with a handle that was retrieved" do
       let(:content) { "Rotate them [1]." }
 
-      it "links it to the document" do
+      it "links it straight to the chunk it cited" do
+        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
+      end
+    end
+
+    # Reingestion destroys a document's chunks and makes new ones, so an old
+    # transcript's hit can outlive the passage it named. The citation still has
+    # to lead somewhere.
+    context "when the chunk it cited no longer exists" do
+      let(:hit) { create(:hit, chunk: nil, document:, handle: 1, document_title: "Handbook") }
+      let(:content) { "Rotate them [1]." }
+
+      it "links to the document instead" do
         expect(html).to include(%(href="/documents/#{document.id}"))
+      end
+
+      it "names no fragment" do
+        expect(html).not_to include("#chunk_")
+      end
+    end
+
+    # Nothing to follow, but the handle is still what the answer was based on —
+    # so it renders as a citation, just not as a link.
+    context "when the document no longer exists" do
+      let(:hit) { create(:hit, chunk: nil, document: nil, handle: 1, document_title: "Handbook") }
+      let(:content) { "Rotate them [1]." }
+
+      it "renders the marker without a link" do
+        expect(html).not_to include("href=")
       end
     end
 
@@ -124,7 +151,7 @@ RSpec.describe Chat::Prose do
       let(:content) { "Rotate them 【1】." }
 
       it "still links it" do
-        expect(html).to include(%(href="/documents/#{document.id}"))
+        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
       end
     end
 
@@ -133,7 +160,7 @@ RSpec.describe Chat::Prose do
       let(:content) { "Both of these [1, 7]." }
 
       it "keeps the citation that resolved" do
-        expect(html).to include(%(href="/documents/#{document.id}"))
+        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
       end
 
       it "keeps the one that didn't as text" do

@@ -120,11 +120,23 @@ module Chat
       return escape("[#{handle}]") if hit.nil?
 
       tag = Nokogiri::XML::Node.new("a", Nokogiri::HTML5::Document.new)
-      tag["href"] = "/documents/#{hit.document_id}" if hit.followable?
+      tag["href"] = href(hit) if hit.followable?
       tag["title"] = [hit.title, hit.heading_path.presence].compact.join(" › ")
       tag["class"] = CITATION_CLASS
       tag.content = handle.to_s
       tag.to_html
+    end
+
+    # Straight to the passage, not the top of the document: a citation exists to
+    # answer "where does that come from?", and a reader who has to find the
+    # chunk themselves is doing the work the handle was supposed to do.
+    #
+    # Falls back to the document when the chunk is gone — reingestion replaces
+    # chunks, and an old transcript keeps a link to the document it cited rather
+    # than one to a fragment that no longer exists.
+    def href(hit)
+      path = "/documents/#{hit.document_id}"
+      hit.chunk_id ? "#{path}##{Chunk.anchor(hit.chunk_id)}" : path
     end
 
     # A link the model wrote is a link to somewhere we know nothing about. Only

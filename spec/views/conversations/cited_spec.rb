@@ -11,10 +11,12 @@ RSpec.describe Views::Conversations::Cited do
     let(:prose) { create(:segment, message:, position: 2, content:) }
 
     let(:document) { create(:document, title: "SHS-2920 manual") }
+    let(:clearances) { create(:chunk, document:) }
+    let(:insulation) { create(:chunk, document:) }
 
     before do
-      create(:hit, segment: retrieval, handle: 1, chunk: create(:chunk, document:), document:)
-      create(:hit, segment: retrieval, handle: 2, chunk: create(:chunk, document:), document:)
+      create(:hit, segment: retrieval, handle: 1, chunk: clearances, document:)
+      create(:hit, segment: retrieval, handle: 2, chunk: insulation, document:)
     end
 
     context "when the model cites with square brackets" do
@@ -57,6 +59,13 @@ RSpec.describe Views::Conversations::Cited do
 
       it "links each one" do
         expect(result.scan(%r{/documents/#{document.id}}).size).to eq(2)
+      end
+
+      # The point of resolving handles per retrieval block: two citations of the
+      # same document must land on the two different passages that earned them,
+      # or the reader is back to hunting for the chunk themselves.
+      it "sends each handle to its own chunk" do
+        expect(result).to include("#chunk_#{clearances.id}").and include("#chunk_#{insulation.id}")
       end
     end
 

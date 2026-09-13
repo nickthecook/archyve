@@ -345,7 +345,7 @@ RSpec.describe Chat::Turn do
         expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
           .with(conversation, hash_including(
             target: Views::Conversations::Segment.dom_id(live_segment),
-            html: /href="\/documents\/#{document.id}"/
+            html: /href="\/documents\/#{document.id}#chunk_#{chunk.id}"/
           ))
       end
     end
