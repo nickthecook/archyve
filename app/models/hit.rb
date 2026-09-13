@@ -28,6 +28,24 @@ class Hit < ApplicationRecord
   # Whether this citation can still be followed to the live document.
   def followable? = document.present?
 
+  # Where following it leads: the document, and the exact passage inside it when
+  # the chunk survived. Straight to the chunk because a citation exists to
+  # answer "where does this come from?" — a reader who has to find the passage
+  # in a wall of similar cards is doing the work the handle was supposed to do.
+  #
+  # Falls back to the document when reingestion has replaced the chunk, and to
+  # nil when the document is gone, which is `followable?` by another name.
+  #
+  # A model reaching for a route helper, because both renderings of a hit need
+  # the same link — the inline citation marker and the retrieval panel's card —
+  # and routes.rb is the only place /documents/:id is defined.
+  def href
+    return unless followable?
+
+    path = Rails.application.routes.url_helpers.document_path(document_id)
+    chunk_id ? "#{path}##{Chunk.anchor(chunk_id)}" : path
+  end
+
   # The title as it is now, falling back to the one recorded at retrieval. A
   # renamed document reads under its current name; a deleted one still reads
   # under the name it had when it was cited.
