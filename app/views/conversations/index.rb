@@ -40,11 +40,19 @@ class Views::Conversations::Index < Views::Base
   end
 
   def composer
-    form(action: conversations_path, method: "post", class: "flex flex-col gap-3 rounded-lg border border-line-2 bg-ink/60 p-4") do
+    form(
+      action: conversations_path, method: "post",
+      data: {
+        controller: "composer",
+        action: "keydown.ctrl+enter@document->composer#submit keydown.meta+enter@document->composer#submit"
+      },
+      class: "flex flex-col gap-3 rounded-lg border border-line-2 bg-ink/60 p-4"
+    ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
         name: "message", rows: "3", autofocus: true,
         placeholder: "What do you want to know?",
+        data: { composer_target: "field" },
         class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3 border-t border-line/60 pt-3") do
