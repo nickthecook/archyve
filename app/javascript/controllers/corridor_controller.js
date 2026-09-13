@@ -14,13 +14,18 @@ import { Controller } from "@hotwired/stimulus"
 // capped, so you can't out-type the walk and it settles about one step after you
 // stop. Focus lights the far end; the pointer shifts the vanishing point. One rAF
 // loop that sleeps when nothing is moving.
+//
+// On load the corridor builds itself: every ring starts past the far plane (so the
+// frame is empty), then they bloom out of the vanishing point one after another and
+// glide outward into their resting slots. Same direction as walking in — forward —
+// and it is a pure render offset, so the walk system never sees it.
 export default class extends Controller {
   static targets = ["rings", "input"]
 
   VMAX = 1.3    // slots per second at cruise (≈ one 800ms step when isolated)
   ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
   LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
-  DRIFT = 0.18  // slots per second of always-on dolly, so the corridor breathes when idle
+  INTRO = 1.6   // seconds for the load bloom: rings emerge fast, then ease into place
 
   connect() {
     this.NS = "http://www.w3.org/2000/svg"
@@ -55,7 +60,7 @@ export default class extends Controller {
     this._beforeCache = () => this.ringsTarget.replaceChildren()
     document.addEventListener("turbo:before-cache", this._beforeCache)
 
-    this.current = this.reduce ? 0 : 2.4   // dolly into place on load
+    this.current = 0
     this.target = 0
     this.vel = 0
     this.litAmt = 0
@@ -63,11 +68,13 @@ export default class extends Controller {
     this.px = 0; this.py = 0; this.tpx = 0; this.tpy = 0
     this.lastLen = 0
     this.running = false
-    this.ambient = 0   // continuous idle drift, added to `current` only for rendering
+    // Rings sit a whole corridor-length beyond the far plane, which renders as nothing.
+    this.introLeft = this.reduce ? 0 : this.INTRO
+    this.introOffset = this.reduce ? 0 : this.RINGS
 
     this._tick = this.tick.bind(this)
     this.render()
-    if (this.reduce) { this.current = 0; return }
+    if (this.reduce) return
     this.kick()
   }
 
@@ -115,6 +122,7 @@ export default class extends Controller {
     this.reduce = event ? event.detail.reduce : this.motionReduced
     if (this.reduce) {
       this.current = 0; this.target = 0; this.vel = 0
+      this.introLeft = 0; this.introOffset = 0
       this.tpx = 0; this.tpy = 0; this.px = 0; this.py = 0
       this.litTarget = this.element.classList.contains("is-lit") ? 1 : 0
       this.litAmt = this.litTarget
@@ -159,9 +167,10 @@ export default class extends Controller {
   }
 
   drawRing(o) {
-    let p = o.i - this.current - this.ambient
+    let p = o.i - this.current
     while (p < this.NEAR) p += this.RINGS
     while (p >= this.FAR) p -= this.RINGS
+    p += this.introOffset   // load bloom only; zero once the corridor has arrived
     const s = Math.pow(this.RATIO, p)
 
     const env = this.clamp((p - this.NEAR) / 1.6, 0, 1) * this.clamp((this.FAR - p) / 2.0, 0, 1)
@@ -191,11 +200,10 @@ export default class extends Controller {
 
     this.walk(dt)
 
-    // Gentle always-on dolly. Kept separate from the walk system so typing and
-    // the drift don't fight; wraps each RINGS so it never grows unbounded.
-    if (!this.reduce) {
-      this.ambient += this.DRIFT * dt
-      if (this.ambient >= this.RINGS) this.ambient -= this.RINGS
+    // Ease-out: the corridor rushes out of the vanishing point and settles slowly.
+    if (this.introLeft > 0) {
+      this.introLeft = Math.max(0, this.introLeft - dt)
+      this.introOffset = this.RINGS * Math.pow(this.introLeft / this.INTRO, 3)
     }
 
     this.litAmt = this.lerp(this.litAmt, this.litTarget, this.reduce ? 1 : 0.1)
@@ -205,11 +213,9 @@ export default class extends Controller {
 
     this.render()
 
-    // The drift keeps the corridor moving forever, so only sleep the loop when
-    // motion is reduced and everything has otherwise settled.
-    const settled = this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
+    const settled = this.introLeft === 0 && this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
       Math.abs(this.tpx - this.px) < 0.004 && Math.abs(this.tpy - this.py) < 0.004
-    if (this.reduce && settled) this.running = false
+    if (settled) this.running = false
     else this.raf = requestAnimationFrame(this._tick)
   }
 
