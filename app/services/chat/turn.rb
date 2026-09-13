@@ -190,7 +190,15 @@ module Chat
     # being re-rendered on every tick of the stream.
     def broadcast!
       @broadcast_at = Time.current
-      @message.reload
+      # Re-read with everything the render touches already in hand, rather than
+      # #reload followed by a walk that lazy-loads its way down. The view renders
+      # *every* segment each tick, and a retrieval segment asks each of its hits
+      # for a document title — so left lazy that is a Hit query plus a Document
+      # query per distinct document, per retrieval segment, per tick. The
+      # update_columns in #broadcast clears the query cache immediately before, so
+      # none of it is ever served from cache: real round trips, ten times a second,
+      # for the length of a turn.
+      @message = Message.includes(:inference_model, segments: { hits: :document }).find(@message.id)
       html = Views::Conversations::Message.new(message: @message).call
 
       if @on_page
