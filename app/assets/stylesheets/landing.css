@@ -94,7 +94,12 @@
 .corridor-stage .facet.reveal { animation-duration: var(--facet-reveal-duration); }
 .corridor-stage .facet.documents { left: 3%;  top: 25%; text-align: left;  align-items: flex-start; }
 .corridor-stage .facet.chat      { right: 3%; top: 25%; text-align: right; align-items: flex-end; }
-.corridor-stage .facet.settings  { left: 50%; bottom: 7.5%; transform: translateX(-50%); text-align: center; align-items: center; }
+/* Anchored to the corridor's base rather than the viewport floor: the hall is
+   min(80vh,90vw,660px) wide at 1/0.86 and sits centred but lifted 14%, so its
+   base lands 0.31 of that width below the stage centre. Pinned to the floor it
+   drifted away from the corridor on tall windows — the one place it reads as
+   the way out of the hall. */
+.corridor-stage .facet.settings  { left: 50%; top: calc(50% + 0.31 * min(80vh, 90vw, 660px) + 6rem); transform: translateX(-50%); text-align: center; align-items: center; }
 .corridor-stage .facet.settings:hover, .corridor-stage .facet.settings:focus-visible { transform: translateX(-50%) translateY(-2px); }
 .corridor-stage .facet.documents:hover { transform: translateX(3px); }
 .corridor-stage .facet.chat:hover { transform: translateX(-3px); }
