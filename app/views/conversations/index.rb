@@ -50,7 +50,7 @@ class Views::Conversations::Index < Views::Base
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
-        name: "message", rows: "3", autofocus: true,
+        name: "message", rows: "3", autofocus: true, autocomplete: "off",
         placeholder: "What do you want to know?",
         data: { composer_target: "field" },
         class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
