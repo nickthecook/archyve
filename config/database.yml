@@ -30,18 +30,18 @@ default: &default
 development:
   primary: &primary_development
     <<: *default
-    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_development") %>
     host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
     port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
     username: <%= ENV.fetch("DATABASE_USER", "archyve") %>
     password: <%= ENV.fetch("DATABASE_PASSWORD", "archyve") %>
   queue:
     <<: *primary_development
-    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>_queue
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_development") %>_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_development
-    database: <%= ENV.fetch("DATABASE_NAME", "archyve2_development") %>_cable
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_development") %>_cable
     migrations_paths: db/cable_migrate
 
 # Warning: The database defined as "test" will be erased and
@@ -49,11 +49,11 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: <%= ENV.fetch("TEST_DATABASE_NAME", "archyve2_test") %>
+  database: <%= ENV.fetch("TEST_DATABASE_NAME", "archyve_test") %>
   host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
   port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
-  username: <%= ENV.fetch("DATABASE_USER", "archyve") %>
-  password: <%= ENV.fetch("DATABASE_PASSWORD", "archyve") %>
+  username: <%= ENV.fetch("ARCHYVE_DATABASE_USER", "archyve") %>
+  password: <%= ENV.fetch("ARCHYVE_DATABASE_PASSWORD", "archyve") %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -84,18 +84,20 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: archyve2_production
-    username: archyve2
-    password: <%= ENV["ARCHYVE2_DATABASE_PASSWORD"] %>
+    database: archyve_production
+    username: archyve
+    password: <%= ENV["ARCHYVE_DATABASE_PASSWORD"] %>
+    host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
   cache:
     <<: *primary_production
-    database: archyve2_production_cache
+    database: archyve_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: archyve2_production_queue
+    database: archyve_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: archyve2_production_cable
+    database: archyve_production_cable
     migrations_paths: db/cable_migrate
