@@ -77,6 +77,27 @@ RSpec.describe "Conversations", type: :request do
         request
         expect(response.body).to include("How do we rotate credentials?")
       end
+
+      context "when the model reasoned before answering" do
+        before do
+          message = create(:message, conversation:, role: "assistant")
+          create(:thinking_segment, message:, position: 1, content: "The user wants the rotation window.")
+          create(:segment, message:, position: 2, content: "Every 90 days.")
+          request
+        end
+
+        it "shows the reasoning" do
+          expect(response.body).to include("The user wants the rotation window.")
+        end
+
+        it "keeps it collapsed" do
+          expect(response.body).not_to match(/<details[^>]*\bopen\b/)
+        end
+
+        it "labels it as an aside rather than part of the answer" do
+          expect(response.body).to include("Thought about this")
+        end
+      end
     end
 
     # A conversation is private to its author. Someone else's id is a 404 —

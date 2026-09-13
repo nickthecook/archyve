@@ -41,7 +41,14 @@ module Chat
 
     def respond(model, turn)
       chat = build_chat(model, turn)
-      chat.ask(@user_message.text) { |chunk| turn.append(chunk.content) }
+      chat.ask(@user_message.text) do |chunk|
+        # Two channels, one stream. Providers that reason put the analysis in
+        # `thinking` and only the reply in `content`; the turn keeps them apart
+        # so the transcript can too. A provider that doesn't reason simply never
+        # sets it.
+        turn.append_thinking(chunk.thinking&.text)
+        turn.append(chunk.content)
+      end
       turn.finish
     rescue StandardError => e
       Rails.logger.error("chat turn failed for conversation #{@conversation.id}: #{e.class}: #{e.message}")

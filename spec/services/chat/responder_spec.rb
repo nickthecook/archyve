@@ -27,9 +27,35 @@ RSpec.describe Chat::Responder do
 
     let(:reply) { "Press [Registration]." }
 
+    # What a reasoning provider puts on the other channel. nil is the ordinary
+    # case: a model that doesn't reason never sets it.
+    let(:thinking) { nil }
+
     before do
-      allow(llm).to receive(:complete) { |&block| block&.call(double(content: reply)) }
+      allow(llm).to receive(:complete) { |&block| block&.call(double(content: reply, thinking: thinking)) }
       allow_any_instance_of(InferenceServer).to receive(:llm_context).and_return(double(chat: llm))
+    end
+
+    # The analysis channel is not the answer: it belongs in its own segment, so
+    # the transcript can collapse it and history can leave it out.
+    context "when the model reasons on its way to answering" do
+      let(:thinking) { double(text: "They mean the door lock. Check the manual.") }
+
+      it "keeps the reasoning out of the prose" do
+        respond
+        expect(turn.segments.select(&:text?).map(&:content)).to eq(["Press [Registration]."])
+      end
+
+      it "records the reasoning as its own segment" do
+        respond
+        expect(turn.segments.select(&:thinking?).map(&:content))
+          .to eq(["They mean the door lock. Check the manual."])
+      end
+
+      it "does not replay it back to the model" do
+        respond
+        expect(turn.history_content).not_to include("They mean the door lock")
+      end
     end
 
     context "when the model answers" do

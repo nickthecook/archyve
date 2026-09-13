@@ -47,7 +47,11 @@ class Views::Conversations::Message < Components::Base
   end
 
   def render_segment(segment)
-    segment.text? ? prose(segment) : render(Views::Conversations::Retrieval.new(segment:))
+    case segment.kind.to_sym
+    when :text then prose(segment)
+    when :thinking then render(Views::Conversations::Thinking.new(segment:))
+    else render(Views::Conversations::Retrieval.new(segment:))
+    end
   end
 
   def prose(segment)

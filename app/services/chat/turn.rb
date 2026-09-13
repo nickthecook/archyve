@@ -27,6 +27,8 @@ module Chat
       )
       @buffer = +""
       @text_segment = nil
+      @thinking_buffer = +""
+      @thinking_segment = nil
       @broadcast_at = Time.current - BROADCAST_INTERVAL
       @on_page = false
       # Immediately, before a single token exists. A replace can only land on an
@@ -57,7 +59,26 @@ module Chat
       # Created with the buffer already in it, not empty and filled in later: a
       # text segment with no text is a meaningless row, and Segment validates
       # that rather than tolerating it for the length of a stream.
+      # Whatever the model was reasoning about, it has stopped and started
+      # answering — the two never interleave, and leaving the thinking segment
+      # open would let a later round's analysis join the first round's.
+      flush_thinking
       @text_segment ||= create_segment(:text, content: @buffer.dup)
+      broadcast if due?
+    end
+
+    # One streamed delta of the model's own reasoning, which arrives on its own
+    # channel rather than in the answer (RubyLLM hands it to us as
+    # `chunk.thinking`). Kept as its own segment kind so the transcript can show
+    # it collapsed, and so it can be left out of history — see
+    # Segment#for_history.
+    def append_thinking(delta)
+      return if delta.nil? || delta.empty?
+
+      @thinking_buffer << delta
+      return if @thinking_segment.nil? && @thinking_buffer.blank?
+
+      @thinking_segment ||= create_segment(:thinking, content: @thinking_buffer.dup)
       broadcast if due?
     end
 
@@ -68,6 +89,7 @@ module Chat
     # the spinner renders, and it only exists if we write it before searching.
     def retrieval_started(queries)
       flush_text
+      flush_thinking
       @retrieval_segment = create_segment(:retrieval, queries: queries)
       broadcast!
     end
@@ -81,6 +103,7 @@ module Chat
 
     def finish
       flush_text
+      flush_thinking
       # A turn that ends having said nothing is indistinguishable, on the page,
       # from one still thinking — the spinner renders on "no content yet" and
       # would spin for good. Models do occasionally return an empty completion
@@ -96,6 +119,7 @@ module Chat
     # otherwise is a transcript you can't trust.
     def fail!(error)
       flush_text
+      flush_thinking
       @message.update!(error: error)
       complete!
       @message
@@ -127,13 +151,23 @@ module Chat
       @buffer = +""
     end
 
+    def flush_thinking
+      @thinking_segment&.update!(content: @thinking_buffer.dup)
+      @thinking_segment = nil
+      @thinking_buffer = +""
+    end
+
     def due? = Time.current - @broadcast_at >= BROADCAST_INTERVAL
 
     # A search on its own counts as having said something: the retrieval panel
     # is visible, so the turn isn't a blank box even when no prose followed.
+    #
+    # Thinking does not count. A model that reasons and then says nothing has
+    # failed to answer, and it is a failure worth naming — mis-channelled
+    # replies, where the whole reply arrives as analysis, look exactly like it.
     def said_nothing?
       @message.error.blank? &&
-        @message.segments.reload.none? { it.retrieval? || it.content.present? }
+        @message.segments.reload.none? { it.retrieval? || (it.text? && it.content.present?) }
     end
 
     def broadcast
@@ -146,6 +180,7 @@ module Chat
       # looking dirty and the final write silently does nothing — the turn ends
       # holding whatever was in the buffer at the last broadcast.
       @text_segment&.update_columns(content: @buffer.dup, updated_at: Time.current)
+      @thinking_segment&.update_columns(content: @thinking_buffer.dup, updated_at: Time.current)
       broadcast!
     end
 

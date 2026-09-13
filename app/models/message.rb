@@ -33,7 +33,9 @@ class Message < ApplicationRecord
     return unless in_progress?
     return "Reading the results…" if segments.last&.retrieval?
 
-    "Thinking…" if segments.none? { it.content.present? }
+    # Thinking segments don't count: the model reasoning out loud isn't the
+    # answer arriving, and the spinner is what says the answer is still coming.
+    "Thinking…" if segments.none? { it.text? && it.content.present? }
   end
 
   def next_segment_position = (segments.maximum(:position) || 0) + 1

@@ -23,6 +23,11 @@ FactoryBot.define do
     kind { "text" }
     content { "Some prose." }
 
+    factory :thinking_segment do
+      kind { "thinking" }
+      content { "The user is asking about rotation. We should check the handbook." }
+    end
+
     factory :retrieval_segment do
       kind { "retrieval" }
       content { nil }

@@ -4,9 +4,10 @@
 # — and keeping them ordered is what lets the transcript show the pause where it
 # actually happened rather than tidying the tool call away into a footnote.
 #
-# Two kinds, and they use different columns:
+# Three kinds, and they use different columns:
 #
 #   text       `content` — prose, rendered as paragraphs
+#   thinking   `content` — the model's own reasoning, collapsed in the transcript
 #   retrieval  `queries`, `candidate_count`, `failure_kind`, and its hits
 #
 # ## Three outcomes, not two
@@ -22,10 +23,10 @@ class Segment < ApplicationRecord
 
   has_many :hits, -> { order(:handle) }, dependent: :destroy, inverse_of: :segment
 
-  enum :kind, { text: 0, retrieval: 1 }, validate: true
+  enum :kind, { text: 0, retrieval: 1, thinking: 2 }, validate: true
 
   validates :position, presence: true, uniqueness: { scope: :message_id }
-  validates :content, presence: true, if: :text?
+  validates :content, presence: true, if: :prose?
 
   # Mirrors Retrieval::Failure#kind, as a string rather than an enum so the two
   # vocabularies can't drift apart silently.
@@ -33,6 +34,11 @@ class Segment < ApplicationRecord
   validates :failure_kind, inclusion: { in: FAILURE_KINDS }, allow_nil: true
 
   def failed? = failure_kind.present?
+
+  # The two kinds that are words in `content`. Kept as a predicate rather than
+  # `text? || thinking?` at each call site so a fourth kind has one place to
+  # declare itself as prose.
+  def prose? = text? || thinking?
 
   # Retrieval ran and came back empty — the honest "your archive doesn't cover
   # this", which a failure must never be mistaken for.
@@ -52,6 +58,11 @@ class Segment < ApplicationRecord
   # searched.
   def for_history
     return content if text?
+    # Thinking is deliberately *not* replayed. It was never said to the person
+    # asking, and handing a model its own previous reasoning invites it to carry
+    # on from it rather than answer afresh — the reason providers drop the
+    # analysis channel from history too.
+    return nil if thinking?
     return "[searched the archive; retrieval was unavailable]" if failed?
     return "[searched the archive for #{quoted_queries} — no matches]" if hits.empty?
 

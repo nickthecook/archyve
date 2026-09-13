@@ -1,6 +1,26 @@
 require "rails_helper"
 
 RSpec.describe Segment do
+  describe "#for_history" do
+    context "with a text segment" do
+      subject(:segment) { create(:segment, content: "Credentials rotate every 90 days.") }
+
+      it "replays what was said" do
+        expect(segment.for_history).to eq("Credentials rotate every 90 days.")
+      end
+    end
+
+    # Reasoning was never said to the person asking, and replaying a model's own
+    # analysis invites it to continue from it rather than answer afresh.
+    context "with a thinking segment" do
+      subject(:segment) { create(:thinking_segment) }
+
+      it "is left out of history" do
+        expect(segment.for_history).to be_nil
+      end
+    end
+  end
+
   describe "#record!" do
     subject(:segment) { create(:retrieval_segment) }
 

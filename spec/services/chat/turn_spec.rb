@@ -67,6 +67,66 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  describe "#append_thinking" do
+    context "when the model reasons before answering" do
+      before do
+        turn.append_thinking("The user wants the rotation window. ")
+        turn.append_thinking("The handbook covers it.")
+        turn.append("Credentials rotate every 90 days.")
+        turn.finish
+      end
+
+      # Ordering is the point again: the working-out belongs before the answer
+      # it produced, not folded into it.
+      it "keeps the reasoning in its own segment, ahead of the prose" do
+        expect(segments.map(&:kind)).to eq(%w[thinking text])
+      end
+
+      it "joins the thinking deltas" do
+        expect(segments.first.content).to eq("The user wants the rotation window. The handbook covers it.")
+      end
+
+      it "keeps the reasoning out of the answer" do
+        expect(segments.last.content).to eq("Credentials rotate every 90 days.")
+      end
+    end
+
+    context "when the model reasons again after searching" do
+      let(:outcome) { Retrieval::Outcome.new(hits: [], candidate_count: 0) }
+
+      before do
+        turn.append_thinking("Need to search for this.")
+        turn.retrieval_started(["credential rotation"])
+        turn.retrieval_finished(outcome)
+        turn.append_thinking("Nothing came back.")
+        turn.append("I couldn't find anything on that.")
+        turn.finish
+      end
+
+      it "keeps each round's reasoning separate" do
+        expect(segments.map(&:kind)).to eq(%w[thinking retrieval thinking text])
+      end
+
+      it "doesn't let the second round join the first" do
+        expect(segments.first.content).to eq("Need to search for this.")
+      end
+    end
+
+    # The flaky-provider case: the whole reply arrives on the analysis channel
+    # and nothing is ever said. That is a turn that failed to answer, and the
+    # transcript has to say so rather than showing a box with a disclosure in it.
+    context "when the model reasons and then says nothing" do
+      before do
+        turn.append_thinking("We could answer this several ways.")
+        turn.finish
+      end
+
+      it "records that it finished without answering" do
+        expect(turn.message.reload.error).to eq("The model finished without answering.")
+      end
+    end
+  end
+
   describe "#retrieval_started" do
     let(:outcome) { Retrieval::Outcome.new(hits: [], candidate_count: 0) }
 
