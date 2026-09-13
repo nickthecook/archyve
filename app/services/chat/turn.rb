@@ -30,6 +30,7 @@ module Chat
       @thinking_buffer = +""
       @thinking_segment = nil
       @broadcast_at = Time.current - BROADCAST_INTERVAL
+      @hits = {}
       @on_page = false
       # Immediately, before a single token exists. A replace can only land on an
       # element that is already in the DOM, and the page was rendered before
@@ -62,8 +63,17 @@ module Chat
       # Whatever the model was reasoning about, it has stopped and started
       # answering — the two never interleave, and leaving the thinking segment
       # open would let a later round's analysis join the first round's.
-      flush_thinking
+      # A flushed thinking segment and a newly created text one are both
+      # changes a segment-level replace can't carry: the first rewrites an
+      # element this tick isn't aiming at, the second needs an element that
+      # isn't on the page yet. Either way the whole message goes. It is also
+      # what repaints the spinner — Message#waiting_on stops saying
+      # "Thinking…" exactly when this segment gains content.
+      flushed = flush_thinking
+      created = @text_segment.nil?
       @text_segment ||= create_segment(:text, content: @buffer.dup)
+      return broadcast! if created || flushed
+
       broadcast if due?
     end
 
@@ -78,7 +88,10 @@ module Chat
       @thinking_buffer << delta
       return if @thinking_segment.nil? && @thinking_buffer.blank?
 
+      created = @thinking_segment.nil?
       @thinking_segment ||= create_segment(:thinking, content: @thinking_buffer.dup)
+      return broadcast! if created
+
       broadcast if due?
     end
 
@@ -96,6 +109,14 @@ module Chat
 
     def retrieval_finished(outcome)
       @retrieval_segment&.record!(outcome)
+      # Held for the streaming renders that follow. Cited resolves citation
+      # handles against the retrieval segment above the prose — which is this
+      # one — and left to work that out itself it walks every segment of the
+      # message on every tick. `includes(:document)` because Chat::Prose asks
+      # each hit whether it is followable and for its title, both of which
+      # reach through the association; without it the walk is gone and a
+      # query per hit takes its place.
+      @hits = @retrieval_segment&.hits&.includes(:document)&.index_by(&:handle) || {}
       broadcast!
     end
 
@@ -152,9 +173,11 @@ module Chat
     end
 
     def flush_thinking
+      flushed = @thinking_segment.present?
       @thinking_segment&.update!(content: @thinking_buffer.dup)
       @thinking_segment = nil
       @thinking_buffer = +""
+      flushed
     end
 
     def due? = Time.current - @broadcast_at >= BROADCAST_INTERVAL
@@ -179,9 +202,24 @@ module Chat
       # to it mutates the value ActiveRecord diffs against, so the record stops
       # looking dirty and the final write silently does nothing — the turn ends
       # holding whatever was in the buffer at the last broadcast.
+      @broadcast_at = Time.current
       @text_segment&.update_columns(content: @buffer.dup, updated_at: Time.current)
       @thinking_segment&.update_columns(content: @thinking_buffer.dup, updated_at: Time.current)
-      broadcast!
+      broadcast_segment(@text_segment)
+      broadcast_segment(@thinking_segment)
+    end
+
+    # One segment, to the element the page already has for it. Nothing else on
+    # the turn can have changed: a tick only ever writes the buffers above, and
+    # anything that adds or closes a segment goes through broadcast! instead.
+    def broadcast_segment(segment)
+      return if segment.nil?
+
+      Turbo::StreamsChannel.broadcast_replace_to(
+        @conversation,
+        target: Views::Conversations::Segment.dom_id(segment),
+        html: Views::Conversations::Segment.new(segment:, hits: @hits).call
+      )
     end
 
     # Append once to put the turn on the page, replace it thereafter. The

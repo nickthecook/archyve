@@ -41,7 +41,7 @@ class Views::Conversations::Message < Components::Base
   end
 
   def from_assistant
-    @message.segments.each { |segment| render_segment(segment) }
+    @message.segments.each { |segment| render Views::Conversations::Segment.new(segment:) }
     broken if @message.failed?
     waiting
     attribution
@@ -56,25 +56,6 @@ class Views::Conversations::Message < Components::Base
     return if @message.in_progress? || @message.inference_model.nil?
 
     div(class: "font-mono text-[0.7rem] text-faint") { @message.inference_model.label }
-  end
-
-  def render_segment(segment)
-    case segment.kind.to_sym
-    when :text then prose(segment)
-    when :thinking then render(Views::Conversations::Thinking.new(segment:))
-    else render(Views::Conversations::Retrieval.new(segment:))
-    end
-  end
-
-  def prose(segment)
-    return if segment.content.blank?
-
-    # `answer` is the hook for answer.css, which styles the markdown Chat::Prose
-    # renders. No whitespace-pre-wrap: the HTML carries its own block layout now,
-    # and pre-wrap would render the newlines *between* its tags as blank lines.
-    div(class: "answer text-[0.95rem] leading-relaxed text-muted") do
-      render Views::Conversations::Cited.new(segment:)
-    end
   end
 
   # The gaps where the model is working and the page has nothing to show: before

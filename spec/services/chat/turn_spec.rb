@@ -286,6 +286,71 @@ RSpec.describe Chat::Turn do
     end
   end
 
+# Streaming replaces only the segment being written to; anything that adds or
+# closes a segment replaces the whole message. A segment-level replace can
+# neither create an element the page hasn't got nor repaint the spinner above
+# it, so getting this split wrong leaves a turn that streams into nothing or
+# spins forever with prose underneath it.
+describe "broadcasting" do
+  let(:message_target) { Views::Conversations::Message.dom_id(turn.message) }
+  let(:live_segment) { segments.find(&:text?) }
+
+  # Every append is due, so a delta that opens no segment still ticks.
+  before do
+    stub_const("Chat::Turn::BROADCAST_INTERVAL", 0)
+    allow(Turbo::StreamsChannel).to receive(:broadcast_append_to)
+  end
+
+  context "when a delta opens a text segment" do
+    before { turn.append("Credentials rotate.") }
+
+    it "replaces the whole message" do
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+        .with(conversation, hash_including(target: message_target))
+    end
+  end
+
+  context "when a delta only extends the segment already open" do
+    before do
+      turn.append("Credentials ")
+      turn.append("rotate every 90 days.")
+    end
+
+    it "replaces that segment" do
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+        .with(conversation, hash_including(target: Views::Conversations::Segment.dom_id(live_segment)))
+    end
+  end
+
+  # The map Chat::Turn keeps from the search is what makes this possible
+  # without walking every segment of the message on each tick.
+  context "when prose extends a segment written after a search" do
+    let(:document) { create(:document, title: "Credential Policy") }
+    let(:chunk) { create(:chunk, document: document) }
+    let(:outcome) do
+      Retrieval::Outcome.new(
+        hits: [Retrieval::Hit.new(chunk: chunk, document: document, distance: 0.1, score: 1.0, handle: 1)],
+        candidate_count: 1
+      )
+    end
+
+    before do
+      turn.retrieval_started(["credential rotation"])
+      turn.retrieval_finished(outcome)
+      turn.append("Rotation is annual [1]")
+      turn.append(" per policy.")
+    end
+
+    it "resolves the citation in the segment it broadcasts" do
+      expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+        .with(conversation, hash_including(
+          target: Views::Conversations::Segment.dom_id(live_segment),
+          html: /href="\/documents\/#{document.id}"/
+        ))
+    end
+  end
+end
+
   describe "#fail!" do
     context "when the turn couldn't happen" do
       before { turn.fail!("Couldn't reach tensor.") }
