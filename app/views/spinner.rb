@@ -21,7 +21,7 @@
 # reading as working and starts reading as stalled.
 class Views::Spinner < Components::Base
   DEGREES = 300
-  BEAT_MS = 700
+  BEAT_MS = 1700
   EASE = "cubic-bezier(0.65, 0, 0.35, 1)"
 
   # Equilateral, unlike the header mark in Views::Chrome — that one is 22 wide
