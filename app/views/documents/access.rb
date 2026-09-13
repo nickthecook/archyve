@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-# How a reader actually gets at a document, as opposed to Views::Documents::Show,
-# which is a chunk-level view of how retrieval sees it.
+# How a reader actually gets at a document itself, rather than the chunk-level
+# view of it that Views::Documents::Show is built around. Rendered by both that
+# page and a search result, because "I've found the passage, now give me the
+# document" is the same request from either.
 #
 # Which affordance appears is a property of the *source*, not of the reader's
 # role: a source that can hand out a link the browser can follow gets linked to,

@@ -1,7 +1,14 @@
 class DocumentsController < ApplicationController
-  # Browsing the archive is an operator job; fetching one document you were
-  # pointed at is not. See the download route.
-  require_role :operator, except: :download
+  # Browsing the archive is an operator job; opening one document you were
+  # pointed at is not. A reader arrives at `show` from a chat citation or a
+  # search result, and both of those are already filtered to what they may
+  # retrieve — gating it on the role as well would mean a citation that renders
+  # as a link and then refuses, which is the thing Views::Chrome exists to avoid.
+  #
+  # What enforces access for `show` is the scope it looks the document up
+  # through, not the role: `reachable_by` is the reader's own corpus, and
+  # anything outside it raises RecordNotFound. Same asymmetry as `download`.
+  require_role :operator, except: [:show, :download]
 
   # Where the "back" link on a document points. A document is collection-agnostic
   # (it lives in many collections), so its URL carries no context — the only
@@ -57,21 +64,36 @@ class DocumentsController < ApplicationController
   end
 
   # Resolve the back link from the referrer, so a document opened from a
-  # collection returns to that collection, from search back to the results, etc.
-  # Falls back to the Collections section home when the referrer is unknown.
+  # collection returns to that collection, from search back to the results, and
+  # from a chat citation back to the chat that cited it.
   def back_link
     path = referer_path
     slug = path&.match(%r{\A/collections/([^/]+)\z})&.captures&.first
+    chat_id = path&.match(%r{\A/chat/([^/]+)\z})&.captures&.first
 
     if slug && (collection = Collection.readable_by(Current.user).find_by(slug:))
       BackLink.new(label: collection.name, href: collection_path(collection))
+    elsif chat_id && (conversation = Current.user.conversations.find_by(id: chat_id))
+      # Scoped to their own conversations, since a conversation is private to
+      # its author — an id someone else's chat used must not name it here.
+      BackLink.new(label: conversation.title.presence || "Chat", href: conversation_path(conversation))
     elsif path == documents_path
       BackLink.new(label: "All documents", href: documents_path)
     elsif path == search_path
       BackLink.new(label: "Search results", href: request.referer)
     else
-      BackLink.new(label: "Collections", href: collections_path)
+      unreferred_back_link
     end
+  end
+
+  # Where "back" goes when the referrer tells us nothing. Collections is the
+  # section a document belongs to, but a reader can't reach it, and the rule the
+  # nav follows is that a link which bounces you is worse than no link — so they
+  # get Chat, which is where they were sent from.
+  def unreferred_back_link
+    return BackLink.new(label: "Collections", href: collections_path) if Current.user.at_least?(:operator)
+
+    BackLink.new(label: "Chat", href: conversations_path)
   end
 
   # The path of a same-origin referrer, or nil.
