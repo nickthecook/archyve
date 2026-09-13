@@ -1,2 +1,2 @@
-web: SOLID_QUEUE_IN_PUMA=1 bin/rails server
+web: SOLID_QUEUE_IN_PUMA=1 bin/rails server -b 0.0.0.0
 css: bin/rails tailwindcss:watch
