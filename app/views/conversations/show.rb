@@ -12,8 +12,7 @@ class Views::Conversations::Show < Views::Base
   end
 
   def view_template
-    doorway
-    hr(class: "mb-8 border-line")
+    back_link
     scope_banner
     # Assistant turns arrive here as they are produced — Chat::Turn broadcasts a
     # replace of each one as the model streams, searches, and streams again.
@@ -26,32 +25,15 @@ class Views::Conversations::Show < Views::Base
 
   def page_title = @conversation.title.presence || "Chat"
 
-  def doorway
-    a(
-      href: conversations_path,
-      class: "group mb-8 flex items-center gap-4 rounded-lg border border-line border-l-2 border-l-accent " \
-             "bg-ink/60 px-5 py-4 hover:bg-ink transition-colors"
-    ) do
-      span(class: "grid h-9 w-9 shrink-0 place-items-center rounded bg-accent/10 text-accent") do
-        svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
-          s.path(d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z")
-        end
-      end
-      span(class: "min-w-0 flex-1") do
-        span(class: "block text-sm text-fg") { "All conversations" }
-        span(class: "block text-xs text-faint") { "Start another, or pick up an earlier one" }
-      end
-      svg(class: "shrink-0 text-faint transition-transform group-hover:translate-x-0.5", width: "16", height: "16", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|
-        s.path(d: "m9 6 6 6-6 6")
-      end
-    end
+  def back_link
+    a(href: conversations_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← All chats" }
   end
 
   # Stated here as well as in the composer chip and the model's instructions.
   # It belongs to the conversation rather than to any one message, and the only
   # way to change it is a new chat — so the banner says both.
   def scope_banner
-    div(class: "mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-4 py-3") do
+    div(class: "mt-3 mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-4 py-3") do
       span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Drawing on" }
       span(class: "text-sm text-fg") { @conversation.scope_label }
       span(class: "ml-auto text-xs text-faint") do

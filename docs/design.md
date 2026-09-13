@@ -59,6 +59,15 @@ the links out **are** the content (a menu page like `Views::Sources::ChooseType`
 where every row leads elsewhere), they stay cards. A rail on every row is a rail
 on none.
 
+Doorways are for pages that stand on their own and offer a way *across*
+(`Views::Settings::Index`, `Views::Collections::Index`). A page you came *down*
+into — one chat, one document, one person — takes the plain back link instead,
+with no rule under it:
+
+```ruby
+a(href: …, class: "text-sm text-muted hover:text-fg transition-colors") { "← Chat" }
+```
+
 ## One box costume
 
 Cards — the repeated content items of a page — all wear the same thing:
