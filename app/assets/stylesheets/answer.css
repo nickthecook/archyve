@@ -1,0 +1,64 @@
+/* What the model wrote, rendered from markdown. Scoped under .answer so it
+   can't leak into the rest of the app, and written as element selectors because
+   the HTML comes from Chat::Prose rather than from a Phlex view that could
+   carry Tailwind classes. Brand tokens come from the Tailwind @theme. */
+
+.answer > :first-child { margin-top: 0; }
+.answer > :last-child { margin-bottom: 0; }
+.answer p, .answer ul, .answer ol, .answer blockquote, .answer pre, .answer table { margin: 0.75em 0; }
+
+/* Headings stay close to body size: this is an answer in a transcript, not a
+   document, and a model that opens with "## Summary" shouldn't get a banner. */
+.answer h1, .answer h2, .answer h3, .answer h4, .answer h5, .answer h6 {
+  margin: 1.25em 0 0.5em; font-weight: 600; color: var(--color-fg); line-height: 1.35;
+}
+.answer h1 { font-size: 1.15rem; }
+.answer h2 { font-size: 1.05rem; }
+.answer h3, .answer h4, .answer h5, .answer h6 { font-size: 0.97rem; }
+
+.answer strong { color: var(--color-fg); font-weight: 600; }
+.answer em { font-style: italic; }
+.answer del { color: var(--color-faint); }
+
+.answer ul, .answer ol { padding-left: 1.35em; }
+.answer ul { list-style: disc; }
+.answer ol { list-style: decimal; }
+.answer li { margin: 0.25em 0; }
+.answer li::marker { color: var(--color-faint); }
+.answer li > ul, .answer li > ol { margin: 0.25em 0; }
+
+.answer blockquote {
+  padding-left: 0.9em; border-left: 2px solid var(--color-line-2); color: var(--color-faint);
+}
+
+.answer code {
+  padding: 0.1em 0.35em; border: 1px solid var(--color-line); border-radius: 3px;
+  background: var(--color-void); font-family: var(--font-mono); font-size: 0.82em;
+  color: var(--color-fg);
+}
+.answer pre {
+  padding: 0.85rem 1rem; border: 1px solid var(--color-line); border-radius: 6px;
+  background: var(--color-void); overflow-x: auto;
+}
+/* The fence carries the frame; the code inside it shouldn't draw a second one. */
+.answer pre code { padding: 0; border: 0; background: none; font-size: 0.8rem; line-height: 1.55; }
+
+/* Tables scroll rather than push the transcript sideways — a model comparing
+   six columns must not widen the page it is answering in. */
+.answer table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.answer th, .answer td {
+  padding: 0.45rem 0.7rem; border: 1px solid var(--color-line); text-align: left; vertical-align: top;
+}
+.answer th {
+  background: var(--color-ink); color: var(--color-fg); font-weight: 600; font-size: 0.85em;
+}
+
+.answer hr { margin: 1.25em 0; border: 0; border-top: 1px solid var(--color-line); }
+
+/* Links the model wrote. Citations are their own thing — they carry Tailwind
+   classes from Chat::Prose and must not pick these up. */
+.answer a:not([class]) {
+  color: var(--color-accent); text-decoration: underline;
+  text-decoration-color: var(--color-accent-dim); text-underline-offset: 3px;
+}
+.answer a:not([class]):hover { color: var(--color-fg); }

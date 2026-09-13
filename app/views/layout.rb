@@ -31,6 +31,7 @@ class Views::Layout < Phlex::HTML
         stylesheet_link_tag("fonts", "data-turbo-track": "reload")
         stylesheet_link_tag("tailwind", "data-turbo-track": "reload")
         stylesheet_link_tag("landing", "data-turbo-track": "reload")
+        stylesheet_link_tag("answer", "data-turbo-track": "reload")
         javascript_importmap_tags
       end
       body(class: "min-h-screen bg-base text-fg font-sans antialiased") do

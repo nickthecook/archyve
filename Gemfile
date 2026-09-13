@@ -23,6 +23,11 @@ gem "phlex-rails"
 # pgvector support for Active Record: vector columns + nearest-neighbor search
 gem "neighbor"
 
+# Markdown for what the model writes back. GFM, because that is the dialect
+# models emit — tables, fenced code, strikethrough — and it escapes raw HTML
+# rather than trusting a completion with the page.
+gem "commonmarker"
+
 # Multi-provider LLM client: tool calling + streaming (Ollama first)
 gem "ruby_llm"
 
