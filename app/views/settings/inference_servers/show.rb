@@ -179,7 +179,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "text-xs text-faint hover:text-red-300 transition-colors cursor-pointer"
+        class: "text-xs text-faint hover:text-red-300 transition-colors"
       ) { "Remove this server and its models" }
       p(class: "mt-1 text-xs text-faint") do
         "Documents already embedded keep their vectors — they record which model produced them."
@@ -193,18 +193,18 @@ class Views::Settings::InferenceServers::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "shrink-0 text-xs text-faint hover:text-red-300 transition-colors cursor-pointer"
+        class: "shrink-0 text-xs text-faint hover:text-red-300 transition-colors"
       ) { "Remove" }
     end
   end
 
   def outlined_button
     "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm text-accent hover:bg-accent/20 " \
-      "hover:border-accent transition-colors cursor-pointer"
+      "hover:border-accent transition-colors"
   end
 
   def quiet_button
     "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
-      "transition-colors cursor-pointer"
+      "transition-colors"
   end
 end

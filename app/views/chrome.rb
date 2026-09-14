@@ -61,7 +61,7 @@ class Views::Chrome < Components::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "block w-full px-4 py-2 text-left text-sm text-muted hover:text-fg hover:bg-void/40 transition-colors cursor-pointer"
+        class: "block w-full px-4 py-2 text-left text-sm text-muted hover:text-fg hover:bg-void/40 transition-colors"
       ) { "Sign out" }
     end
   end

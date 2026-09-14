@@ -23,6 +23,20 @@
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
 }
 
+/* Tailwind v4 resets buttons to `cursor: default`, so a control only shows the
+   pointer if it asks for it. Say it once here instead of per button: scattered
+   `cursor-pointer` utilities get missed, and a missed one reads to the user as
+   "this doesn't do anything". Disabled controls are left out — the pointer would
+   promise a click the browser is about to swallow. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 /* The spinning brand mark — see Views::Spinner, which supplies the angle and
    the cycle length as custom properties. Only the travel-to-hold split lives
    here, because keyframe stops can't be custom properties: each beat spends

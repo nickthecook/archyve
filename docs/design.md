@@ -97,6 +97,13 @@ Before making a button solid, ask whether clicking it *commits* anything.
 Give outlined buttons a border even where the design doesn't demand one: a
 borderless button sits 2px shorter than bordered siblings in a flex row.
 
+Don't put `cursor-pointer` on a button. Tailwind v4 resets buttons to
+`cursor: default`, so the base layer in `app/assets/tailwind/application.css`
+hands the pointer back to every enabled `button` / `[role=button]` at once —
+scattered utilities get missed, and a button that doesn't change the cursor
+reads as one that doesn't do anything. Things that *aren't* buttons but are
+clickable — `summary`, a `label` wrapping a checkbox — still say it themselves.
+
 ## Status has a fixed vocabulary
 
 `pending` / `processing` / `processed` / `failed` / `removed` are the ingestion

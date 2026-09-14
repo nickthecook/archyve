@@ -63,7 +63,7 @@ class Views::People::Panel < Components::Base
       select(name: "role", class: select_classes) do
         @roles.each_key { |role| option(value: role, selected: grant.role == role) { role.capitalize } }
       end
-      button(type: "submit", class: "text-xs text-muted hover:text-fg transition-colors cursor-pointer") { "Save" }
+      button(type: "submit", class: "text-xs text-muted hover:text-fg transition-colors") { "Save" }
     end
   end
 
@@ -71,7 +71,7 @@ class Views::People::Panel < Components::Base
     form(action: @member_path.call(grant), method: "post", class: "inline") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "delete")
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors cursor-pointer") { "Revoke" }
+      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Revoke" }
     end
   end
 

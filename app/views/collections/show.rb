@@ -81,7 +81,7 @@ class Views::Collections::Show < Views::Base
     ) do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors cursor-pointer") { "Detach" }
+      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Detach" }
     end
   end
 
@@ -103,7 +103,7 @@ class Views::Collections::Show < Views::Base
       end
       button(
         type: "submit",
-        class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors cursor-pointer"
+        class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
       ) { "Attach" }
     end
   end
@@ -131,7 +131,7 @@ class Views::Collections::Show < Views::Base
         input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
         button(
           type: "submit",
-          class: "rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors cursor-pointer"
+          class: "rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors"
         ) { "Delete" }
       end
     end
