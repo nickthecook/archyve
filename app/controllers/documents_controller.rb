@@ -32,7 +32,9 @@ class DocumentsController < ApplicationController
     file = params[:file]
     return redirect_to(collection || documents_path, alert: "Choose a file to upload.") if file.blank?
 
-    document = Ingestion::DocumentUploader.call(file: file, user: Current.user, collections: Array(collection))
+    document = Ingestion::DocumentUploader.call(
+      file: file, user: Current.user, collections: Array(collection), ocr: ocr_choice
+    )
     # Back to the collection when the upload targeted one, so the user sees it
     # appear; otherwise to the document itself.
     redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"
@@ -74,6 +76,15 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  # The upload form always sends this (a hidden "0" behind the checkbox), so a
+  # missing param means a caller that never asked — an API client, a spec —
+  # and nil is the honest answer there: let the source decide.
+  def ocr_choice
+    return if params[:ocr].nil?
+
+    ActiveModel::Type::Boolean.new.cast(params[:ocr])
+  end
 
   def target_collection
     return if params[:collection_slug].blank?

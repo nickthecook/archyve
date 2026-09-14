@@ -74,6 +74,7 @@ class Views::Sources::Show < Views::Base
     dl(class: "mb-8 rounded-lg border border-line bg-ink/40 divide-y divide-line") do
       row("Folder", @source.path, mono: true) if @source.respond_to?(:path)
       row("Scan every", interval) if @source.supports_sync?
+      row("OCR", @source.ocr? ? "on" : "off")
       row("Last scanned", last_scanned)
       row("File types", Sources::Folder::EXTENSIONS.join(" "), mono: true) if @source.is_a?(Sources::Folder)
       row("Size limit", size_limit) if @source.is_a?(Sources::Folder)

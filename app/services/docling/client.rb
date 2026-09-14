@@ -30,10 +30,18 @@ module Docling
     end
 
     # `io` is anything Faraday::Multipart::FilePart accepts (File, StringIO, path).
-    def convert(io, filename:, content_type: "application/octet-stream")
+    #
+    # `ocr` is sent on every request rather than only when false. Docling's
+    # default is true, so omitting it would leave the expensive choice as the
+    # implicit one, and a request that doesn't say what it wants is a request
+    # whose behaviour changes when docling's defaults do.
+    def convert(io, filename:, content_type: "application/octet-stream", ocr: true)
       payload = {
         "files" => Faraday::Multipart::FilePart.new(io, content_type, filename),
-        "to_formats" => TO_FORMAT
+        "to_formats" => TO_FORMAT,
+        # A scalar, so it avoids the repeated-field encoding problem that
+        # to_formats has above.
+        "do_ocr" => ocr.to_s
       }
 
       response = @conn.post(CONVERT_PATH, payload)

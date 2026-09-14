@@ -35,6 +35,24 @@ RSpec.describe ProcessDocumentJob do
       end
     end
 
+    # The setting is only worth having if it reaches docling, and the document
+    # is what decides — it is the thing that remembers what was chosen.
+    describe "the OCR choice it converts with" do
+      it "asks for OCR when the document wants it" do
+        job.perform(document)
+        expect(client).to have_received(:convert).with(anything, hash_including(ocr: true))
+      end
+
+      context "when the document's source has OCR turned off" do
+        before { document.source.update!(ocr: false) }
+
+        it "converts without it" do
+          job.perform(document)
+          expect(client).to have_received(:convert).with(anything, hash_including(ocr: false))
+        end
+      end
+    end
+
     context "when the document has no attached file" do
       let(:document) { create(:document) }
 

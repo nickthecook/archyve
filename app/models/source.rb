@@ -71,6 +71,39 @@ class Source < ApplicationRecord
 
   validates :name, presence: true
 
+  # Whether documents from this source get run through OCR. On the base class
+  # because it is a property of *extracting* documents, which every source type
+  # does, rather than of any one way of fetching them.
+  #
+  # It is here at all because OCR is the expensive half of a conversion: it
+  # loads models and runs them over a rendered image of every page, and it is
+  # the difference between a conversion that fits in memory and one that gets
+  # the container killed. A scanned folder of receipts needs it; a folder of
+  # exported Markdown emphatically does not, and paying for it there is how a
+  # 3MB file turns into several gigabytes of resident memory.
+  #
+  # Per source rather than globally, because those two folders can sit side by
+  # side in one install.
+  store_accessor :config, :ocr
+
+  # Docling's own default, kept deliberately: turning OCR off by default would
+  # silently stop extracting every scanned document in an existing archive, and
+  # the failure mode — a document that processes to nothing — looks like a
+  # broken file rather than a setting.
+  OCR_BY_DEFAULT = true
+
+  # Cast on the way in, so `config` holds a real boolean rather than the "1" or
+  # "0" a checkbox submits. jsonb is queried directly often enough — by hand, in
+  # a console — that storing a string which is truthy either way is a trap.
+  def ocr=(value)
+    super(ActiveModel::Type::Boolean.new.cast(value))
+  end
+
+  def ocr?
+    chosen = ActiveModel::Type::Boolean.new.cast(ocr)
+    chosen.nil? ? OCR_BY_DEFAULT : chosen
+  end
+
   # Everything this person may configure, sync or delete. Ownership counts as a
   # grant: your own upload source is yours without anyone having to say so.
   scope :manageable_by, ->(user) {

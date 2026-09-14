@@ -217,6 +217,24 @@ RSpec.describe "Sources", type: :request do
       end
     end
 
+    # Per connector, because a folder of scans and a folder of exported
+    # Markdown want opposite answers and can sit side by side in one archive.
+    context "with OCR turned off" do
+      let(:params) do
+        { type: "Sources::Folder", source: { name: "Docs", path: root, ocr: "0" } }
+      end
+
+      it "stores the choice" do
+        post sources_path, params: params
+        expect(Source.last.ocr?).to be(false)
+      end
+
+      it "applies to the documents it produces" do
+        post sources_path, params: params
+        expect(create(:document, source: Source.last).ocr?).to be(false)
+      end
+    end
+
     context "with a path that isn't a directory" do
       let(:params) do
         { type: "Sources::Folder", source: { name: "Docs", path: "/no/such/folder" } }

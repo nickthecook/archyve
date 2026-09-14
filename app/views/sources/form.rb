@@ -29,6 +29,10 @@ class Views::Sources::Form < Components::Base
         interval_input
       end
 
+      field("Read text from images (OCR)", ocr_hint) do
+        ocr_checkbox
+      end
+
       if @source.feeds_collections?
         field("Feeds collections", "Documents from this source automatically join these. Documents you filed by hand stay where you put them.") do
           collection_checkboxes
@@ -104,6 +108,32 @@ class Views::Sources::Form < Components::Base
         class: "w-28 rounded border border-line bg-void/60 px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent transition-colors"
       )
       span(class: "text-sm text-muted") { "minutes" }
+    end
+  end
+
+  # Per source rather than per install: a folder of scanned receipts and a
+  # folder of exported Markdown want opposite answers, and they can sit side by
+  # side in one archive.
+  def ocr_hint
+    "Runs every page through text recognition. Needed for scans; on documents that already have " \
+      "selectable text it only makes conversion slower and far more memory-hungry."
+  end
+
+  # Same hidden-then-checkbox pair as the collection feeds below, and for the
+  # same reason: an unchecked box submits nothing, which would read as "leave
+  # it as it was" rather than "turn it off".
+  def ocr_checkbox
+    input(type: "hidden", name: "source[ocr]", value: "0")
+
+    label(class: "flex cursor-pointer items-center gap-2.5 text-sm text-muted hover:text-fg transition-colors") do
+      input(
+        type: "checkbox",
+        name: "source[ocr]",
+        value: "1",
+        checked: @source.ocr?,
+        class: "h-3.5 w-3.5 accent-accent"
+      )
+      plain "Use OCR on documents from this source"
     end
   end
 

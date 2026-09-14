@@ -40,7 +40,16 @@ class Views::Documents::Diagnostics < Components::Base
     div(class: "rounded border px-3 py-2 #{tone}") do
       p(class: "font-mono text-xs uppercase tracking-wide #{headline_tone}") { headline }
       p(class: "mt-1 font-mono text-xs #{detail_tone} break-words") { @document.outcome_detail } if detail?
+      settings_line
     end
+  end
+
+  # What the conversion was asked to do, not only how it went. OCR earns its
+  # place here because it is the setting most likely to explain the outcome in
+  # both directions: off, and a scanned document extracts to nothing; on, and a
+  # big one can exhaust the converter's memory.
+  def settings_line
+    p(class: "mt-1 font-mono text-xs text-faint") { "ocr: #{@document.ocr? ? 'on' : 'off'}" }
   end
 
   def failed? = @document.failed?

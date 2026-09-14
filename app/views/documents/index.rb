@@ -24,21 +24,10 @@ class Views::Documents::Index < Views::Base
       action: documents_path,
       method: "post",
       enctype: "multipart/form-data",
-      class: "mb-10 rounded-lg border border-line bg-ink/40 p-5 shadow-sm flex items-center gap-4"
+      class: "mb-10 rounded-lg border border-line bg-ink/40 p-5 shadow-sm"
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      input(
-        type: "file",
-        name: "file",
-        required: true,
-        class: "block w-full text-sm text-muted file:mr-4 file:rounded file:border-0 " \
-               "file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-void " \
-               "hover:file:bg-accent-dim file:cursor-pointer"
-      )
-      button(
-        type: "submit",
-        class: "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
-      ) { "Upload" }
+      render Views::Documents::UploadFields.new
     end
   end
 

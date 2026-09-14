@@ -229,16 +229,10 @@ class Views::Collections::Show < Views::Base
     details(class: "mb-2 rounded-lg border border-line bg-ink/40") do
       summary(class: "cursor-pointer list-none px-4 py-3 text-sm font-medium text-accent hover:text-accent-dim transition-colors") { "Upload a file" }
       div(class: "border-t border-line p-4") do
-        form(action: documents_path, method: "post", enctype: "multipart/form-data", class: "flex items-center gap-4") do
+        form(action: documents_path, method: "post", enctype: "multipart/form-data") do
           input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
           input(type: "hidden", name: "collection_slug", value: @collection.slug)
-          input(
-            type: "file", name: "file", required: true,
-            class: "block w-full text-sm text-muted file:mr-4 file:rounded file:border-0 " \
-                   "file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-void " \
-                   "hover:file:bg-accent-dim file:cursor-pointer"
-          )
-          button(type: "submit", class: "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Upload" }
+          render Views::Documents::UploadFields.new
         end
       end
     end

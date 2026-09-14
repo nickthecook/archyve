@@ -53,6 +53,37 @@ RSpec.describe "Documents", type: :request do
       end
     end
 
+    # The uploader is asked per file, because the right answer is a property of
+    # the file. Their answer is stored so a reprocess months later repeats it.
+    context "when the uploader turns OCR off" do
+      let(:params) { { file:, ocr: "0" } }
+
+      it "records their answer on the document" do
+        request
+        expect(Document.last.ocr).to be(false)
+      end
+    end
+
+    context "when the uploader leaves OCR on" do
+      let(:params) { { file:, ocr: "1" } }
+
+      it "records that too, rather than leaving it to be inferred later" do
+        request
+        expect(Document.last.ocr).to be(true)
+      end
+    end
+
+    # An API client or a future caller that was never asked. Nil means "let the
+    # source decide", which is different from having chosen `false`.
+    context "when nothing says either way" do
+      let(:params) { { file: } }
+
+      it "leaves the document deferring to its source" do
+        request
+        expect(Document.last.ocr).to be_nil
+      end
+    end
+
     context "when no file is chosen for a collection upload" do
       let(:collection) { create(:collection) }
 

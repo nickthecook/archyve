@@ -98,6 +98,15 @@ class Document < ApplicationRecord
   # these columns aren't called `failure_*`.
   def shortfall? = processed? && outcome_kind.present?
 
+  # Whether to OCR this document when extracting it.
+  #
+  # Null is not "no" — it means "whatever the source says". That is what a
+  # connector's documents want: change the source's setting, reprocess, and
+  # they follow. A manual upload stores an explicit answer instead, because the
+  # person uploading was asked one file at a time and their answer has to
+  # survive a reprocess months later.
+  def ocr? = ocr.nil? ? source.ocr? : ocr
+
   # Whether re-running the pipeline is worth offering. Not gated on having
   # settled: `limits_concurrency` on the job already serializes a second run
   # behind a first, and the job is idempotent, so the honest answer to "can

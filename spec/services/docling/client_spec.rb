@@ -18,6 +18,33 @@ RSpec.describe Docling::Client do
 
   before { allow(Http).to receive(:connection).and_return(connection) }
 
+  # OCR is the expensive half of a conversion, so what we ask for has to be
+  # exactly what the caller chose — not docling's default standing in for it.
+  describe "the OCR choice" do
+    subject(:convert) { described_class.new.convert(StringIO.new("bytes"), filename: "manual.pdf", ocr: ocr) }
+
+    let(:connection) { instance_double(Faraday::Connection, post: response) }
+    let(:response) { instance_double(Faraday::Response, body: { "status" => "success" }.to_json) }
+
+    context "when the caller wants OCR" do
+      let(:ocr) { true }
+
+      it "asks for it" do
+        convert
+        expect(connection).to have_received(:post).with(anything, hash_including("do_ocr" => "true"))
+      end
+    end
+
+    context "when the caller doesn't" do
+      let(:ocr) { false }
+
+      it "says so rather than leaving docling to its default" do
+        convert
+        expect(connection).to have_received(:post).with(anything, hash_including("do_ocr" => "false"))
+      end
+    end
+  end
+
   describe "#convert" do
     context "when docling converts the file" do
       before do

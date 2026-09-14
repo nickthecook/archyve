@@ -23,12 +23,17 @@ module Ingestion
   class DocumentUploader
     def self.call(...) = new(...).call
 
-    def initialize(file:, user:, filename: nil, content_type: nil, collections: [])
+    # `ocr` is the uploader's own answer for this file, stored on the document
+    # so a reprocess months later does the same thing this upload did. nil
+    # leaves it to the source, which is what a caller that wasn't asked should
+    # pass rather than guessing a default.
+    def initialize(file:, user:, filename: nil, content_type: nil, collections: [], ocr: nil)
       @file = file
       @user = user
       @filename = filename || file.try(:original_filename) || "upload"
       @content_type = content_type || file.try(:content_type) || "application/octet-stream"
       @collections = Array(collections)
+      @ocr = ocr
     end
 
     def call
@@ -45,7 +50,7 @@ module Ingestion
       # DB writes commit atomically; Rails 8 enqueues after commit, so the job
       # never fires for a document that rolled back.
       document.transaction do
-        document.assign_attributes(title: @filename, content_type: @content_type, status: :pending)
+        document.assign_attributes(title: @filename, content_type: @content_type, status: :pending, ocr: @ocr)
         document.file.attach(io: StringIO.new(bytes), filename: @filename, content_type: @content_type)
         document.save!
         add_to_collections(document)

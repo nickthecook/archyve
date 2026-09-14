@@ -85,7 +85,7 @@ class SourcesController < ApplicationController
   end
 
   def source_params
-    params.require(:source).permit(:name, :path, :sync_interval_minutes, collection_ids: [])
+    params.require(:source).permit(:name, :path, :sync_interval_minutes, :ocr, collection_ids: [])
   end
 
   # What this source should feed after the save.

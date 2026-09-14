@@ -103,7 +103,8 @@ class ProcessDocumentJob < ApplicationJob
       Docling::Client.new.convert(
         file,
         filename: document.file.filename.to_s,
-        content_type: document.file.content_type || "application/octet-stream"
+        content_type: document.file.content_type || "application/octet-stream",
+        ocr: document.ocr?
       )
     end
   end
