@@ -37,7 +37,7 @@ class DocumentsController < ApplicationController
     )
     # Back to the collection when the upload targeted one, so the user sees it
     # appear; otherwise to the document itself.
-    redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"
+    redirect_to collection || document, notice: upload_notice(document)
   end
 
   # Re-run the pipeline over a document that's already here.
@@ -76,6 +76,16 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  # Uploading bytes the archive already holds doesn't re-ingest them, and may
+  # not start any work at all — so don't promise any. `pending?` is the honest
+  # test: it covers a fresh upload and a re-upload that asked for something new,
+  # and excludes the one that was a no-op.
+  def upload_notice(document)
+    return "Uploaded “#{document.title}”. Processing…" if document.pending?
+
+    "“#{document.title}” is already in Archyve — the same file, unchanged."
+  end
 
   # The upload form always sends this (a hidden "0" behind the checkbox), so a
   # missing param means a caller that never asked — an API client, a spec —

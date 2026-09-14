@@ -73,6 +73,38 @@ RSpec.describe "Documents", type: :request do
       end
     end
 
+    # The path that broke in production: upload a file the archive already
+    # holds, with the OCR box unchecked. Dedup returned the existing row and
+    # threw the answer away, so the page went on saying "ocr: on".
+    context "when re-uploading a file already in the archive with OCR turned off" do
+      let(:params) { { file:, ocr: "0" } }
+
+      let!(:existing) do
+        create(
+          :document, :with_file,
+          source: Sources::ManualUpload.create!(name: "Uploads", user: current_user),
+          external_id: Digest::SHA256.hexdigest(file.tap(&:rewind).read),
+          status: "failed"
+        )
+      end
+
+      before { file.rewind }
+
+      it "does not duplicate the document" do
+        expect { request }.not_to change(Document, :count)
+      end
+
+      it "applies the new OCR choice to it" do
+        request
+        expect(existing.reload.ocr).to be(false)
+      end
+
+      it "runs it again, rather than leaving the old failure on the page" do
+        request
+        expect(ProcessDocumentJob).to have_received(:perform_later).with(existing)
+      end
+    end
+
     # An API client or a future caller that was never asked. Nil means "let the
     # source decide", which is different from having chosen `false`.
     context "when nothing says either way" do

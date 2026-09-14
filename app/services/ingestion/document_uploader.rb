@@ -44,6 +44,7 @@ module Ingestion
       # file already exists elsewhere in the archive.
       unless document.new_record?
         add_to_collections(document)
+        rerun_if_this_upload_asked_for_something_new(document)
         return document
       end
 
@@ -68,6 +69,39 @@ module Ingestion
     def source
       @source ||= Sources::ManualUpload.create_with(name: "Uploads — #{@user.email_address}")
         .find_or_create_by!(user: @user)
+    end
+
+    # Re-uploading bytes the archive already holds is not necessarily a no-op.
+    # The *file* is the same; this upload's answers about it may not be, and
+    # somebody uploading a document they already uploaded is usually asking for
+    # a different result than they got last time.
+    #
+    # Two triggers, and deliberately only these:
+    #
+    #   the OCR choice differs from the one that produced the chunks we hold —
+    #     keeping them would leave the page claiming a setting the content
+    #     doesn't reflect
+    #   the last run failed — re-uploading is the obvious "try again", and
+    #     until now it quietly did nothing while the flash said "Processing…"
+    #
+    # A re-upload of a document that processed cleanly under the same settings
+    # stays the cheap no-op it has always been. Reprocessing it would spend
+    # minutes of docling to arrive back where it started.
+    def rerun_if_this_upload_asked_for_something_new(document)
+      return unless ocr_changed?(document) || document.failed?
+
+      document.ocr = @ocr unless @ocr.nil?
+      # Saves the OCR change along with the status, and clears the previous
+      # run's verdict so the page doesn't show a stale diagnosis as current.
+      document.queue_for_processing!
+      ProcessDocumentJob.perform_later(document)
+    end
+
+    # Compared against `ocr?`, not the raw column: a document inheriting `true`
+    # from its source has not been asked to change when this upload also says
+    # true, even though the column reads nil.
+    def ocr_changed?(document)
+      !@ocr.nil? && @ocr != document.ocr?
     end
 
     # Use the user-path add so an existing feed membership is never illegally
