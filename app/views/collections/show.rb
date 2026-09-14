@@ -248,10 +248,22 @@ class Views::Collections::Show < Views::Base
   # picker out of the way until wanted; inside, a filter narrows the candidate
   # list and checkboxes add several at once — a live test of the picker paradigm
   # the scope picker will reuse.
+  # Its own live region rather than a companion of the document list: it shows
+  # documents that *aren't* in this collection, so it goes stale on its own
+  # schedule — a collection whose own documents have all settled would otherwise
+  # stop polling and leave a "Pending" here that never resolves.
+  #
+  # Being behind a disclosure is what makes that affordable. The poll skips a
+  # region nobody can see, so a closed picker costs a timer tick and no request,
+  # and opening it starts the refreshes within one interval.
   def add_documents
     details(class: "mb-6 rounded-lg border border-line bg-ink/40") do
       summary(class: "cursor-pointer list-none px-4 py-3 text-sm font-medium text-accent hover:text-accent-dim transition-colors") { "Add documents" }
-      div(class: "border-t border-line p-4") do
+      div(
+        class: "border-t border-line p-4",
+        id: "collection_candidates",
+        data: progress_data(terminal: @candidates.all?(&:settled?))
+      ) do
         @candidates.any? ? picker_form : no_candidates
       end
     end
@@ -296,11 +308,8 @@ class Views::Collections::Show < Views::Base
   # sits pending while the pipeline works — and nothing broadcasts to a
   # collection, so this region polls itself fresh. The header's meter and counts
   # tally the same statuses, so they ride along on the same response instead of
-  # drifting out of step with the badges below them.
-  #
-  # The "Add documents" picker shows badges too and is deliberately left out: it
-  # carries a filter and a selection, and it lists documents that aren't in this
-  # collection, whose progress isn't what someone came here to watch.
+  # drifting out of step with the badges below them. (The "Add documents" picker
+  # watches a different set of documents and polls itself — see #add_documents.)
   def documents_region
     div(
       id: "collection_documents",

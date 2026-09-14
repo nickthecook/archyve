@@ -51,45 +51,80 @@ RSpec.describe "Collections", type: :request do
     end
 
     # Where the "Processing…" flash sends you after an upload, so the badges here
-    # have to catch up on their own.
-    describe "the live status region" do
-      context "when a document in it is still being processed" do
-        let(:document) { create(:document, status: "pending") }
+    # have to catch up on their own. Two regions poll independently, so every
+    # assertion has to name the one it means.
+    describe "the live status regions" do
+      def polling?(id)
+        Nokogiri::HTML(response.body).at_css("##{id}")["data-progress-terminal-value"] == "false"
+      end
 
+      describe "the document list" do
         before { create(:collection_membership, collection:, document:, origin: "manual") }
 
-        it "keeps polling" do
-          request
-          expect(response.body).to include('progress-terminal-value="false"')
+        context "when a document in it is still being processed" do
+          let(:document) { create(:document, status: "pending") }
+
+          it "keeps polling" do
+            request
+            expect(polling?("collection_documents")).to be(true)
+          end
+
+          it "refreshes the header meter from the same response, so counts and badges agree" do
+            request
+            region = Nokogiri::HTML(response.body).at_css("#collection_documents")
+            expect(JSON.parse(region["data-progress-also-value"])).to eq(["collection_meter"])
+          end
         end
 
-        it "refreshes the header meter from the same response, so counts and badges agree" do
-          request
-          expect(response.body).to include("progress-also-value=\"#{CGI.escapeHTML('["collection_meter"]')}\"")
+        context "when every document in it has settled" do
+          let(:document) { create(:document, status: "processed") }
+
+          it "stops polling" do
+            request
+            expect(polling?("collection_documents")).to be(false)
+          end
+        end
+
+        # A failed document is done moving; polling forever would be a busy loop
+        # waiting for a status only a re-upload can change.
+        context "when a document failed" do
+          let(:document) { create(:document, status: "failed") }
+
+          it "stops polling" do
+            request
+            expect(polling?("collection_documents")).to be(false)
+          end
         end
       end
 
-      context "when every document in it has settled" do
-        let(:document) { create(:document, status: "processed") }
+      # The picker lists what *isn't* in this collection, so it can't take its cue
+      # from the list above it — the common case is a file uploaded elsewhere,
+      # still processing, that someone came here to file.
+      describe "the Add documents picker" do
+        context "when a document outside the collection is still being processed" do
+          before { create(:document, status: "pending") }
 
-        before { create(:collection_membership, collection:, document:, origin: "manual") }
-
-        it "stops polling" do
-          request
-          expect(response.body).to include('progress-terminal-value="true"')
+          it "keeps polling, even though the collection's own documents have settled" do
+            request
+            expect(polling?("collection_documents")).to be(false)
+            expect(polling?("collection_candidates")).to be(true)
+          end
         end
-      end
 
-      # A failed document is done moving; polling forever would be a busy loop
-      # waiting for a status only a re-upload can change.
-      context "when a document failed" do
-        let(:document) { create(:document, status: "failed") }
+        context "when every document outside the collection has settled" do
+          before { create(:document, status: "processed") }
 
-        before { create(:collection_membership, collection:, document:, origin: "manual") }
+          it "stops polling" do
+            request
+            expect(polling?("collection_candidates")).to be(false)
+          end
+        end
 
-        it "stops polling" do
-          request
-          expect(response.body).to include('progress-terminal-value="true"')
+        context "when there is nothing to add" do
+          it "still renders the region, so the poll has a target if candidates appear" do
+            request
+            expect(Nokogiri::HTML(response.body).at_css("#collection_candidates")).to be_present
+          end
         end
       end
     end
