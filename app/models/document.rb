@@ -32,13 +32,13 @@ class Document < ApplicationRecord
 
   validates :external_id, presence: true, uniqueness: { scope: :source_id }
 
-  # The failure vocabulary lives with the pipeline that produces it
-  # (Ingestion::Failure); the columns only refuse anything outside it, so a
+  # The outcome vocabulary lives with the pipeline that produces it
+  # (Ingestion::Outcome); the columns only refuse anything outside it, so a
   # typo can't reach a view that has no words for it. Both stay nullable — a
-  # document that never failed has nothing to say, and rows that failed before
-  # any of this existed have nothing to say either.
-  validates :failure_kind, inclusion: { in: Ingestion::Failure::KINDS }, allow_nil: true
-  validates :failure_stage, inclusion: { in: Ingestion::Failure::STAGES }, allow_nil: true
+  # document that came through cleanly has nothing to say, and rows that failed
+  # before any of this existed have nothing to say either.
+  validates :outcome_kind, inclusion: { in: Ingestion::Outcome::KINDS }, allow_nil: true
+  validates :outcome_stage, inclusion: { in: Ingestion::Outcome::STAGES }, allow_nil: true
 
   # "Unsorted": live documents in no collection. A derived view, not a real
   # collection — a removed (tombstoned) doc is gone from its source, so it isn't
@@ -86,14 +86,17 @@ class Document < ApplicationRecord
   def queue_for_processing! = enter_pipeline!(:pending)
   def begin_processing! = enter_pipeline!(:processing)
 
-  def record_failure!(failure)
-    update!(
-      status: :failed,
-      failure_stage: failure.stage,
-      failure_kind: failure.kind,
-      failure_detail: failure.detail
-    )
-  end
+  def record_failure!(outcome) = record_outcome!(outcome, status: :failed)
+
+  # Processed, with a caveat. The status is the honest one — the document is in
+  # the archive and will be retrieved from — and the caveat rides alongside
+  # rather than downgrading it.
+  def record_shortfall!(outcome) = record_outcome!(outcome, status: :processed)
+
+  # Came through with something missing: searchable, but not the whole
+  # document. Distinct from `failed?`, and the distinction is the whole reason
+  # these columns aren't called `failure_*`.
+  def shortfall? = processed? && outcome_kind.present?
 
   # Whether re-running the pipeline is worth offering. Not gated on having
   # settled: `limits_concurrency` on the job already serializes a second run
@@ -111,7 +114,16 @@ class Document < ApplicationRecord
   private
 
   def enter_pipeline!(status)
-    update!(status: status, failure_stage: nil, failure_kind: nil, failure_detail: nil)
+    update!(status: status, outcome_stage: nil, outcome_kind: nil, outcome_detail: nil)
+  end
+
+  def record_outcome!(outcome, status:)
+    update!(
+      status: status,
+      outcome_stage: outcome.stage,
+      outcome_kind: outcome.kind,
+      outcome_detail: outcome.detail
+    )
   end
 
   def broadcast_status_change

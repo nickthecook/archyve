@@ -22,7 +22,7 @@ class Views::Documents::Detail < Components::Base
         note
       end
 
-      failed_note if @document.failed?
+      outcome_note if @document.failed? || @document.shortfall?
       chunks if @document.processed?
     end
   end
@@ -42,7 +42,7 @@ class Views::Documents::Detail < Components::Base
   # document. The facts behind it — which stage, which service, the raw error —
   # are the operator's, and live in Views::Documents::Diagnostics.
   #
-  # Keyed on failure_kind rather than composed from it so each sentence can be
+  # Keyed on outcome_kind rather than composed from it so each sentence can be
   # written rather than assembled; "couldn't be read" and "didn't respond" are
   # different news, not different nouns in one template.
   SENTENCES = {
@@ -50,15 +50,22 @@ class Views::Documents::Detail < Components::Base
     "unreachable" => "A service Archyve depends on didn't respond, so this couldn't be processed.",
     "conversion_rejected" => "This file couldn't be read — it may be corrupt, empty, or in a format Archyve can't open.",
     "not_configured" => "Archyve isn't set up to index documents yet, so this couldn't be processed.",
-    "dimension_mismatch" => "The embedding model returned something Archyve couldn't store."
+    "dimension_mismatch" => "The embedding model returned something Archyve couldn't store.",
+    # The one that isn't bad news. Says what is missing *and* what still works,
+    # because a reader searching this document needs to know their results are
+    # real but incomplete — not that the document is broken.
+    "partial_extraction" => "Part of this document couldn't be read. What did come through is searchable; the rest is missing."
   }.freeze
 
   # Covers `internal` and, just as importantly, documents that failed before any
   # of this was recorded.
   UNCLASSIFIED = "Processing failed.".freeze
 
-  def failed_note
-    p(class: "text-sm text-red-300") { SENTENCES.fetch(@document.failure_kind, UNCLASSIFIED) }
+  # Red for a document that isn't here, amber for one that is here with a piece
+  # missing — the reader's cue that the second is still worth reading.
+  def outcome_note
+    tone = @document.failed? ? "text-red-300" : "text-amber-300"
+    p(class: "text-sm #{tone}") { SENTENCES.fetch(@document.outcome_kind, UNCLASSIFIED) }
   end
 
   def chunks

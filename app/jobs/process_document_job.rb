@@ -3,7 +3,7 @@
 # progress later. Idempotent: reprocessing clears prior chunks/embeddings first,
 # so a re-run after a failure or a re-embed is safe.
 #
-# Every failure is also recorded *on the document* — see Ingestion::Failure —
+# Every verdict is also recorded *on the document* — see Ingestion::Outcome —
 # rather than only logged. A log line is only useful to someone who already
 # knows which document to go looking for, which is exactly what the person
 # staring at a red badge does not know.
@@ -35,19 +35,19 @@ class ProcessDocumentJob < ApplicationJob
     document.begin_processing!
 
     result = stage(:extract) { extract(document) }
-    chunks = stage(:chunk) { Ingestion::Chunker.new.chunk(result) }
+    chunks = stage(:chunk) { chunk(result) }
     stage(:store) { store(document, chunks) }
 
-    document.update!(status: :processed)
+    finish(document, result)
   rescue StageError => e
-    record_failure(document, Ingestion::Failure.classify(e.original, stage: e.stage))
+    record_failure(document, Ingestion::Outcome.classify(e.original, stage: e.stage))
     # Re-raise what actually went wrong, not our wrapper: the queue's retries
     # and anything watching the job should see the real exception and its
     # backtrace, not a label we invented for the UI.
     raise e.original
   rescue StandardError => e
     # Outside any stage — a database write, most likely. No stage to name.
-    record_failure(document, Ingestion::Failure.classify(e))
+    record_failure(document, Ingestion::Outcome.classify(e))
     raise
   end
 
@@ -64,12 +64,36 @@ class ProcessDocumentJob < ApplicationJob
     raise StageError.new(name, e)
   end
 
-  def record_failure(document, failure)
+  # The document is stored and searchable either way; the only question is
+  # whether all of it made it. A shortfall is kept on the row rather than
+  # logged and forgotten, because "this manual is missing page 2" is something
+  # a reader deserves to know months later, not only while the job is running.
+  def finish(document, result)
+    if result.partial?
+      document.record_shortfall!(Ingestion::Outcome.partial_extraction(result))
+    else
+      document.update!(status: :processed)
+    end
+  end
+
+  def record_failure(document, outcome)
     Rails.logger.error(
       "ProcessDocumentJob failed for document #{document.id} " \
-      "[stage=#{failure.stage || 'none'} kind=#{failure.kind}]: #{failure.detail}"
+      "[stage=#{outcome.stage || 'none'} kind=#{outcome.kind}]: #{outcome.detail}"
     )
-    document.record_failure!(failure) if document.persisted?
+    document.record_failure!(outcome) if document.persisted?
+  end
+
+  # A document that chunks to nothing is not a processed document. Caught here
+  # rather than left to produce a cheerful empty page, because the two ways to
+  # arrive at it — an empty file, and a partial conversion whose surviving
+  # pages held no text — both end with an archive entry nothing can ever
+  # retrieve.
+  def chunk(result)
+    chunks = Ingestion::Chunker.new.chunk(result)
+    raise Ingestion::NothingReadable, "extraction produced no text to chunk" if chunks.empty?
+
+    chunks
   end
 
   def extract(document)

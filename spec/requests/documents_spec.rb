@@ -251,7 +251,7 @@ RSpec.describe "Documents", type: :request do
 
     before do
       document.record_failure!(
-        Ingestion::Failure.new(stage: "embed", kind: "unreachable", detail: "Faraday::ConnectionFailed: tensor:11434")
+        Ingestion::Outcome.new(stage: "embed", kind: "unreachable", detail: "Faraday::ConnectionFailed: tensor:11434")
       )
     end
 
@@ -314,6 +314,39 @@ RSpec.describe "Documents", type: :request do
     end
   end
 
+  # A reader searching a partly-converted document needs to know their results
+  # are real but incomplete — not that the document is broken, and not nothing.
+  describe "GET /documents/:id when part of the document couldn't be read" do
+    subject(:request) { get document_path(document) }
+
+    let(:document) { create(:document, :with_file, title: "Blueprint") }
+    let(:collection) { create(:collection) }
+
+    before do
+      document.record_shortfall!(
+        Ingestion::Outcome.new(stage: "extract", kind: "partial_extraction", detail: "docling reported page 2")
+      )
+      sign_in(create(:user))
+      create(:collection_user, collection:, user: current_user)
+      create(:collection_membership, collection:, document:)
+    end
+
+    it "still reads as processed, because it is" do
+      request
+      expect(response.body).to include("processed")
+    end
+
+    it "tells them what is missing and what still works" do
+      request
+      expect(response.body).to include("Part of this document couldn&#39;t be read")
+    end
+
+    it "keeps docling's account to the operator" do
+      request
+      expect(response.body).not_to include("docling reported page 2")
+    end
+  end
+
   describe "POST /documents/:id/reprocess" do
     subject(:request) { post reprocess_document_path(document) }
 
@@ -337,9 +370,9 @@ RSpec.describe "Documents", type: :request do
       end
 
       it "forgets the failure it is retrying" do
-        document.record_failure!(Ingestion::Failure.new(stage: "extract", kind: "unreachable", detail: "boom"))
+        document.record_failure!(Ingestion::Outcome.new(stage: "extract", kind: "unreachable", detail: "boom"))
         request
-        expect(document.reload.failure_kind).to be_nil
+        expect(document.reload.outcome_kind).to be_nil
       end
 
       it "returns to the document" do

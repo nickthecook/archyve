@@ -21,7 +21,7 @@ class Views::Documents::Diagnostics < Components::Base
     # broadcast and the poll both need as a landing place, and a document that
     # fails while someone watches has somewhere to put the news.
     div(id: self.class.dom_id(@document), class: "mt-4") do
-      facts if @document.failed?
+      facts if @document.failed? || @document.shortfall?
     end
   end
 
@@ -32,20 +32,30 @@ class Views::Documents::Diagnostics < Components::Base
   # search — so it keeps the exception class, and it keeps monospace. Styled
   # after Views::Sources::LastScan's error row, which is the same idea one
   # level up.
+  #
+  # Amber rather than red when the document came through with a shortfall: it
+  # is in the archive and being searched, and colouring it like an outage would
+  # send someone to fix a pipeline that is working.
   def facts
-    div(class: "rounded border border-red-400/40 bg-red-400/5 px-3 py-2") do
-      p(class: "font-mono text-xs uppercase tracking-wide text-red-400/80") { headline }
-      p(class: "mt-1 font-mono text-xs text-red-300 break-words") { @document.failure_detail } if detail?
+    div(class: "rounded border px-3 py-2 #{tone}") do
+      p(class: "font-mono text-xs uppercase tracking-wide #{headline_tone}") { headline }
+      p(class: "mt-1 font-mono text-xs #{detail_tone} break-words") { @document.outcome_detail } if detail?
     end
   end
 
+  def failed? = @document.failed?
+
+  def tone = failed? ? "border-red-400/40 bg-red-400/5" : "border-amber-400/40 bg-amber-400/5"
+  def headline_tone = failed? ? "text-red-400/80" : "text-amber-400/80"
+  def detail_tone = failed? ? "text-red-300" : "text-amber-300"
+
   # Stage and kind together, because each answers half of it: where the pipeline
-  # stopped, and what stopped it. Either may be absent on a document that failed
+  # was, and what happened there. Either may be absent on a document that failed
   # before they were recorded.
   def headline
-    [@document.failure_stage, @document.failure_kind].compact_blank.join(" · ").presence ||
+    [@document.outcome_stage, @document.outcome_kind].compact_blank.join(" · ").presence ||
       "failed — no diagnosis was recorded"
   end
 
-  def detail? = @document.failure_detail.present?
+  def detail? = @document.outcome_detail.present?
 end

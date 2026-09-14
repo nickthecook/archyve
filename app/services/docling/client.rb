@@ -67,11 +67,14 @@ module Docling
       body.is_a?(String) ? body.strip.truncate(300) : error.message
     end
 
-    # Docling's own verdict on a 200: it will report a per-file failure in the
-    # envelope rather than with a status code, so a success here is two claims,
-    # not one.
+    # Docling's own verdict on a 200: it reports a per-file outcome in the
+    # envelope rather than with a status code, so a 200 is not yet an answer.
+    #
+    # A partial conversion is *returned*, not raised — it is a document with a
+    # shortfall, and what to do about that is the pipeline's call, not the
+    # transport's. See Docling::Result#partial? and Ingestion::Outcome.
     def ensure_success!(result)
-      return if result.status == "success" && result.errors.empty?
+      return if result.success? || result.partial?
 
       raise ConversionFailed,
         "docling conversion failed (status=#{result.status.inspect}): #{result.errors.inspect}".truncate(300)

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Ingestion::Failure do
+RSpec.describe Ingestion::Outcome do
   describe ".classify" do
     subject(:failure) { described_class.classify(error, stage: :embed) }
 

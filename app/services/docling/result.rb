@@ -26,6 +26,17 @@ module Docling
     def errors = raw["errors"] || []
     def status = raw["status"]
 
+    # Docling grades its own work, and the middle grade is the useful one: a
+    # `partial_success` is a converted document with a page or two missing, and
+    # the pages that did convert are right here in `json_content`. Treating that
+    # as a failure throws away a whole manual to punish one bad page.
+    #
+    # A "success" that still carries errors is counted as partial rather than
+    # believed: the two claims contradict each other, and the cautious reading
+    # is the one that keeps the caveat.
+    def success? = status == "success" && errors.empty?
+    def partial? = status == "partial_success" || (status == "success" && errors.any?)
+
     def title
       (json_content["texts"] || []).find { |t| t["label"] == "title" }&.dig("text")
     end

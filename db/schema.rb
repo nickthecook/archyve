@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -101,9 +101,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_120000) do
     t.string "content_type"
     t.datetime "created_at", null: false
     t.string "external_id", null: false
-    t.text "failure_detail"
-    t.string "failure_kind"
-    t.string "failure_stage"
+    t.text "outcome_detail"
+    t.string "outcome_kind"
+    t.string "outcome_stage"
     t.bigint "source_id", null: false
     t.jsonb "source_metadata", default: {}, null: false
     t.bigint "source_sync_id"
@@ -111,7 +111,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_120000) do
     t.string "status", default: "pending", null: false
     t.string "title"
     t.datetime "updated_at", null: false
-    t.index ["failure_kind"], name: "index_documents_on_failure_kind", where: "(failure_kind IS NOT NULL)"
+    t.index ["outcome_kind"], name: "index_documents_on_outcome_kind", where: "(outcome_kind IS NOT NULL)"
     t.index ["source_id", "external_id"], name: "index_documents_on_source_id_and_external_id", unique: true
     t.index ["source_id"], name: "index_documents_on_source_id"
     t.index ["source_sync_id"], name: "index_documents_on_source_sync_id"

@@ -11,9 +11,9 @@ RSpec.describe Views::Documents::Diagnostics do
   context "when the pipeline recorded what went wrong" do
     let(:facts) do
       {
-        failure_stage: "embed",
-        failure_kind: "unreachable",
-        failure_detail: "Faraday::ConnectionFailed: tensor:11434"
+        outcome_stage: "embed",
+        outcome_kind: "unreachable",
+        outcome_detail: "Faraday::ConnectionFailed: tensor:11434"
       }
     end
 
@@ -23,6 +23,32 @@ RSpec.describe Views::Documents::Diagnostics do
 
     it "shows the raw error, which is the thing the logs weren't giving anyone" do
       expect(result).to include("Faraday::ConnectionFailed: tensor:11434")
+    end
+  end
+
+  # Processed, in the archive, with a piece missing. Colouring this like an
+  # outage would send someone to fix a pipeline that is working.
+  context "when the document came through with a shortfall" do
+    let(:document) do
+      create(
+        :document,
+        status: "processed",
+        outcome_stage: "extract",
+        outcome_kind: "partial_extraction",
+        outcome_detail: %(docling reported ["Page 2 failed to parse."])
+      )
+    end
+
+    it "still shows the facts" do
+      expect(result).to include("extract · partial_extraction").and include("Page 2 failed to parse.")
+    end
+
+    it "is amber, not red" do
+      expect(result).to include("border-amber-400/40")
+    end
+
+    it "is not dressed as a failure" do
+      expect(result).not_to include("border-red-400/40")
     end
   end
 
