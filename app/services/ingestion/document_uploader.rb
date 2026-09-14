@@ -87,6 +87,15 @@ module Ingestion
     # A re-upload of a document that processed cleanly under the same settings
     # stays the cheap no-op it has always been. Reprocessing it would spend
     # minutes of docling to arrive back where it started.
+    #
+    # OCR is the only extraction option an upload carries today. A second one
+    # has to appear in *both* halves below — applied to the document, and
+    # counted by the change test — because an option applied without triggering
+    # a re-run is this whole bug again: a page reporting a setting the stored
+    # chunks were not made with. Left as two explicit lines rather than a list
+    # to iterate, because what "changed" means here isn't obvious in general
+    # (see ocr_changed? below), and the second option is what will show whether
+    # that comparison generalises.
     def rerun_if_this_upload_asked_for_something_new(document)
       return unless ocr_changed?(document) || document.failed?
 
