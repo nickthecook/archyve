@@ -35,9 +35,51 @@ class Views::Documents::Show < Views::Base
     # Detail region as status advances (pending → processing → processed).
     turbo_stream_from(@document)
     render Views::Documents::Detail.new(document: @document)
+
+    diagnostics if may?(:operator)
   end
 
   private
+
+  # The operator's half of the page: what went wrong, and the one control that
+  # acts on it. Both are behind the same role the controller enforces on
+  # `reprocess` — hiding a control isn't access control, but showing one that
+  # bounces you is just a worse control.
+  #
+  # The second subscription is what keeps the raw error off everyone else's
+  # page: the stream name is only ever rendered here, and Turbo signs it.
+  def diagnostics
+    turbo_stream_from(@document, :diagnostics)
+    render Views::Documents::Diagnostics.new(document: @document)
+    reprocess_button if @document.reprocessable?
+  end
+
+  # Solid when the document failed, because there it *is* the fix and there is
+  # nothing louder worth doing; quiet when it already worked, because then it is
+  # housekeeping — a re-embed after changing models — and shouting about it
+  # would spend the page's whole accent budget on a maintenance task. Download
+  # stays the loudest thing in the header either way.
+  #
+  # Rendered here rather than inside the broadcast region because it needs a
+  # request: a route helper and a CSRF token, neither of which exists when the
+  # model renders a region from inside a job. It can afford to be static —
+  # `reprocessable?` doesn't change as the pipeline runs.
+  def reprocess_button
+    form(action: reprocess_document_path(@document), method: "post", class: "mt-4") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(type: "submit", class: reprocess_class) { "Reprocess" }
+    end
+  end
+
+  def reprocess_class
+    weight = if @document.failed?
+      "bg-accent text-void hover:bg-accent-dim"
+    else
+      "border border-line text-muted hover:text-fg hover:border-line-2"
+    end
+
+    "rounded px-3 py-2 text-sm font-medium transition-colors #{weight}"
+  end
 
   def page_title = @document.title
 end

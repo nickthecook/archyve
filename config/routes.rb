@@ -36,6 +36,9 @@ Rails.application.routes.draw do
   # citation or a search result, not by enumerating the shelf.
   resources :documents, only: [:index, :show, :create] do
     get :download, on: :member
+    # POST because it starts work, not a page — same reasoning as a source's
+    # "Sync now".
+    post :reprocess, on: :member
   end
   # "Unsorted" is a derived view (docs in no collection), not a collection — its
   # own top-level route so it never collides with a collection slug.

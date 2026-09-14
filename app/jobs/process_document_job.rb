@@ -2,6 +2,11 @@
 # embed (nomic via Ollama) -> store. Drives document.status so the UI can show
 # progress later. Idempotent: reprocessing clears prior chunks/embeddings first,
 # so a re-run after a failure or a re-embed is safe.
+#
+# Every failure is also recorded *on the document* — see Ingestion::Failure —
+# rather than only logged. A log line is only useful to someone who already
+# knows which document to go looking for, which is exactly what the person
+# staring at a red badge does not know.
 class ProcessDocumentJob < ApplicationJob
   queue_as :ingestion
 
@@ -13,26 +18,62 @@ class ProcessDocumentJob < ApplicationJob
   # hard backstop if a race ever slips through.
   limits_concurrency key: ->(document) { document.id }, to: 1, duration: 15.minutes
 
-  class MissingFile < StandardError; end
+  # Raised nowhere but here: tags whatever a stage threw with the name of that
+  # stage, so the rescue below can say *where* the pipeline gave up without
+  # every service having to know it is part of a pipeline.
+  class StageError < StandardError
+    attr_reader :stage, :original
+
+    def initialize(stage, original)
+      @stage = stage
+      @original = original
+      super("#{stage}: #{original.class}: #{original.message}")
+    end
+  end
 
   def perform(document)
-    document.update!(status: :processing)
+    document.begin_processing!
 
-    result = extract(document)
-    chunks = Ingestion::Chunker.new.chunk(result)
-    store(document, chunks)
+    result = stage(:extract) { extract(document) }
+    chunks = stage(:chunk) { Ingestion::Chunker.new.chunk(result) }
+    stage(:store) { store(document, chunks) }
 
     document.update!(status: :processed)
+  rescue StageError => e
+    record_failure(document, Ingestion::Failure.classify(e.original, stage: e.stage))
+    # Re-raise what actually went wrong, not our wrapper: the queue's retries
+    # and anything watching the job should see the real exception and its
+    # backtrace, not a label we invented for the UI.
+    raise e.original
   rescue StandardError => e
-    document.update!(status: :failed) if document.persisted?
-    Rails.logger.error("ProcessDocumentJob failed for document #{document.id}: #{e.class}: #{e.message}")
+    # Outside any stage — a database write, most likely. No stage to name.
+    record_failure(document, Ingestion::Failure.classify(e))
     raise
   end
 
   private
 
+  # Run a stage, tagging anything it raises with the stage's name. Nested
+  # stages keep the innermost name: embedding happens inside `store`, and
+  # "embed" is the answer worth having there.
+  def stage(name)
+    yield
+  rescue StageError
+    raise
+  rescue StandardError => e
+    raise StageError.new(name, e)
+  end
+
+  def record_failure(document, failure)
+    Rails.logger.error(
+      "ProcessDocumentJob failed for document #{document.id} " \
+      "[stage=#{failure.stage || 'none'} kind=#{failure.kind}]: #{failure.detail}"
+    )
+    document.record_failure!(failure) if document.persisted?
+  end
+
   def extract(document)
-    raise MissingFile, "document #{document.id} has no attached file" unless document.file.attached?
+    raise Ingestion::MissingFile, "document #{document.id} has no attached file" unless document.file.attached?
 
     document.file.blob.open do |file|
       Docling::Client.new.convert(
@@ -52,7 +93,7 @@ class ProcessDocumentJob < ApplicationJob
     document.chunks.destroy_all
     chunks.each_with_index do |chunk, position|
       record = document.chunks.create!(position: position, content: chunk.content, structure: chunk.structure)
-      embed(record)
+      stage(:embed) { embed(record) }
     end
   end
 

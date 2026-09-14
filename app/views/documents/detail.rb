@@ -11,7 +11,11 @@ class Views::Documents::Detail < Components::Base
   def view_template
     div(
       id: ActionView::RecordIdentifier.dom_id(@document),
-      data: progress_data(terminal: @document.settled?, controller: "progress chunk-highlight")
+      data: progress_data(
+        terminal: @document.settled?,
+        also: [Views::Documents::Diagnostics.dom_id(@document)],
+        controller: "progress chunk-highlight"
+      )
     ) do
       div(class: "flex items-center gap-3 mb-6") do
         render Views::Documents::StatusBadge.new(status: @document.status)
@@ -34,8 +38,27 @@ class Views::Documents::Detail < Components::Base
     end
   end
 
+  # What a reader is told: one sentence, in terms of what happened to *their*
+  # document. The facts behind it — which stage, which service, the raw error —
+  # are the operator's, and live in Views::Documents::Diagnostics.
+  #
+  # Keyed on failure_kind rather than composed from it so each sentence can be
+  # written rather than assembled; "couldn't be read" and "didn't respond" are
+  # different news, not different nouns in one template.
+  SENTENCES = {
+    "missing_file" => "The file behind this document is missing, so there was nothing to process.",
+    "unreachable" => "A service Archyve depends on didn't respond, so this couldn't be processed.",
+    "conversion_rejected" => "This file couldn't be read — it may be corrupt, empty, or in a format Archyve can't open.",
+    "not_configured" => "Archyve isn't set up to index documents yet, so this couldn't be processed.",
+    "dimension_mismatch" => "The embedding model returned something Archyve couldn't store."
+  }.freeze
+
+  # Covers `internal` and, just as importantly, documents that failed before any
+  # of this was recorded.
+  UNCLASSIFIED = "Processing failed.".freeze
+
   def failed_note
-    p(class: "text-sm text-red-300") { "Processing failed — check the logs and try re-uploading." }
+    p(class: "text-sm text-red-300") { SENTENCES.fetch(@document.failure_kind, UNCLASSIFIED) }
   end
 
   def chunks

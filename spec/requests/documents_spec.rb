@@ -241,4 +241,165 @@ RSpec.describe "Documents", type: :request do
       end
     end
   end
+
+  # The raw error is the operator's. A reader is told what happened to their
+  # document in words; they are not handed the hostname of an embedding server.
+  describe "GET /documents/:id when processing failed" do
+    subject(:request) { get document_path(document) }
+
+    let(:document) { create(:document, :with_file, title: "Blueprint") }
+
+    before do
+      document.record_failure!(
+        Ingestion::Failure.new(stage: "embed", kind: "unreachable", detail: "Faraday::ConnectionFailed: tensor:11434")
+      )
+    end
+
+    context "as an operator who manages the source" do
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+      it "names the stage and kind" do
+        request
+        expect(response.body).to include("embed · unreachable")
+      end
+
+      it "shows the raw error" do
+        request
+        expect(response.body).to include("Faraday::ConnectionFailed: tensor:11434")
+      end
+
+      it "offers a reprocess" do
+        request
+        expect(response.body).to include(reprocess_document_path(document))
+      end
+
+      it "subscribes to the diagnostics stream as well as the document's own" do
+        request
+        expect(response.body.scan("<turbo-cable-stream-source").size).to eq(2)
+      end
+    end
+
+    context "as a reader who reached it through a collection" do
+      let(:collection) { create(:collection) }
+
+      before do
+        sign_in(create(:user))
+        create(:collection_user, collection:, user: current_user)
+        create(:collection_membership, collection:, document:)
+      end
+
+      it "explains the failure in plain words" do
+        request
+        expect(response.body).to include("A service Archyve depends on didn&#39;t respond")
+      end
+
+      it "does not show the raw error" do
+        request
+        expect(response.body).not_to include("Faraday::ConnectionFailed")
+      end
+
+      it "does not offer a reprocess" do
+        request
+        expect(response.body).not_to include(reprocess_document_path(document))
+      end
+
+      # Hiding the panel is not what keeps it private — never subscribing to
+      # the stream it arrives on is, since a broadcast reaches every subscriber
+      # and the page can't filter what it's already been sent. The operator's
+      # page carries a second subscription; theirs must not.
+      it "subscribes only to the document's own stream" do
+        request
+        expect(response.body.scan("<turbo-cable-stream-source").size).to eq(1)
+      end
+    end
+  end
+
+  describe "POST /documents/:id/reprocess" do
+    subject(:request) { post reprocess_document_path(document) }
+
+    let(:document) { create(:document, :with_file, status: "failed") }
+
+    before { allow(ProcessDocumentJob).to receive(:perform_later) }
+
+    context "when the document's source is theirs to manage" do
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+      it "re-runs the pipeline" do
+        request
+        expect(ProcessDocumentJob).to have_received(:perform_later).with(document)
+      end
+
+      # So the badge answers the click rather than sitting red until a worker
+      # picks the job up.
+      it "puts the document back in the queue" do
+        request
+        expect(document.reload.status).to eq("pending")
+      end
+
+      it "forgets the failure it is retrying" do
+        document.record_failure!(Ingestion::Failure.new(stage: "extract", kind: "unreachable", detail: "boom"))
+        request
+        expect(document.reload.failure_kind).to be_nil
+      end
+
+      it "returns to the document" do
+        request
+        expect(response).to redirect_to(document)
+      end
+    end
+
+    # Reaching a document is a reading right; re-ingesting one is work on the
+    # source that produced it.
+    context "when they can only read the document through a collection" do
+      let(:collection) { create(:collection) }
+
+      before do
+        create(:collection_user, :operator, collection:, user: current_user)
+        create(:collection_membership, collection:, document:)
+      end
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "runs nothing" do
+        request
+        expect(ProcessDocumentJob).not_to have_received(:perform_later)
+      end
+    end
+
+    context "as a reader" do
+      before { sign_in(create(:user)) }
+
+      it "is refused by the role, before anything is looked up" do
+        request
+        expect(response).to redirect_to(root_path)
+      end
+    end
+
+    context "when the document has been removed at its source" do
+      let(:document) { create(:document, :with_file, status: "removed") }
+
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+      it "refuses to re-ingest what the archive has let go" do
+        request
+        expect(ProcessDocumentJob).not_to have_received(:perform_later)
+        expect(flash[:alert]).to be_present
+      end
+    end
+
+    context "when the document has no file behind it" do
+      let(:document) { create(:document, status: "failed") }
+
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+      it "says there is nothing to do" do
+        request
+        expect(ProcessDocumentJob).not_to have_received(:perform_later)
+        expect(flash[:alert]).to be_present
+      end
+    end
+  end
 end

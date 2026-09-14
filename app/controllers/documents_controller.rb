@@ -38,6 +38,24 @@ class DocumentsController < ApplicationController
     redirect_to collection || document, notice: "Uploaded “#{document.title}”. Processing…"
   end
 
+  # Re-run the pipeline over a document that's already here.
+  #
+  # Scoped to sources this person manages, not to everything they can reach:
+  # reaching a document is a reading right — a collection grant, a chat citation
+  # — and re-ingesting one is work on the source that produced it. Same rule as
+  # upload, and an admin manages everything, so nothing a system administrator
+  # needs to fix is out of reach.
+  def reprocess
+    document = Document.where(source: Source.manageable_by(Current.user)).find(params[:id])
+    return redirect_to(document, alert: "There's nothing to reprocess.") unless document.reprocessable?
+
+    # Marked queued here rather than left to the job, so the page answers the
+    # click. The job sets `processing` when a worker actually starts.
+    document.queue_for_processing!
+    ProcessDocumentJob.perform_later(document)
+    redirect_to document, notice: "Reprocessing “#{document.title}”."
+  end
+
   # Hand over the bytes. Streamed through the controller rather than redirecting
   # to an Active Storage blob URL on purpose: a signed blob URL is reachable by
   # anyone holding it, which would put the archive's contents one forwarded link
