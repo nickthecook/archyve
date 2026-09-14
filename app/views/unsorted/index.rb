@@ -40,8 +40,18 @@ class Views::Unsorted::Index < Views::Base
 
   # Pick documents (checkboxes, narrowed by the filter) and a target collection,
   # then assign. One form so the selection and the collection submit together.
+  #
+  # The form is also the polled region, rather than just the list inside it: the
+  # filter narrows by hiding rows, so swapping the rows without the query box
+  # would leave a filter that claims to be applied and isn't. The controller
+  # holds off entirely while there's a selection or a query to lose.
   def sorter
-    form(action: assign_unsorted_path, method: "post", data: { controller: "list-filter" }) do
+    form(
+      action: assign_unsorted_path,
+      method: "post",
+      id: "unsorted",
+      data: progress_data(terminal: @documents.all?(&:settled?), controller: "list-filter progress")
+    ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       toolbar
       document_list

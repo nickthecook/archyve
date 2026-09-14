@@ -42,13 +42,18 @@ class Views::Documents::Index < Views::Base
     end
   end
 
+  # A file uploaded from the form above lands here still pending and is processed
+  # in the background, so the badges this renders are stale the moment they're
+  # sent. Poll until every row has settled.
   def document_list
-    if @documents.any?
-      ul(class: "divide-y divide-line rounded-lg border border-line bg-ink/40") do
-        @documents.each { |document| document_row(document) }
+    div(id: "documents", data: progress_data(terminal: @documents.all?(&:settled?))) do
+      if @documents.any?
+        ul(class: "divide-y divide-line rounded-lg border border-line bg-ink/40") do
+          @documents.each { |document| document_row(document) }
+        end
+      else
+        p(class: "text-sm text-faint") { "No documents yet." }
       end
-    else
-      p(class: "text-sm text-faint") { "No documents yet." }
     end
   end
 

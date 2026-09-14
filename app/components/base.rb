@@ -27,6 +27,22 @@ class Components::Base < Phlex::HTML
     Current.user&.may_on?(record, minimum)
   end
 
+  # Attributes for a live region: one that goes stale while a background job is
+  # still moving, and polls itself fresh until nothing is. `terminal` says
+  # whether it has already settled; `also` names other regions on the page that
+  # go stale with it, swapped from the same response so watching two regions
+  # still costs one request. The region needs an `id` — that is what the poll
+  # matches against the page it fetches.
+  #
+  # .to_s on the boolean: Phlex renders a bare `true` as a valueless attribute
+  # and omits `false` entirely, and a Stimulus boolean value can read neither —
+  # it needs the literal "true"/"false".
+  def progress_data(terminal:, also: [], controller: "progress")
+    data = { controller: controller, progress_terminal_value: terminal.to_s }
+    data[:progress_also_value] = also.to_json if also.any?
+    data
+  end
+
   if Rails.env.development?
     def before_template
       comment { "Before #{self.class.name}" }

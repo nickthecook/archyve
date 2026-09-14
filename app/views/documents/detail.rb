@@ -8,14 +8,10 @@ class Views::Documents::Detail < Components::Base
     @document = document
   end
 
-  TERMINAL_STATUSES = %w[processed failed removed].freeze
-
   def view_template
     div(
       id: ActionView::RecordIdentifier.dom_id(@document),
-      # .to_s: Phlex renders a bare `true` as a valueless attribute and omits
-      # `false`, which Stimulus boolean values can't read — they need "true"/"false".
-      data: { controller: "progress chunk-highlight", progress_terminal_value: TERMINAL_STATUSES.include?(@document.status).to_s }
+      data: progress_data(terminal: @document.settled?, controller: "progress chunk-highlight")
     ) do
       div(class: "flex items-center gap-3 mb-6") do
         render Views::Documents::StatusBadge.new(status: @document.status)

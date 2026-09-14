@@ -67,6 +67,32 @@ RSpec.describe "Documents", type: :request do
     end
   end
 
+  describe "GET /documents" do
+    subject(:request) { get documents_path }
+
+    let!(:document) { create(:document, status:) }
+
+    before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+    context "when a listed document is still being processed" do
+      let(:status) { "pending" }
+
+      it "keeps polling, since nothing broadcasts to an index" do
+        request
+        expect(response.body).to include('progress-terminal-value="false"')
+      end
+    end
+
+    context "when every listed document has settled" do
+      let(:status) { "processed" }
+
+      it "stops polling" do
+        request
+        expect(response.body).to include('progress-terminal-value="true"')
+      end
+    end
+  end
+
   describe "GET /documents/:id" do
     subject(:request) { get document_path(document), headers: { "HTTP_REFERER" => referer } }
 

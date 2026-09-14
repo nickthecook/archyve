@@ -49,6 +49,50 @@ RSpec.describe "Collections", type: :request do
         expect(response.body).to include("No documents in this collection yet.")
       end
     end
+
+    # Where the "Processing…" flash sends you after an upload, so the badges here
+    # have to catch up on their own.
+    describe "the live status region" do
+      context "when a document in it is still being processed" do
+        let(:document) { create(:document, status: "pending") }
+
+        before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+        it "keeps polling" do
+          request
+          expect(response.body).to include('progress-terminal-value="false"')
+        end
+
+        it "refreshes the header meter from the same response, so counts and badges agree" do
+          request
+          expect(response.body).to include("progress-also-value=\"#{CGI.escapeHTML('["collection_meter"]')}\"")
+        end
+      end
+
+      context "when every document in it has settled" do
+        let(:document) { create(:document, status: "processed") }
+
+        before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+        it "stops polling" do
+          request
+          expect(response.body).to include('progress-terminal-value="true"')
+        end
+      end
+
+      # A failed document is done moving; polling forever would be a busy loop
+      # waiting for a status only a re-upload can change.
+      context "when a document failed" do
+        let(:document) { create(:document, status: "failed") }
+
+        before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+        it "stops polling" do
+          request
+          expect(response.body).to include('progress-terminal-value="true"')
+        end
+      end
+    end
   end
 
   describe "POST /collections/:slug/documents" do

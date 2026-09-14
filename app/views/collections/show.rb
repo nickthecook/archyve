@@ -30,7 +30,7 @@ class Views::Collections::Show < Views::Base
       upload
       add_documents
     end
-    @document_rows.any? ? document_list : empty_state
+    documents_region
     delete_collection
   end
 
@@ -165,8 +165,11 @@ class Views::Collections::Show < Views::Base
           people_link
         end
       end
-      meter
-      p(class: "mt-3 text-sm text-muted") { count_summary }
+      # Swapped by the document list's poll, not its own — see #documents_region.
+      div(id: "collection_meter") do
+        meter
+        p(class: "mt-3 text-sm text-muted") { count_summary }
+      end
     end
   end
 
@@ -287,6 +290,24 @@ class Views::Collections::Show < Views::Base
 
   def no_candidates
     p(class: "text-sm text-faint") { "Every document is already in this collection. Upload a new one to add more." }
+  end
+
+  # The page you land on after uploading into this collection, where the new file
+  # sits pending while the pipeline works — and nothing broadcasts to a
+  # collection, so this region polls itself fresh. The header's meter and counts
+  # tally the same statuses, so they ride along on the same response instead of
+  # drifting out of step with the badges below them.
+  #
+  # The "Add documents" picker shows badges too and is deliberately left out: it
+  # carries a filter and a selection, and it lists documents that aren't in this
+  # collection, whose progress isn't what someone came here to watch.
+  def documents_region
+    div(
+      id: "collection_documents",
+      data: progress_data(terminal: @document_rows.all? { |row| row.document.settled? }, also: ["collection_meter"])
+    ) do
+      @document_rows.any? ? document_list : empty_state
+    end
   end
 
   def document_list

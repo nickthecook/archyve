@@ -23,6 +23,13 @@ class Document < ApplicationRecord
     removed: "removed"
   }, default: "pending"
 
+  # The statuses the pipeline won't move off on its own. This is what "still
+  # working" means to anything watching a document — a live region polls until
+  # everything it shows is settled, then stops.
+  TERMINAL_STATUSES = %w[processed failed removed].freeze
+
+  def settled? = TERMINAL_STATUSES.include?(status)
+
   validates :external_id, presence: true, uniqueness: { scope: :source_id }
 
   # "Unsorted": live documents in no collection. A derived view, not a real

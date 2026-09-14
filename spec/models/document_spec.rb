@@ -1,6 +1,43 @@
 require "rails_helper"
 
 RSpec.describe Document do
+  # What every live region asks to decide whether to keep polling.
+  describe "#settled?" do
+    subject { create(:document, status:).settled? }
+
+    context "when pending" do
+      let(:status) { "pending" }
+
+      it { is_expected.to be(false) }
+    end
+
+    context "when processing" do
+      let(:status) { "processing" }
+
+      it { is_expected.to be(false) }
+    end
+
+    context "when processed" do
+      let(:status) { "processed" }
+
+      it { is_expected.to be(true) }
+    end
+
+    # Failure is an outcome, not work in progress: nothing will move it without
+    # a re-upload, so watching it is a busy loop.
+    context "when failed" do
+      let(:status) { "failed" }
+
+      it { is_expected.to be(true) }
+    end
+
+    context "when removed" do
+      let(:status) { "removed" }
+
+      it { is_expected.to be(true) }
+    end
+  end
+
   describe ".unsorted" do
     subject(:unsorted) { described_class.unsorted }
 

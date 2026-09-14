@@ -57,12 +57,7 @@ class Views::Sources::LastScan < Components::Base
     # thousand for a thousand-file scan — to move an aggregate that nobody needs
     # updated more than every couple of seconds. SourceSync still broadcasts,
     # so starting and finishing a scan land instantly.
-    div(
-      id: self.class.dom_id(@source),
-      # .to_s: Phlex renders a bare `true` as a valueless attribute and omits
-      # `false`, which Stimulus boolean values can't read — they need "true"/"false".
-      data: { controller: "progress", progress_terminal_value: settled?.to_s }
-    ) do
+    div(id: self.class.dom_id(@source), data: progress_data(terminal: settled?)) do
       @sync.nil? ? empty_state : panel
     end
   end

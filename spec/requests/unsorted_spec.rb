@@ -35,6 +35,37 @@ RSpec.describe "Unsorted", type: :request do
         expect(response.body).not_to include("Filed Note")
       end
     end
+
+    describe "the live status region" do
+      let!(:document) { create(:document, status:) }
+
+      before { create(:source_user, :admin, source: document.source, user: current_user) }
+
+      context "when a document is still being processed" do
+        let(:status) { "pending" }
+
+        it "keeps polling" do
+          request
+          expect(response.body).to include('progress-terminal-value="false"')
+        end
+
+        # The filter hides rows in place, so the poll has to be able to put the
+        # query box back with them.
+        it "polls the whole sorter, filter and all, not just the list" do
+          request
+          expect(response.body).to include('data-controller="list-filter progress"')
+        end
+      end
+
+      context "when every document has settled" do
+        let(:status) { "processed" }
+
+        it "stops polling" do
+          request
+          expect(response.body).to include('progress-terminal-value="true"')
+        end
+      end
+    end
   end
 
   describe "POST /unsorted/assign" do
