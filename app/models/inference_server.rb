@@ -137,6 +137,21 @@ class InferenceServer < ApplicationRecord
   # recorded immediately, so recovery still shows up at once.
   HEALTH_FRESH_FOR = 1.minute
 
+  # How stale a status may get before the scheduler probes the server itself.
+  CHECK_INTERVAL = 1.hour
+
+  # What the tick should probe. Keyed off last_checked_at whatever wrote it, so a
+  # server chat or search is already exercising is never probed: traffic *is* the
+  # check, and discovery is far from free — against Ollama it is one HTTP call
+  # per model pulled on the host, and against a remote provider it spends rate
+  # limit to learn what the last chat turn already proved.
+  #
+  # Failed servers stay in scope on purpose: for an idle host the probe is the
+  # only thing that can ever turn it green again.
+  scope :due_for_check, -> {
+    where(last_checked_at: nil).or(where(last_checked_at: ..CHECK_INTERVAL.ago))
+  }
+
   # How much of an exception message is worth keeping on the row.
   CHECK_ERROR_LIMIT = 500
 

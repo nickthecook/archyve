@@ -238,6 +238,44 @@ RSpec.describe InferenceServer do
       end
     end
 
+    describe ".due_for_check" do
+      subject(:due) { InferenceServer.due_for_check }
+
+      context "with a server that has never been checked" do
+        let!(:server) { create(:ollama_server, last_checked_at: nil) }
+
+        it "is due" do
+          expect(due).to include(server)
+        end
+      end
+
+      context "with a server checked longer ago than the interval" do
+        let!(:server) { create(:ollama_server, last_checked_at: 2.hours.ago) }
+
+        it "is due" do
+          expect(due).to include(server)
+        end
+      end
+
+      context "with a server traffic has just proved reachable" do
+        let!(:server) { create(:ollama_server).tap(&:mark_reachable!) }
+
+        it "is not due" do
+          expect(due).not_to include(server)
+        end
+      end
+
+      context "with a stale server that is currently failing" do
+        let!(:server) do
+          create(:ollama_server).tap { it.update_columns(last_check_status: "failed", last_checked_at: 2.hours.ago) }
+        end
+
+        it "is still due, since only a probe can turn an idle host green again" do
+          expect(due).to include(server)
+        end
+      end
+    end
+
     describe ".unreachable_error?" do
       # "Is the host up?" — not Ingestion::Outcome's "will a retry help?", which
       # answers differently for the last two.

@@ -11,6 +11,15 @@ default: &default
     queue: ingestion
     schedule: every minute
 
+  # Ticks more often than InferenceServer::CHECK_INTERVAL on purpose: the tick
+  # only enqueues what the scope says is stale, so a short heartbeat means a
+  # server that has just gone quiet is probed within minutes of falling out of
+  # date rather than up to an hour late.
+  enqueue_due_inference_checks:
+    class: InferenceServers::EnqueueDueChecksJob
+    queue: default
+    schedule: every 5 minutes
+
 development:
   <<: *default
 
