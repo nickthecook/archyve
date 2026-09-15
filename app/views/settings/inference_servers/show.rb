@@ -87,20 +87,32 @@ class Views::Settings::InferenceServers::Show < Views::Base
     end
   end
 
+  # Narrow: the actions drop below the name rather than squeezing it — a model
+  # name plus two badges already fills a phone's width on its own.
   def model_row(model)
-    li(class: "flex items-center justify-between gap-3 px-5 py-4") do
+    li(class: "flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3") do
       div(class: "min-w-0") do
         div(class: "flex items-center gap-2") do
-          a(
-            href: edit_settings_inference_server_model_path(@server, model),
-            class: "truncate font-mono text-sm text-fg hover:text-accent transition-colors"
-          ) { model.name }
+          # min-w-0 or truncate never fires: a flex item won't shrink below its
+          # content width, and a registry name like hf.co/…-GGUF:Q4_K_M is long
+          # enough to push the page sideways on a phone.
+          span(class: "min-w-0 truncate font-mono text-sm text-fg") { model.name }
           tag("preferred") if model.preferred?
           tag("tools") if model.supports_tools?
           tag("disabled") unless model.enabled?
         end
         p(class: "mt-0.5 text-xs text-faint") { model_detail(model) }
       end
+      model_actions(model)
+    end
+  end
+
+  def model_actions(model)
+    div(class: "flex shrink-0 items-center gap-4") do
+      a(
+        href: edit_settings_inference_server_model_path(@server, model),
+        class: "text-xs text-faint hover:text-fg transition-colors"
+      ) { "Edit" }
       remove(model)
     end
   end
@@ -187,8 +199,11 @@ class Views::Settings::InferenceServers::Show < Views::Base
     end
   end
 
+  # inline-flex, not inline: a block form wrapping an inline-block button is a
+  # line box, 8px taller than the button, so centring it in the actions row put
+  # "Remove" 2px below "Edit".
   def remove(model)
-    form(action: settings_inference_server_model_path(@server, model), method: "post", class: "inline") do
+    form(action: settings_inference_server_model_path(@server, model), method: "post", class: "inline-flex") do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(

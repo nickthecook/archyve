@@ -32,6 +32,29 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
     end
   end
 
+  describe "GET /settings/inference_servers/:id" do
+    subject(:request) { get settings_inference_server_path(server) }
+
+    let(:server) { create(:ollama_server, name: "tensor") }
+
+    context "with a chat model" do
+      let!(:model) { create(:inference_model, inference_server: server, name: "gpt-oss:20b") }
+
+      it "lists it" do
+        request
+        expect(response.body).to include("gpt-oss:20b")
+      end
+
+      # The row used to make the name itself the edit link, which nobody found.
+      it "offers an Edit link beside Remove" do
+        request
+        expect(response.body).to include(
+          %(<a href="#{edit_settings_inference_server_model_path(server, model)}")
+        )
+      end
+    end
+  end
+
   describe "GET /settings/inference_servers/new" do
     context "without a type" do
       subject(:request) { get new_settings_inference_server_path }
