@@ -55,8 +55,12 @@
 }
 .corridor-stage .ask-field .icon { flex: none; color: var(--color-faint); transition: color 0.35s; }
 .corridor-stage .ask-field:focus-within .icon { color: var(--color-accent); }
+/* `min-width: 0` or the field overflows its own frame: an input's automatic
+   minimum size is its `size` attribute — about 20 characters — so `flex: 1`
+   alone won't let it shrink, and on a phone the box ends up wider than the
+   border around it, painting what you type past the right edge. */
 .corridor-stage .ask-field input {
-  flex: 1; background: none; border: none; outline: none; color: var(--color-fg);
+  flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--color-fg);
   font-family: var(--font-sans); font-size: 1rem; letter-spacing: 0.01em;
 }
 .corridor-stage .ask-field input::placeholder { color: var(--color-faint); }
@@ -129,7 +133,12 @@
   .corridor-stage .facet .glimpse { display: none; }
   .corridor-stage .facet.documents, .corridor-stage .facet.chat { top: 18%; }
   .corridor-stage .status { flex-direction: column; gap: 0.3rem; align-items: center; bottom: 1.4vh; }
+  /* 72% of a phone is a slot, not a field — the question is the point of the
+     page, so it gets most of the width. */
+  .corridor-stage .ask { width: 88%; }
+  .corridor-stage .ask-field { padding: 0.8rem 0.9rem; gap: 0.5rem; }
 }
+
 
 /* load reveal ---------------------------------------------------------- */
 .corridor-stage .reveal { opacity: 0; animation: corridor-fade 0.9s ease forwards; }

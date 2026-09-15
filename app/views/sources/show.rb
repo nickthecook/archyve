@@ -30,7 +30,7 @@ class Views::Sources::Show < Views::Base
   def page_title = @source.name
 
   def heading
-    header(class: "mb-7 flex items-start justify-between gap-4") do
+    header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div(class: "min-w-0") do
         div(class: "mb-1 text-xs text-faint") do
           a(href: sources_path, class: "hover:text-muted transition-colors") { "Sources" }

@@ -20,7 +20,7 @@ class Views::Search::Index < Views::Base
   def search_box
     form(action: search_path, method: "get", class: "mb-8") do
       scope_fields
-      div(class: "flex items-center gap-3 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
+      div(class: "flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
         svg(class: "text-faint", width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|
           s.circle(cx: "11", cy: "11", r: "7")
           s.path(d: "m20 20-3.5-3.5")
@@ -28,7 +28,7 @@ class Views::Search::Index < Views::Base
         input(
           type: "text", name: "q", value: @query, placeholder: "Search your archive",
           autofocus: true, autocomplete: "off",
-          class: "flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
+          class: "min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
         )
         scope_chip
       end

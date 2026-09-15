@@ -35,7 +35,19 @@
   input[type="reset"]:not(:disabled) {
     cursor: pointer;
   }
+
+  /* Safari zooms the page when you focus a field under 16px, and never zooms
+     back out. Every control in the app is text-sm, so this is the whole app.
+     Only below sm: — on a desktop the smaller type is the design. */
+  @media (max-width: 40rem) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
 }
+
 
 /* The spinning brand mark — see Views::Spinner, which supplies the angle and
    the cycle length as custom properties. Only the travel-to-hold split lives

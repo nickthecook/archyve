@@ -59,7 +59,7 @@ class Views::Unsorted::Index < Views::Base
   end
 
   def toolbar
-    div(class: "mb-4 flex items-center gap-3") do
+    div(class: "mb-4 flex flex-wrap items-center gap-3") do
       input(
         type: "text", placeholder: "Filter documents", autocomplete: "off",
         data: { list_filter_target: "query", action: "input->list-filter#filter" },

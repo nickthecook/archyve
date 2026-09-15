@@ -19,7 +19,7 @@ class Views::Documents::UploadFields < Components::Base
            "hover:bg-accent-dim transition-colors".freeze
 
   def view_template
-    div(class: "flex w-full items-center gap-4") do
+    div(class: "flex w-full flex-wrap items-center gap-4") do
       input(type: "file", name: "file", required: true, class: FILE_INPUT)
       button(type: "submit", class: SUBMIT) { "Upload" }
     end

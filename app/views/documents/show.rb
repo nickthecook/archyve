@@ -17,7 +17,7 @@ class Views::Documents::Show < Views::Base
   def view_template
     a(href: @back.href, class: "text-sm text-muted hover:text-fg transition-colors") { "← #{@back.label}" }
 
-    header(class: "mt-3 mb-8 flex items-start justify-between gap-4") do
+    header(class: "mt-3 mb-8 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div do
         h1(class: "text-2xl font-semibold tracking-tight") { @document.title }
         p(class: "mt-1 text-sm text-muted") do

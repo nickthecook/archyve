@@ -50,7 +50,7 @@ class Views::Layout < Phlex::HTML
 
   def contained
     render Views::Chrome.new
-    main(class: "mx-auto max-w-3xl px-5 py-10") do
+    main(class: "mx-auto max-w-3xl px-5 py-6 sm:py-10") do
       flash.each do |type, message|
         color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
         div(class: "mb-6 rounded border px-4 py-3 text-sm #{color}") { message }

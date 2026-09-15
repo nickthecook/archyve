@@ -20,8 +20,18 @@ class Views::Conversations::Retrieval < Components::Base
     details(class: "group rounded-lg border border-line bg-ink/40", open: false) do
       summary(class: "flex cursor-pointer list-none items-center gap-3 px-4 py-3") do
         tile
-        span(class: "text-[0.8125rem] text-fg") { headline }
-        span(class: "ml-auto shrink-0 font-mono text-[0.7rem] text-faint tabular-nums") { tally }
+        # The tally mustn't truncate — it is the honest record of what the search
+        # did, and half a count is worse than none. So it wraps instead: under the
+        # headline when the row is tight, onto a second line of its own when even
+        # that is not enough. Deliberately not `shrink-0` — that pins a flex item
+        # at its max-content width, so the text can never break and a string one
+        # character too long for the line lands outside the panel. How long it is
+        # depends on which mono face the device resolves, which is not something
+        # this layout should be betting on.
+        div(class: "flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3") do
+          span(class: "text-[0.8125rem] text-fg") { headline }
+          span(class: "ml-auto min-w-0 text-right font-mono text-[0.7rem] text-faint tabular-nums") { tally }
+        end
         chevron
       end
       body
@@ -69,10 +79,19 @@ class Views::Conversations::Retrieval < Components::Base
   # While it runs, the queries are known and the counts aren't — so the row
   # fills in rather than jumping when results land.
   def tally
-    count = Array(@segment.queries).size
-    return "#{count} #{'query'.pluralize(count)}" if running? || @segment.failed?
+    return unbreakable(query_tally) if running? || @segment.failed?
 
-    "#{count} #{'query'.pluralize(count)} · #{chunk_tally} · #{document_tally}"
+    [query_tally, chunk_tally, document_tally].map { unbreakable(it) }.join(" · ")
+  end
+
+  # Each count is one fact, so it breaks between facts or not at all — otherwise
+  # a narrow panel wraps "2 documents" into "2" and "documents" on separate
+  # lines, which reads as two numbers rather than one.
+  def unbreakable(text) = text.tr(" ", " ")
+
+  def query_tally
+    count = Array(@segment.queries).size
+    "#{count} #{'query'.pluralize(count)}"
   end
 
   def chunk_tally
@@ -86,6 +105,7 @@ class Views::Conversations::Retrieval < Components::Base
     "#{count} #{'document'.pluralize(count)}"
   end
 
+
   def body
     div(class: "flex flex-col gap-3 border-t border-line/60 p-4") do
       queries
@@ -97,7 +117,9 @@ class Views::Conversations::Retrieval < Components::Base
     div(class: "flex flex-wrap items-center gap-1.5") do
       span(class: "mr-1 text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Queries" }
       Array(@segment.queries).each do |query|
-        span(class: "rounded-full border border-dashed border-line-2 px-2.5 py-0.5 font-mono text-[0.7rem] text-muted") { query }
+        # A model-written query can be one unbroken token; `min-w-0` as well as
+        # the wrap, because a chip in a flex row won't shrink below its content.
+        span(class: "min-w-0 break-words rounded-full border border-dashed border-line-2 px-2.5 py-0.5 font-mono text-[0.7rem] text-muted") { query }
       end
     end
   end
@@ -142,7 +164,7 @@ class Views::Conversations::Retrieval < Components::Base
     if hit.heading_path.present?
       span(class: "mb-1.5 block pl-[1.9rem] text-[0.7rem] text-faint") { hit.heading_path }
     end
-    p(class: "pl-[1.9rem] text-[0.8125rem] leading-relaxed text-muted") { hit.snippet }
+    p(class: "break-words pl-[1.9rem] text-[0.8125rem] leading-relaxed text-muted") { hit.snippet }
   end
 
   # Dashed and quiet: the app's vocabulary for "not a real thing" — see

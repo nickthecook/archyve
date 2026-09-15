@@ -68,7 +68,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
 
   def chat_models
     section(class: "mb-8") do
-      div(class: "mb-3 flex items-center justify-between gap-3") do
+      div(class: "mb-3 flex flex-wrap items-center justify-between gap-3") do
         h2(class: "text-sm font-medium text-fg") { "Chat models" }
         div(class: "flex items-center gap-2") do
           a(href: discover_settings_inference_server_path(@server), class: outlined_button) { "Fetch models" }

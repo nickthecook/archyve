@@ -128,7 +128,32 @@ Decorative motion must never make the user wait to interact. Hover nudges,
 pulses and the landing corridor are all ambient — nothing gates a click on an
 animation finishing. Reduced-motion preferences turn ambient motion off.
 
+## Narrow viewports
+
+The app is one `max-w-3xl` column, which is most of the way to working on a
+phone already. The rules that keep it there:
+
+- **Mobile-first.** The bare class is the narrow behaviour; `sm:` restores the
+  desktop look. Write both out in full — Tailwind scans these files as text, so
+  an interpolated class name silently doesn't exist.
+- **Still no sidebar, and no drawer.** The top bar wraps to a second line rather
+  than collapsing into a hamburger. A menu you have to open to discover is worse
+  than two lines of links you can see.
+- **Nothing scrolls sideways except content that should.** A wide comparison
+  table is allowed to scroll inside itself; a page is not. If something overflows,
+  the fix is wrapping or dropping a part, not a page-wide scroll.
+- **What scrolls has to look like it scrolls.** Phone scrollbars are overlay and
+  vanish when idle, so a clipped table reads as a broken layout. Scroll
+  containers get a thin persistent bar and `overscroll-behavior-x: contain`.
+- **Text you didn't write gets `break-words`.** Anything from a model or a
+  document — snippets, queries, reasoning, answers — can contain a token with no
+  break opportunity, and one is enough to push the page sideways.
+- **Chrome gives way before content.** When the bar has to lose something, it
+  loses the parts that repeat elsewhere: the account email is in the menu it
+  opens, so the bar shows an initial instead.
+
 ## Adding a page
+
 
 1. Heading: title + one `text-muted` sentence.
 2. Doorway rows for anything that leaves the page.

@@ -3,6 +3,10 @@
    the HTML comes from Chat::Prose rather than from a Phlex view that could
    carry Tailwind classes. Brand tokens come from the Tailwind @theme. */
 
+/* Model and document text both carry tokens with no break opportunity — hashes,
+   ids, URLs without separators. Left alone they run out past the transcript. */
+.answer { overflow-wrap: break-word; }
+
 .answer > :first-child { margin-top: 0; }
 .answer > :last-child { margin-bottom: 0; }
 .answer p, .answer ul, .answer ol, .answer blockquote, .answer pre, .answer table { margin: 0.75em 0; }
@@ -40,6 +44,26 @@
   padding: 0.85rem 1rem; border: 1px solid var(--color-line); border-radius: 6px;
   background: var(--color-void); overflow-x: auto;
 }
+
+/* Anything that scrolls sideways has to say so. Phone scrollbars are overlay —
+   they appear only while moving — so a clipped table just looks cut off at the
+   border. These two get a thin persistent bar instead, which is also the reason
+   the fade this replaced didn't work: `th`/`td` paint their own backgrounds over
+   any gradient set on the table.
+
+   `overscroll-behavior-x` keeps a sideways drag inside the table rather than
+   handing it to the page once it reaches the end. */
+.answer pre, .answer table {
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+.answer pre::-webkit-scrollbar, .answer table::-webkit-scrollbar { height: 6px; }
+.answer pre::-webkit-scrollbar-track, .answer table::-webkit-scrollbar-track { background: transparent; }
+.answer pre::-webkit-scrollbar-thumb, .answer table::-webkit-scrollbar-thumb {
+  border-radius: 3px; background: var(--color-line-2);
+}
+
 /* The fence carries the frame; the code inside it shouldn't draw a second one. */
 .answer pre code { padding: 0; border: 0; background: none; font-size: 0.8rem; line-height: 1.55; }
 

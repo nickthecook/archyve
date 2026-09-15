@@ -150,7 +150,7 @@ class Views::Styleguide::Index < Views::Base
   # flip is most of what you see, at 24px the travel is.
   def spinners
     div(class: "rounded-lg border border-line bg-ink/40 p-4") do
-      div(class: "flex items-center gap-6") do
+      div(class: "flex flex-wrap items-center gap-x-6 gap-y-3") do
         [12, 15, 24].each do |size|
           div(class: "flex items-center gap-2.5") do
             span(class: "grid h-7 w-7 place-items-center rounded bg-accent/10 text-accent") do

@@ -67,7 +67,7 @@ class Views::Conversations::Show < Views::Base
         data: { composer_target: "field" },
         class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
       )
-      div(class: "flex items-center gap-3") do
+      div(class: "flex flex-wrap items-center gap-3") do
         span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
           span(class: "h-1.5 w-1.5 rounded-full bg-accent")
           plain @conversation.scope_label

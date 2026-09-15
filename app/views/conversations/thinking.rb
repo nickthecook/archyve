@@ -22,7 +22,7 @@ class Views::Conversations::Thinking < Components::Base
       summary(class: "flex cursor-pointer list-none items-center gap-3 px-4 py-2.5") do
         tile
         span(class: "text-[0.8125rem] text-muted") { "Thought about this" }
-        span(class: "ml-auto shrink-0 font-mono text-[0.7rem] text-faint tabular-nums") { tally }
+        span(class: "ml-auto min-w-0 text-right font-mono text-[0.7rem] text-faint tabular-nums") { tally }
         chevron
       end
       body
@@ -44,7 +44,7 @@ class Views::Conversations::Thinking < Components::Base
   # is behind the row, and tokens are a number we'd be guessing at.
   def tally
     count = @segment.content.to_s.split.size
-    "#{count} #{'word'.pluralize(count)}"
+    "#{count} #{'word'.pluralize(count)}"
   end
 
   def chevron
@@ -57,7 +57,7 @@ class Views::Conversations::Thinking < Components::Base
   # results the model was still deciding how to use, and rendering them as live
   # citations would promise more than the reasoning does.
   def body
-    div(class: "border-t border-line/60 p-4 text-[0.8125rem] leading-relaxed text-faint whitespace-pre-wrap") do
+    div(class: "border-t border-line/60 p-4 text-[0.8125rem] leading-relaxed text-faint break-words whitespace-pre-wrap") do
       @segment.content
     end
   end

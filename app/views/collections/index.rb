@@ -55,12 +55,12 @@ class Views::Collections::Index < Views::Base
   # means no param, so the chip is a read-only indicator until the picker lands.
   def search
     form(action: search_path, method: "get", class: "mb-8") do
-      div(class: "flex items-center gap-3 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
+      div(class: "flex flex-wrap items-center gap-x-3 gap-y-2 rounded border border-line-2 bg-ink/60 px-4 py-3 focus-within:border-accent transition-colors") do
         search_icon
         input(
           type: "text", name: "q", placeholder: "Search across every collection",
           autocomplete: "off",
-          class: "flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
+          class: "min-w-0 flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
         )
         scope_chip
       end
@@ -79,7 +79,7 @@ class Views::Collections::Index < Views::Base
 
   # Filter (narrows the list as you type) on the left; ways to add on the right.
   def toolbar
-    div(class: "mb-3 flex items-center gap-3") do
+    div(class: "mb-3 flex flex-wrap items-center gap-3") do
       input(
         type: "text", placeholder: "Filter collections",
         autocomplete: "off",

@@ -22,7 +22,7 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["rings", "input"]
 
-  VMAX = 1.3    // slots per second at cruise (≈ one 800ms step when isolated)
+  VMAX = 0.6    // slots per second at cruise (≈ one 800ms step when isolated)
   ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
   LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
   INTRO = 1.6   // seconds for the load bloom: rings emerge fast, then ease into place

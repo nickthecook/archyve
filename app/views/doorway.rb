@@ -22,11 +22,21 @@ class Views::Doorway < Components::Base
   def view_template
     a(href: @href, class: "group flex items-center gap-4 rounded-lg border border-line border-l-2 border-l-accent bg-ink/60 px-5 py-4 hover:bg-ink transition-colors") do
       span(class: "grid h-9 w-9 shrink-0 place-items-center rounded bg-accent/10 text-accent") { yield }
-      div(class: "min-w-0 flex-1") do
-        p(class: "text-sm font-medium text-fg") { @title }
-        p(class: "mt-0.5 text-xs text-faint") { @description } if @description
+      # The meta sits beside the description while both fit and drops beneath it
+      # when they don't. Held at `shrink-0` it kept its full width and left the
+      # description a column too narrow to read — "1 server · 3 models" is 137px
+      # of a phone, and the sentence next to it wrapped onto five lines.
+      #
+      # `basis-56` is the floor that decides when to break, and it is deliberately
+      # wide enough that every doorway breaks at the same width rather than each
+      # one turning on how long its own meta happens to be.
+      div(class: "flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-1") do
+        div(class: "min-w-0 flex-1 basis-56") do
+          p(class: "text-sm font-medium text-fg") { @title }
+          p(class: "mt-0.5 text-xs text-faint") { @description } if @description
+        end
+        span(class: "ml-auto font-mono tabular-nums text-xs text-muted") { @meta } if @meta
       end
-      span(class: "shrink-0 font-mono tabular-nums text-xs text-muted") { @meta } if @meta
       chevron
     end
   end
