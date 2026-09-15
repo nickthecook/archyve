@@ -110,6 +110,32 @@ RSpec.describe Retrieval::Search do
       it "names the server, so the message can say what to go and check" do
         expect(result.failure.server_name).to eq(embedding_model.inference_server.name)
       end
+
+      # Starts green on purpose: a never-checked server is already not
+      # reachable, so asserting from that state would pass without the mark.
+      it "marks the server unreachable" do
+        embedding_model.inference_server.mark_reachable!
+        result
+        expect(embedding_model.inference_server.reload).not_to be_reachable
+      end
+    end
+
+    context "when the search succeeds" do
+      it "marks the server reachable" do
+        result
+        expect(embedding_model.inference_server.reload).to be_reachable
+      end
+    end
+
+    # Fusion is local SQL. Its failures say nothing about the host, so the mark
+    # sits between embedding and fusion rather than after both.
+    context "when fusion blows up after the server answered" do
+      before { allow(Retrieval::Fuse).to receive(:call).and_raise(NoMethodError, "undefined method") }
+
+      it "leaves the server reachable" do
+        result
+        expect(embedding_model.inference_server.reload).to be_reachable
+      end
     end
 
     context "when scoped to a collection they cannot read" do

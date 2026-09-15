@@ -124,6 +124,63 @@ class InferenceServer < ApplicationRecord
   def checked? = last_checked_at.present?
   def reachable? = last_check_status == "ok"
 
+  # --- passive health --------------------------------------------------------
+  #
+  # #check! is a deliberate probe. The two marks below are the same knowledge
+  # arriving for free, from a chat turn or a search that talked to this server
+  # anyway. Without them the badge only ever moves when an admin clicks Check,
+  # so a server that dies *after* a successful check goes on claiming "reachable"
+  # indefinitely — which is exactly the case where a wrong badge costs something.
+
+  # How long an "it answered" claim stays fresh enough not to rewrite. This only
+  # governs write volume, never what the page says: a status *change* is always
+  # recorded immediately, so recovery still shows up at once.
+  HEALTH_FRESH_FOR = 1.minute
+
+  # How much of an exception message is worth keeping on the row.
+  CHECK_ERROR_LIMIT = 500
+
+  # The exceptions that mean *this server didn't answer*, and so the only ones
+  # allowed to turn the badge red.
+  #
+  # Deliberately narrower than Ingestion::Outcome's "unreachable", which answers
+  # a different question — "will re-uploading this document help?" — and rightly
+  # says no for a rate limit or an overloaded host. Here the question is "is the
+  # host up?", and a server that replied "slow down" or "I'm busy" demonstrably
+  # is. Rejected credentials are likewise someone's Settings entry being wrong
+  # rather than an outage, so they leave the badge green on purpose: the server
+  # is reachable, the configuration isn't.
+  UNREACHABLE_ERRORS = [
+    Faraday::ConnectionFailed,
+    Faraday::TimeoutError,
+    RubyLLM::ServerError,
+    RubyLLM::ServiceUnavailableError
+  ].freeze
+
+  def self.unreachable_error?(error) = UNREACHABLE_ERRORS.any? { error.is_a?(it) }
+
+  # update_columns rather than update!, in both marks below: these run on a
+  # request path, one of them inside a rescue, and a row that has gone invalid
+  # for an unrelated reason — a cleared API key — would raise out of the very
+  # handler that exists to report trouble. Same trap MissingImplementationError
+  # documents at the top of this file. It also leaves updated_at alone, which
+  # should keep meaning "somebody changed the configuration".
+  def mark_reachable!
+    return if reachable? && last_checked_at&.after?(HEALTH_FRESH_FOR.ago)
+
+    update_columns(last_checked_at: Time.current, last_check_status: "ok", last_check_error: nil)
+  end
+
+  # Unthrottled, unlike the success mark: failures are rare, and consecutive ones
+  # can each carry a different message worth showing.
+  def mark_unreachable!(error)
+    update_columns(
+      last_checked_at: Time.current,
+      last_check_status: "failed",
+      last_check_error: "#{error.class}: #{error.message}".truncate(CHECK_ERROR_LIMIT)
+    )
+  end
+
   # --- provider contract (see the class comment) -----------------------------
 
   def apply_config(_config)

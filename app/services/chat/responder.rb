@@ -52,10 +52,22 @@ module Chat
         turn.append_thinking(chunk.thinking&.text)
         turn.append(chunk.content)
       end
+      # Once per turn, not once per chunk: `ask` is a single call, however much
+      # it streams back through the block above.
+      model.inference_server.mark_reachable!
       turn.finish
     rescue StandardError => e
       Rails.logger.error("chat turn failed for conversation #{@conversation.id}: #{e.class}: #{e.message}")
+      note_unreachable(model, e)
       turn.fail!(unreachable_message(model))
+    end
+
+    # Only a genuine no-answer marks the server down. This rescue is deliberately
+    # broad — nothing here raises at the user — so it also catches bugs in
+    # Archyve, and a NoMethodError of ours has no business putting a red dot on a
+    # host that is fine.
+    def note_unreachable(model, error)
+      model.inference_server.mark_unreachable!(error) if InferenceServer.unreachable_error?(error)
     end
 
     def build_chat(model, turn)

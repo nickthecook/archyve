@@ -35,9 +35,15 @@ module Retrieval
       model = InferenceModel.active_embedding
       return Outcome.failed(:not_configured) if model.nil?
 
-      fuse(candidates_for(queries, model), limit:)
+      # Marked between the two steps, not after them: embedding is the part that
+      # talks to the server, and fusion is local SQL whose failures say nothing
+      # about the host.
+      candidates = candidates_for(queries, model)
+      model.inference_server.mark_reachable!
+      fuse(candidates, limit:)
     rescue StandardError => e
       Rails.logger.error("retrieval failed: #{e.class}: #{e.message}")
+      model&.inference_server&.mark_unreachable!(e) if InferenceServer.unreachable_error?(e)
       Outcome.failed(:unreachable, server_name: model&.inference_server&.name, model_name: model&.name)
     end
 

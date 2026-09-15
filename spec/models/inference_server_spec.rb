@@ -154,6 +154,109 @@ RSpec.describe InferenceServer do
         end
       end
     end
+
+    describe "#mark_reachable!" do
+      subject(:server) { create(:ollama_server) }
+
+      context "when the server has never been checked" do
+        it "records that it answered" do
+          server.mark_reachable!
+          expect(server.reload).to be_reachable
+        end
+      end
+
+      context "when it was last seen failing" do
+        before { server.mark_unreachable!(Faraday::ConnectionFailed.new("refused")) }
+
+        # The recovery edge: a change is never throttled, or a server that came
+        # back would stay red until someone clicked Check.
+        it "flips it back at once" do
+          server.mark_reachable!
+          expect(server.reload).to be_reachable
+        end
+
+        it "clears the stale error" do
+          server.mark_reachable!
+          expect(server.reload.last_check_error).to be_nil
+        end
+      end
+
+      context "when it was already reachable a moment ago" do
+        before { server.mark_reachable! }
+
+        it "doesn't write again" do
+          expect { server.mark_reachable! }.not_to(change { server.reload.last_checked_at })
+        end
+      end
+
+      context "when the last success has gone stale" do
+        before { server.update_columns(last_check_status: "ok", last_checked_at: 1.hour.ago) }
+
+        it "refreshes the timestamp" do
+          expect { server.mark_reachable! }.to(change { server.reload.last_checked_at })
+        end
+      end
+
+      # updated_at is the configuration's mtime; traffic must not disturb it.
+      it "leaves updated_at alone" do
+        server.update_columns(updated_at: 1.day.ago)
+        expect { server.mark_reachable! }.not_to(change { server.reload.updated_at })
+      end
+    end
+
+    describe "#mark_unreachable!" do
+      subject(:server) { create(:ollama_server) }
+
+      before { server.mark_reachable! }
+
+      it "turns the badge red" do
+        server.mark_unreachable!(Faraday::ConnectionFailed.new("refused"))
+        expect(server.reload).not_to be_reachable
+      end
+
+      it "records why" do
+        server.mark_unreachable!(Faraday::ConnectionFailed.new("refused"))
+        expect(server.reload.last_check_error).to include("refused")
+      end
+
+      it "caps a runaway message" do
+        server.mark_unreachable!(Faraday::ConnectionFailed.new("x" * 5_000))
+        expect(server.reload.last_check_error.length).to be <= described_class::CHECK_ERROR_LIMIT
+      end
+
+      # A row that has gone invalid for an unrelated reason still has to be able
+      # to report trouble — that is the whole point of the mark.
+      context "when the row would fail validation" do
+        subject(:server) { create(:openai_server) }
+
+        before { server.update_columns(api_key: nil) }
+
+        it "still records the failure" do
+          server.mark_unreachable!(Faraday::ConnectionFailed.new("refused"))
+          expect(server.reload).not_to be_reachable
+        end
+      end
+    end
+
+    describe ".unreachable_error?" do
+      # "Is the host up?" — not Ingestion::Outcome's "will a retry help?", which
+      # answers differently for the last two.
+      {
+        Faraday::ConnectionFailed => true,
+        Faraday::TimeoutError => true,
+        RubyLLM::ServerError => true,
+        RubyLLM::ServiceUnavailableError => true,
+        RubyLLM::RateLimitError => false,
+        RubyLLM::UnauthorizedError => false,
+        NoMethodError => false
+      }.each do |error_class, expected|
+        context "given #{error_class}" do
+          it "is #{expected}" do
+            expect(described_class.unreachable_error?(error_class.new("boom"))).to be(expected)
+          end
+        end
+      end
+    end
   end
 
   describe InferenceServers::OpenAI do

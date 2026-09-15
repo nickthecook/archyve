@@ -118,6 +118,51 @@ RSpec.describe Chat::Responder do
         respond
         expect(turn.error).to include(chat_model.inference_server.name)
       end
+
+      # Otherwise Settings goes on showing a green dot for a host every turn is
+      # failing against, until an admin happens to click Check. Starts green on
+      # purpose — a never-checked server is already not reachable, so asserting
+      # from that state would pass without the mark.
+      it "marks the server unreachable" do
+        chat_model.inference_server.mark_reachable!
+        respond
+        expect(chat_model.inference_server.reload).not_to be_reachable
+      end
+    end
+
+    context "when the chat server rejects the credentials" do
+      before { allow(llm).to receive(:complete).and_raise(RubyLLM::UnauthorizedError, "bad key") }
+
+      # The host answered — it said no. That's a Settings mistake, not an outage,
+      # and a red dot would send someone to look at the wrong thing.
+      it "leaves the server reachable" do
+        chat_model.inference_server.mark_reachable!
+        respond
+        expect(chat_model.inference_server.reload).to be_reachable
+      end
+    end
+
+    context "when Archyve itself has a bug" do
+      before { allow(llm).to receive(:complete).and_raise(NoMethodError, "undefined method") }
+
+      it "doesn't blame the server" do
+        chat_model.inference_server.mark_reachable!
+        respond
+        expect(chat_model.inference_server.reload).to be_reachable
+      end
+    end
+
+    context "when the turn succeeds" do
+      it "marks the server reachable" do
+        respond
+        expect(chat_model.inference_server.reload).to be_reachable
+      end
+
+      it "clears a previous failure" do
+        chat_model.inference_server.mark_unreachable!(Faraday::ConnectionFailed.new("down"))
+        respond
+        expect(chat_model.inference_server.reload.last_check_error).to be_nil
+      end
     end
   end
 end
