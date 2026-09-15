@@ -18,6 +18,10 @@ module Chat
   # cover, unless it is told not to. The tool results repeat this on the paths
   # where it matters most, because instructions at the top of a long
   # conversation carry less weight than the sentence it just read.
+  #
+  # A chat scoped to no collections gets a different prompt for all three: there
+  # is no search tool, nothing to cite, and the model's own knowledge is all
+  # there is — so it is told that rather than being told off for using it.
   class Instructions
     def self.for(conversation) = new(conversation).to_s
 
@@ -26,6 +30,31 @@ module Chat
     end
 
     def to_s
+      @conversation.searches_archive? ? retrieval_prompt : unaided_prompt
+    end
+
+    private
+
+    # No collections were chosen, so there is no search tool and nothing to
+    # cite. The model is told that plainly — a model that thinks it has an
+    # archive it cannot reach will apologise for failing to search instead of
+    # answering the question it was asked.
+    def unaided_prompt
+      <<~TEXT.strip
+        You are Archyve, a chat assistant for a private document archive.
+
+        This conversation is not drawing on the archive: the user chose no collections,
+        so you cannot search or read any of their documents and have no sources to cite.
+        That is their choice and not a fault to apologise for.
+
+        Answer from your own knowledge, and be straight about its limits — say when you
+        are unsure, and never present something you are guessing at as though it came
+        from the user's documents. If a question clearly needs their documents, say so
+        and tell them a new chat with collections selected can search them.
+      TEXT
+    end
+
+    def retrieval_prompt
       <<~TEXT.strip
         You are Archyve, answering questions from a private document archive.
 

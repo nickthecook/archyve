@@ -19,6 +19,33 @@ RSpec.describe Conversation do
       it "says so in words, for the model's instructions" do
         expect(conversation.scope_label).to eq("your whole archive")
       end
+
+      it "searches" do
+        expect(conversation).to be_searches_archive
+      end
+    end
+
+    # The picker with everything unticked. An empty selection is a scope of its
+    # own — it means "search nothing" — and the one thing it must never do is
+    # collapse back into All.
+    context "when no collection was chosen" do
+      let(:scope) { { "c" => [] } }
+
+      it "is a scope rather than the absence of one" do
+        expect(result).not_to be_nil
+      end
+
+      it "retrieves nothing" do
+        expect(result.document_ids).to be_empty
+      end
+
+      it "says so in words" do
+        expect(conversation.scope_label).to eq("no collections")
+      end
+
+      it "is not a chat that searches" do
+        expect(conversation).not_to be_searches_archive
+      end
     end
 
     context "when scoped to a collection they may read" do

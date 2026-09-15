@@ -435,6 +435,14 @@ collection the reader can't see is **dropped rather than rejected** — erroring
 would confirm the collection exists — and a `doc` id they can't read never
 resolves to a title, so the scope label leaks nothing.
 
+The `c[]` wire format has **three** states, not two: no `c` at all means the
+whole archive (the landing bar, a link that never mentioned collections); `c[]`
+carrying slugs means those collections; and an *empty* `c[]` means nothing at
+all. The chat scope picker ticks every collection by default and always posts a
+blank `c[]` alongside what's ticked, so unticking everything starts a chat with
+no retrieval tool at all — a picker that searched everything while showing
+nothing ticked was claiming the opposite of what it did.
+
 **Per-collection grants (built 2026-09-07).** Access to documents is granted
 **through collections**.
 

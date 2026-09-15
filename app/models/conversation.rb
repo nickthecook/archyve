@@ -31,5 +31,11 @@ class Conversation < ApplicationRecord
   # What to call this scope in the UI and in the model's instructions.
   def scope_label = retrieval_scope&.label || "your whole archive"
 
+  # Whether this chat has an archive to draw on at all. A scope that names no
+  # collection is a deliberate choice — chat with the model, leave the archive
+  # out of it — so the model isn't handed a search tool that could only ever
+  # come back empty. nil scope is All, which very much does search.
+  def searches_archive? = !retrieval_scope&.names_nothing?
+
   def next_message_position = (messages.maximum(:position) || 0) + 1
 end

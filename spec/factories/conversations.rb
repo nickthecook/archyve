@@ -9,6 +9,12 @@ FactoryBot.define do
       transient { collection { nil } }
       scope { { "c" => [collection&.slug || "handbook"] } }
     end
+
+    # Drawing on nothing: the picker with everything unticked. An empty `c` is
+    # not the same spec as no `c` — see Retrieval::Scope.
+    trait :no_collections do
+      scope { { "c" => [] } }
+    end
   end
 
   factory :message do

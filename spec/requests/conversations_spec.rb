@@ -52,6 +52,64 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    # The picker ticks everything by default and posts a blank c[] alongside
+    # whatever is ticked, so these three submissions are the three states it can
+    # be in — and "all of them" and "none of them" must not mean the same thing.
+    context "when the picker is submitted" do
+      let!(:handbook) { create(:collection, name: "Handbook") }
+      let!(:runbooks) { create(:collection, name: "Runbooks") }
+
+      before do
+        create(:collection_user, collection: handbook, user: current_user)
+        create(:collection_user, collection: runbooks, user: current_user)
+      end
+
+      context "with every collection ticked" do
+        let(:params) { { message: "anything", c: ["", handbook.slug, runbooks.slug] } }
+
+        it "draws on all of them" do
+          request
+          expect(Conversation.last.scope).to eq({ "c" => [handbook.slug, runbooks.slug] })
+        end
+      end
+
+      context "with some collections ticked" do
+        let(:params) { { message: "anything", c: ["", handbook.slug] } }
+
+        it "narrows to those" do
+          request
+          expect(Conversation.last.scope).to eq({ "c" => [handbook.slug] })
+        end
+      end
+
+      context "with nothing ticked" do
+        let(:params) { { message: "anything", c: [""] } }
+
+        it "draws on nothing rather than everything" do
+          request
+          expect(Conversation.last.scope).to eq({ "c" => [] })
+        end
+
+        it "starts a chat that does not search" do
+          request
+          expect(Conversation.last).not_to be_searches_archive
+        end
+      end
+    end
+
+    # The landing bar, and any link that never mentioned collections: no picker
+    # was in front of the person, so there is no selection to honour.
+    context "when no scope is submitted at all" do
+      let!(:collection) { create(:collection, name: "Handbook") }
+
+      before { create(:collection_user, collection:, user: current_user) }
+
+      it "draws on the whole archive" do
+        request
+        expect(Conversation.last.scope).to eq({})
+      end
+    end
+
     context "when a model is picked" do
       let(:picked) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
       let(:params) { { message: "anything", inference_model_id: picked.id } }
@@ -130,6 +188,16 @@ RSpec.describe "Conversations", type: :request do
 
         it "offers no choice to make" do
           expect(response.body).not_to include('name="inference_model_id"')
+        end
+      end
+
+      # "Drawing on: no collections" reads as a fault; it was a choice.
+      context "when it draws on no collections" do
+        let(:conversation) { create(:conversation, :no_collections, user: current_user) }
+
+        it "says the archive isn't being searched" do
+          request
+          expect(response.body).to include("doesn&#39;t search your archive")
         end
       end
 
@@ -251,6 +319,45 @@ RSpec.describe "Conversations", type: :request do
 
   describe "GET /chat" do
     subject(:request) { get conversations_path }
+
+    # The picker has to show what a chat would actually search, and by default
+    # that is everything — so every box arrives ticked.
+    context "when collections are readable" do
+      let!(:handbook) { create(:collection, name: "Handbook") }
+      let!(:runbooks) { create(:collection, name: "Runbooks") }
+
+      before do
+        create(:collection_user, collection: handbook, user: current_user)
+        create(:collection_user, collection: runbooks, user: current_user)
+      end
+
+      it "ticks them all" do
+        request
+        expect(response.body).to match(/value="#{handbook.slug}"[^>]*\bchecked\b/)
+          .and match(/value="#{runbooks.slug}"[^>]*\bchecked\b/)
+      end
+
+      # Without it, unticking everything would post no c[] at all, which the
+      # wire format reads as All.
+      it "posts an empty selection even when nothing is ticked" do
+        request
+        expect(response.body).to include('<input type="hidden" name="c[]" value="">')
+      end
+
+      context "when the page is opened already narrowed" do
+        subject(:request) { get conversations_path, params: { c: [handbook.slug] } }
+
+        it "ticks what the link named" do
+          request
+          expect(response.body).to match(/value="#{handbook.slug}"[^>]*\bchecked\b/)
+        end
+
+        it "leaves the rest alone" do
+          request
+          expect(response.body).not_to match(/value="#{runbooks.slug}"[^>]*\bchecked\b/)
+        end
+      end
+    end
 
     context "when no tool-capable chat model is configured" do
       before { chat_model.update!(supports_tools: false) }

@@ -36,13 +36,26 @@ class Views::Conversations::Show < Views::Base
   def scope_banner
     div(class: "mt-3 mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 bg-ink/60 px-4 py-3") do
       span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Drawing on" }
-      span(class: "text-sm text-fg") { @conversation.scope_label }
+      span(class: "text-sm text-fg") { drawing_on }
       span(class: "ml-auto text-xs text-faint") do
         plain "Fixed for this chat — "
         a(href: conversations_path, class: "text-muted underline decoration-line-2 underline-offset-4 hover:text-fg") { "start a new one" }
         plain " to change it"
       end
     end
+  end
+
+  # A chat with no collections isn't drawing on anything, and saying "no
+  # collections" in a box labelled "Drawing on" reads as a fault rather than as
+  # the choice it was.
+  def drawing_on
+    @conversation.searches_archive? ? @conversation.scope_label : "nothing — this chat doesn't search your archive"
+  end
+
+  def ask_placeholder
+    return "Ask about #{@conversation.scope_label}…" if @conversation.searches_archive?
+
+    "Ask anything — nothing here is searched"
   end
 
   def thread
@@ -63,13 +76,13 @@ class Views::Conversations::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
         name: "message", rows: "2", autofocus: true, autocomplete: "off",
-        placeholder: "Ask about #{@conversation.scope_label}…",
+        placeholder: ask_placeholder,
         data: { composer_target: "field" },
         class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3") do
         span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
-          span(class: "h-1.5 w-1.5 rounded-full bg-accent")
+          span(class: "h-1.5 w-1.5 rounded-full #{@conversation.searches_archive? ? 'bg-accent' : 'bg-line-2'}")
           plain @conversation.scope_label
         end
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)

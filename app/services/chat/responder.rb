@@ -77,7 +77,10 @@ module Chat
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))
-      chat.with_tool(tool(turn))
+      # A chat scoped to no collections gets no search tool at all. Handing it
+      # one that can only return "nothing found" would have the model reporting
+      # an empty archive when the truth is that nobody pointed it at one.
+      chat.with_tool(tool(turn)) if @conversation.searches_archive?
       replay(chat)
       chat
     end

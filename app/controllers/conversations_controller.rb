@@ -55,8 +55,18 @@ class ConversationsController < ApplicationController
 
   # The scope, as the wire format the search page already speaks — so "chat
   # about these results" can hand its params straight over.
+  #
+  # The picker ticks every collection by default and posts a blank c[] with
+  # whatever is ticked, so what it sends is literally what gets searched —
+  # including when nothing is ticked, which stores an empty selection rather
+  # than falling back to All. A request with no `c` at all never had a picker in
+  # front of it (the landing bar, a link that only names a document), and that
+  # still means the whole archive.
   def scope_spec
-    { "c" => Array(params[:c]).reject(&:blank?), "doc" => params[:doc].presence }.compact_blank
+    return { "doc" => params[:doc] } if params[:doc].present?
+    return {} unless params.key?(:c)
+
+    { "c" => Array(params[:c]).reject(&:blank?) }
   end
 
   def readable_collections = Collection.readable_by(Current.user).order(:name)

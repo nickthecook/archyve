@@ -78,6 +78,28 @@ RSpec.describe Chat::Responder do
       end
     end
 
+    # Nothing to search, so nothing to search with. A tool that could only ever
+    # answer "found nothing" would have the model reporting an empty archive.
+    context "when the chat draws on no collections" do
+      let(:conversation) { create(:conversation, :no_collections, inference_model: chat_model) }
+
+      it "attaches no retrieval tool" do
+        respond
+        expect(llm.tools).to be_empty
+      end
+
+      it "still answers" do
+        respond
+        expect(turn.segments.map(&:content)).to eq(["Press [Registration]."])
+      end
+
+      it "tells the model it has no archive to draw on" do
+        respond
+        system_prompt = llm.messages.select { it.role == :system }.map { it.content.to_s }.join
+        expect(system_prompt).to include("not drawing on the archive")
+      end
+    end
+
     context "when no chat model is configured" do
       let(:conversation) { create(:conversation, inference_model: nil) }
 

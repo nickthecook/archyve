@@ -69,13 +69,27 @@ class Views::Conversations::Index < Views::Base
   end
 
   # Checkboxes rather than a select: the scope is a set, and the whole point is
-  # that you can see what's in it without opening anything. None ticked is All,
-  # which is the same thing the wire format means by omitting the parameter.
+  # that you can see what's in it without opening anything. Everything is ticked
+  # to start with, because that is what the chat will actually search — a picker
+  # that searched everything while showing nothing ticked was telling the
+  # opposite of the truth. Untick to narrow; untick everything for a chat that
+  # doesn't touch the archive at all.
   def scope_picker
     div(class: "flex flex-wrap items-center gap-2") do
       span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Draw on" }
-      @collections.each { |collection| scope_chip(collection) }
-      span(class: "text-xs text-faint") { "everything you can read, unless you narrow it" } if @collections.empty?
+
+      if @collections.any?
+        # Posted whatever is ticked, so an unticked picker arrives as an empty
+        # selection rather than as no selection at all — the difference between
+        # searching nothing and searching everything. See
+        # ConversationsController#scope_spec.
+        input(type: "hidden", name: "c[]", value: "")
+        @collections.each { |collection| scope_chip(collection) }
+      else
+        # No picker, so nothing to send: the chat draws on everything, which is
+        # what an empty c[] would have quietly turned into a search of nothing.
+        span(class: "text-xs text-faint") { "everything you can read, unless you narrow it" }
+      end
     end
   end
 
@@ -87,11 +101,20 @@ class Views::Conversations::Index < Views::Base
     label(class: "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted hover:border-line-2 hover:text-fg transition-colors") do
       input(
         type: "checkbox", name: "c[]", value: collection.slug,
-        checked: @scope&.spec&.dig("c")&.include?(collection.slug),
+        checked: checked?(collection),
         class: "accent-accent"
       )
       plain collection.name
     end
+  end
+
+  # No scope in the URL means nobody has narrowed anything yet, and the default
+  # is the whole archive — so every box is ticked. A scope arriving from a
+  # search link ticks exactly what that link named, including nothing.
+  def checked?(collection)
+    return true if @scope.nil?
+
+    @scope.spec.fetch("c", []).include?(collection.slug)
   end
 
   def list
