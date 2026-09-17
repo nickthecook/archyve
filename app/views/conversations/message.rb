@@ -53,10 +53,16 @@ class Views::Conversations::Message < Components::Base
   # been, "which one said that?" is exactly the question the transcript should
   # already have answered. Absent on an old turn whose model row has since been
   # removed, which is honest: we no longer know what it was called.
+  #
+  # How fast it ran goes here too, for the same reason: the interesting question
+  # about a rate is which model produced it, so the two belong on one line.
   def attribution
     return if @message.in_progress? || @message.inference_model.nil?
 
-    div(class: "font-mono text-[0.7rem] text-faint") { @message.inference_model.label }
+    div(class: "font-mono text-[0.7rem] text-faint tabular-nums") do
+      plain @message.inference_model.label
+      render Views::Conversations::Rate.new(@message.tokens_per_second)
+    end
   end
 
   # The gaps where the model is working and the page has nothing to show: before

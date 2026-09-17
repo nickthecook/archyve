@@ -22,7 +22,16 @@ class Views::Conversations::Thinking < Components::Base
       summary(class: "flex cursor-pointer list-none items-center gap-3 px-4 py-2.5") do
         tile
         span(class: "text-[0.8125rem] text-muted") { "Thought about this" }
-        span(class: "ml-auto min-w-0 text-right font-mono text-[0.7rem] text-faint tabular-nums") { tally }
+        # Rate first, tally last. The tally is the one that moves: it counts up
+        # while the model reasons, anchored to the right edge of this row. A
+        # rate appended after it would arrive when the segment closed and shove
+        # a number the eye was already following off to the left. Ahead of it,
+        # the rate grows into the space the row has spare and the word count
+        # never budges.
+        span(class: "ml-auto min-w-0 text-right font-mono text-[0.7rem] text-faint tabular-nums") do
+          render Views::Conversations::Rate.new(@segment.tokens_per_second, separator: :after)
+          plain tally
+        end
         chevron
       end
       body
@@ -40,8 +49,10 @@ class Views::Conversations::Thinking < Components::Base
     end
   end
 
-  # Words rather than tokens: the number is only here to say how much working-out
-  # is behind the row, and tokens are a number we'd be guessing at.
+  # Words rather than tokens, even though the token count is on the row now.
+  # This number exists to say how much working-out is behind a collapsed row,
+  # and a word is a unit the person reading has a feel for. Tokens earn their
+  # place beside it only as a rate, where the unit is the point.
   def tally
     count = @segment.content.to_s.split.size
     "#{count} #{'word'.pluralize(count)}"

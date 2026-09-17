@@ -21,6 +21,42 @@ RSpec.describe Segment do
     end
   end
 
+  describe "#tokens_per_second" do
+    context "with a segment the model generated" do
+      subject(:segment) { create(:segment, token_count: 240, generation_ms: 4000) }
+
+      it "is the tokens over the span they took" do
+        expect(segment.tokens_per_second).to eq(60.0)
+      end
+    end
+
+    # A search isn't generation, so there is nothing to divide.
+    context "with a retrieval segment" do
+      subject(:segment) { create(:retrieval_segment) }
+
+      it "has no rate" do
+        expect(segment.tokens_per_second).to be_nil
+      end
+    end
+
+    # The span runs first delta to last, so a segment of one delta has none.
+    context "with a segment whose first delta was its last" do
+      subject(:segment) { create(:segment, token_count: 1, generation_ms: 0) }
+
+      it "has no rate rather than an infinite one" do
+        expect(segment.tokens_per_second).to be_nil
+      end
+    end
+
+    context "with a segment from before this was recorded" do
+      subject(:segment) { create(:segment, token_count: nil, generation_ms: nil) }
+
+      it "has no rate" do
+        expect(segment.tokens_per_second).to be_nil
+      end
+    end
+  end
+
   describe "#record!" do
     subject(:segment) { create(:retrieval_segment) }
 

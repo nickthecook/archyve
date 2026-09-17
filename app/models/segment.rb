@@ -35,6 +35,16 @@ class Segment < ApplicationRecord
 
   def failed? = failure_kind.present?
 
+  # How fast the model produced this segment, in tokens per second — nil for
+  # anything that wasn't generated (a retrieval), for a turn from before this
+  # was recorded, and for a segment so short that its first delta was also its
+  # last. Recorded by Chat::Pace, which explains what the two columns mean.
+  def tokens_per_second
+    return if token_count.to_i.zero? || generation_ms.to_i.zero?
+
+    token_count * 1000.0 / generation_ms
+  end
+
   # The two kinds that are words in `content`. Kept as a predicate rather than
   # `text? || thinking?` at each call site so a fourth kind has one place to
   # declare itself as prose.

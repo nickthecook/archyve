@@ -56,6 +56,10 @@ module Chat
       @broadcast_at = Time.current - BROADCAST_INTERVAL
       @hits = {}
       @ticks = 0
+      # How fast each open segment is being generated, written to it when it
+      # closes. See Chat::Pace.
+      @text_pace = nil
+      @thinking_pace = nil
     end
 
     # One streamed delta of prose.
@@ -87,6 +91,8 @@ module Chat
       flushed = flush_thinking
       created = @text_segment.nil?
       @text_segment ||= create_segment(:text, content: @buffer.dup)
+      @text_pace ||= Pace.new
+      @text_pace.tick
       return broadcast! if created || flushed
 
       broadcast if due?
@@ -105,6 +111,8 @@ module Chat
 
       created = @thinking_segment.nil?
       @thinking_segment ||= create_segment(:thinking, content: @thinking_buffer.dup)
+      @thinking_pace ||= Pace.new
+      @thinking_pace.tick
       return broadcast! if created
 
       broadcast if due?
@@ -179,8 +187,9 @@ module Chat
     # Persist what's buffered and stop appending to that segment — the next
     # delta starts a new one, after the retrieval that interrupted it.
     def flush_text
-      @text_segment&.update!(content: @buffer.dup)
+      @text_segment&.update!(content: @buffer.dup, **pace_attributes(@text_pace))
       @text_segment = nil
+      @text_pace = nil
       # Cleared even with no segment to write it to: what's left in that case is
       # whitespace the model emitted before saying anything, and carrying it
       # into the next segment would indent it for no reason.
@@ -189,11 +198,17 @@ module Chat
 
     def flush_thinking
       flushed = @thinking_segment.present?
-      @thinking_segment&.update!(content: @thinking_buffer.dup)
+      @thinking_segment&.update!(content: @thinking_buffer.dup, **pace_attributes(@thinking_pace))
       @thinking_segment = nil
+      @thinking_pace = nil
       @thinking_buffer = +""
       flushed
     end
+
+    # Empty rather than zeroes when there is no pace, so a flush of a segment
+    # nothing streamed into leaves its counters null — "never measured" — rather
+    # than claiming it generated nothing in no time.
+    def pace_attributes(pace) = pace&.attributes || {}
 
     def due? = Time.current - @broadcast_at >= BROADCAST_INTERVAL
 

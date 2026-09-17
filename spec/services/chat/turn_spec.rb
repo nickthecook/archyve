@@ -199,6 +199,53 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  # Each segment is counted and timed against its own stream — see Chat::Pace
+  # for why the provider's own token total is deliberately not used.
+  describe "counting what was generated" do
+    let(:outcome) { Retrieval::Outcome.new(hits: [], candidate_count: 0) }
+
+    context "when the model reasons and then answers" do
+      before do
+        3.times { turn.append_thinking("Think. ") }
+        2.times { turn.append("Ninety days. ") }
+        turn.finish
+      end
+
+      it "counts each segment's own deltas" do
+        expect(segments.map(&:token_count)).to eq([3, 2])
+      end
+    end
+
+    # Both segments are prose, and each is counted from its own first delta —
+    # so the seconds the search took land in neither of them.
+    context "when the model searches mid-answer" do
+      before do
+        turn.append("Let me check.")
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(outcome)
+        3.times { turn.append("Every 90 days. ") }
+        turn.finish
+      end
+
+      it "counts each round of prose separately" do
+        expect(segments.map(&:token_count)).to eq([1, nil, 3])
+      end
+    end
+
+    # Nothing was generated, so there is no rate to claim — not a rate of zero.
+    context "when the turn only searched" do
+      before do
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(outcome)
+        turn.finish
+      end
+
+      it "leaves the retrieval segment unmeasured" do
+        expect(segments.map(&:token_count)).to eq([nil])
+      end
+    end
+  end
+
   describe "waiting for the model" do
     context "while the turn is still running" do
       it "reports itself in progress from the moment it exists" do

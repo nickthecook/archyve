@@ -44,4 +44,19 @@ class Message < ApplicationRecord
   end
 
   def next_segment_position = (segments.maximum(:position) || 0) + 1
+
+  # How fast the model ran for this turn — every token it produced over the time
+  # it spent producing them. The turn's rate rather than any one segment's,
+  # because it sits beside the attribution, which is the turn's too.
+  #
+  # Summing the spans rather than measuring end to end is the point: a turn that
+  # searched spent seconds waiting on the archive and on its own prompt, and
+  # those are not the model generating slowly. What is left is generation.
+  def tokens_per_second
+    tokens = segments.sum { it.token_count.to_i }
+    elapsed = segments.sum { it.generation_ms.to_i }
+    return if tokens.zero? || elapsed.zero?
+
+    tokens * 1000.0 / elapsed
+  end
 end
