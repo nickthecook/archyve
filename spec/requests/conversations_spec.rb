@@ -166,6 +166,32 @@ RSpec.describe "Conversations", type: :request do
         expect(response.body).to include("How do we rotate credentials?")
       end
 
+      # The fallback for a transcript the cable isn't reaching — a subscription
+      # that never came up, a dropped connection, or a second tab that was never
+      # sent the turn because another tab's request recorded it.
+      describe "the transcript's fallback poll" do
+        before do
+          create(:message, conversation:, role: "assistant", position: 2, completed_at: completed_at)
+          request
+        end
+
+        context "while a turn is still in flight" do
+          let(:completed_at) { nil }
+
+          it "keeps polling" do
+            expect(response.body).to include('data-progress-terminal-value="false"')
+          end
+        end
+
+        context "once every turn has landed" do
+          let(:completed_at) { Time.current }
+
+          it "stops" do
+            expect(response.body).to include('data-progress-terminal-value="true"')
+          end
+        end
+      end
+
       context "when more than one model can answer" do
         before do
           create(:inference_model, kind: "chat", supports_tools: true, name: "small-model")
@@ -256,8 +282,17 @@ RSpec.describe "Conversations", type: :request do
     context "when it is their own conversation" do
       let(:conversation) { create(:conversation, user: current_user) }
 
-      it "adds the turn" do
-        expect { request }.to change { conversation.messages.count }.by(1)
+      # Two: the question, and the empty turn that will answer it. The answer's
+      # row is opened here rather than in the job so that the page this
+      # redirects to has an element for the stream to replace — see Chat::Ask.
+      it "adds the question and the turn that answers it" do
+        expect { request }.to change { conversation.messages.count }.by(2)
+      end
+
+      it "renders the waiting turn on the page it redirects to" do
+        request
+        follow_redirect!
+        expect(response.body).to include("Thinking…")
       end
 
       it "sets the answer going" do
@@ -299,7 +334,12 @@ RSpec.describe "Conversations", type: :request do
 
     it "still records the question" do
       request
-      expect(conversation.messages.last.text).to eq("And the Stripe keys?")
+      expect(conversation.messages.first.text).to eq("And the Stripe keys?")
+    end
+
+    it "stamps the turn with the model that was picked" do
+      request
+      expect(conversation.messages.last.inference_model).to eq(picked)
     end
   end
 

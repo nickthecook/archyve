@@ -1,9 +1,12 @@
 require "rails_helper"
 
 RSpec.describe Chat::Turn do
-  subject(:turn) { described_class.new(conversation) }
+  subject(:turn) { described_class.new(message) }
 
   let(:conversation) { create(:conversation) }
+
+  # The empty turn Chat::Ask opens in the request. Everything here fills it in.
+  let(:message) { create(:message, conversation:, role: "assistant", position: 2) }
   let(:segments) { turn.message.segments.reload }
 
   # Broadcasting is Turbo's job and needs no assertion here; what matters is the
@@ -68,22 +71,11 @@ RSpec.describe Chat::Turn do
   end
 
   describe "the turn itself" do
-    # So a transcript can still say which model wrote a turn after the
-    # conversation has been switched to another one.
-    context "when a model is given" do
-      subject(:turn) { described_class.new(conversation, model: model) }
-
-      let(:model) { create(:inference_model, kind: "chat", supports_tools: true) }
-
-      it "stamps it on the turn" do
-        expect(turn.message.inference_model).to eq(model)
-      end
-    end
-
-    context "when there is no model to name" do
-      it "leaves the turn unattributed rather than guessing" do
-        expect(turn.message.inference_model).to be_nil
-      end
+    # It was opened by the request that asked the question. Creating another one
+    # here would put a second, empty turn in the transcript.
+    it "fills in the message it was given rather than opening one" do
+      turn.append("Credentials rotate.")
+      expect(conversation.messages.reload.select(&:assistant?)).to eq([message])
     end
   end
 
@@ -287,9 +279,8 @@ RSpec.describe Chat::Turn do
   end
 
   # Streaming replaces only the segment being written to; anything that adds or
-  # closes a segment replaces the whole message. A segment-level replace can
-  # neither create an element the page hasn't got nor repaint the spinner above
-  # it, so getting this split wrong leaves a turn that streams into nothing or
+  # closes a segment replaces the whole message. A segment-level replace can't
+  # repaint the spinner above it, so getting this split wrong leaves a turn that
   # spins forever with prose underneath it.
   describe "broadcasting" do
     let(:message_target) { Views::Conversations::Message.dom_id(turn.message) }
@@ -307,6 +298,23 @@ RSpec.describe Chat::Turn do
       it "replaces the whole message" do
         expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
           .with(conversation, hash_including(target: message_target))
+      end
+    end
+
+    # The bug this replaced: a turn put on the page by a single append, which is
+    # lost if it fires before the browser's subscription is up — there is no
+    # replay, and every replace after it then aims at an element the page never
+    # got. A replace carries the turn's whole state, so losing one costs nothing.
+    context "over a whole turn" do
+      before do
+        turn.retrieval_started(["rotation"])
+        turn.retrieval_finished(Retrieval::Outcome.new(hits: [], candidate_count: 0))
+        turn.append("Every 90 days.")
+        turn.finish
+      end
+
+      it "never appends anything" do
+        expect(Turbo::StreamsChannel).not_to have_received(:broadcast_append_to)
       end
     end
 

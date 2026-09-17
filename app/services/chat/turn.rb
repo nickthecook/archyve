@@ -39,11 +39,16 @@ module Chat
 
     attr_reader :message
 
-    def initialize(conversation, model: nil)
-      @conversation = conversation
-      @message = conversation.messages.create!(
-        role: :assistant, position: conversation.next_message_position, inference_model: model
-      )
+    # The message is opened by Chat::Ask, in the request that asked the
+    # question, and this fills it in. That ordering is load-bearing rather than
+    # tidy: it is what guarantees the page already has an element for this turn,
+    # which is what lets everything below be a *replace*. See the note in
+    # Chat::Ask for the race that made it so — and note that the spinner the
+    # person sees while the model thinks is rendered by that page load, not by
+    # anything here.
+    def initialize(message)
+      @message = message
+      @conversation = message.conversation
       @buffer = +""
       @text_segment = nil
       @thinking_buffer = +""
@@ -51,16 +56,6 @@ module Chat
       @broadcast_at = Time.current - BROADCAST_INTERVAL
       @hits = {}
       @ticks = 0
-      @on_page = false
-      # Immediately, before a single token exists. A replace can only land on an
-      # element that is already in the DOM, and the page was rendered before
-      # this message existed — so the turn has to be *appended* once first, or
-      # every broadcast for it goes nowhere and the page just sits there.
-      #
-      # Doing it here rather than on the first delta also means the spinner
-      # shows while the model is still thinking, which is the whole gap it
-      # exists to cover.
-      broadcast!
     end
 
     # One streamed delta of prose.
@@ -267,10 +262,11 @@ module Chat
       )
     end
 
-    # Append once to put the turn on the page, replace it thereafter. The
-    # append is what a Turbo `replace` cannot do — create an element that isn't
-    # there — and the replace is what keeps the rest of the transcript from
-    # being re-rendered on every tick of the stream.
+    # The whole turn, for the changes a segment-level replace can't carry:
+    # a segment that has just been added or closed, the spinner above them, the
+    # error, the attribution. Every one of these is idempotent — it sends the
+    # turn's entire current state — so a broadcast nobody was subscribed for
+    # costs a render and nothing else.
     def broadcast!
       @broadcast_at = Time.current
       # This renders from the database, not from the segments held here, so
@@ -284,18 +280,11 @@ module Chat
       # writes a turn makes clear the query cache as it goes, so little of it is
       # ever served from cache: real round trips, for the length of a turn.
       @message = Message.includes(:inference_model, segments: { hits: :document }).find(@message.id)
-      html = Views::Conversations::Message.new(message: @message).call
-
-      if @on_page
-        Turbo::StreamsChannel.broadcast_replace_to(
-          @conversation, target: Views::Conversations::Message.dom_id(@message), html: html
-        )
-      else
-        Turbo::StreamsChannel.broadcast_append_to(
-          @conversation, target: Views::Conversations::Message.thread_dom_id(@conversation), html: html
-        )
-        @on_page = true
-      end
+      Turbo::StreamsChannel.broadcast_replace_to(
+        @conversation,
+        target: Views::Conversations::Message.dom_id(@message),
+        html: Views::Conversations::Message.new(message: @message).call
+      )
     end
   end
 end

@@ -2,17 +2,29 @@ require "rails_helper"
 
 RSpec.describe Chat::Responder do
   describe ".call" do
-    subject(:respond) { described_class.call(user_message) }
+    subject(:respond) { described_class.call(user_message, answer) }
 
     let(:conversation) { create(:conversation, inference_model: chat_model) }
     let(:chat_model) { create(:inference_model, kind: "chat", supports_tools: true) }
-    let(:turn) { conversation.messages.reload.last }
 
     let(:user_message) do
       create(:message, conversation:, position: 1).tap do |message|
         create(:segment, message:, content: "How do I reset the lock?")
       end
     end
+
+    # Opened by Chat::Ask in the request, not by the responder — stamped with
+    # the model the conversation was asked with, the same way Ask stamps it.
+    let(:answer) do
+      create(
+        :message, conversation:, role: "assistant", position: 2,
+        inference_model: conversation.inference_model
+      )
+    end
+
+    # The responder writes through its own copy of the row, so assertions read a
+    # fresh one rather than the object handed in.
+    let(:turn) { answer.reload }
 
     before { allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to).and_call_original }
 

@@ -13,9 +13,12 @@ const some = (element, selector, predicate) => [...element.querySelectorAll(sele
 //
 // On a document's show page this is a safety net: the broadcast delivers the
 // instant update, and the poll only covers the one that fires before this page's
-// ActionCable subscription exists (there is no replay). On list pages — an index,
-// Unsorted, a collection — it is the whole mechanism: nothing broadcasts to them,
-// and per-document broadcasts would be thousands of messages to nudge a row of
+// ActionCable subscription exists (there is no replay). On a chat transcript it
+// is a safety net for a broader failure — the cable down altogether, or a second
+// tab that was never sent the turn — and it holds off while broadcasts are
+// arriving, which is what `idle` is for. On list pages — an index, Unsorted, a
+// collection — it is the whole mechanism: nothing broadcasts to them, and
+// per-document broadcasts would be thousands of messages to nudge a row of
 // badges, which is the trade Views::Sources::LastScan already explains.
 export default class extends Controller {
   static values = {
@@ -24,18 +27,47 @@ export default class extends Controller {
     // Ids of other regions that go stale with this one — a header count, a
     // status meter — swapped from the same response rather than their own poll.
     also: { type: Array, default: [] },
+    // Milliseconds of stillness before a poll is worth making. Zero — the
+    // default — polls on the clock regardless, which is right for a region
+    // nothing else updates. Set it where broadcasts are the real mechanism and
+    // this is only the fallback: see #fresh.
+    idle: { type: Number, default: 0 },
   }
 
   connect() {
     if (this.terminalValue) return
+    this.watchForChanges()
     this.timer = setInterval(() => this.refresh(), this.intervalValue)
   }
 
   disconnect() {
     clearInterval(this.timer)
+    this.observer?.disconnect()
+  }
+
+  // Broadcasts land as DOM changes inside this region, so the region changing is
+  // itself the evidence that the cable is working — which is what `idle` waits
+  // on. Nothing to observe when it is zero.
+  watchForChanges() {
+    if (this.idleValue === 0) return
+
+    this.changedAt = Date.now()
+    this.observer = new MutationObserver(() => { this.changedAt = Date.now() })
+    this.observer.observe(this.element, { childList: true, subtree: true, characterData: true })
+  }
+
+  // Something else is already keeping this region current, so swapping in a
+  // fetched copy would only undo it. On a chat transcript that is visible and
+  // not subtle: the row a broadcast renders from is written every few ticks, so
+  // a poll mid-stream rewinds the last half-second of prose and the next tick
+  // puts it back.
+  fresh() {
+    return this.idleValue > 0 && Date.now() - this.changedAt < this.idleValue
   }
 
   async refresh() {
+    if (this.fresh()) return
+
     // Ask only for what something on the page can actually take: a region nobody
     // can see, or one being worked in, is skipped — and if that accounts for all
     // of them, there is nothing to ask the server for. This is what keeps a

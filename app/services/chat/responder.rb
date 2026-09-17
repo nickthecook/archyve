@@ -20,19 +20,22 @@ module Chat
   # the question along with the answer, and the person asking has no idea
   # whether their archive is broken or their model is.
   class Responder
-    def self.call(user_message) = new(user_message).call
+    def self.call(user_message, answer) = new(user_message, answer).call
 
-    def initialize(user_message)
+    # `answer` is the assistant turn, already opened by Chat::Ask — see the note
+    # there for why it is created in the request rather than here.
+    def initialize(user_message, answer)
       @user_message = user_message
+      @answer = answer
       @conversation = user_message.conversation
     end
 
     def call
-      # Resolved before the turn exists, so the turn is stamped with the model
-      # that was asked even when the answer never happens — a failed turn that
-      # can't say which model failed is a support question waiting to be asked.
-      model = chat_model
-      turn = Turn.new(@conversation, model: model)
+      # Read off the turn rather than resolved again here: the model that was
+      # asked is the one stamped when the question was, so a turn that never
+      # happens can still say which model failed it.
+      model = @answer.inference_model
+      turn = Turn.new(@answer)
 
       return turn.fail!(no_model_message) if model.nil?
       return turn.fail!(no_tools_message(model)) unless model.supports_tools?
@@ -112,8 +115,6 @@ module Chat
     # The model row can be nullified out from under an old conversation, and a
     # fresh install has none at all, so this is an ordinary state rather than an
     # error — but it is the user's own conversation, so they hear about it.
-    def chat_model = @conversation.inference_model || InferenceModel.default_chat
-
     def no_model_message
       "No chat model is configured. Ask an admin to add a tool-capable one under Settings › Inference."
     end

@@ -10,9 +10,10 @@
 class Views::Conversations::Message < Components::Base
   def self.dom_id(message) = ActionView::RecordIdentifier.dom_id(message)
 
-  # The container new turns are appended into. Lives here rather than on the
-  # page view because Chat::Turn needs it from outside a request, and the two
-  # ids have to agree or a turn arrives in nothing.
+  # The container the whole transcript lives in. Nothing broadcasts to it —
+  # turns are opened by Chat::Ask in the request, so every stream is a replace
+  # of a turn already on the page — but it is the region the page re-fetches
+  # and swaps when the cable isn't delivering, so it needs a stable id.
   def self.thread_dom_id(conversation) = ActionView::RecordIdentifier.dom_id(conversation, :thread)
 
   def initialize(message:)

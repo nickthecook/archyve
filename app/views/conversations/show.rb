@@ -15,8 +15,10 @@ class Views::Conversations::Show < Views::Base
   def view_template
     back_link
     scope_banner
-    # Assistant turns arrive here as they are produced — Chat::Turn broadcasts a
-    # replace of each one as the model streams, searches, and streams again.
+    # Assistant turns fill in here as they are produced. The turn itself was
+    # rendered above by this very request — Chat::Ask opens it before the
+    # redirect — so Chat::Turn only ever replaces it as the model streams,
+    # searches, and streams again.
     turbo_stream_from(@conversation)
     thread
     composer
@@ -58,8 +60,20 @@ class Views::Conversations::Show < Views::Base
     "Ask anything — nothing here is searched"
   end
 
+  # The transcript, and the fallback for when the cable isn't carrying it.
+  #
+  # Streaming is the mechanism here — this poll exists for the cases it can't
+  # cover: a subscription that never came up, a connection that dropped
+  # mid-answer, or a second tab on the same conversation, which is sent nothing
+  # at all because the question was recorded in another tab's request. `idle`
+  # keeps it out of the way while broadcasts are arriving; see the note on
+  # Components::Base#progress_data.
   def thread
-    div(id: Views::Conversations::Message.thread_dom_id(@conversation), class: "flex flex-col gap-10") do
+    div(
+      id: Views::Conversations::Message.thread_dom_id(@conversation),
+      class: "flex flex-col gap-10",
+      data: progress_data(terminal: @messages.none?(&:in_progress?), idle: 2000)
+    ) do
       @messages.each { render Views::Conversations::Message.new(message: it) }
     end
   end

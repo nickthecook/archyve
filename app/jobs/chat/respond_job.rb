@@ -8,10 +8,12 @@ module Chat
     # One turn at a time per conversation. Two answers streaming into the same
     # transcript would interleave their segments and fight over positions;
     # a second question asked mid-answer waits its turn instead.
-    limits_concurrency key: ->(message) { message.conversation_id }, to: 1, duration: 10.minutes
+    limits_concurrency key: ->(message, _answer) { message.conversation_id }, to: 1, duration: 10.minutes
 
-    def perform(user_message)
-      Responder.call(user_message)
+    # The answer's message row already exists — Chat::Ask opened it in the
+    # request, so the page the person is looking at has it. See the note there.
+    def perform(user_message, answer)
+      Responder.call(user_message, answer)
     end
   end
 end
