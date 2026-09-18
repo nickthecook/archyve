@@ -13,6 +13,9 @@ module Endpoints
     validates :token_id, presence: true
     validates :token_secret, presence: true
 
+    def self.permitted_keys = super + [:token_id, :token_secret]
+    def self.form_component = Views::Settings::Endpoints::Forms::Bookstack
+
     def self.type_label = "BookStack"
 
     def self.description

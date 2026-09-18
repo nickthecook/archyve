@@ -26,6 +26,9 @@ actions:
   lint-fix:
     command: bundle exec rubocop -a
     alias: lf
+  clean-demo-data:
+    command: "ops rails runner 'Sources::Folder.where(name: [\"Engineering handbook\", \"Runbooks\"]).destroy_all; Endpoint.destroy_all'"
+    not_in_envs: [production]
 
 options:
   exec:

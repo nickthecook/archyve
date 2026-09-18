@@ -22,6 +22,7 @@ class Endpoint < ApplicationRecord
 
   def self.description = ""
   def self.types = TYPES.map(&:constantize)
+  def self.permitted_keys = [:name, :base_url]
 
   # Accessors for keys in the encrypted `credentials` hash. Not store_accessor:
   # it decorates the same attribute `encrypts` does, and which wins depends on

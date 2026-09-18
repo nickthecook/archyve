@@ -75,6 +75,13 @@ Rails.application.routes.draw do
       resources :models, only: [:new, :create, :edit, :update, :destroy],
         controller: "inference_models"
     end
+    # The servers sources pull from, and the credentials for them. Here rather
+    # than beside Sources because it is IT's job: an operator curates what a
+    # collection contains, an admin holds the token that reaches the wiki.
+    resources :endpoints do
+      # A POST because it does something — one call to the server, recorded.
+      post :access, on: :member
+    end
   end
   # Sources sit with the content they produce, not under Settings — managing
   # them is a content job, and Settings is heading towards admin-only.

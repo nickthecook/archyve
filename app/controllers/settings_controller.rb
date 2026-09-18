@@ -5,7 +5,8 @@ class SettingsController < ApplicationController
     render Views::Settings::Index.new(
       people_count: User.count,
       server_count: InferenceServer.count,
-      model_count: InferenceModel.count
+      model_count: InferenceModel.count,
+      endpoint_count: Endpoint.count
     )
   end
 end
