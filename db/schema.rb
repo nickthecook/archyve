@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_17_140100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -128,6 +128,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.index ["chunk_id", "embedding_model"], name: "index_embeddings_on_chunk_id_and_embedding_model", unique: true
     t.index ["chunk_id"], name: "index_embeddings_on_chunk_id"
     t.index ["embedding"], name: "index_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
+  end
+
+  create_table "endpoints", force: :cascade do |t|
+    t.string "access_error"
+    t.datetime "accessed_at"
+    t.jsonb "config", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.text "credentials"
+    t.string "name", null: false
+    t.string "type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_endpoints_on_name", unique: true
+    t.index ["type"], name: "index_endpoints_on_type"
   end
 
   create_table "hits", force: :cascade do |t|
@@ -271,12 +284,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   create_table "sources", force: :cascade do |t|
     t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
+    t.bigint "endpoint_id"
     t.datetime "last_synced_at"
     t.string "name", null: false
     t.jsonb "state", default: {}, null: false
     t.string "type", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.index ["endpoint_id"], name: "index_sources_on_endpoint_id"
     t.index ["type"], name: "index_sources_on_type"
     t.index ["user_id"], name: "index_manual_upload_sources_on_user_id", unique: true, where: "((type)::text = 'Sources::ManualUpload'::text)"
     t.index ["user_id"], name: "index_sources_on_user_id"
@@ -317,5 +332,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   add_foreign_key "source_syncs", "sources"
   add_foreign_key "source_users", "sources"
   add_foreign_key "source_users", "users"
+  add_foreign_key "sources", "endpoints"
   add_foreign_key "sources", "users", on_delete: :nullify
 end

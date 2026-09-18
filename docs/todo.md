@@ -87,9 +87,20 @@ this is a todo and not a bug.
   an object store with a console) needs `Source::Item` to carry a URL and
   `documents` to store one — deliberately not added ahead of something that can
   populate it.
-- **Source credential encryption.** Needed before the first source that holds
-  credentials (S3 keys, a Bookstack token). Fine today: a folder source's
-  config is just a path and an interval.
+- **`Endpoint#accessed_at` is only written by the pre-flight.** `#access` exists
+  so an admin can prove a new endpoint works before any source points at it, and
+  today it is the only writer of `accessed_at` / `access_error`. Real use records
+  nothing — `#client` is called by nothing but `#access!`. When the first source
+  with an endpoint lands, record the outcome around the sync run (one write per
+  run, not per HTTP request; a paginated wiki makes hundreds of calls).
+
+- **Source credential encryption.** ~~Needed before the first source that holds
+  credentials (S3 keys, a Bookstack token).~~ Done, by putting credentials
+  somewhere else entirely: `Endpoint` holds the server and its secrets, and a
+  source points at one. See `endpoints.credentials` (encrypted) beside
+  `endpoints.config` (readable). Sources still hold no secrets.
+
+  The warning below stands regardless, for whatever is tempted to put one there:
 
   **Do not encrypt `sources.config` wholesale.** `Source.due_for_sync` extracts
   `config->>'sync_interval_minutes'` *in SQL*, and the scheduler runs it every

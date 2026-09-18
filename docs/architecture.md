@@ -236,6 +236,39 @@ Two layers, kept separate:
 > capability flags above aren't built either; `.supports_sync?` is the only one
 > so far.
 
+**Endpoints (2026-09-17).** A third layer *was* added, and it is worth saying
+why it earns itself where the adapter split above did not. An `Endpoint` is the
+server a source pulls from plus the credentials for it: `Source` optionally
+`belongs_to` one, and an endpoint `has_many` sources.
+
+The justification is cardinality. Ten Bookstack sources against one wiki — one
+per shelf, each feeding a different collection — should mean typing the token
+once and rotating it once. The adapter seam bought a stateless driver nobody
+needed; this seam deduplicates a secret, which is a job.
+
+- **STI**, with its own `TYPES` registry and per-type view components reached
+  through a constant the subclass names — never `constantize` on a type string.
+- **Two columns, and the split matters.** `config` jsonb stays readable in SQL
+  (base URL, a token *id*) so an admin list can name a host without decrypting
+  every row; `credentials` is an encrypted `text` column holding JSON and
+  nothing but secrets. Not jsonb: encrypting it would forfeit exactly the
+  querying and indexing that are jsonb's reason to exist.
+- **Nullable on `Source`, permanently.** Folder reads local disk and
+  ManualUpload is fed by a person. An `Endpoints::Local` singleton would make
+  the column `NOT NULL` at the cost of a credential-less row in every endpoint
+  list.
+- **What's recorded is the last access, not health.** Every sync accesses the
+  endpoint, so `accessed_at` / `access_error` are a byproduct of ordinary work
+  rather than something probed on a schedule — both describe the same event, and
+  the error is nil when that access worked. `#access` runs the subclass's
+  `#access!` and records the outcome; it exists for the one moment syncing
+  doesn't cover, when an admin has just typed a token.
+
+Which options go on the endpoint and which on the source: **does changing it
+invalidate what we already ingested?** Base URL and token move you to a
+different server or identity → endpoint. Selectors, sync interval, OCR change
+what you take and how → source.
+
 **Provider-agnostic sync engine.** Diffs current source items against stored
 `Document`s (keyed by `source_id` + `external_id`) → create / update / delete:
 - **Version token unchanged → skip.** Critical: re-ingest means re-embed (the

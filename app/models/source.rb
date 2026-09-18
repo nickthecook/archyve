@@ -61,6 +61,11 @@ class Source < ApplicationRecord
   # when the owner is deleted; see the AddUserToSources migration.
   belongs_to :user, optional: true
 
+  # The server this source pulls from, and the credentials for it. Optional, and
+  # staying that way: Folder reads a path on the local disk and ManualUpload is
+  # fed by a person, so neither has a remote host to name.
+  belongs_to :endpoint, optional: true
+
   has_many :source_users, dependent: :destroy
   has_many :users, through: :source_users
 
@@ -73,17 +78,7 @@ class Source < ApplicationRecord
 
   # Whether documents from this source get run through OCR. On the base class
   # because it is a property of *extracting* documents, which every source type
-  # does, rather than of any one way of fetching them.
-  #
-  # It is here at all because OCR is the expensive half of a conversion: it
-  # loads models and runs them over a rendered image of every page, and it is
-  # the difference between a conversion that fits in memory and one that gets
-  # the container killed. A scanned folder of receipts needs it; a folder of
-  # exported Markdown emphatically does not, and paying for it there is how a
-  # 3MB file turns into several gigabytes of resident memory.
-  #
-  # Per source rather than globally, because those two folders can sit side by
-  # side in one install.
+  # does, rather than of any one way of fetching them. OCR is expensive.
   store_accessor :config, :ocr
 
   # Docling's own default, kept deliberately: turning OCR off by default would
