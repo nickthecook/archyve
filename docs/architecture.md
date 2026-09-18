@@ -146,7 +146,7 @@ Design consequences:
 ### As built (2026-09-11): `InferenceServer` + `InferenceModel`
 
 Provider config lives in two tables rather than in the environment. An
-**`InferenceServer`** is an endpoint plus credentials — STI, the same shape as
+**`InferenceServer`** is a URL plus credentials — STI, the same shape as
 `Source` (`TYPES` registry, `config` jsonb via `store_accessor`, a separate
 **encrypted `api_key` column**, never a secret inside the jsonb). An
 **`InferenceModel`** is one model on one server, with `kind` (`chat` /

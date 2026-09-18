@@ -77,6 +77,34 @@ examples.
 
 - **Never commit, branch, or switch branches unasked.** Leave changes in the
   working tree for review.
-- Comments here explain *why*, not what — match that density and voice.
+- **Comment sparingly.** See the rules below. Do not match the density of the
+  existing code — much of it is over-commented, and matching it is how it got
+  that way.
 - Throwaway probe scripts go in Ruby, not Python; promote reusable ones to
   `script/`.
+
+## Comments
+
+Rails is designed so that most classes need none, and most classes here should
+have none.
+
+1. **The code should be self-explanatory ~90% of the time.** This is Ruby on
+   Rails; lean on the framework's vocabulary rather than narrating it.
+2. **A comment explains *why*, never *what*** — unless a block is genuinely
+   obtuse, in which case prefer fixing the block.
+3. **Anything covered in `docs/architecture.md`, `docs/design.md` or a README
+   does not get repeated inline.** Point at it instead.
+4. **More comment lines than code lines in a file means you got it wrong.**
+
+Two habits that cause most of the damage:
+
+- **Arguing with alternatives you rejected.** Nobody needs to know what the code
+  doesn't do. That's conversation, not documentation.
+- **Commenting instead of refactoring.** A comment is often a smell: the fix is
+  usually a better method name, or extracting a method so its name carries the
+  intention.
+
+Before writing a comment, check whether a name or a line in the architecture doc
+does the job. Worth keeping: an ordering that breaks silently if swapped, a
+surprising behaviour a caller would otherwise trip on, a consequence not visible
+from the code.

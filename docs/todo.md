@@ -87,6 +87,75 @@ this is a todo and not a bug.
   an object store with a console) needs `Source::Item` to carry a URL and
   `documents` to store one — deliberately not added ahead of something that can
   populate it.
+## The BookStack source
+
+Designed 2026-09-18, not built. `Endpoint` and its admin UI are in; this is the
+source that hangs off one. Decisions, so they don't get re-derived:
+
+**A page is a Document; nothing else is.** `external_id` is the page id, so a
+page that moves between books is the same document rather than a delete plus a
+create — the thing `Sources::Folder` can't do. Fetch
+`/api/pages/{id}/export/markdown`, not HTML: one conversion between the author's
+text and the chunk instead of two. Skip drafts and templates silently, the way
+Folder passes over a `.DS_Store`. OCR off for this type — the markdown export
+carries image *links*, so there is nothing in the document to OCR.
+
+**Shelves, books and chapters do not become Documents.** Their descriptions are
+aspirational ("this shelf contains…") and, worse, they are short and purely
+topical — exactly the shape that wins a similarity contest against a topical
+query, so they displace the runbook that actually answers. Container *names* are
+reliable and get indexed as the path; container *descriptions* are stored in
+`source_metadata` and shown in the UI, never embedded. Page tags are the sleeper:
+short, controlled, usually accurate — capture them even before anything reads them.
+
+**`documents` gains a `path` column.** Cross-source vocabulary, not a BookStack
+field: Folder backfills it as `File.dirname(relative)`. It composes with
+`Chunk#structure["heading_path"]` into one breadcrumb from repository root to
+paragraph. Record it only for now — whether `path` joins the embedded chunk text
+is a separate, corpus-wide decision needing a re-embed.
+
+**Path is `/Book/Chapter`, and shelves are not in it.** Shelves are
+many-to-many with books, so a page has no single shelf path; picking one
+arbitrarily churns whenever shelf membership changes. Shelves ride as a
+multi-valued facet instead.
+
+**The version token is the revision marker alone.** It is tempting to fold the
+computed path into it so a move triggers a write, but the token is the wrong
+lever: `Sources::Sync#reconcile` already writes `title` and `content_type` on the
+changed branch, and the rule that generalises is *the source's description of an
+item is written whenever it differs* — including on the **unchanged** branch.
+Then renaming a book updates every page's path with zero fetches, where a
+path-in-token scheme would fetch every page to discover the bytes were identical.
+This needs `Source::Item` to carry `path` and `url`, and `Sync` to write them.
+`url` is also what `docs/todo.md`'s stored-URL item has been waiting for:
+BookStack is the first source that can return true from `user_accessible_links?`.
+
+**Selection stores what was picked, not its expansion.** A flat list of
+selectors — `[{shelf: 3}, {book: 12}, {chapter: 88}]` — resolved to a page set at
+scan time, unioned and deduped by page id. "Sync this shelf" has to mean "and
+whatever lands on it later". Deselecting needs no code: the pages fall out of the
+scan and `tombstone_vanished` retires them, feed memberships retract, manual ones
+survive. Keep the scan cheap the way Folder's is — books/chapters/shelves
+wholesale for the tree, the paginated page list for `updated_at`, and no page
+body fetched until `ImportItemJob` wants one.
+
+**One source per shelf is the answer to shelf→collection mapping**, not
+per-selector targeting. Sources feed collections wholesale today; N sources
+against one wiki share one `Endpoint`, so the token is typed and rotated once.
+Per-selector targeting would be a config key plus a change to
+`ImportItemJob#feed_collections` — additive, so nothing here needs shaping for it.
+
+**Pairing:** `Sources::Bookstack` must accept only an `Endpoints::Bookstack`.
+Declare it once — `def self.endpoint_type = Endpoints::Bookstack` — and use it
+for both the validation and scoping the endpoint picker's options.
+
+**Access control consequence, decided deliberately:** the API token is issued to
+one BookStack user and returns what that user may see. Anything inside a selected
+book is ingested and then exposed under *Archyve's* model, not BookStack's.
+
+**Later, not now:** page attachments and images as their own documents;
+per-selector collection targeting; repointing a source between endpoints.
+
 - **`Endpoint#accessed_at` is only written by the pre-flight.** `#access` exists
   so an admin can prove a new endpoint works before any source points at it, and
   today it is the only writer of `accessed_at` / `access_error`. Real use records
