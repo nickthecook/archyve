@@ -140,9 +140,17 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
     context "when the server answers" do
       before { allow_any_instance_of(Endpoints::Bookstack).to receive(:access!).and_return(true) }
 
-      it "reports it" do
+      it "says so in as many words" do
         post access_settings_endpoint_path(endpoint)
-        expect(flash[:notice]).to include("Work wiki")
+        expect(flash[:notice]).to include("Connected to")
+      end
+
+      # The flash is gone on the next navigation; the panel is what an admin
+      # sees every visit after, so it has to carry the verdict too.
+      it "leaves the page saying the endpoint is working" do
+        post access_settings_endpoint_path(endpoint)
+        follow_redirect!
+        expect(response.body).to include("working")
       end
     end
 

@@ -57,9 +57,9 @@ module Settings
 
     def access
       if @endpoint.access
-        redirect_to settings_endpoint_path(@endpoint), notice: "#{@endpoint.name} answered."
+        redirect_to settings_endpoint_path(@endpoint), notice: "Connected to “#{@endpoint.name}” successfully."
       else
-        redirect_to settings_endpoint_path(@endpoint), alert: "Couldn't use #{@endpoint.name}."
+        redirect_to settings_endpoint_path(@endpoint), alert: "Couldn't connect to “#{@endpoint.name}”."
       end
     end
 

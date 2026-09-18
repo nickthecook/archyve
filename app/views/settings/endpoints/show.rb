@@ -26,7 +26,12 @@ class Views::Settings::Endpoints::Show < Views::Base
           h1(class: "text-2xl font-semibold tracking-tight") { @endpoint.name }
           span(class: "rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { @endpoint.type_label }
         end
-        p(class: "mt-1 truncate font-mono text-sm text-muted") { @endpoint.base_url }
+        a(
+          href: @endpoint.base_url,
+          target: "_blank",
+          rel: "noopener",
+          class: "mt-1 block truncate font-mono text-xs text-faint hover:text-muted transition-colors"
+        ) { @endpoint.base_url }
       end
       div(class: "flex shrink-0 items-center gap-2") do
         access_button
@@ -43,6 +48,9 @@ class Views::Settings::Endpoints::Show < Views::Base
     end
   end
 
+  # States the verdict rather than leaving a bare timestamp to be read as
+  # success by inference. A sentence, where the list uses a one-word label: this
+  # is the page you came to for an answer.
   def access_panel
     div(class: "mb-8 rounded-lg border border-line bg-ink/40 px-5 py-4") do
       if @endpoint.accessed_at.blank?
@@ -50,12 +58,18 @@ class Views::Settings::Endpoints::Show < Views::Base
         p(class: "mt-1 text-xs text-faint") do
           "Test the connection to confirm the credentials work before operators build sources on it."
         end
-      elsif @endpoint.accessible?
-        p(class: "text-sm text-fg") { "Last used #{time_ago_in_words(@endpoint.accessed_at)} ago." }
       else
-        p(class: "text-sm text-red-300") { "Failed #{time_ago_in_words(@endpoint.accessed_at)} ago." }
-        p(class: "mt-1 break-words font-mono text-xs text-red-300/70") { @endpoint.access_error.to_s }
+        verdict
+        p(class: "mt-1 text-xs text-faint") { "Last used #{time_ago_in_words(@endpoint.accessed_at)} ago." }
+        p(class: "mt-2 break-words font-mono text-xs text-red-300/70") { @endpoint.access_error.to_s } unless @endpoint.accessible?
       end
+    end
+  end
+
+  def verdict
+    p(class: "flex items-center gap-2 text-sm text-fg") do
+      span(class: "h-1.5 w-1.5 shrink-0 rounded-full #{@endpoint.accessible? ? 'bg-emerald-400' : 'bg-red-400'}")
+      plain(@endpoint.accessible? ? "Connection is working." : "Connection is failing.")
     end
   end
 

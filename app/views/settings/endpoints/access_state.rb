@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# The one-line verdict on an endpoint, shared by the list and the detail page so
-# they can't word it differently.
-#
-# Never-used is grey rather than red: nobody having tried yet isn't a fault.
+# The status label in a list row. Never-used is grey rather than red: nobody
+# having tried yet isn't a fault.
 class Views::Settings::Endpoints::AccessState < Components::Base
   def initialize(endpoint:)
     @endpoint = endpoint
@@ -14,7 +12,7 @@ class Views::Settings::Endpoints::AccessState < Components::Base
 
     span(class: "shrink-0 inline-flex items-center gap-1.5 text-xs text-muted") do
       span(class: "h-1.5 w-1.5 rounded-full #{@endpoint.accessible? ? 'bg-emerald-400' : 'bg-red-400'}")
-      plain(@endpoint.accessible? ? "reachable" : "failing")
+      plain(@endpoint.accessible? ? "working" : "failing")
     end
   end
 end
