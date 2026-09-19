@@ -81,16 +81,33 @@ this is a todo and not a bug.
   anyway. Worth closing with `Document.reachable_by` when convenient; not a
   privilege escalation.
 
-- **A stored URL per document.** `Source.user_accessible_links?` and
-  `#document_url` exist but nothing returns true, because neither of the two
-  source types can produce a followable address. The first that can (Bookstack,
-  an object store with a console) needs `Source::Item` to carry a URL and
-  `documents` to store one — deliberately not added ahead of something that can
-  populate it.
 ## The BookStack source
 
-Designed 2026-09-18, not built. `Endpoint` and its admin UI are in; this is the
-source that hangs off one. Decisions, so they don't get re-derived:
+Built 2026-09-18, model and UI both. The source form is now split per type the
+way the endpoint forms are — `Source.form_component`, with the shared fields on
+`Views::Sources::Form` — and the selector picker is drawn from a live call to
+the wiki, so switching servers is a plain GET back to the same page (the form's
+own "Browse" button, `formmethod: "get"`, no JavaScript). The endpoint is fixed
+after creation: every document is keyed by a page id that means something else
+on another server.
+
+Still to do, in order:
+
+- **Page tags.** Wanted (see below), and *not* on BookStack's page *list* — only
+  on `/api/pages/{id}`. Capturing them therefore costs one detail fetch per page
+  per scan, which is exactly the cost the cheap-scan rule refuses. The way out is
+  to take them during `#read`, which already fetches that page, and have the
+  import write them; that needs the item's metadata to be writable from the job,
+  not only from the scan.
+- **The shelf facet.** Same shape of problem: a shelf's books are only on the
+  shelf's own record, so "which shelves is this book on" is one call per shelf in
+  the wiki, not per selected shelf. Only worth paying once something reads it.
+- **The source page names selections by count, not by name** — "1 book", not
+  "Network design". The names live on the wiki, and drawing that page should not
+  cost three API calls. The edit form lists them by name; it is already talking
+  to the server.
+
+Decisions, so they don't get re-derived:
 
 **A page is a Document; nothing else is.** `external_id` is the page id, so a
 page that moves between books is the same document rather than a delete plus a
@@ -109,7 +126,9 @@ reliable and get indexed as the path; container *descriptions* are stored in
 short, controlled, usually accurate — capture them even before anything reads them.
 
 **`documents` gains a `path` column.** Cross-source vocabulary, not a BookStack
-field: Folder backfills it as `File.dirname(relative)`. It composes with
+field: Folder backfills it as `File.dirname(relative)` (nil at the top level,
+where `dirname` answers `"."`). Stored without a leading slash, so Folder's
+`2026/q1` and BookStack's `Handbook/Joining` read the same way. It composes with
 `Chunk#structure["heading_path"]` into one breadcrumb from repository root to
 paragraph. Record it only for now — whether `path` joins the embedded chunk text
 is a separate, corpus-wide decision needing a re-embed.
@@ -155,6 +174,15 @@ book is ingested and then exposed under *Archyve's* model, not BookStack's.
 
 **Later, not now:** page attachments and images as their own documents;
 per-selector collection targeting; repointing a source between endpoints.
+
+**Two things the build settled that the design hadn't.** The version token is
+the page's `updated_at`, not `revision_count`: every BookStack resource carries
+it, it moves on saves that mint no revision, and its over-reporting is caught by
+`ImportItemJob`'s checksum for the price of one fetch — the same bargain Folder
+strikes with mtime. And `external_id` is a page id, which carries no extension,
+so the source names its own bytes: `Source#filename_for` defaults to
+`File.basename(external_id)` and BookStack returns `<title>.md`, because Docling
+picks its reader off the extension.
 
 - **`Endpoint#accessed_at` is only written by the pre-flight.** `#access` exists
   so an admin can prove a new endpoint works before any source points at it, and

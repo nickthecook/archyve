@@ -39,12 +39,26 @@ class Source < ApplicationRecord
   #
   #   external_id   stable identity within the source; the document key
   #   version       changes when the content does — the whole of change detection
+  #   path          where the item sits in the source, "/"-joined, no leading slash
+  #   url           the item's address in the source, when a browser can follow one
+  #   metadata      anything else the source knows, merged into source_metadata
   #   skip_reason   nil when ingestable; set when the source has the item but we
   #                 won't take it (see Sources::Sync, which pointedly does not
   #                 tombstone these)
-  Item = Data.define(:external_id, :version, :title, :content_type, :byte_size, :skip_reason) do
-    def initialize(external_id:, version:, title: nil, content_type: nil, byte_size: nil, skip_reason: nil)
-      super
+  #
+  # Everything but external_id and version is the source's *description* of the
+  # item, and Sources::Sync rewrites those whenever they differ — including for
+  # an item whose version hasn't moved. Renaming a Bookstack book has to move
+  # every page's path without refetching a single one.
+  Item = Data.define(:external_id, :version, :title, :content_type, :byte_size, :path, :url, :metadata,
+    :skip_reason) do
+    def initialize(external_id:, version:, title: nil, content_type: nil, byte_size: nil, path: nil, url: nil,
+      metadata: {}, skip_reason: nil)
+      # Stringified because the comparison on the other end is against jsonb
+      # read back from Postgres; symbol keys would differ forever and rewrite
+      # the row on every scan.
+      super(external_id:, version:, title:, content_type:, byte_size:, path:, url:,
+        metadata: metadata.deep_stringify_keys, skip_reason:)
     end
 
     def skipped? = skip_reason.present?
@@ -54,7 +68,11 @@ class Source < ApplicationRecord
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched.
-  TYPES = %w[Sources::Folder Sources::ManualUpload].freeze
+  TYPES = %w[Sources::Folder Sources::Bookstack Sources::ManualUpload].freeze
+
+  # Fallback when a source names no interval of its own. On the base class
+  # because Source.due_for_sync inlines it into SQL for every type at once.
+  DEFAULT_SYNC_INTERVAL_MINUTES = 60
 
   # Only manual upload is owned by a person — every other type is a shared
   # producer with no owner, so this is optional. Nullified rather than cascaded
@@ -76,10 +94,28 @@ class Source < ApplicationRecord
 
   validates :name, presence: true
 
+  # A source that names an endpoint type takes that type and no other: the
+  # config a source holds is meaningless against the wrong kind of server.
+  validates :endpoint, presence: true, if: -> { self.class.endpoint_type }
+  validate :endpoint_must_match_type, if: -> { endpoint && self.class.endpoint_type }
+
   # Whether documents from this source get run through OCR. On the base class
   # because it is a property of *extracting* documents, which every source type
   # does, rather than of any one way of fetching them. OCR is expensive.
   store_accessor :config, :ocr
+
+  # Every syncable type polls on an interval, and Source.due_for_sync reads this
+  # key out of `config` in SQL for all of them at once — so it lives here rather
+  # than being redeclared identically by each type.
+  store_accessor :config, :sync_interval_minutes
+
+  validates :sync_interval_minutes,
+    numericality: { only_integer: true, greater_than_or_equal_to: 1 },
+    allow_blank: true
+
+  def sync_interval
+    (sync_interval_minutes.presence || DEFAULT_SYNC_INTERVAL_MINUTES).to_i.minutes
+  end
 
   # Docling's own default, kept deliberately: turning OCR off by default would
   # silently stop extracting every scanned document in an existing archive, and
@@ -95,6 +131,8 @@ class Source < ApplicationRecord
   end
 
   def ocr?
+    return false unless supports_ocr?
+
     chosen = ActiveModel::Type::Boolean.new.cast(ocr)
     chosen.nil? ? OCR_BY_DEFAULT : chosen
   end
@@ -174,7 +212,7 @@ class Source < ApplicationRecord
       .where.not(id: SourceSync.running.select(:source_id))
       .where(
         "last_synced_at IS NULL OR last_synced_at < now() - make_interval(mins => COALESCE((config->>'sync_interval_minutes')::int, ?))",
-        Sources::Folder::DEFAULT_SYNC_INTERVAL_MINUTES
+        DEFAULT_SYNC_INTERVAL_MINUTES
       )
   }
 
@@ -191,6 +229,22 @@ class Source < ApplicationRecord
   def self.feeds_collections? = true
 
   def self.supports_sync? = false
+
+  # The kind of Endpoint this source pulls through, or nil for one that reads
+  # something local. Drives both the validation above and the options the
+  # endpoint picker offers.
+  def self.endpoint_type = nil
+
+  # Whether OCR is a meaningful question for this type. A source that fetches
+  # markdown has no images in the document to read text from, so the expensive
+  # option would be offered for nothing.
+  def self.supports_ocr? = true
+
+  # The form fields particular to this type, as Endpoint.form_component does.
+  # Named through a constant rather than constantized from the type string.
+  def self.form_component
+    raise MissingImplementationError, "#{name} must name a form component"
+  end
 
   # Whether a person can add one of these from the UI. Manual upload exists as a
   # single implicit source created on first upload, not something you add.
@@ -224,6 +278,8 @@ class Source < ApplicationRecord
   end
 
   def supports_sync? = self.class.supports_sync?
+  def supports_ocr? = self.class.supports_ocr?
+  def endpoint_type = self.class.endpoint_type
   def feeds_collections? = self.class.feeds_collections?
   def user_accessible_links? = self.class.user_accessible_links?
 
@@ -236,6 +292,16 @@ class Source < ApplicationRecord
   def read(_external_id)
     raise MissingImplementationError, "#{self.class.name} must implement #read"
   end
+
+  # What to call the bytes #read returns. Active Storage keeps it and Docling
+  # picks its reader off the extension, so a source whose external_id isn't a
+  # filename has to answer this itself.
+  def filename_for(document) = File.basename(document.external_id)
+
+  # What this source's form needs from the far end to draw its pickers, or nil
+  # for a type whose configuration is entirely local. Loaded by the controller,
+  # never the view: it is a network call.
+  def catalogue = nil
 
   # Collections this source feeds — produced documents auto-join these.
   def fed_collections
@@ -278,4 +344,12 @@ class Source < ApplicationRecord
   # Human label for the type, e.g. "Folder". Used in the UI where showing the
   # STI class name would be noise.
   def type_label = self.class.type_label
+
+  private
+
+  def endpoint_must_match_type
+    return if endpoint.is_a?(self.class.endpoint_type)
+
+    errors.add(:endpoint, "must be a #{self.class.endpoint_type.type_label} endpoint")
+  end
 end

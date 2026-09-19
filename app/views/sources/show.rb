@@ -72,9 +72,11 @@ class Views::Sources::Show < Views::Base
 
   def configuration
     dl(class: "mb-8 rounded-lg border border-line bg-ink/40 divide-y divide-line") do
-      row("Folder", @source.path, mono: true) if @source.respond_to?(:path)
+      row("Server", @source.endpoint.name) if @source.endpoint
+      row("Folder", @source.path, mono: true) if @source.is_a?(Sources::Folder)
+      row("Syncs", selector_summary) if @source.is_a?(Sources::Bookstack)
       row("Scan every", interval) if @source.supports_sync?
-      row("OCR", @source.ocr? ? "on" : "off")
+      row("OCR", @source.ocr? ? "on" : "off") if @source.supports_ocr?
       row("Last scanned", last_scanned)
       row("File types", Sources::Folder::EXTENSIONS.join(" "), mono: true) if @source.is_a?(Sources::Folder)
       row("Size limit", size_limit) if @source.is_a?(Sources::Folder)
@@ -91,12 +93,22 @@ class Views::Sources::Show < Views::Base
   end
 
   def interval
-    minutes = (@source.sync_interval_minutes.presence || Sources::Folder::DEFAULT_SYNC_INTERVAL_MINUTES).to_i
+    minutes = (@source.sync_interval_minutes.presence || Source::DEFAULT_SYNC_INTERVAL_MINUTES).to_i
     "#{minutes} #{'minute'.pluralize(minutes)}"
   end
 
   def size_limit
     ActiveSupport::NumberHelper.number_to_human_size(Sources::Folder.max_file_size)
+  end
+
+  # Counted by kind rather than named: the names live on the wiki, and a page
+  # that costs three API calls to draw is not one this page should be making.
+  # The edit form lists them by name — it is already talking to the server.
+  def selector_summary
+    counts = @source.selections.group_by(&:first).transform_values(&:size)
+    return "nothing" if counts.empty?
+
+    counts.map { |kind, count| "#{count} #{kind.pluralize(count)}" }.join(", ")
   end
 
   def fed_collections

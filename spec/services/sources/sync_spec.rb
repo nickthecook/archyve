@@ -69,6 +69,26 @@ RSpec.describe Sources::Sync do
       end
     end
 
+    context "with an item the source now describes differently, at an unchanged version" do
+      before do
+        write("moved.md")
+        create(:document, source: source, external_id: "moved.md", path: "old/place",
+          source_version: current_version("moved.md"), status: "processed")
+      end
+
+      it "still counts it as unchanged" do
+        expect(result.unchanged_count).to eq(1)
+      end
+
+      # The point of writing the description on this branch: a Bookstack book
+      # rename moves every page's path, and refetching all of them to discover
+      # the bytes are identical is what a path-in-the-version-token scheme costs.
+      it "rewrites the description without refetching the bytes" do
+        expect { result }.not_to have_enqueued_job(Sources::ImportItemJob)
+        expect(source.documents.sole.path).to be_nil
+      end
+    end
+
     context "with a file whose version token has moved" do
       before do
         write("changed.md")

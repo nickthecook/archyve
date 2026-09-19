@@ -11,8 +11,6 @@ module Sources
     # Raised when a path escapes the configured root — see #fetch.
     OutsideRootError = Class.new(StandardError)
 
-    DEFAULT_SYNC_INTERVAL_MINUTES = 60
-
     # Formats Docling can extract. Anything else in the folder is passed over
     # silently — a source directory is allowed to contain things that aren't
     # documents, and reporting every .DS_Store as a problem would be noise.
@@ -28,23 +26,17 @@ module Sources
       ENV.fetch("ARCHYVE_MAX_FILE_SIZE_MB", "100").to_i.megabytes
     end
 
-    store_accessor :config, :path, :sync_interval_minutes
+    store_accessor :config, :path
 
     validates :path, presence: true
     validate :path_must_be_an_absolute_directory, if: -> { path.present? }
-    validates :sync_interval_minutes,
-      numericality: { only_integer: true, greater_than_or_equal_to: 1 },
-      allow_blank: true
 
     def self.supports_sync? = true
     def self.user_creatable? = true
+    def self.form_component = Views::Sources::Forms::Folder
 
     def self.description
       "A directory on the machine running Archyve. Scanned on an interval; read, never written."
-    end
-
-    def sync_interval
-      (sync_interval_minutes.presence || DEFAULT_SYNC_INTERVAL_MINUTES).to_i.minutes
     end
 
     # Yields an Item per eligible file, recursively.
@@ -84,6 +76,7 @@ module Sources
           title: File.basename(relative),
           content_type: Marcel::MimeType.for(Pathname.new(absolute), name: relative),
           byte_size: stat.size,
+          path: directory_of(relative),
           skip_reason: size_skip_reason(stat.size)
         )
       end
@@ -108,6 +101,13 @@ module Sources
     end
 
     private
+
+    # The item's directory relative to the root, or nil at the top level —
+    # File.dirname answers "." there, which is not a breadcrumb.
+    def directory_of(relative)
+      directory = File.dirname(relative)
+      directory unless directory == "."
+    end
 
     # True if any path segment starts with a dot, so a file inside a hidden
     # directory is hidden too.

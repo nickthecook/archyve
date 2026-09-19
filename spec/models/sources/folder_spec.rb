@@ -65,7 +65,7 @@ RSpec.describe Sources::Folder do
       subject(:source) { build(:folder_source, path: root, sync_interval_minutes: nil) }
 
       it "falls back to the default" do
-        expect(source.sync_interval).to eq(described_class::DEFAULT_SYNC_INTERVAL_MINUTES.minutes)
+        expect(source.sync_interval).to eq(Source::DEFAULT_SYNC_INTERVAL_MINUTES.minutes)
       end
     end
   end

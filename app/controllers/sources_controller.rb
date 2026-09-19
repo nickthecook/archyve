@@ -16,10 +16,17 @@ class SourcesController < ApplicationController
 
   # Without a type, offer the choice; with one, show that type's form. Keeps a
   # single "Add source" entry point however many source types exist.
+  # Also the target of the form's own "Browse" button, which re-GETs this page
+  # with a different server chosen. The submitted fields ride along in the query
+  # string and are assigned back, so switching servers loses nothing typed so far.
   def new
     return render Views::Sources::ChooseType.new(types: Source.creatable_types) if params[:type].blank?
 
-    render Views::Sources::New.new(source: build_source, collections: all_collections)
+    source = build_source
+    source.assign_attributes(source_params.except(:collection_ids)) if params[:source].present?
+    source.endpoint ||= endpoint_options(source).first
+
+    render Views::Sources::New.new(**form_context(source))
   end
 
   def create
@@ -31,22 +38,23 @@ class SourcesController < ApplicationController
       source.update_fed_collections(selected_collections) if source.feeds_collections?
       redirect_to source_path(source), notice: "Created “#{source.name}”."
     else
-      render Views::Sources::New.new(source:, collections: all_collections),
-        status: :unprocessable_entity
+      render Views::Sources::New.new(**form_context(source)), status: :unprocessable_entity
     end
   end
 
   def edit
-    render Views::Sources::Edit.new(source: @source, collections: all_collections)
+    render Views::Sources::Edit.new(**form_context(@source))
   end
 
+  # The endpoint is deliberately not in the permitted list on update: every
+  # document this source owns is keyed by an id that only means something on the
+  # server that produced it, so repointing would silently re-key the lot.
   def update
-    if @source.update(source_params.except(:collection_ids))
+    if @source.update(source_params.except(:collection_ids, :endpoint_id))
       @source.update_fed_collections(selected_collections) if @source.feeds_collections?
       redirect_to source_path(@source), notice: "Saved."
     else
-      render Views::Sources::Edit.new(source: @source, collections: all_collections),
-        status: :unprocessable_entity
+      render Views::Sources::Edit.new(**form_context(@source)), status: :unprocessable_entity
     end
   end
 
@@ -85,7 +93,22 @@ class SourcesController < ApplicationController
   end
 
   def source_params
-    params.require(:source).permit(:name, :path, :sync_interval_minutes, :ocr, collection_ids: [])
+    params.require(:source)
+      .permit(:name, :path, :endpoint_id, :sync_interval_minutes, :ocr, collection_ids: [], selectors: [])
+  end
+
+  # Everything the form needs, including the one part that isn't in our own
+  # database: the source's catalogue comes off the far end over HTTP, which is
+  # the controller's job and never the view's.
+  def form_context(source)
+    { source:, collections: all_collections, endpoints: endpoint_options(source), catalogue: source.catalogue }
+  end
+
+  # Servers this type can point at. A source whose endpoint_type is nil reads
+  # something local and gets no picker.
+  def endpoint_options(source)
+    type = source.class.endpoint_type
+    type ? Endpoint.where(type: type.name).order(:name) : Endpoint.none
   end
 
   # What this source should feed after the save.

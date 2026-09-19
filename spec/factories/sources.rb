@@ -10,6 +10,13 @@ FactoryBot.define do
     end
   end
 
+  # Needs an Endpoints::Bookstack: the source validates the pairing.
+  factory :bookstack_source, class: "Sources::Bookstack" do
+    sequence(:name) { |n| "Wiki #{n}" }
+    endpoint factory: :bookstack_endpoint
+    selectors { [{ "book" => 1 }] }
+  end
+
   # Points at a real temporary directory, since the source validates that its
   # path exists and is readable. Pass `path` to point it at a fixture tree.
   factory :folder_source, class: "Sources::Folder" do

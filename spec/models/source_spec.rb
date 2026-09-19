@@ -146,7 +146,7 @@ RSpec.describe Source do
     context "with a source that has no interval configured" do
       let!(:source) do
         create(:folder_source, path: root, sync_interval_minutes: nil,
-          last_synced_at: (Sources::Folder::DEFAULT_SYNC_INTERVAL_MINUTES + 1).minutes.ago)
+          last_synced_at: (Source::DEFAULT_SYNC_INTERVAL_MINUTES + 1).minutes.ago)
       end
 
       it "falls back to the default interval" do

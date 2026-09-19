@@ -2,11 +2,22 @@
 
 # The source form, shared by new and edit. A fragment, not a page — it
 # inherits Components::Base so it renders bare inside whichever page wraps it.
+#
+# Holds what every source has; each type subclasses this for its own fields and
+# names its subclass through `Source.form_component`.
 class Views::Sources::Form < Components::Base
-  def initialize(source:, collections:)
+  def initialize(source:, collections:, endpoints: [], catalogue: nil)
     @source = source
     @collections = collections
+    @endpoints = endpoints
+    @catalogue = catalogue
   end
+
+  # Shown above the form on the new and edit pages. Per type, because "changing
+  # the folder re-scans from scratch" is advice only one type can act on.
+  def self.new_heading = "Add a source"
+  def self.new_blurb = ""
+  def self.edit_blurb = ""
 
   def view_template
     form(action: action, method: "post", class: "flex flex-col gap-6") do
@@ -20,17 +31,18 @@ class Views::Sources::Form < Components::Base
         text_input(:name, @source.name, placeholder: "Reference library", autofocus: true)
       end
 
-      field("Folder", "An absolute path on the machine running Archyve. Read, never written.") do
-        text_input(:path, @source.path, placeholder: "/srv/documents", mono: true)
-        what_gets_scanned
+      type_fields
+
+      if @source.supports_sync?
+        field("Scan every", "How often to look for changes. Documents whose contents haven't changed are never reprocessed.") do
+          interval_input
+        end
       end
 
-      field("Scan every", "How often to look for changes. Files whose contents haven't changed are never reprocessed.") do
-        interval_input
-      end
-
-      field("Read text from images (OCR)", ocr_hint) do
-        ocr_checkbox
+      if @source.supports_ocr?
+        field("Read text from images (OCR)", ocr_hint) do
+          ocr_checkbox
+        end
       end
 
       if @source.feeds_collections?
@@ -44,6 +56,10 @@ class Views::Sources::Form < Components::Base
   end
 
   private
+
+  def type_fields
+    raise Source::MissingImplementationError, "#{self.class.name} must implement #type_fields"
+  end
 
   def action
     @source.persisted? ? source_path(@source) : sources_path
@@ -74,28 +90,18 @@ class Views::Sources::Form < Components::Base
       placeholder: placeholder,
       autofocus: autofocus,
       autocomplete: "off",
-      class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors #{'font-mono' if mono}"
+      class: "#{input_classes} #{'font-mono' if mono}"
     )
   end
 
-  # Which files the scan will actually pick up. Stated up front rather than left
-  # to be discovered by a file not showing up. Not editable yet — when it is,
-  # this becomes the input rather than the description of a constant.
-  def what_gets_scanned
-    div(class: "mt-2 rounded border border-line bg-void/40 px-3 py-2.5") do
-      p(class: "text-xs text-muted") { "Scanned, recursively:" }
-      div(class: "mt-1.5 flex flex-wrap gap-1") do
-        Sources::Folder::EXTENSIONS.each do |extension|
-          span(class: "rounded border border-line px-1.5 py-0.5 font-mono text-[0.7rem] text-faint") { extension }
-        end
-      end
-      p(class: "mt-2 text-xs text-faint") { skipped_summary }
-    end
+  def input_classes
+    "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint " \
+      "outline-none focus:border-accent transition-colors"
   end
 
-  def skipped_summary
-    limit = ActiveSupport::NumberHelper.number_to_human_size(Sources::Folder.max_file_size)
-    "Other extensions are ignored. Hidden files, symlinks, empty files, and files over #{limit} are skipped."
+  # A quiet box for things the form is telling you rather than asking you.
+  def note(&)
+    div(class: "rounded border border-line bg-void/40 px-3 py-2.5", &)
   end
 
   def interval_input
@@ -103,7 +109,7 @@ class Views::Sources::Form < Components::Base
       input(
         type: "number",
         name: "source[sync_interval_minutes]",
-        value: @source.sync_interval_minutes || Sources::Folder::DEFAULT_SYNC_INTERVAL_MINUTES,
+        value: @source.sync_interval_minutes || Source::DEFAULT_SYNC_INTERVAL_MINUTES,
         min: "1",
         class: "w-28 rounded border border-line bg-void/60 px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent transition-colors"
       )

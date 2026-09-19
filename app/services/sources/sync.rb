@@ -75,11 +75,34 @@ module Sources
         import(create_document(item, run), item)
       elsif changed?(document, item)
         counts[:updated] += 1
-        document.update!(title: item.title, content_type: item.content_type, source_sync: run)
+        document.update!(**description(document, item), source_sync: run)
         import(document, item)
       else
         counts[:unchanged] += 1
+        redescribe(document, item)
       end
+    end
+
+    # How the source describes the item, as against its content: title, where it
+    # sits, how to reach it. Everything but the version token and the bytes.
+    def description(document, item)
+      {
+        title: item.title,
+        content_type: item.content_type,
+        path: item.path,
+        url: item.url,
+        source_metadata: document.source_metadata.merge(item.metadata)
+      }
+    end
+
+    # Rewrite the description of an item whose version hasn't moved. Renaming a
+    # Bookstack book changes the path of every page in it without touching a
+    # single revision, and folding the path into the version token instead would
+    # mean refetching all of them to discover the bytes were identical.
+    def redescribe(document, item)
+      changes = description(document, item).reject { |attribute, value| document.public_send(attribute) == value }
+
+      document.update!(changes) if changes.any?
     end
 
     # An item we can't ingest lands in one of three quite different places, and
@@ -116,13 +139,12 @@ module Sources
     end
 
     def create_document(item, run)
-      source.documents.create!(
-        external_id: item.external_id,
-        title: item.title,
-        content_type: item.content_type,
-        status: :pending,
-        source_sync: run
-      )
+      # Built off Document rather than the association, so an item that fails to
+      # validate isn't left in source.documents for the next autosave to choke on.
+      document = Document.new(source:, external_id: item.external_id, status: :pending, source_sync: run)
+      document.assign_attributes(description(document, item))
+      document.save!
+      document
     end
 
     # source_version is intentionally *not* written here — ImportItemJob sets it

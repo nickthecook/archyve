@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_140100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -105,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_140100) do
     t.text "outcome_detail"
     t.string "outcome_kind"
     t.string "outcome_stage"
+    t.string "path"
     t.bigint "source_id", null: false
     t.jsonb "source_metadata", default: {}, null: false
     t.bigint "source_sync_id"
@@ -112,6 +113,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_140100) do
     t.string "status", default: "pending", null: false
     t.string "title"
     t.datetime "updated_at", null: false
+    t.string "url"
     t.index ["outcome_kind"], name: "index_documents_on_outcome_kind", where: "(outcome_kind IS NOT NULL)"
     t.index ["source_id", "external_id"], name: "index_documents_on_source_id_and_external_id", unique: true
     t.index ["source_id"], name: "index_documents_on_source_id"

@@ -165,7 +165,7 @@ RSpec.describe "Sources", type: :request do
     context "with no type given" do
       it "offers the available source types" do
         get new_source_path
-        expect(response.body).to include("Folder")
+        expect(response.body).to include("Folder", "BookStack")
       end
 
       it "does not offer manual upload, which isn't created by hand" do
@@ -264,6 +264,162 @@ RSpec.describe "Sources", type: :request do
       it "feeds them" do
         post sources_path, params: params
         expect(Source.last.collections).to include(collection)
+      end
+    end
+  end
+
+  describe "the BookStack source" do
+    let(:endpoint) { create(:bookstack_endpoint, name: "Work wiki", base_url: "https://wiki.test") }
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+
+    # A whole wiki's worth of containers, which is what the picker draws from.
+    # Stubbed on Http rather than on the source, so the endpoint's own auth
+    # headers and base URL are exercised on the way through.
+    def stub_wiki
+      allow(Http).to receive(:connection).and_return(Faraday.new { |f| f.adapter(:test, stubs) })
+
+      {
+        "/api/shelves" => [{ "id" => 5, "name" => "Operations" }],
+        "/api/books" => [{ "id" => 1, "name" => "Handbook", "slug" => "handbook" }],
+        "/api/chapters" => [{ "id" => 3, "name" => "Joining", "book_id" => 1 }]
+      }.each do |path, records|
+        stubs.get("#{path}?count=500&offset=0") do
+          [200, { "Content-Type" => "application/json" },
+           { "data" => records, "total" => records.size }.to_json]
+        end
+      end
+    end
+
+    describe "GET /sources/new" do
+      context "with a wiki that answers" do
+        before do
+          endpoint
+          stub_wiki
+          get new_source_path(type: "Sources::Bookstack")
+        end
+
+        it "offers the server" do
+          expect(response.body).to include("Work wiki")
+        end
+
+        it "lists what can be synced, by name" do
+          expect(response.body).to include("Operations", "Handbook", "Joining")
+        end
+
+        # Chapter names repeat across books; the book is what makes the choice.
+        it "says which book a chapter is in" do
+          expect(response.body).to include("Joining")
+        end
+      end
+
+      # The picker is drawn from a live call, so it has to render something
+      # when the token has been rotated or the wiki is down.
+      context "with a wiki that refuses the token" do
+        before do
+          endpoint
+          allow(Http).to receive(:connection).and_return(Faraday.new do |f|
+            f.response :raise_error
+            f.adapter(:test, stubs)
+          end)
+          stubs.get("/api/books?count=500&offset=0") { [401, {}, ""] }
+
+          get new_source_path(type: "Sources::Bookstack")
+        end
+
+        it "still renders the form" do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "says it couldn't read the wiki, and why" do
+          expect(response.body).to include("Couldn&#39;t read Work wiki", "401")
+        end
+      end
+
+      context "with no BookStack endpoints configured" do
+        before { get new_source_path(type: "Sources::Bookstack") }
+
+        it "points at where one is added" do
+          expect(response.body).to include("No BookStack servers yet")
+        end
+      end
+    end
+
+    describe "POST /sources" do
+      let(:params) do
+        {
+          type: "Sources::Bookstack",
+          source: { name: "Wiki", endpoint_id: endpoint.id, selectors: ["", "book:1", "chapter:3"] }
+        }
+      end
+
+      before { stub_wiki }
+
+      it "creates it" do
+        expect { post sources_path, params: params }.to change { Sources::Bookstack.count }.by(1)
+      end
+
+      # The picker submits "book:1"; what is stored is what was picked.
+      it "stores what was picked, not its expansion" do
+        post sources_path, params: params
+        expect(Sources::Bookstack.last.selectors).to eq([{ "book" => 1 }, { "chapter" => 3 }])
+      end
+
+      it "points it at the endpoint" do
+        post sources_path, params: params
+        expect(Sources::Bookstack.last.endpoint).to eq(endpoint)
+      end
+
+      context "with nothing picked" do
+        let(:params) do
+          { type: "Sources::Bookstack", source: { name: "Wiki", endpoint_id: endpoint.id, selectors: [""] } }
+        end
+
+        # A source selecting nothing scans nothing, and everything it had
+        # already produced would be tombstoned on the next pass.
+        it "refuses, rather than creating a source that retires its own archive" do
+          expect { post sources_path, params: params }.not_to change { Source.count }
+        end
+      end
+
+      context "with an endpoint of the wrong type" do
+        let(:other) { create(:folder_source) }
+        let(:params) do
+          {
+            type: "Sources::Bookstack",
+            source: { name: "Wiki", endpoint_id: Endpoint.create!(name: "Bare", type: "Endpoint").id,
+                      selectors: ["book:1"] }
+          }
+        end
+
+        it "refuses it" do
+          expect { post sources_path, params: params }.not_to change { Source.count }
+        end
+      end
+    end
+
+    describe "PATCH /sources/:id" do
+      let(:source) { create(:bookstack_source, endpoint:, selectors: [{ "book" => 1 }]) }
+
+      before do
+        create(:source_user, :admin, source:, user: current_user)
+        stub_wiki
+      end
+
+      it "re-picks what to sync" do
+        patch source_path(source), params: { source: { name: source.name, selectors: ["shelf:5"] } }
+        expect(source.reload.selectors).to eq([{ "shelf" => 5 }])
+      end
+
+      # Every document is keyed by a page id that means something else on
+      # another server, so repointing would silently re-key the lot.
+      context "when a different server is submitted" do
+        let(:elsewhere) { create(:bookstack_endpoint, name: "Other wiki") }
+
+        it "ignores it" do
+          patch source_path(source),
+            params: { source: { name: source.name, endpoint_id: elsewhere.id, selectors: ["book:1"] } }
+          expect(source.reload.endpoint).to eq(endpoint)
+        end
       end
     end
   end

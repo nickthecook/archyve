@@ -8,5 +8,6 @@ module Sources
     # ever uploads silently joins that collection — which is not what "upload
     # this to the handbook" asked for.
     def self.feeds_collections? = false
+    def self.form_component = Views::Sources::Forms::ManualUpload
   end
 end

@@ -59,7 +59,7 @@ module Sources
         # transaction went on to roll back.
         document.file.attach(
           io: StringIO.new(bytes),
-          filename: File.basename(document.external_id),
+          filename: document.source.filename_for(document),
           content_type: document.content_type || "application/octet-stream"
         )
         document.update!(

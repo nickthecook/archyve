@@ -264,6 +264,12 @@ needed; this seam deduplicates a secret, which is a job.
   `#access!` and records the outcome; it exists for the one moment syncing
   doesn't cover, when an admin has just typed a token.
 
+- **A source names the endpoint type it takes**, once, as
+  `.endpoint_type` — `Sources::Bookstack` takes an `Endpoints::Bookstack` and
+  nothing else. One declaration drives both the validation and the options the
+  endpoint picker offers; a source whose `.endpoint_type` is nil reads something
+  local and needs no endpoint at all.
+
 Which options go on the endpoint and which on the source: **does changing it
 invalidate what we already ingested?** Base URL and token move you to a
 different server or identity → endpoint. Selectors, sync interval, OCR change
@@ -275,6 +281,12 @@ what you take and how → source.
   expensive op), so change detection keeps large syncs cheap.
 - **Version changed → re-ingest** that one doc (re-extract, re-chunk, re-embed).
 - **Item gone from source → tombstone** and remove its chunks.
+- **Description rewritten whenever it differs, on *either* branch.** An item's
+  title, `path`, `url` and metadata are what the source *says about* it, not its
+  content, so they are not the version token's business. Renaming a Bookstack
+  book moves the path of every page in it with zero fetches; folding the path
+  into the token instead would refetch all of them to learn the bytes were
+  identical.
 
 **Scheduling:** poll-first via Solid Queue recurring jobs, per-source
 interval. Webhooks/push (S3 events, Bookstack webhooks) added later behind
