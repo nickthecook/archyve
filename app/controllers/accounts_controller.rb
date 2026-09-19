@@ -9,6 +9,13 @@ class AccountsController < ApplicationController
   def update
     user = Current.user
 
+    # Letting an SSO user set a password would be a way around the Keycloak
+    # group check: they could then sign in at /session/new after their access
+    # was revoked. The view hides the form too; this is the half that enforces.
+    if user.sso?
+      return redirect_to(account_path, alert: "Your password is managed by your SSO provider.")
+    end
+
     unless user.authenticate(params[:current_password])
       return redirect_to(account_path, alert: "That isn't your current password.")
     end

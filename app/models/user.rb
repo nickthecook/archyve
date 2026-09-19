@@ -37,6 +37,17 @@ class User < ApplicationRecord
   validate :last_admin_keeps_their_role
   before_destroy :refuse_to_delete_the_last_admin
 
+  def sso? = sso_subject.present?
+
+  # An SSO user has no password, so has_secure_password's presence check has to
+  # stand down for them. Deliberately narrow: `validations: false` would drop
+  # all four of its validations, taking with it the confirmation check the
+  # account page depends on and the blank check that stops an admin creating an
+  # account nobody can ever sign in to.
+  def errors
+    super.tap { |errors| errors.delete(:password, :blank) if sso? }
+  end
+
   # Effective role on one collection or source.
   #
   # The global role is a ceiling on the *kind* of thing you can do — chat,

@@ -33,7 +33,7 @@ Status: pre-implementation. Decisions below are settled; open items are marked.
 | Background jobs | **Solid Queue** | Backed by Postgres — no Redis |
 | WebSockets | **Solid Cable** | Backed by Postgres — no Redis |
 | Cache | **Solid Cache** | Backed by Postgres — no Redis |
-| Auth | **Rails 8 built-in** (`generate authentication`) | Over Devise, unless OAuth/SSO needed later |
+| Auth | **Rails 8 built-in** sessions + **OIDC** (hand-rolled) | Over Devise; SSO added 2026-09-19 without it — see Single sign-on |
 | LLM client | **RubyLLM** | Multi-provider, tool calling, streaming |
 | Document extraction | **Docling** (`docling-serve` sidecar) | Structure-aware; the one extra container |
 | Testing | **RSpec** | House style applies |
@@ -386,6 +386,56 @@ reach settings.
 The last admin can neither be demoted nor deleted. That guard is a validation
 and a `before_destroy` on `User`, not a controller check, so no path — console,
 seeds, a future API — can leave Archyve unadministrable.
+
+### Single sign-on (built 2026-09-19)
+
+Keycloak is the IdP; Archyve is a confidential OIDC client doing the
+authorization-code flow with PKCE. Hand-rolled against Faraday
+(`Sso`, `Sso::Client`, `Sso::Identity`) rather than OmniAuth: one known
+provider, authentication only, and OmniAuth's Rack middleware would have meant
+provider settings in an initializer — the thing `config/initializers/ruby_llm.rb`
+argues against at length.
+
+**Identity is keyed on `sub`, not email.** `sub` is the IdP's permanent
+identifier; email is what people change. Matching on email would hand a renamed
+user a second empty account, and would hand a *reused* address somebody else's
+history. Email decides exactly one thing: the one-time link on first sign-in,
+and only when the IdP asserts `email_verified`. Anything less would mean an
+attribute set at the IdP could inherit the break-glass admin's account.
+
+**The group check is a login gate, not role mapping.** Keycloak asserts a
+`groups` claim; Archyve refuses anyone without `ARCHYVE_SSO_GROUP`. Everyone it
+provisions arrives as a plain `user` with no grants — the role ladder above
+stays Archyve's business. Refusal also destroys that user's existing sessions,
+because revoking a group has to reach a browser that is already signed in.
+
+**The ID token's signature is not verified,** which OIDC Core §3.1.3.7(6)
+permits when the token arrives directly from the token endpoint over TLS with
+client authentication. That is this exchange, so there is no JWKS to fetch,
+cache or rotate. `iss`, `aud`, `exp` and `nonce` are still checked.
+
+**Sessions have an absolute 1-day lifetime** (`Session::LIFETIME`), not a
+sliding one. It is the upper bound on how long a revoked user keeps working, and
+a sliding window would mean an active revoked user never hits it. A constant
+rather than a `Setting`: that bound shouldn't be widenable from a browser.
+
+**Sign-out ends the Keycloak session too** for SSO sessions, via
+`end_session_endpoint` with the stored `id_token_hint`. Without it, "Sign out"
+followed by "Sign in with SSO" would silently sign the user back in. This is
+realm-wide single logout.
+
+**The break-glass admin is what makes an SSO outage survivable**, which is why
+linking an existing account never clears its `password_digest`, and why the
+password form stays reachable behind a disclosure on `/session/new`. An SSO user
+has a NULL digest and cannot use that form at all — that is what stops the group
+check being bypassable — and cannot set a password from `/account`.
+
+**Configuration is all-or-nothing.** `Sso.configured?` requires all four of
+`ARCHYVE_SSO_ISSUER`, `ARCHYVE_SSO_CLIENT_ID`, `ARCHYVE_SSO_CLIENT_SECRET` and
+`ARCHYVE_SSO_GROUP`, so there is no state reachable by forgetting a variable in
+which SSO is enabled but ungated. Unset, the button is hidden and both routes
+refuse independently. The setup itself — Keycloak client, group, mapper, and the
+proxy requirements — is in the README.
 
 **Reaching a document (built 2026-09-07).** Whether a reader gets a link or a
 download is a property of the **source**, not of the reader's role

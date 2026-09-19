@@ -20,6 +20,12 @@ default: &default
     queue: default
     schedule: every 5 minutes
 
+  # Sessions expire by age on lookup (Session.active), so this only stops the
+  # table growing without bound — nothing depends on it running on time.
+  sweep_expired_sessions:
+    command: "Session.expired.delete_all"
+    schedule: every hour at minute 7
+
 development:
   <<: *default
 

@@ -6,6 +6,14 @@ FactoryBot.define do
     # matter — see spec/support/authentication.rb.
     password { AuthenticationHelpers::PASSWORD }
 
+    # An SSO-provisioned user: no password at all, which is only a valid record
+    # because User relaxes has_secure_password's presence check for them.
+    trait :sso do
+      password { nil }
+      sequence(:sso_subject) { |n| "keycloak-uuid-#{n}" }
+      sso_issuer { SsoHelpers::ISSUER }
+    end
+
     trait :operator do
       role { :operator }
     end

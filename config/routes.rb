@@ -2,9 +2,15 @@ Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Sign in and out. No password-reset routes: no SMTP is configured and there
-  # is no public signup, so an admin sets passwords. Revisit if Keycloak lands
-  # and local accounts become break-glass only.
+  # is no public signup, so an admin sets passwords — and with Keycloak now
+  # owning normal sign-in, local accounts are break-glass anyway.
   resource :session, only: [:new, :create, :destroy]
+
+  # Single sign-on. The initiate is a POST so forgery protection covers it; the
+  # callback is the GET Keycloak redirects back to. Both refuse unless SSO is
+  # configured. See docs/architecture.md.
+  post "sso", to: "sso_sessions#create", as: :sso_sign_in
+  get "sso/callback", to: "sso_sessions#callback", as: :sso_callback
 
   # Your own account: the only place a non-admin changes their own password.
   # Reached from the account menu in the top bar, not from Settings — Settings

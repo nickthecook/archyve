@@ -16,7 +16,7 @@ class Views::Accounts::Show < Views::Base
     end
 
     identity
-    password_form
+    @user.sso? ? managed_elsewhere : password_form
   end
 
   private
@@ -34,6 +34,16 @@ class Views::Accounts::Show < Views::Base
     div(class: "flex items-center justify-between px-5 py-3.5") do
       dt(class: "text-sm text-muted") { label }
       dd(class: "font-mono text-sm text-fg") { value }
+    end
+  end
+
+  # An SSO account has no password to change, and saying so beats a form that
+  # can only fail.
+  def managed_elsewhere
+    div(class: "rounded-lg border border-line bg-ink/40 px-5 py-4") do
+      p(class: "text-sm text-muted") do
+        plain "You sign in through SSO, so your password is managed there rather than in Archyve."
+      end
     end
   end
 

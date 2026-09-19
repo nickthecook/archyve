@@ -70,7 +70,10 @@ class Views::Chrome < Components::Base
   end
 
   def sign_out
-    form(action: session_path, method: "post") do
+    # Turbo off for the same reason as the SSO button: signing out of an SSO
+    # session redirects to the IdP to end its session too, and Turbo would try
+    # to follow that cross-origin redirect with fetch.
+    form(action: session_path, method: "post", data: { turbo: "false" }) do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(

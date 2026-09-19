@@ -13,7 +13,12 @@ class Views::Sessions::New < Views::Base
       div(class: "w-full max-w-sm") do
         masthead
         alerts
-        form_panel
+        if Sso.configured?
+          sso_button
+          password_disclosure
+        else
+          form_panel
+        end
       end
     end
   end
@@ -44,6 +49,43 @@ class Views::Sessions::New < Views::Base
     end
   end
 
+  # The one solid brass control on the surface, per the accent ladder in
+  # docs/design.md. Its own form: it POSTs elsewhere, and a form can't nest.
+  def sso_button
+    # Turbo off: the response is a redirect to the IdP on another origin, and
+    # Turbo would follow it with fetch, which CORS refuses. This has to be a
+    # top-level browser navigation.
+    form(action: sso_sign_in_path, method: "post", class: "mb-5", data: { turbo: "false" }) do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(
+        type: "submit",
+        class: "w-full rounded bg-accent px-4 py-2.5 text-sm font-medium text-void " \
+               "hover:bg-accent-dim transition-colors"
+      ) { "Sign in with SSO" }
+    end
+  end
+
+  # Break-glass, so it is present but quiet. Opened when a flash is showing,
+  # since the only way to see one here is to have just tried a password.
+  def password_disclosure
+    details(class: "group", open: flash[:alert].present?) do
+      summary(class: "flex cursor-pointer list-none items-center gap-2 text-sm text-muted hover:text-fg transition-colors") do
+        chevron
+        plain "Use a password"
+      end
+
+      div(class: "mt-4") { form_panel }
+    end
+  end
+
+  def chevron
+    svg(
+      class: "shrink-0 text-faint transition-transform group-open:rotate-90",
+      width: "14", height: "14", viewbox: "0 0 24 24", fill: "none",
+      stroke: "currentColor", stroke_width: "2", aria_hidden: "true"
+    ) { |s| s.path(d: "M9 18l6-6-6-6") }
+  end
+
   def form_panel
     form(action: session_path, method: "post", class: "flex flex-col gap-5 rounded-lg border border-line bg-ink/40 p-6") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
@@ -55,10 +97,19 @@ class Views::Sessions::New < Views::Base
         text_input(:password, type: "password", autocomplete: "current-password")
       end
 
-      button(
-        type: "submit",
-        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
-      ) { "Sign in" }
+      button(type: "submit", class: submit_class) { "Sign in" }
+    end
+  end
+
+  # Solid only when it is the way in. With SSO configured the brass belongs to
+  # the SSO button, and two solid buttons on one surface means neither reads as
+  # the primary one.
+  def submit_class
+    if Sso.configured?
+      "rounded border border-accent/60 bg-accent/10 px-4 py-2 text-sm font-medium text-accent " \
+        "hover:bg-accent/20 hover:border-accent transition-colors"
+    else
+      "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
     end
   end
 

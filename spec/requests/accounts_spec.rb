@@ -77,3 +77,25 @@ RSpec.describe "Accounts", :unauthenticated, type: :request do
     end
   end
 end
+
+RSpec.describe "Accounts and SSO", :unauthenticated, type: :request do
+  let(:user) { create(:user, :sso) }
+
+  before { sign_in_as_sso_user(user) }
+
+  it "says where the password lives instead of offering a form" do
+    get account_path
+
+    expect(response.body).to include("managed there rather than in Archyve")
+    expect(response.body).not_to include("Change password")
+  end
+
+  # Hiding the form is not enforcement. Setting a password would be a way back
+  # in through /session/new after the IdP revoked their access.
+  it "refuses a password change" do
+    patch account_path, params: { current_password: "x", password: "a-new-password", password_confirmation: "a-new-password" }
+
+    expect(response).to redirect_to(account_path)
+    expect(user.reload.password_digest).to be_nil
+  end
+end

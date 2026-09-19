@@ -126,3 +126,116 @@ RSpec.describe "Sessions", type: :request do
     end
   end
 end
+
+RSpec.describe "Sessions and SSO", :unauthenticated, type: :request do
+  describe "the sign-in page" do
+    context "when SSO is not configured" do
+      it "offers only the password form" do
+        get new_session_path
+
+        expect(response.body).not_to include("Sign in with SSO")
+        expect(response.body).to include("Password")
+      end
+    end
+
+    context "when SSO is configured" do
+      before { configure_sso }
+
+      it "makes SSO the way in and keeps the password form reachable" do
+        get new_session_path
+
+        expect(response.body).to include("Sign in with SSO")
+        expect(response.body).to include("Use a password")
+      end
+
+      # The response is a redirect to another origin. Turbo would follow it with
+      # fetch and CORS would refuse; it has to be a top-level navigation.
+      it "takes the SSO form out of Turbo's hands" do
+        get new_session_path
+
+        expect(response.body).to match(%r{<form[^>]*action="/sso"[^>]*data-turbo="false"})
+      end
+
+      # The only way to see a flash here is to have just tried a password, so
+      # collapsing the form the user was using would be perverse.
+      it "opens the password disclosure when there is an alert to explain" do
+        post session_path, params: { email_address: "nobody@example.com", password: "wrong" }
+        follow_redirect!
+
+        expect(response.body).to match(/<details[^>]*\sopen/)
+      end
+    end
+  end
+
+  describe "an SSO user at the password form" do
+    let!(:user) { create(:user, :sso, email_address: "sso@example.com") }
+
+    # They have no password digest at all, so this must fail cleanly rather
+    # than raise — and it is what stops the group check being bypassable.
+    it "cannot sign in" do
+      post session_path, params: { email_address: user.email_address, password: "anything" }
+
+      expect(response).to redirect_to(new_session_path)
+      expect(user.sessions).to be_empty
+    end
+  end
+
+  describe "signing out" do
+    before { configure_sso }
+
+    context "with an SSO session" do
+      it "ends the session at the provider too" do
+        stub_sso_http
+        sign_in_with_sso
+
+        delete session_path
+
+        expect(response.location).to start_with("https://keycloak.test/realms/home/protocol/openid-connect/logout")
+        query = Rack::Utils.parse_query(URI.parse(response.location).query)
+        expect(query["post_logout_redirect_uri"]).to eq(new_session_url)
+        expect(query["id_token_hint"]).to be_present
+      end
+
+      # Same cross-origin redirect problem as the sign-in button.
+      it "takes the sign-out form out of Turbo's hands" do
+        stub_sso_http
+        sign_in_with_sso
+
+        # A contained page, so Views::Chrome renders and with it the account menu.
+        get account_path
+
+        expect(response.body).to match(%r{<form[^>]*action="/session"[^>]*data-turbo="false"})
+      end
+
+      it "still destroys the local session" do
+        stub_sso_http
+        sign_in_with_sso
+
+        expect { delete session_path }.to change(Session, :count).by(-1)
+      end
+    end
+
+    context "with a password session" do
+      it "signs out locally" do
+        user = create(:user)
+        post session_path, params: { email_address: user.email_address, password: AuthenticationHelpers::PASSWORD }
+
+        delete session_path
+
+        expect(response).to redirect_to(new_session_path)
+      end
+    end
+  end
+
+  describe "an expired session" do
+    it "stops being accepted" do
+      user = create(:user, :operator)
+      post session_path, params: { email_address: user.email_address, password: AuthenticationHelpers::PASSWORD }
+
+      user.sessions.sole.update!(created_at: (Session::LIFETIME + 1.minute).ago)
+
+      get collections_path
+      expect(response).to redirect_to(new_session_path)
+    end
+  end
+end

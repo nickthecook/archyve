@@ -266,3 +266,49 @@ RSpec.describe User, type: :model do
     end
   end
 end
+
+RSpec.describe User, "SSO accounts", type: :model do
+  describe "passwords" do
+    context "when the user came from SSO" do
+      it "is valid without one" do
+        user = build(:user, :sso, password: nil)
+
+        expect(user).to be_valid
+      end
+
+      it "fails a password sign-in rather than raising" do
+        user = create(:user, :sso)
+
+        expect(user.authenticate("anything")).to be(false)
+        expect(described_class.authenticate_by(email_address: user.email_address, password: "anything")).to be_nil
+      end
+    end
+
+    context "when the user is a local account" do
+      # The relaxation above must stay narrow: this is the check that stops an
+      # admin creating an account nobody can ever sign in to.
+      it "still requires one" do
+        user = build(:user, password: nil)
+
+        expect(user).not_to be_valid
+        expect(user.errors[:password]).to include("can\'t be blank")
+      end
+
+      # has_secure_password's confirmation check has to survive too — the
+      # account page depends on it.
+      it "still checks the confirmation matches" do
+        user = build(:user, password: "a-long-password", password_confirmation: "something-else")
+
+        expect(user).not_to be_valid
+        expect(user.errors[:password_confirmation]).to be_present
+      end
+    end
+  end
+
+  describe "#sso?" do
+    it "is true only with a subject" do
+      expect(build(:user, :sso)).to be_sso
+      expect(build(:user)).not_to be_sso
+    end
+  end
+end

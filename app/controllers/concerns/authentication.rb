@@ -26,7 +26,7 @@ module Authentication
     end
 
     def find_session_by_cookie
-      Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      Session.active.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
     end
 
     def request_authentication
@@ -38,10 +38,15 @@ module Authentication
       session.delete(:return_to_after_authenticating) || root_url
     end
 
-    def start_new_session_for(user)
-      user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
+    def start_new_session_for(user, sso_id_token: nil)
+      user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, sso_id_token:).tap do |session|
         Current.session = session
-        cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
+        # Not `.permanent`: PermanentCookieJar#commit overwrites any expires:
+        # you hand it with 20 years, so the cookie would outlive the row by a
+        # wide margin. Session.active is the real gate either way.
+        cookies.signed[:session_id] = {
+          value: session.id, expires: Session::LIFETIME.from_now, httponly: true, same_site: :lax
+        }
       end
     end
 

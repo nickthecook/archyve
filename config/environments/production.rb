@@ -24,14 +24,15 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  # Production is always behind a TLS-terminating reverse proxy. assume_ssl is
+  # what makes request.base_url say https, and therefore what makes
+  # sso_callback_url generate a redirect_uri the IdP will accept; force_ssl is
+  # what marks the session cookie secure.
+  config.assume_ssl = true
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -58,7 +59,7 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("ARCHYVE_HOST", "localhost") }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {
@@ -79,12 +80,17 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  # Enable DNS rebinding protection and other `Host` header attacks. This is
+  # load-bearing for SSO: the OIDC redirect_uri is derived from the Host header,
+  # so without it a spoofed Host can aim the callback elsewhere. The IdP's own
+  # allowlist is the real backstop; this closes it at our end too.
   #
+  # Guarded rather than defaulted: an allow list containing the wrong host
+  # rejects every real request, which is a worse failure than not having one.
+  if (host = ENV["ARCHYVE_HOST"].presence)
+    config.hosts = [host]
+  end
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
