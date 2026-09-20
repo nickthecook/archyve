@@ -259,9 +259,7 @@ class Source < ApplicationRecord
   # should link out rather than hand over a copy: the reader gets the live
   # document, with whatever permissions and history the source keeps.
   #
-  # Nothing returns true yet. The first source type that can — Bookstack, S3
-  # with a console — implements both this and #document_url, and that is also
-  # when documents grow a stored URL to return.
+  # A type that returns true implements #document_url too.
   def self.user_accessible_links? = false
 
   # This document's address in the source, or nil. Only meaningful when
