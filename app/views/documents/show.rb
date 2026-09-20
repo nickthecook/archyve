@@ -9,9 +9,8 @@ class Views::Documents::Show < Views::Base
   end
 
   # Outlined rather than solid: getting a copy *opens* something, it doesn't
-  # commit anything — see the accent ladder in docs/design.md. Styled as the
-  # page's primary control because on a document there is nothing louder to do.
-  ACCESS = "shrink-0 rounded border border-accent/60 bg-accent/10 px-3 py-1.5 text-sm font-medium " \
+  # commit anything — see the accent ladder in docs/design.md.
+  ACCESS = "rounded border border-accent/60 bg-accent/10 px-3 py-1.5 text-sm font-medium " \
            "text-accent hover:border-accent hover:bg-accent/20 transition-colors".freeze
 
   def view_template
@@ -25,10 +24,10 @@ class Views::Documents::Show < Views::Base
           plain(" · via #{@document.source.name}") if @document.source
         end
       end
-      # A reader who followed a citation here to read the passage often wants
-      # the whole thing next. Which affordance this is — a link out to the
-      # source, or a download from Archyve — is the source's business, not ours.
-      render Views::Documents::Access.new(document: @document, class_name: ACCESS)
+      div(class: "flex shrink-0 items-center gap-2") do
+        download_button
+        reprocess_button if may?(:operator) && @document.reprocessable?
+      end
     end
 
     # Subscribe to the document's stream; the model broadcasts a replace of the
@@ -41,31 +40,28 @@ class Views::Documents::Show < Views::Base
 
   private
 
-  # The operator's half of the page: what went wrong, and the one control that
-  # acts on it. Both are behind the same role the controller enforces on
-  # `reprocess` — hiding a control isn't access control, but showing one that
-  # bounces you is just a worse control.
+  # What went wrong, for the person whose job it is to do something about it.
+  # Behind the same role the controller enforces on `reprocess` — hiding a
+  # control isn't access control, but showing one that bounces you is just a
+  # worse control.
   #
   # The second subscription is what keeps the raw error off everyone else's
   # page: the stream name is only ever rendered here, and Turbo signs it.
   def diagnostics
     turbo_stream_from(@document, :diagnostics)
     render Views::Documents::Diagnostics.new(document: @document)
-    reprocess_button if @document.reprocessable?
   end
 
-  # Solid when the document failed, because there it *is* the fix and there is
-  # nothing louder worth doing; quiet when it already worked, because then it is
-  # housekeeping — a re-embed after changing models — and shouting about it
-  # would spend the page's whole accent budget on a maintenance task. Download
-  # stays the loudest thing in the header either way.
-  #
+  def download_button
+    render Views::Documents::Access.new(document: @document, class_name: ACCESS)
+  end
+
   # Rendered here rather than inside the broadcast region because it needs a
   # request: a route helper and a CSRF token, neither of which exists when the
   # model renders a region from inside a job. It can afford to be static —
   # `reprocessable?` doesn't change as the pipeline runs.
   def reprocess_button
-    form(action: reprocess_document_path(@document), method: "post", class: "mt-4") do
+    form(action: reprocess_document_path(@document), method: "post") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(type: "submit", class: reprocess_class) { "Reprocess" }
     end
@@ -78,7 +74,7 @@ class Views::Documents::Show < Views::Base
       "border border-line text-muted hover:text-fg hover:border-line-2"
     end
 
-    "rounded px-3 py-2 text-sm font-medium transition-colors #{weight}"
+    "rounded px-3 py-1.5 text-sm font-medium transition-colors #{weight}"
   end
 
   def page_title = @document.title
