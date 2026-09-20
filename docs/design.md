@@ -28,7 +28,9 @@ surface. If a page has three brass elements competing, it has none.
 
 ## Zones: ways out, then the page
 
-Pages are split by a single quiet `hr` (`border-line`):
+Pages are split by a single rule — `Views::Rule`, a `border-line-2` hairline
+with its own vertical space. It is deliberately a step brighter than `line`,
+which is what cards and inputs outline in:
 
 - **Above the rule** — links that *leave* this page: section doorways, global
   search. This is what Archyve has instead of a sidebar.

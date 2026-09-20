@@ -20,7 +20,7 @@ class Views::Conversations::Index < Views::Base
     heading
     unavailable_panel if @unavailable
     composer
-    hr(class: "my-8 border-line")
+    render Views::Rule.new
     @conversations.any? ? list : empty
   end
 

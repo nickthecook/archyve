@@ -48,7 +48,7 @@ class Views::Collections::Index < Views::Base
   end
 
   def rule
-    hr(class: "mb-8 border-line")
+    render Views::Rule.new
   end
 
   # The corridor search, scope preset to All. Scope is URL-encoded (c[]/doc); All
