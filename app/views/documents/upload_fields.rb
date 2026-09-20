@@ -11,22 +11,54 @@
 # The enclosing <form> stays with each caller: one is a bordered card, the other
 # sits inside a disclosure and carries a hidden collection_slug.
 class Views::Documents::UploadFields < Components::Base
-  FILE_INPUT = "block w-full text-sm text-muted file:mr-4 file:rounded file:border-0 " \
+  # `min-w-0 flex-1` rather than `w-full`: a full-width flex item takes the whole
+  # line to itself and wraps the submit button onto the next one.
+  FILE_INPUT = "block min-w-0 flex-1 text-sm text-muted file:mr-4 file:rounded file:border-0 " \
                "file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-void " \
                "hover:file:bg-accent-dim file:cursor-pointer".freeze
 
   SUBMIT = "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void " \
            "hover:bg-accent-dim transition-colors".freeze
 
+  DROPZONE = "mt-4 cursor-pointer rounded-lg border-2 border-dashed px-4 py-8 text-center " \
+             "text-sm transition-colors".freeze
+
+  DROPZONE_IDLE = "border-line text-faint".freeze
+  DROPZONE_ACTIVE = "border-accent text-accent".freeze
+
   def view_template
-    div(class: "flex w-full flex-wrap items-center gap-4") do
-      input(type: "file", name: "file", required: true, class: FILE_INPUT)
-      button(type: "submit", class: SUBMIT) { "Upload" }
+    div(
+      data: {
+        controller: "file-drop",
+        file_drop_idle_class: DROPZONE_IDLE,
+        file_drop_active_class: DROPZONE_ACTIVE
+      }
+    ) do
+      div(class: "flex w-full flex-wrap items-center gap-4") do
+        input(type: "file", name: "file", required: true, class: FILE_INPUT,
+          data: { file_drop_target: "input" })
+        button(type: "submit", class: SUBMIT) { "Upload" }
+      end
+      dropzone
+      ocr_choice
     end
-    ocr_choice
   end
 
   private
+
+  # A second way to reach the same input, not a second way to upload: the drop
+  # hands the file to the file input above, so the filename it shows and the
+  # form it submits with are the ones that were already there.
+  def dropzone
+    div(
+      class: "#{DROPZONE} #{DROPZONE_IDLE} hover:border-line-2 hover:text-muted",
+      data: {
+        file_drop_target: "zone",
+        action: "dragenter->file-drop#activate dragover->file-drop#activate " \
+                "dragleave->file-drop#deactivate drop->file-drop#accept click->file-drop#browse"
+      }
+    ) { "Drop a file here, or click to browse" }
+  end
 
   # Asked per upload rather than set once, because the right answer is a
   # property of the file: a scan needs OCR and a text-layer PDF is only made
