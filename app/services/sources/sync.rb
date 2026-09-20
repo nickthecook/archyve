@@ -38,10 +38,14 @@ module Sources
     # starts to rival the work done in them.
     BUDGET = 15.minutes
 
-    # How often a running pass records that it is still moving. Frequent enough
-    # that SourceSync::STALL_AFTER is a meaningful threshold, rare enough not to
-    # be a write per item.
-    PROGRESS_INTERVAL = 30.seconds
+    # How often a running pass writes down where it has got to.
+    #
+    # This is what paces the counts on the source page, so it wants to be near
+    # the 2.5s the progress controller polls at rather than near the stall
+    # threshold — a long scan whose numbers move every half-minute reads as
+    # stuck. One row-write per source per interval; the poll is happening
+    # either way.
+    PROGRESS_INTERVAL = 10.seconds
 
     # The run's tally columns, and the key each is kept under while scanning.
     # Read in both directions: seeded from the row when resuming a paused run,
@@ -293,7 +297,7 @@ module Sources
     end
 
     def finish(run, status:, error: nil)
-      attributes = COUNT_COLUMNS.to_h { |column, key| [column, counts[key]] }
+      attributes = tallies
       attributes["status"] = status
       attributes["error"] = error
       attributes["last_progress_at"] = Time.current
@@ -317,8 +321,14 @@ module Sources
     end
 
     # A heartbeat, so a run that has stopped moving can be told from one that is
-    # merely long — and, in the same statement, the answer to whether this pass
-    # is still the live one.
+    # merely long — and, in the same statement, the counts so far and the answer
+    # to whether this pass is still the live one.
+    #
+    # The counts ride along because otherwise they reach the database only in
+    # `finish`, and the source page reads them from the row. A pass that runs
+    # for its whole budget would show zeros for fifteen minutes and then jump,
+    # which is indistinguishable from nothing happening. It also means a run
+    # that dies keeps the tally it got through instead of reporting none.
     #
     # The write is conditional on the run still being `running`, so a run
     # Sources::SweepStalledSyncsJob has already retired matches nothing and
@@ -340,7 +350,11 @@ module Sources
       return true if Time.current < @progress_due
 
       @progress_due = PROGRESS_INTERVAL.from_now
-      SourceSync.where(id: run.id, status: :running).update_all(last_progress_at: Time.current) == 1
+
+      SourceSync.where(id: run.id, status: :running)
+        .update_all(tallies.merge("last_progress_at" => Time.current)) == 1
     end
+
+    def tallies = COUNT_COLUMNS.to_h { |column, key| [column, counts[key]] }
   end
 end

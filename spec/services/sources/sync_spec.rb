@@ -484,6 +484,39 @@ RSpec.describe Sources::Sync do
       end
     end
 
+    describe "counts while a pass is still running" do
+      subject(:observed) do
+        seen = []
+
+        allow(source).to receive(:each_item) do |&block|
+          %w[one.md two.md three.md].each do |id|
+            block.call(Source::Item.new(external_id: id, version: "v1", title: id,
+              content_type: "text/markdown"))
+            seen << source.syncs.sole.reload.found_count
+          end
+        end
+
+        sync.call
+        seen
+      end
+
+      before { stub_const("#{described_class}::PROGRESS_INTERVAL", 0.seconds) }
+
+      # Lags the scan by one item, because the same statement that writes the
+      # tally is the one that asks whether this pass is still the live one, and
+      # that question is worth asking before reconciling rather than after.
+      # Immaterial over a crawl; the point is that the number moves at all
+      # rather than sitting at zero until the pass ends.
+      it "persists the tally as it goes" do
+        expect(observed).to eq([0, 1, 2])
+      end
+
+      it "still writes the final tally when the pass ends" do
+        observed
+        expect(source.syncs.sole.found_count).to eq(3)
+      end
+    end
+
     # The window the sweeper cannot see: a pass wedged inside #each_item reports
     # no progress, gets retired as stalled, and wakes to find its source already
     # due again and its semaphore expired — so a second pass may be underway.

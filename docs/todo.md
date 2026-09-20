@@ -132,6 +132,18 @@ crawler-specific:
   died be spotted without the hour of grace `stalled` currently allows, which is
   a better story for Folder and BookStack as well.
 
+- **The tally is written as the pass goes, not only at its end.** The counts
+  reach the row on the same heartbeat, because the source page reads them from
+  there: a pass running its whole budget would otherwise show zeros for fifteen
+  minutes and then jump, which looks exactly like nothing happening. Paced at
+  10s against the progress controller's 2.5s poll — this is a display concern,
+  so it belongs near the poll rather than near the stall threshold. A run that
+  dies now also keeps the tally it got through instead of reporting none.
+
+  Note what does *not* need this: `pipeline_statuses` and the processing meter
+  read the documents table directly, so they were always live during a scan.
+  It is only the scan's own counters that lived in memory.
+
 - **Sweep stalled runs.** Already on the list above under "Surfacing sync
   failures", item 3 — promote it. A permanently-`running` row stops being
   cosmetic once scans span jobs, and with `last_progress_at` the sweeper has
