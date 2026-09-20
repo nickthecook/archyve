@@ -12,6 +12,22 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["field"]
 
+  connect() {
+    // The `rows` attribute is the floor: an empty box keeps the height the
+    // markup asked for rather than collapsing to a single line.
+    this.minHeight = this.fieldTarget.clientHeight
+    this.autogrow()
+  }
+
+  // Clearing the height before measuring is what lets the box shrink again;
+  // scrollHeight never reports less than the current height.
+  autogrow() {
+    const field = this.fieldTarget
+
+    field.style.height = "auto"
+    field.style.height = `${Math.max(field.scrollHeight, this.minHeight)}px`
+  }
+
   submit(event) {
     // An empty box has nothing to send. The server says the same thing with a
     // redirect and an alert; from a keystroke, doing nothing is the better

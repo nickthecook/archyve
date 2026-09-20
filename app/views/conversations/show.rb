@@ -91,8 +91,9 @@ class Views::Conversations::Show < Views::Base
       textarea(
         name: "message", rows: "2", autofocus: true, autocomplete: "off",
         placeholder: ask_placeholder,
-        data: { composer_target: "field" },
-        class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
+        data: { composer_target: "field", action: "input->composer#autogrow" },
+        class: "w-full resize-none overflow-y-auto max-h-72 bg-transparent text-[0.95rem] " \
+               "text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3") do
         span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do

@@ -54,8 +54,9 @@ class Views::Conversations::Index < Views::Base
       textarea(
         name: "message", rows: "3", autofocus: true, autocomplete: "off",
         placeholder: "What do you want to know?",
-        data: { composer_target: "field" },
-        class: "w-full resize-y bg-transparent text-[0.95rem] text-fg placeholder:text-faint outline-none"
+        data: { composer_target: "field", action: "input->composer#autogrow" },
+        class: "w-full resize-none overflow-y-auto max-h-72 bg-transparent text-[0.95rem] " \
+               "text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3 border-t border-line/60 pt-3") do
         scope_picker
