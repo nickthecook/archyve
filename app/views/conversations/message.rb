@@ -36,7 +36,7 @@ class Views::Conversations::Message < Components::Base
   end
 
   def from_user
-    div(class: "max-w-[42ch] rounded-lg border border-line bg-ink/40 px-4 py-3 text-[0.95rem] text-fg whitespace-pre-wrap") do
+    div(class: "max-w-[68ch] rounded-lg border border-line bg-ink/40 px-4 py-3 text-[0.95rem] text-fg whitespace-pre-wrap") do
       @message.text
     end
   end
