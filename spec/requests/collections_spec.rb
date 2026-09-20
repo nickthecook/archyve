@@ -50,6 +50,40 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
+    # Deleting is work on the source that produced the document, so the button
+    # follows a grant there — not the one that lets you file things here.
+    describe "the per-document Delete button" do
+      before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+      context "when the document came from a source they manage" do
+        let(:document) { create(:document, source: create(:manual_upload_source, user: current_user)) }
+
+        it "is offered" do
+          request
+          expect(response.body).to include("Permanently delete “#{document.title}”")
+        end
+      end
+
+      context "when the document came from a source they don't manage" do
+        let(:document) { create(:document) }
+
+        it "is not offered, because it would be refused" do
+          request
+          expect(response.body).not_to include("Permanently delete")
+        end
+      end
+
+      # A sync would put it straight back, so the offer would be a lie.
+      context "when a syncable source still feeds it" do
+        let(:document) { create(:document, source: create(:folder_source, user: current_user)) }
+
+        it "is not offered" do
+          request
+          expect(response.body).not_to include("Permanently delete")
+        end
+      end
+    end
+
     # Where the "Processing…" flash sends you after an upload, so the badges here
     # have to catch up on their own. Two regions poll independently, so every
     # assertion has to name the one it means.

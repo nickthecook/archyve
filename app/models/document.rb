@@ -115,6 +115,11 @@ class Document < ApplicationRecord
   # its source, and re-ingesting it would undo that.
   def reprocessable? = !removed? && file.attached?
 
+  # Whether deleting this actually removes it from the archive. A syncable source
+  # re-creates its documents on the next scan, so there the deletion belongs at
+  # the source; a tombstone has already left the source and won't come back.
+  def purgeable? = removed? || !source.supports_sync?
+
   # Live-update the show page as the pipeline advances. Broadcast synchronously
   # from whatever updated the status (the job), not *_later — see the streaming
   # notes in the architecture: async broadcasts race and arrive out of order.

@@ -38,6 +38,34 @@ RSpec.describe Document do
     end
   end
 
+  # Whether a delete would stick, which is the whole of what makes deleting a
+  # document offerable at all.
+  describe "#purgeable?" do
+    subject { document.purgeable? }
+
+    context "when it was uploaded by hand" do
+      let(:document) { create(:document, source: create(:manual_upload_source)) }
+
+      it { is_expected.to be(true) }
+    end
+
+    # The next scan would simply create it again, so the deletion belongs at the
+    # source.
+    context "when a syncable source still feeds it" do
+      let(:document) { create(:document, source: create(:folder_source)) }
+
+      it { is_expected.to be(false) }
+    end
+
+    # Already gone from the source, so nothing will put it back — this is the
+    # tombstone a person is actually trying to clear out.
+    context "when a syncable source has let it go" do
+      let(:document) { create(:document, source: create(:folder_source), status: "removed") }
+
+      it { is_expected.to be(true) }
+    end
+  end
+
   describe ".unsorted" do
     subject(:unsorted) { described_class.unsorted }
 

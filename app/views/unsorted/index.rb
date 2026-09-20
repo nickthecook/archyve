@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # "Unsorted": live documents that aren't in any collection. A derived view, not a
-# real collection — so it lives off the Collections index (breadcrumb back), reads
-# quietly, and its one action is to sort documents *into* a collection. Adding a
-# document removes it from this list.
+# real collection — so it lives off the Collections index (breadcrumb back) and
+# reads quietly. Two things to do with a selection: sort it into a collection, or
+# delete it from the archive. Either way it leaves this list.
 class Views::Unsorted::Index < Views::Base
   def initialize(documents:, collections:)
     @documents = documents
@@ -38,8 +38,9 @@ class Views::Unsorted::Index < Views::Base
     end
   end
 
-  # Pick documents (checkboxes, narrowed by the filter) and a target collection,
-  # then assign. One form so the selection and the collection submit together.
+  # Pick documents (checkboxes, narrowed by the filter), then either assign them
+  # to the chosen collection or delete them. One form, two submit buttons — see
+  # #purge_button.
   #
   # The form is also the polled region, rather than just the list inside it: the
   # filter narrows by hiding rows, so swapping the rows without the query box
@@ -66,7 +67,21 @@ class Views::Unsorted::Index < Views::Base
         class: "flex-1 rounded border border-line bg-ink/40 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-line-2 transition-colors"
       )
       @collections.any? ? assign_controls : create_hint
+      purge_button
     end
+  end
+
+  # The second thing to do with the selection, on the same form: `formaction`
+  # sends it elsewhere, so the rows need no nested form of their own. Offered
+  # with or without a collection to file into — a queue with nowhere to sort
+  # things into is exactly when clearing it out is the only move left.
+  def purge_button
+    button(
+      type: "submit",
+      formaction: purge_unsorted_path,
+      data: { turbo_confirm: "Permanently delete the selected documents? They leave the archive — text, embeddings and file — and this can't be undone." },
+      class: "shrink-0 rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors"
+    ) { "Delete" }
   end
 
   def assign_controls
@@ -98,10 +113,20 @@ class Views::Unsorted::Index < Views::Base
       class: "flex items-center gap-3 px-5 py-4",
       data: { list_filter_target: "item", name: document.title.to_s.downcase }
     ) do
-      input(type: "checkbox", name: "document_ids[]", value: document.id, class: "size-4 shrink-0 accent-accent") if @collections.any?
+      input(type: "checkbox", name: "document_ids[]", value: document.id, class: "size-4 shrink-0 accent-accent")
       a(href: document_path(document), class: "min-w-0 flex-1 truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
       render Views::Documents::StatusBadge.new(status: document.status)
+      fed_marker(document) unless document.purgeable?
     end
+  end
+
+  # Selectable like any other row — it can still be filed — but say up front
+  # that deleting it won't take, rather than let the notice explain afterwards.
+  def fed_marker(document)
+    span(
+      class: "shrink-0 text-xs text-faint",
+      title: "Fed by #{document.source.name} — a sync would put it back. Remove it there instead."
+    ) { "Source" }
   end
 
   def no_matches

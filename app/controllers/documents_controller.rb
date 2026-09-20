@@ -58,6 +58,22 @@ class DocumentsController < ApplicationController
     redirect_to document, notice: "Reprocessing “#{document.title}”."
   end
 
+  # Purge a document: out of every collection, out of the archive, chunks and
+  # embeddings and file with it. Scoped like `reprocess` and for the same reason —
+  # reaching a document is a reading right, destroying one is work on the source
+  # that produced it.
+  #
+  # Back to wherever the button was: there are two of them, and the page they
+  # were on is the one that has just changed.
+  def destroy
+    document = Document.where(source: Source.manageable_by(Current.user)).find(params[:id])
+    return redirect_back(fallback_location: documents_path, alert: purge_refusal(document)) unless document.purgeable?
+
+    title = document.title
+    document.destroy
+    redirect_back fallback_location: documents_path, notice: "Deleted “#{title}”."
+  end
+
   # Hand over the bytes. Streamed through the controller rather than redirecting
   # to an Active Storage blob URL on purpose: a signed blob URL is reachable by
   # anyone holding it, which would put the archive's contents one forwarded link
@@ -76,6 +92,13 @@ class DocumentsController < ApplicationController
   end
 
   private
+
+  # Says where the deletion has to happen instead, because "can't delete this"
+  # on its own reads as a permissions problem when it isn't one.
+  def purge_refusal(document)
+    "“#{document.title}” is fed by #{document.source.name}. Remove it there and sync, " \
+      "or detach the source from the collections it feeds."
+  end
 
   # Uploading bytes the archive already holds doesn't re-ingest them, and may
   # not start any work at all — so don't promise any. `pending?` is the honest

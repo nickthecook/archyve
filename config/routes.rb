@@ -40,7 +40,9 @@ Rails.application.routes.draw do
   # Downloading is open to any signed-in user; browsing the archive is not.
   # That asymmetry is deliberate — a reader reaches a document through a chat
   # citation or a search result, not by enumerating the shelf.
-  resources :documents, only: [:index, :show, :create] do
+  # `destroy` is a purge — the document leaves every collection and the archive —
+  # so it lives here rather than under a collection, which owns memberships only.
+  resources :documents, only: [:index, :show, :create, :destroy] do
     get :download, on: :member
     # POST because it starts work, not a page — same reasoning as a source's
     # "Sync now".
@@ -50,6 +52,9 @@ Rails.application.routes.draw do
   # own top-level route so it never collides with a collection slug.
   get "unsorted", to: "unsorted#index"
   post "unsorted/assign", to: "unsorted#assign", as: :assign_unsorted
+  # The other thing to do with a selection. A POST like `assign` because both are
+  # submissions of the same form.
+  post "unsorted/purge", to: "unsorted#purge", as: :purge_unsorted
   get "search", to: "search#index"
   # The section is "Chat"; the records are conversations. `path:` keeps the URL
   # reading the way the nav does without naming the model something it isn't.

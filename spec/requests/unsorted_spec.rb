@@ -25,6 +25,32 @@ RSpec.describe "Unsorted", type: :request do
       end
     end
 
+    # Clearing the queue out is most useful precisely when there is nowhere to
+    # file things into, so neither the checkboxes nor the Delete button may wait
+    # on a collection existing.
+    context "when there is no collection to file into" do
+      let!(:document) { create(:document, source: create(:manual_upload_source, user: current_user)) }
+
+      it "still offers Delete" do
+        request
+        expect(response.body).to include(purge_unsorted_path)
+      end
+
+      it "still offers the checkboxes it needs" do
+        request
+        expect(response.body).to include('name="document_ids[]"')
+      end
+    end
+
+    context "when an unfiled document is fed by a syncable source" do
+      let!(:document) { create(:document, source: create(:folder_source, user: current_user)) }
+
+      it "says a sync would put it back" do
+        request
+        expect(response.body).to include("a sync would put it back")
+      end
+    end
+
     context "when a document is in a collection" do
       let(:document) { create(:document, title: "Filed Note") }
 
@@ -113,6 +139,85 @@ RSpec.describe "Unsorted", type: :request do
       it "says so" do
         request
         expect(flash[:notice]).to eq("No documents selected.")
+      end
+    end
+  end
+
+  describe "POST /unsorted/purge" do
+    subject(:request) { post purge_unsorted_path, params: { document_ids: } }
+
+    let!(:document) { create(:document, title: "Loose Note", source: create(:manual_upload_source, user: current_user)) }
+
+    context "when documents are selected" do
+      let(:document_ids) { [document.id] }
+
+      it "takes them out of the archive" do
+        expect { request }.to change(Document, :count).by(-1)
+      end
+
+      it "confirms what went" do
+        request
+        expect(flash[:notice]).to eq("Deleted 1 document.")
+      end
+
+      it "returns to the queue" do
+        request
+        expect(response).to redirect_to(unsorted_path)
+      end
+    end
+
+    # Deleting from a queue you can only read would be a purge by the back door.
+    context "when the document came from a source they don't manage" do
+      let(:document) { create(:document, title: "Someone Else's Note") }
+      let(:document_ids) { [document.id] }
+
+      it "deletes nothing" do
+        expect { request }.not_to change(Document, :count)
+      end
+    end
+
+    # Picking "everything" on a mixed queue is the ordinary case, so the fed ones
+    # are reported rather than allowed to refuse the whole submission.
+    context "when the selection mixes uploads with source-fed documents" do
+      let!(:fed) { create(:document, source: create(:folder_source, user: current_user)) }
+      let(:document_ids) { [document.id, fed.id] }
+
+      it "deletes what it can" do
+        expect { request }.to change(Document, :count).by(-1)
+      end
+
+      it "leaves the one a sync would restore" do
+        request
+        expect(fed.reload).to be_present
+      end
+
+      it "says why it kept it" do
+        request
+        expect(flash[:notice]).to include("1 is fed by a source")
+      end
+    end
+
+    context "when nothing is selected" do
+      let(:document_ids) { [] }
+
+      it "says so" do
+        request
+        expect(flash[:notice]).to eq("No documents selected.")
+      end
+    end
+
+    context "as a reader" do
+      let(:document_ids) { [document.id] }
+
+      before { sign_in(create(:user)) }
+
+      it "is refused by the role" do
+        request
+        expect(response).to redirect_to(root_path)
+      end
+
+      it "deletes nothing" do
+        expect { request }.not_to change(Document, :count)
       end
     end
   end

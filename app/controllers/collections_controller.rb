@@ -6,8 +6,10 @@ class CollectionsController < ApplicationController
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].
   Row = Data.define(:collection, :documents_count, :status_counts, :source_fed, :last_activity_at)
   # A document as it sits in one collection: the document plus how it got here
-  # (its membership origin), which decides whether the user may remove it.
-  DocumentRow = Data.define(:document, :origin)
+  # (its membership origin), which decides whether the user may remove it, and
+  # whether they may delete it outright — a different question with a different
+  # answer, resolved once per page rather than per row.
+  DocumentRow = Data.define(:document, :origin, :purgeable)
 
   def index
     collections = Collection.readable_by(Current.user).order(:name).to_a
@@ -22,10 +24,17 @@ class CollectionsController < ApplicationController
 
   def show
     collection = Collection.readable_by(Current.user).find_by!(slug: params[:slug])
-    memberships = collection.collection_memberships.active.includes(:document).to_a
+    memberships = collection.collection_memberships.active.includes(document: :source).to_a
+    purgeable = purgeable_document_ids(memberships.map(&:document))
     document_rows = memberships
       .sort_by { |membership| membership.document.title.to_s.downcase }
-      .map { |membership| DocumentRow.new(document: membership.document, origin: membership.origin) }
+      .map do |membership|
+        DocumentRow.new(
+          document: membership.document,
+          origin: membership.origin,
+          purgeable: purgeable.include?(membership.document_id)
+        )
+      end
     status_counts = memberships.each_with_object(Hash.new(0)) { |m, counts| counts[m.document.status] += 1 }
 
     render Views::Collections::Show.new(
@@ -61,6 +70,16 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  # Which of these the user may delete from the archive. Deliberately not gated
+  # on this collection: a purge is work on the source that produced the document,
+  # which is the rule DocumentsController#destroy enforces — a grant here would
+  # let someone delete a document out of every *other* collection too.
+  def purgeable_document_ids(documents)
+    candidates = documents.select(&:purgeable?)
+    manageable = Source.manageable_by(Current.user).where(id: candidates.map(&:source_id)).ids.to_set
+    candidates.select { |document| manageable.include?(document.source_id) }.map(&:id).to_set
+  end
 
   # Documents the user could add: everything in the archive not already actively
   # in this collection, and not tombstoned (a removed doc is gone from its source).

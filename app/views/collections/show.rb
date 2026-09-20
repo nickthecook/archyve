@@ -330,6 +330,7 @@ class Views::Collections::Show < Views::Base
         elsif may_on?(@collection, :operator)
           remove_button(document)
         end
+        delete_button(document) if row.purgeable
       end
     end
   end
@@ -339,6 +340,26 @@ class Views::Collections::Show < Views::Base
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Remove" }
+    end
+  end
+
+  # Remove's heavier neighbour, and a different act: out of the archive rather
+  # than off this shelf. Outlined red rather than another quiet word, because
+  # standing next to "Remove" the difference has to be visible before you read
+  # the confirmation. Who gets it: CollectionsController#purgeable_document_ids.
+  def delete_button(document)
+    form(
+      action: document_path(document),
+      method: "post",
+      class: "inline",
+      data: { turbo_confirm: "Permanently delete “#{document.title}”? It leaves every collection and the archive — text, embeddings and file — and this can't be undone." }
+    ) do
+      input(type: "hidden", name: "_method", value: "delete")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(
+        type: "submit",
+        class: "rounded border border-red-400/40 px-2 py-0.5 text-xs text-red-300 hover:bg-red-400/10 transition-colors"
+      ) { "Delete" }
     end
   end
 

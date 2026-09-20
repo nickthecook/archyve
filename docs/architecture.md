@@ -338,8 +338,18 @@ collection_memberships(collection_id, document_id, source, removed_at)
   collection, retract `source` memberships but keep `manual` ones.
 
 Deletion & lifecycle:
-- **No deleting individual documents** — they are source-owned. Remove from the
-  source and re-sync (tombstones them). Keeps the corpus a faithful mirror.
+- **A document may be deleted only where the deletion would stick**
+  (`Document#purgeable?`): its source doesn't sync, or it is already tombstoned.
+  A syncable source re-creates its documents on the next scan, so for those the
+  deletion still belongs at the source — the corpus stays a faithful mirror of
+  what it mirrors, and what a person deletes is their own uploads and the
+  leftovers of sources that have moved on. Authority follows the *source*, not
+  the collection: deleting is work on what produced the document, so it takes a
+  grant there (`Source.manageable_by`).
+- **Deleting a document is a purge:** every membership, chunk and embedding, and
+  the attached file. Offered from `/unsorted` (over the selection) and from a
+  collection's page (per row). `hits` are nullified rather than cascaded, so an
+  old chat keeps its citations' snippets and recorded titles — see `Hit`.
 - **Remove-from-collection = membership tombstone only** (see above) — never
   deletes the document or embeddings (it may live in other collections).
 - **Deleting a source** cascades to its documents + chunks + embeddings.

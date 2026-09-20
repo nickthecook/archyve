@@ -498,4 +498,88 @@ RSpec.describe "Documents", type: :request do
       end
     end
   end
+
+  describe "DELETE /documents/:id" do
+    subject(:request) { delete document_path(document), headers: { "HTTP_REFERER" => collection_path(collection) } }
+
+    let(:collection) { create(:collection, name: "Handbook") }
+    let(:document) { create(:document, :with_file, source: create(:manual_upload_source, user: current_user)) }
+
+    before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+    context "when the document's source is theirs to manage" do
+      it "takes it out of the archive" do
+        expect { request }.to change(Document, :count).by(-1)
+      end
+
+      it "takes its chunks and their embeddings with it" do
+        create(:embedding, chunk: create(:chunk, document:))
+        expect { request }.to change(Chunk, :count).by(-1).and change(Embedding, :count).by(-1)
+      end
+
+      # A tombstone would be a document nobody can reach and every sync ignores.
+      it "leaves no membership behind" do
+        expect { request }.to change(CollectionMembership, :count).by(-1)
+      end
+
+      it "returns to the page the button was on" do
+        request
+        expect(response).to redirect_to(collection_path(collection))
+      end
+
+      it "says what went" do
+        request
+        expect(flash[:notice]).to include("Sample Document")
+      end
+    end
+
+    # The citation is a record of what the model was shown, and that is true
+    # whatever later happened to the document.
+    it "leaves an old chat's citations readable" do
+      hit = create(:hit, chunk: create(:chunk, document:), document:)
+      request
+      expect(hit.reload.snippet).to be_present
+      expect(hit.document_id).to be_nil
+      expect(hit.title).to eq("Sample Document")
+    end
+
+    context "when a syncable source still feeds it" do
+      let(:document) { create(:document, :with_file, source: create(:folder_source, user: current_user)) }
+
+      it "refuses, because the next sync would put it back" do
+        expect { request }.not_to change(Document, :count)
+      end
+
+      it "says where to delete it instead" do
+        request
+        expect(flash[:alert]).to include("Remove it there")
+      end
+    end
+
+    # Reaching a document is a reading right; destroying one is work on the
+    # source that produced it — the same asymmetry as reprocess.
+    context "when they can only read the document through a collection" do
+      let(:document) { create(:document, :with_file) }
+
+      before { create(:collection_user, :admin, collection:, user: current_user) }
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "deletes nothing" do
+        expect { request }.not_to change(Document, :count)
+      end
+    end
+
+    context "as a reader" do
+      before { sign_in(create(:user)) }
+
+      it "is refused by the role, before anything is looked up" do
+        request
+        expect(response).to redirect_to(root_path)
+      end
+    end
+  end
 end
