@@ -96,6 +96,78 @@ RSpec.describe SourceSync do
     end
   end
 
+  describe "#finished?" do
+    context "with a completed run" do
+      subject(:sync) { create(:source_sync, source: source, status: "completed") }
+
+      it { expect(sync).to be_finished }
+    end
+
+    context "with a failed run" do
+      subject(:sync) { create(:source_sync, source: source, status: "failed") }
+
+      it { expect(sync).to be_finished }
+    end
+
+    context "with a run paused between passes" do
+      subject(:sync) { create(:source_sync, source: source, status: "paused", finished_at: nil) }
+
+      it "is not finished — the scan has not reached the end of its source" do
+        expect(sync).not_to be_finished
+      end
+    end
+  end
+
+  describe "#stalled?" do
+    context "with a running run that last reported long ago" do
+      subject(:sync) do
+        create(:source_sync, source: source, status: "running", last_progress_at: 2.hours.ago)
+      end
+
+      it { expect(sync).to be_stalled }
+    end
+
+    # The distinction the whole column exists for: a resumable scan is
+    # legitimately hours old and still advancing every pass.
+    context "with a long-running run that reported progress recently" do
+      subject(:sync) do
+        create(:source_sync, source: source, status: "running", started_at: 6.hours.ago,
+          last_progress_at: 1.minute.ago)
+      end
+
+      it { expect(sync).not_to be_stalled }
+    end
+
+    context "with a paused run that nothing has resumed" do
+      subject(:sync) do
+        create(:source_sync, source: source, status: "paused", finished_at: nil,
+          last_progress_at: 2.hours.ago)
+      end
+
+      it { expect(sync).to be_stalled }
+    end
+
+    context "with a run that never recorded progress at all" do
+      subject(:sync) do
+        create(:source_sync, source: source, status: "running", started_at: 2.hours.ago,
+          last_progress_at: nil)
+      end
+
+      it "falls back to when it started" do
+        expect(sync).to be_stalled
+      end
+    end
+
+    context "with an old run that completed" do
+      subject(:sync) do
+        create(:source_sync, source: source, status: "completed", started_at: 2.hours.ago,
+          finished_at: 2.hours.ago)
+      end
+
+      it { expect(sync).not_to be_stalled }
+    end
+  end
+
   describe ".stalled" do
     context "with a run that started long ago and never reported back" do
       let!(:sync) { create(:source_sync, source: source, status: "running", started_at: 2.hours.ago) }
@@ -105,6 +177,24 @@ RSpec.describe SourceSync do
 
     context "with a run that started recently" do
       let!(:sync) { create(:source_sync, source: source, status: "running", started_at: 1.minute.ago) }
+
+      it { expect(described_class.stalled).not_to include(sync) }
+    end
+
+    context "with a paused run that nothing has resumed" do
+      let!(:sync) do
+        create(:source_sync, source: source, status: "paused", finished_at: nil,
+          last_progress_at: 2.hours.ago)
+      end
+
+      it { expect(described_class.stalled).to include(sync) }
+    end
+
+    context "with a long-running run still reporting progress" do
+      let!(:sync) do
+        create(:source_sync, source: source, status: "running", started_at: 6.hours.ago,
+          last_progress_at: 1.minute.ago)
+      end
 
       it { expect(described_class.stalled).not_to include(sync) }
     end

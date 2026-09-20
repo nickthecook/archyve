@@ -3,12 +3,14 @@
 # point back at it, how far the resulting processing has got.
 #
 # The two halves finish at different times and are tracked differently on
-# purpose. The **scan** is synchronous inside Sources::SyncJob, so its counts
-# are complete the moment `status` leaves `running` — nothing else will change
-# them. **Processing** continues afterwards in per-document jobs, and rather
-# than have those jobs decrement a shared counter (which a crashed worker leaves
-# stuck forever), progress is read straight off the documents they update. The
-# durable record is the answer; there is no separate tally to keep in step.
+# purpose. The **scan** may span several `Sources::SyncJob`s — a source whose
+# enumeration is expensive stops on a wall-clock budget and resumes on the next
+# tick — so its counts accumulate across passes and are final only once `status`
+# reaches a terminal one. **Processing** continues afterwards in per-document
+# jobs, and rather than have those jobs decrement a shared counter (which a
+# crashed worker leaves stuck forever), progress is read straight off the
+# documents they update. The durable record is the answer; there is no separate
+# tally to keep in step.
 class SourceSync < ApplicationRecord
   belongs_to :source
 
@@ -16,28 +18,56 @@ class SourceSync < ApplicationRecord
   # is pruned: the document outlives the record of how it arrived.
   has_many :documents, dependent: :nullify
 
+  # `running` and `paused` are both mid-scan, and the difference is whether a
+  # job holds the run right now. A scan that stops on its budget can be neither
+  # of the terminal states: `completed` would tombstone against a partial view
+  # of the source, and `failed` would stamp `source.last_synced_at`, making the
+  # source wait out its whole interval before resuming what it was in the middle
+  # of.
   enum :status, {
     running: "running",
+    paused: "paused",
     completed: "completed",
     failed: "failed"
   }, default: "running"
 
+  # The scan is over, one way or another. Its counts will not move again.
+  TERMINAL_STATUSES = %w[completed failed].freeze
+
   scope :recent, -> { order(started_at: :desc) }
+  scope :unfinished, -> { where(status: [:running, :paused]) }
+
+  def finished? = TERMINAL_STATUSES.include?(status)
 
   # Push the source page's live region when a scan starts and when it ends.
   # Synchronously, not *_later: async broadcasts race and can arrive out of
   # order, which would leave "scanning…" showing after the run had finished.
   #
-  # Only the run's own transitions are broadcast. The documents it produces move
-  # far more often, and re-rendering this panel for each of them would be
-  # thousands of broadcasts to nudge an aggregate — that progress is polled from
-  # the region instead.
-  after_commit :broadcast_to_source, on: [:create, :update]
+  # Only status transitions, not every save. A long scan touches
+  # `last_progress_at` as it goes, and re-rendering the whole panel on each of
+  # those would be a broadcast every few seconds for hours to move a timestamp
+  # nothing displays. The documents it produces move far more often still, which
+  # is why their progress is polled from the region instead.
+  after_commit :broadcast_to_source, on: [:create, :update], if: :status_transition?
 
-  # A scan that never reported back — its worker died mid-run. Nothing rescues
-  # these automatically yet; the source page shows them as stalled so a
-  # re-sync is an obvious next step.
-  scope :stalled, ->(after: 1.hour) { running.where(started_at: ...after.ago) }
+  # How long a mid-scan run may go without reporting progress before it is
+  # presumed dead. Generous next to the scan budget in Sources::Sync, which is
+  # what a healthy run's heartbeat is paced by.
+  STALL_AFTER = 1.hour
+
+  # A scan that stopped reporting — its worker died mid-run, or mid-pause.
+  # Judged on progress rather than `started_at`, because a resumable scan is
+  # legitimately hours old while still advancing every pass.
+  scope :stalled, ->(after: STALL_AFTER) {
+    unfinished.where(last_progress_at: ...after.ago)
+      .or(unfinished.where(last_progress_at: nil).where(started_at: ...after.ago))
+  }
+
+  def stalled?(after: STALL_AFTER)
+    return false if finished?
+
+    (last_progress_at || started_at) < after.ago
+  end
 
   def duration
     return unless finished_at
@@ -72,6 +102,10 @@ class SourceSync < ApplicationRecord
   end
 
   private
+
+  def status_transition?
+    previously_new_record? || saved_change_to_status?
+  end
 
   def broadcast_to_source
     broadcast_replace_to(

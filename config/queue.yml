@@ -3,8 +3,14 @@ default: &default
     - polling_interval: 1
       batch_size: 500
   workers:
+    # One pool for every queue, so these threads are all the concurrency there
+    # is. Ingestion work is overwhelmingly spent waiting — on Docling, on
+    # Ollama, and on whatever a source is reading from — so threads are cheap
+    # here and starvation is the real risk: a single long scan holding one, plus
+    # a Docling conversion holding another, used to leave one thread for
+    # everything else.
     - queues: "*"
-      threads: 3
+      threads: 8
       processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
       polling_interval: 1
 

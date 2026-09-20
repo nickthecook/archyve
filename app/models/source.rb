@@ -202,18 +202,31 @@ class Source < ApplicationRecord
     TYPES.select { |type| type.constantize.supports_sync? }
   end
 
-  # Sources the scheduler should sync now: syncable, past their interval, and
-  # not already mid-sync. That last clause is what keeps a slow sync from piling
-  # up blocked duplicates behind it every time the scheduler ticks — the job's
+  scope :past_its_interval, -> {
+    where(
+      "last_synced_at IS NULL OR last_synced_at < now() - make_interval(mins => COALESCE((config->>'sync_interval_minutes')::int, ?))",
+      DEFAULT_SYNC_INTERVAL_MINUTES
+    )
+  }
+
+  # Sources holding a scan that stopped on its budget. They are due on the very
+  # next tick regardless of interval: the interval governs how often a source is
+  # re-examined, not how slowly a scan already underway is allowed to finish.
+  # Nothing stamps `last_synced_at` until a scan reaches a terminal state, so
+  # these would otherwise be invisible to the clause above until the pass that
+  # completed them — which is the pass that never comes.
+  scope :mid_paused_scan, -> { where(id: SourceSync.paused.select(:source_id)) }
+
+  # Sources the scheduler should sync now: syncable, not already mid-sync, and
+  # either past their interval or holding a paused scan to resume. The
+  # not-already-running clause is what keeps a slow sync from piling up blocked
+  # duplicates behind it every time the scheduler ticks — the job's
   # `limits_concurrency` would serialize them correctly, but they would still
   # queue up, and a sync that ran an hour late would then run a dozen times.
   scope :due_for_sync, -> {
     where(type: syncable_types)
       .where.not(id: SourceSync.running.select(:source_id))
-      .where(
-        "last_synced_at IS NULL OR last_synced_at < now() - make_interval(mins => COALESCE((config->>'sync_interval_minutes')::int, ?))",
-        DEFAULT_SYNC_INTERVAL_MINUTES
-      )
+      .merge(mid_paused_scan.or(past_its_interval))
   }
 
   # Subclasses that can be scanned override this and implement the two methods
@@ -229,6 +242,20 @@ class Source < ApplicationRecord
   def self.feeds_collections? = true
 
   def self.supports_sync? = false
+
+  # Whether this source can stop enumerating part-way and pick up where it left
+  # off on the next pass, rather than starting over.
+  #
+  # Only a source that says yes is given a wall-clock budget by Sources::Sync.
+  # Handing one to a source that restarts its enumeration every pass would be
+  # worse than useless: a source too slow to enumerate inside the budget would
+  # be cut off at the same point forever, never reaching the end and never
+  # tombstoning anything.
+  #
+  # A source that returns true is responsible for its own position. `#each_item`
+  # is broken out of when the budget expires, so it persists what it needs to
+  # `state` as it goes — see the `config`/`state` split in docs/todo.md.
+  def self.resumable_scan? = false
 
   # The kind of Endpoint this source pulls through, or nil for one that reads
   # something local. Drives both the validation above and the options the
@@ -276,6 +303,7 @@ class Source < ApplicationRecord
   end
 
   def supports_sync? = self.class.supports_sync?
+  def resumable_scan? = self.class.resumable_scan?
   def supports_ocr? = self.class.supports_ocr?
   def endpoint_type = self.class.endpoint_type
   def feeds_collections? = self.class.feeds_collections?

@@ -172,6 +172,33 @@ RSpec.describe Source do
       it { expect(due).to include(source) }
     end
 
+    # A paused scan stamps no last_synced_at, so the interval clause can't see
+    # it — and the pass that would finish it is the pass that never comes.
+    context "with a source holding a scan paused on its budget" do
+      let!(:source) do
+        create(:folder_source, path: root, sync_interval_minutes: 30, last_synced_at: 1.minute.ago)
+      end
+
+      before { source.syncs.create!(started_at: 1.minute.ago, status: "paused") }
+
+      it "resumes it on the next tick, well inside its interval" do
+        expect(due).to include(source)
+      end
+    end
+
+    context "with a source holding both a paused scan and a running one" do
+      let!(:source) { create(:folder_source, path: root, last_synced_at: nil) }
+
+      before do
+        source.syncs.create!(started_at: 2.minutes.ago, status: "paused")
+        source.syncs.create!(started_at: Time.current, status: "running")
+      end
+
+      it "still leaves it out — something is already working on it" do
+        expect(due).not_to include(source)
+      end
+    end
+
     context "with a manual upload source" do
       let!(:source) { create(:manual_upload_source, last_synced_at: nil) }
 

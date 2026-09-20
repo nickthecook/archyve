@@ -66,9 +66,9 @@ Ordered so that everything not specific to crawling ships first. The sync engine
 needs three changes that Folder and BookStack want anyway, and doing them
 underneath a new crawler would mean debugging two unfamiliar things at once.
 
-### Phase 1 — Resumable, budgeted scans
+### Phase 1 — Resumable, budgeted scans — **built 2026-09-20**
 
-`Sources::Sync#scan` runs a source's whole enumeration in one `SyncJob`. That is
+`Sources::Sync#scan` ran a source's whole enumeration in one `SyncJob`. That was
 fine for a folder and a wiki and wrong for a crawl, which is hours of network I/O
 and cannot be enumerated without fetching. Three specific failures, none of them
 crawler-specific:
@@ -148,6 +148,35 @@ crawler-specific:
   (once per pass), or narrow the callback to status transitions.
 
 - **Subsumes** the "Large trees scan in one job" bullet at the foot of this file.
+
+**A retired pass stands down.** The sweeper judges on `last_progress_at`, and
+the one thing that timestamp cannot see is a pass wedged *inside* `#each_item` —
+a hung fetch between yields reports no progress while its thread is alive and
+well. Retired after an hour, it would wake to find the run failed, the source
+due again, and `SyncJob`'s semaphore long expired: a second pass reconciling the
+same source, racing its tombstones.
+
+So `#record_progress` answers two questions in one statement. The heartbeat
+write is conditional on the run still being `running`, so a retired run matches
+nothing, reports zero rows changed, and the scan learns it is no longer the live
+pass. It then breaks out and writes nothing further — no counts, no tombstones,
+no `last_synced_at` — leaving the sweeper's verdict to stand. The `break` still
+runs a resumable source's `ensure`, so the crawl position survives even though
+the run's bookkeeping does not.
+
+This is what the original sweeper item meant by runs "whose jobs are no longer
+in flight", reached from the other end: rather than the sweeper proving a job is
+dead, a live job proves itself alive and stands down when it can't.
+
+**One thing the build settled that the design hadn't.** A pass stops with
+`break`, which leaves `#each_item` immediately — so a resumable source has to
+mark an item taken *before* yielding it, and persist its position from an
+`ensure`. Get either wrong and the item that hit the budget is handed over again
+on the next pass, double-counting itself in a run whose totals accumulate. This
+is the whole reason `.resumable_scan?` defaults to false rather than the budget
+simply applying to everyone: a source that restarts its enumeration each pass
+would be cut off at the same point forever, never draining and never tombstoning.
+`spec/services/sources/sync_spec.rb`'s `make_resumable` is the reference shape.
 
 ### Phase 2 — Contract groundwork
 

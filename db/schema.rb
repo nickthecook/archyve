@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_19_120200) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -101,6 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_120200) do
     t.string "content_type"
     t.datetime "created_at", null: false
     t.string "external_id", null: false
+    t.bigint "last_seen_sync_id"
     t.boolean "ocr"
     t.text "outcome_detail"
     t.string "outcome_kind"
@@ -114,8 +115,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_120200) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "url"
+    t.index ["last_seen_sync_id"], name: "index_documents_on_last_seen_sync_id"
     t.index ["outcome_kind"], name: "index_documents_on_outcome_kind", where: "(outcome_kind IS NOT NULL)"
     t.index ["source_id", "external_id"], name: "index_documents_on_source_id_and_external_id", unique: true
+    t.index ["source_id", "last_seen_sync_id"], name: "index_documents_on_source_id_and_last_seen_sync_id"
     t.index ["source_id"], name: "index_documents_on_source_id"
     t.index ["source_sync_id"], name: "index_documents_on_source_sync_id"
     t.index ["status"], name: "index_documents_on_status"
@@ -260,6 +263,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_120200) do
     t.integer "failed_count", default: 0, null: false
     t.datetime "finished_at"
     t.integer "found_count", default: 0, null: false
+    t.datetime "last_progress_at"
     t.integer "removed_count", default: 0, null: false
     t.integer "skipped_count", default: 0, null: false
     t.bigint "source_id", null: false
@@ -322,6 +326,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_19_120200) do
   add_foreign_key "collection_users", "users"
   add_foreign_key "conversations", "inference_models", on_delete: :nullify
   add_foreign_key "conversations", "users"
+  add_foreign_key "documents", "source_syncs", column: "last_seen_sync_id", on_delete: :nullify
   add_foreign_key "documents", "source_syncs", on_delete: :nullify
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"

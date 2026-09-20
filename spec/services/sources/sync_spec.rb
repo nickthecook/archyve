@@ -20,6 +20,39 @@ RSpec.describe Sources::Sync do
     source.each_item.find { |item| item.external_id == relative }.version
   end
 
+  # Turn the source into one that honours the `resumable_scan?` contract: it
+  # remembers what it has already handed over and picks up from there on the
+  # next pass, rather than enumerating from the top.
+  #
+  # Two details are the contract rather than the fake. An item is marked taken
+  # *before* it is yielded, and the cursor is persisted from an `ensure` —
+  # because Sources::Sync stops a scan with `break`, which leaves `each_item`
+  # immediately and would otherwise lose the very item that hit the budget. A
+  # source that got either wrong would re-yield across passes and double-count
+  # itself, which is what `resumable_scan?` defaulting to false protects
+  # everything else from.
+  def make_resumable(external_ids)
+    items = external_ids.map do |id|
+      Source::Item.new(external_id: id, version: "v1", title: id, content_type: "text/markdown")
+    end
+
+    allow(source).to receive(:resumable_scan?).and_return(true)
+    allow(source).to receive(:each_item) do |&block|
+      taken = source.state.fetch("taken", [])
+
+      begin
+        items.each do |item|
+          next if taken.include?(item.external_id)
+
+          taken << item.external_id
+          block.call(item)
+        end
+      ensure
+        source.update!(state: source.state.merge("taken" => taken))
+      end
+    end
+  end
+
   after { FileUtils.remove_entry(root) if File.exist?(root) }
 
   describe "#call" do
@@ -337,6 +370,205 @@ RSpec.describe Sources::Sync do
 
       it "stamps the source's last_synced_at" do
         expect { result }.to change { source.reload.last_synced_at }.from(nil)
+      end
+    end
+
+    describe "stamping what the scan saw" do
+      context "with a file the source has never seen" do
+        before { write("new.md") }
+
+        it "stamps the run on the document it created" do
+          run = result
+          expect(source.documents.sole.last_seen_sync).to eq(run)
+        end
+      end
+
+      context "with a file already ingested at its current version" do
+        let!(:document) do
+          write("stable.md")
+          create(:document, source: source, external_id: "stable.md",
+            source_version: current_version("stable.md"), status: "processed")
+        end
+
+        # The branch almost every document takes on almost every scan. An
+        # unstamped document is a tombstoned one.
+        it "stamps the run even though nothing about the document changed" do
+          result
+          expect(document.reload.last_seen_sync).to eq(result)
+        end
+      end
+
+      context "with a document the source reports but declines to ingest" do
+        let(:oversized) do
+          Source::Item.new(external_id: "grew.md", version: "v2", title: "grew.md",
+            content_type: "text/markdown", skip_reason: "too big")
+        end
+        let!(:document) do
+          create(:document, source: source, external_id: "grew.md", source_version: "v1", status: "processed")
+        end
+
+        before { allow(source).to receive(:each_item) { |&block| block.call(oversized) } }
+
+        it "stamps it, so tightening a limit cannot tombstone it" do
+          result
+          expect(document.reload.last_seen_sync).to eq(result)
+        end
+      end
+
+      context "with a document no scan has ever stamped" do
+        let!(:document) do
+          create(:document, source: source, external_id: "ancient.md", source_version: "v1",
+            status: "processed", last_seen_sync: nil)
+        end
+
+        # `where.not(last_seen_sync_id: run.id)` would silently spare these:
+        # NULL <> 5 is NULL, not true.
+        it "tombstones it rather than passing over the null" do
+          result
+          expect(document.reload.status).to eq("removed")
+        end
+      end
+    end
+
+    describe "a scan that runs out of budget" do
+      before do
+        write("one.md")
+        write("two.md")
+        stub_const("#{described_class}::BUDGET", 0.seconds)
+      end
+
+      context "with a source that cannot resume where it left off" do
+        it "is never interrupted, however long it takes" do
+          expect(result.status).to eq("completed")
+        end
+
+        it "reports every item" do
+          expect(result.found_count).to eq(2)
+        end
+      end
+
+      context "with a source that can resume" do
+        before { make_resumable(%w[one.md two.md]) }
+
+        it "pauses the run rather than completing it" do
+          expect(result.status).to eq("paused")
+        end
+
+        it "stops after the item that exhausted the budget" do
+          expect(result.found_count).to eq(1)
+        end
+
+        it "leaves finished_at unset" do
+          expect(result.finished_at).to be_nil
+        end
+
+        it "records the counts it got to" do
+          expect(result.created_count).to eq(1)
+        end
+
+        it "does not stamp last_synced_at, which would idle the source mid-scan" do
+          result
+          expect(source.reload.last_synced_at).to be_nil
+        end
+
+        it "tombstones nothing — it has only seen part of the source" do
+          create(:document, source: source, external_id: "vanished.md", status: "processed")
+          expect(result.removed_count).to eq(0)
+        end
+
+        it "leaves a document it has not reached yet alone" do
+          document = create(:document, source: source, external_id: "vanished.md", status: "processed")
+          result
+          expect(document.reload.status).to eq("processed")
+        end
+      end
+    end
+
+    # The window the sweeper cannot see: a pass wedged inside #each_item reports
+    # no progress, gets retired as stalled, and wakes to find its source already
+    # due again and its semaphore expired — so a second pass may be underway.
+    describe "a scan that is retired while it is still working" do
+      before do
+        write("one.md")
+        write("two.md")
+
+        # Heartbeat on every item, so the retirement is noticed on the next one.
+        stub_const("#{described_class}::PROGRESS_INTERVAL", 0.seconds)
+
+        # Stand in for the sweeper: retire the run the moment it is created.
+        allow(source.syncs).to receive(:create!).and_wrap_original do |original, *args|
+          original.call(*args).tap { |run| run.update!(status: "failed", finished_at: Time.current) }
+        end
+      end
+
+      it "stands down rather than finishing the run" do
+        expect(result.status).to eq("failed")
+      end
+
+      it "leaves the sweeper's verdict alone rather than writing its own counts" do
+        expect(result.found_count).to eq(0)
+      end
+
+      it "does not stamp last_synced_at" do
+        result
+        expect(source.reload.last_synced_at).to be_nil
+      end
+
+      it "tombstones nothing — a second pass may be reconciling the same source" do
+        document = create(:document, source: source, external_id: "vanished.md", status: "processed")
+        result
+        expect(document.reload.status).to eq("processed")
+      end
+
+      it "stops writing documents immediately" do
+        expect { result }.not_to change { source.documents.count }
+      end
+    end
+
+    describe "resuming a paused scan" do
+      subject(:resumed) { described_class.new(source.reload).call }
+
+      let!(:first_pass) do
+        make_resumable(%w[one.md two.md])
+        stub_const("#{described_class}::BUDGET", 0.seconds)
+        sync.call
+      end
+
+      before { stub_const("#{described_class}::BUDGET", 15.minutes) }
+
+      it "picks up the paused run instead of opening a new one" do
+        expect(resumed).to eq(first_pass)
+      end
+
+      it "leaves the source with exactly one run" do
+        resumed
+        expect(source.syncs.count).to eq(1)
+      end
+
+      it "completes it once the source runs out of items" do
+        expect(resumed.status).to eq("completed")
+      end
+
+      it "accumulates counts across both passes rather than reporting the last one" do
+        expect(resumed.found_count).to eq(2)
+      end
+
+      it "stamps last_synced_at now that the scan is over" do
+        resumed
+        expect(source.reload.last_synced_at).to be_present
+      end
+
+      it "tombstones what the completed pass never saw" do
+        document = create(:document, source: source, external_id: "vanished.md", status: "processed")
+        resumed
+        expect(document.reload.status).to eq("removed")
+      end
+
+      # The documents the first pass stamped are stamped with this same run, so
+      # resuming must not read them as vanished.
+      it "keeps the documents the earlier pass reconciled" do
+        resumed
+        expect(source.documents.where(status: "removed")).to be_empty
       end
     end
 

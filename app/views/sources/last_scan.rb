@@ -71,7 +71,7 @@ class Views::Sources::LastScan < Components::Base
     return true if @sync.nil?
     return true if stalled?
 
-    !@sync.running? && @sync.processing_finished?
+    @sync.finished? && @sync.processing_finished?
   end
 
   def empty_state
@@ -107,6 +107,7 @@ class Views::Sources::LastScan < Components::Base
     case @sync.status
     when "completed" then "completed in #{duration}"
     when "failed" then "failed after #{duration}"
+    when "paused" then "scanning — paused between passes"
     else "scanning…"
     end
   end
@@ -122,7 +123,7 @@ class Views::Sources::LastScan < Components::Base
   end
 
   def stalled?
-    @sync.running? && @sync.started_at < 1.hour.ago
+    @sync.stalled?
   end
 
   def duration

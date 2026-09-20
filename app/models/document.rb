@@ -6,6 +6,14 @@ class Document < ApplicationRecord
   # pruned. It is what lets a run report its own processing progress.
   belongs_to :source_sync, optional: true
 
+  # The run that last *saw* this document in its source, whether or not it
+  # changed. Kept apart from `source_sync` because that one is what
+  # SourceSync#documents hangs off, and stamping every unchanged document onto a
+  # run would pull the whole archive into that run's pipeline meter. This is how
+  # Sources::Sync decides what has vanished, so a scan split across several jobs
+  # can still answer it.
+  belongs_to :last_seen_sync, class_name: "SourceSync", optional: true
+
   # Raw bytes for the document. For manual_upload this is the user's file; other
   # sources attach whatever they fetched so the pipeline has one input shape.
   has_one_attached :file

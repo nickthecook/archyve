@@ -11,6 +11,14 @@ default: &default
     queue: ingestion
     schedule: every minute
 
+  # Frees sources whose scan stopped reporting. Not merely tidying: an
+  # abandoned `running` run blocks Source.due_for_sync for that source
+  # permanently, so nothing would sync it again until someone noticed.
+  sweep_stalled_source_syncs:
+    class: Sources::SweepStalledSyncsJob
+    queue: ingestion
+    schedule: every 10 minutes
+
   # Ticks more often than InferenceServer::CHECK_INTERVAL on purpose: the tick
   # only enqueues what the scope says is stale, so a short heartbeat means a
   # server that has just gone quiet is probed within minutes of falling out of
