@@ -190,6 +190,37 @@ simply applying to everyone: a source that restarts its enumeration each pass
 would be cut off at the same point forever, never draining and never tombstoning.
 `spec/services/sources/sync_spec.rb`'s `make_resumable` is the reference shape.
 
+**That ordering inverts once a source's position is rows rather than a cursor.**
+`Sources::Web` resolves a visit row *after* the yield returns, not before, and
+the reversal is deliberate — see the decision on visit rows below. The rule above
+still holds for any source whose position lives in memory.
+
+**Correction — a failed item is tombstoned today.** `#scan`'s per-item rescue
+says "the item goes unstamped, so it isn't tombstoned: an item we failed to
+record is not an item we know to be gone". The code does the opposite. All three
+`#reconcile` branches stamp `last_seen_sync` *inside* themselves, so a raise
+before the stamp leaves an existing document carrying the previous run's id, and
+`tombstone_vanished` matches `last_seen_sync_id IS DISTINCT FROM run.id` — true
+for exactly that document. It is tombstoned, chunks destroyed and feed
+memberships retracted, on a pass that reports `completed`.
+
+Reachable whenever `document.update!` or `#redescribe` fails on a document that
+already exists: a validation failure, a deadlock, a constraint violation. Live
+today for Folder and BookStack, with nothing to do with crawling.
+
+The fix matches what the comment already claims: collect the failed
+`external_id`s and exclude them from `tombstone_vanished`. Same principle as
+`authoritative_scan?` one phase later — absence is only evidence of deletion
+when the scan actually looked.
+
+They have to be collected *per run*, not per pass. `tombstone_vanished` only
+runs on the pass that drains, which for a resumable source may be the fifth one,
+and an in-memory list would have been lost at every pause before it. So this
+wants the per-item failure store already shaped under "Surfacing sync failures"
+above — the two items are the same work, approached from opposite ends: that one
+wants the failures so it can *show* them, this one so it can refuse to draw a
+conclusion from them.
+
 ### Phase 2 — Contract groundwork
 
 Also independent of crawling, also worth landing before it.
@@ -198,9 +229,30 @@ Also independent of crawling, also worth landing before it.
   BookStack scan means the item is gone. Absence from a crawl means it was not
   *reached* — a rate limit, a timeout, a boundary rule that changed, a nav
   redesign that orphaned a subtree. `tombstone_vanished` must consult the
-  contract rather than special-case a type, or the first bad crawl silently
-  destroys the chunks for half an archive and the next one will not restore them
-  until the content happens to change.
+  contract rather than special-case a type, or the first bad crawl tombstones
+  half an archive.
+
+  Note what that costs, accurately: not permanent loss. `#changed?` treats a
+  `removed?` document as changed, and `ImportItemJob` re-asserts feed
+  memberships, so anything still reachable is rebuilt by the next good scan. The
+  cost is a window where the content is unsearchable and a full re-embed of
+  everything affected — real, and worth a gate, but the gate is about not
+  thrashing an archive rather than about rescuing it.
+
+  It takes the run, because the answer is a property of the pass rather than of
+  the source: `authoritative_scan?(run)`. The base implementation ignores its
+  argument and returns true. `Sources::Web` answers it as a query over the visit
+  rows of Phase 4 — **drained *and* cleanly resolved**. Draining alone is not
+  enough: a URL that timed out is resolved, so the frontier can empty with a
+  quarter of the site never actually reached. One timeout on a five-thousand-page
+  site should not veto tombstoning; three hundred should.
+
+  Considered and rejected: tombstoning only on positive evidence, i.e. the
+  documents whose URL returned 404 or 410 this run. Cleaner in principle, but it
+  misses the common case — a page dropped from the site's navigation while the
+  server happily goes on serving it. Unlinked *is* gone, for a crawl. So the gate
+  stays global, and what it decides is whether absence may be read as deletion.
+
 - **Formalise the `config` / `state` split.** `sources.state` is in the schema
   and no type has ever written it, so the boundary has never been tested and
   nothing enforces it: `store_accessor :state, …` reads identically to
@@ -208,8 +260,36 @@ Also independent of crawling, also worth landing before it.
   person set and a form may submit; `state` is what the source learned and no
   form may touch** — enforced by keeping `state` out of the permitted keys, not
   by convention.
-- **Response-code stats on `SourceSync`.** A jsonb histogram, not rows. See the
-  decision below on why dead URLs do not become Documents.
+
+  A second axis, which the first draft of this plan got wrong: **`state` is
+  source-scoped and survives runs; what a *run* learned belongs to the run.** The
+  original occupants proposed for `state` were the frontier cursor, budget
+  consumed, and whether the last pass drained — all three run-scoped, and the
+  mismatch is a live hazard, not a tidiness point. A swept run resets the run but
+  not `sources.state`, so a crawl would resume mid-frontier under a fresh run id,
+  drain, report authoritative, and tombstone every document the earlier run had
+  stamped. All three now live on the run or are derived from it.
+
+  What is genuinely left for `Sources::Web` is the sitemap's ETag/Last-Modified
+  and the cached robots.txt with its crawl-delay. Those are facts about the site
+  that outlive any one pass, which is what `state` is for.
+
+- **Response-code stats on `SourceSync`.** One jsonb column, written *once* at
+  terminal status by rolling up the visit rows — `group(:disposition).count` —
+  which are then reaped. Rows are the working set and the column is the durable
+  summary; keeping the rows forever would mean tens of millions of them to answer
+  "how did last Tuesday's crawl go", and accumulating the histogram in jsonb
+  during the scan reintroduces the double-counting the rows exist to prevent.
+
+  Keys are a mix, because half of what a crawl hits has no HTTP status: numeric
+  strings for responses (`"200"`, `"301"`, `"404"`), named buckets for everything
+  below or above HTTP (`"timeout"`, `"connection_failed"`, `"robots_excluded"`,
+  `"too_many_redirects"`, `"nothing_readable"`). `Http` already retries
+  `Faraday::TimeoutError` and `Faraday::ConnectionFailed`, so those arrive as
+  exceptions rather than codes.
+
+  This column is the only part of the crawl's bookkeeping that belongs to shared
+  `SourceSync`, which is why it lands here and the table does not.
 
 ### Phase 3 — Verify
 
@@ -217,6 +297,10 @@ Run the suite, then sync a real Folder source and a real BookStack source end to
 end and confirm counts, tombstones and the source page are unchanged. Phases 1
 and 2 touch the engine every existing source runs through; the crawler must not
 be the thing that discovers they broke.
+
+The tombstone correction in Phase 1 wants a spec of its own, since nothing
+existing covers it: a scan that drains with one item raising inside `#reconcile`
+must leave that document's chunks and feed memberships intact.
 
 ### Phase 4 — The crawler
 
@@ -245,15 +329,84 @@ fixtures with no network at all:
    Preserve `h1`–`h6`: `Ingestion::Chunker` builds its heading path from
    structure. Add `gem "nokogiri"` explicitly — it is only a transitive
    dependency via loofah today.
-4. **`Sources::Web`** — `sitemap.xml` when the site has one, crawl as the
+4. **`source_sync_visits`** — the crawl's frontier and its disposition log, in
+   one table, belonging to the run:
+
+   ```
+   source_sync_id, url, depth
+   disposition   # nil = pending; ok / not_found / server_error / timeout /
+                 # connection_failed / redirected / robots_excluded /
+                 # nothing_readable
+   status_code   # nullable: transport failures have none
+   unique index on [source_sync_id, url]
+   ```
+
+   Discovering a link is an `insert_all` with `ON CONFLICT DO NOTHING` against
+   that index, so dedup is a constraint rather than a discipline — no
+   check-then-act, no in-memory visited set, no race between two fetchers
+   finding the same link. Fetching updates the row in place. The frontier is
+   `where(disposition: nil)`; "drained" is `pending.none?`; a pending row is an
+   unmet obligation and a resolved one is proof an attempt happened and what
+   came of it. Seeding a crawl is one insert; resuming is a query.
+
+   Rows are per-run working state and are reaped at terminal status into the
+   `SourceSync` histogram column from Phase 2.
+
+   **Todo, not now: split `redirected` by whether the target was inside the
+   boundary.** Purely diagnostic — the crawl loop does not care, because the row
+   is resolved either way and whether a target row exists is already the complete
+   record. Deferred because the payoff is a stat and the "Last scan" row is
+   carrying eight of them already; crawl stats likely want their own block rather
+   than a ninth column. Recorded so it is a choice rather than an oversight.
+
+5. **`Sources::Web`** — `sitemap.xml` when the site has one, crawl as the
    fallback. `#each_item` conditional-GETs with stored ETag/Last-Modified; a 304
    replays the cached link set without re-parsing. `#read` re-fetches and
-   re-extracts. `authoritative_scan?` is false unless the frontier drained.
-5. **Politeness** — robots.txt and crawl-delay honoured, per-page
+   re-extracts. `authoritative_scan?(run)` is the visits query from Phase 2.
+
+   **Resolve a visit row *after* the yield returns, not before.** `#reconcile` is
+   idempotent per item — a repeated yield finds the document, `changed?` is
+   false, and it counts `unchanged` — so dying between the count and the resolve
+   costs one inflated `found`/`unchanged` next pass. Resolving first inverts the
+   failure into data loss: the row reads resolved, the document never got
+   stamped, the frontier drains, `authoritative_scan?` says yes, and
+   `tombstone_vanished` destroys its chunks. This is the inversion flagged in
+   Phase 1; do not "fix" it back.
+
+   **Parallelism is threads in one pass, not concurrent jobs.** `SyncJob` already
+   holds `limits_concurrency key: source.id, to: 1`, so no second process can
+   ever contend for these rows and the database needs no claiming — no
+   `FOR UPDATE SKIP LOCKED`, no `claimed_at`. Fetcher threads do **HTTP only**;
+   every query, insert and `yield` stays on the enumerating thread, which
+   sidesteps connection-pool sizing and thread-safety entirely. Blocking IO
+   releases the GIL, so this genuinely parallelises the part that waits. Four
+   things that bite:
+
+   - A `SizedQueue` for results, or fetchers run thousands of pages ahead of a
+     reconcile that is enqueuing import jobs.
+   - Extraction stays on the main thread: it is CPU, so it is GIL-bound, and in a
+     worker it would only steal the lock from threads doing useful waiting.
+   - Shut the pool down from `ensure` with a sentinel, not `kill` — `Sync` breaks
+     out of `#each_item` on budget or abandonment, and leaked threads would go on
+     fetching into a finished run.
+   - Crawl-delay is a property of the host, not of a thread. Two fetchers each
+     honouring the delay hit the site at twice the intended rate; it wants a
+     shared mutex and a next-allowed-at.
+
+   Worker exceptions come back as a result object carrying an error disposition.
+   A thread that raises takes its exception with it until `join`.
+
+6. **Politeness** — robots.txt and crawl-delay honoured, per-page
    `meta[name=robots]` too, an identifying User-Agent, one or two connections per
    host. GET and HEAD only.
-6. **UI** — the source form, and the crawl stats on the run.
-7. **SPA detection.** A client-rendered page extracts to near-zero text.
+7. **UI** — the source form, and the crawl stats on the run. `found` and URLs
+   visited will differ and people will ask why, so both want hover text: *"Documents
+   this scan found in the source"* against *"Pages the crawler fetched. Higher than
+   found: redirects, dead links and pages with nothing readable are visited but
+   produce no document."* The pattern already exists: `Views::Sources::LastScan`
+   carries a `HINTS` hash and renders each label with a `title:` and a dotted
+   underline, which is the only cue that there is anything to hover.
+8. **SPA detection.** A client-rendered page extracts to near-zero text.
    `Ingestion::NothingReadable` already has the right shape; the point is that it
    must report, not silently store an empty document.
 
@@ -291,22 +444,66 @@ symptom under *Later*.
 that *was* a document and now 404s must tombstone — turning it into an error
 document marks it seen, suppresses the tombstone, and leaves stale chunks
 searchable forever. A URL that was *never* a document is a fact about the crawl,
-not about the archive, so response-code counts live on `SourceSync`. Note that
+not about the archive, so it lives in `source_sync_visits`. Note that
 `Item#skip_reason` cannot serve here regardless: `Sync#reconcile` returns before
 creating a document, and `count_uningestable` reads a skip as "the source has it,
 we declined it" — the opposite claim to a 404.
 
-**`each_item` becomes a writer.** Resumption means persisting frontier and budget
-mid-scan, and no existing source mutates anything while enumerating. This is what
-makes the `config` / `state` split load-bearing rather than merely tidy.
+The sharper version of the idea — create the Document but leave it unstamped, and
+exclude it everywhere with a scope — does dodge the objection above, and fails on
+what is downstream. A Document is the unit the ingestion pipeline operates on:
+`status` defaults to `pending` and `#pipeline_statuses` counts over documents, so
+every dead URL needs excluding there, in document lists, in counts, in search
+scoping. That is "correct only if every query remembers the scope", which is the
+same shape of mistake as hiding a link and calling it access control. And
+`[source_id, external_id]` is unique, so a dead URL would permanently occupy
+document identity space and need cleaning up if the page ever came back.
 
-The write ordering is safe as it stands, and worth recording so nobody re-derives
-it: `Sync#call` is sequential — every `each_item` write lands during `scan`, and
-`#finish` runs afterwards — and `#finish` assigns only `last_synced_at`, so with
-`partial_updates` on under `load_defaults 8.1` its UPDATE never carries `state`.
-There is no collision between the two.
+**Visit rows, not a jsonb visited set.** The first draft of this plan chose jsonb
+for the response-code stats because the requirement looked like *counts*. It is
+actually *identity* — which URL, resolved how — because the crawl needs to know
+what it has already fetched, and identity wants rows.
 
-The standing hazard is generic, and applies to whatever writes `state` later:
+Reconstructing the visited set from `documents` alone does not work, and the
+reason is the decision above: a URL that 404s leaves no document, so the URLs
+that most need exactly-once accounting are precisely the ones the documents table
+cannot remember. Splitting it — documents for the fetched, `state` for the failed
+— puts one concept in two stores with different lifetimes and no constraint tying
+them together. One table holds both, keyed to the run, with the unique index
+doing the deduplication.
+
+**No tombstone ceiling — trust the source.** Considered and rejected: refusing
+to tombstone when a scan wants to remove more than some proportion of a
+source. If a document is gone from the site it is gone from the site, and
+second-guessing *why* buys nothing — a 404 or a redirect off the boundary is
+the site answering, and volume does not change the answer. Deleting only part
+of what a scan found missing also makes the outcome unpredictable and the
+handling more complicated, which is a worse position than either extreme.
+
+`authoritative_scan?` is not the same thing and stays. It is all-or-nothing
+about whether a pass may be trusted *at all*, and it turns on a distinction
+that does hold up: a timeout is the crawl failing to ask, where a 404 is the
+site answering.
+
+**If data-loss protection is ever wanted, it is retention, not refusal.** Soft
+deletion and keeping N versions, so a user can retrieve an older version or
+revert a batch — rather than a scan declining to act on what it found.
+
+Most of that exists already. `#tombstone` sets `status: :removed` and keeps the
+row, and retracted feed memberships are tombstones rather than deletions. What
+is actually destroyed is `document.chunks`, so "keep N versions" is a question
+about chunk retention, not document retention. The real gap is that no source
+stores the bytes it read — `#read` re-fetches — so a document can only be
+rebuilt while its page is still fetchable.
+
+**`each_item` becomes a writer.** Resumption means persisting the crawl's
+position mid-scan, and no existing source mutates anything while enumerating.
+What it writes is visit rows, not `sources.state` — the position belongs to the
+run, and a row is durable the moment it is inserted, so there is no in-memory
+cursor to flush from an `ensure`.
+
+The standing hazard below is therefore no longer acute, but it still applies to
+whatever writes `state` later — the sitemap ETag, the robots.txt cache.
 `store_accessor` is a read-modify-write, reading the whole hash out of the
 in-memory attribute, merging one key and writing it back. A stale instance
 therefore reverts the *entire* hash rather than losing one key. Keep one instance
@@ -315,15 +512,21 @@ object `Sync` holds — and assign and `save!`. Not `update_column(:state, …)`
 which looks like the careful choice and is the worst of the options: it bypasses
 dirty tracking and leaves the in-memory attribute stale for the rest of the pass.
 
+The write ordering is safe as it stands, and worth recording so nobody re-derives
+it: `Sync#call` is sequential — every `each_item` write lands during `scan`, and
+`#finish` runs afterwards — and `#finish` assigns only `last_synced_at`, so with
+`partial_updates` on under `load_defaults 8.1` its UPDATE never carries `state`.
+There is no collision between the two.
+
 **Per-URL bookkeeping lives on the Document, not in `state`.** ETag,
-Last-Modified and the outbound link set go in `source_metadata`; `state` holds
-only the frontier cursor, budget consumed and whether the last pass drained.
-Putting the link graph in `state` would mean 30–80 links per page at ~60 bytes
-each — 15–25MB of jsonb for a 5,000-page site, TOASTed and rewritten in full
-several times per crawl.
+Last-Modified and the outbound link set go in `source_metadata`. Putting the link
+graph in `state` would mean 30–80 links per page at ~60 bytes each — 15–25MB of
+jsonb for a 5,000-page site, TOASTed and rewritten in full several times per
+crawl. The same objection retired the frontier: `state` is source-scoped and
+sized O(1), and anything O(pages) or belonging to one run lives elsewhere.
 
 **Query strings are stripped, with no per-source allowlist** until one proves
-necessary. Cycles are trivial (a visited set); infinite *spaces* are what kill
+necessary. Cycles are trivial (the visit rows); infinite *spaces* are what kill
 crawlers — calendars, facets, sort parameters — and dropping the query string
 closes most of them. Max pages and max depth are the backstop.
 
