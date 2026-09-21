@@ -178,6 +178,20 @@ RSpec.describe Sources::Web do
       it { expect(result.map(&:title)).to contain_exactly("Index", "A") }
     end
 
+    # Pins the agent token end to end: if the name the crawl sends stopped
+    # matching the name robots.txt is parsed against, the wildcard group would
+    # apply instead and nothing at all would be crawled.
+    context "with robots.txt naming Archyve specifically" do
+      let(:robots_txt) { "User-agent: *\nDisallow: /\n\nUser-agent: archyve\nDisallow: /docs/private\n" }
+
+      before do
+        stub_page("https://docs.test/docs", page_html("Index", links: ["/docs/a", "/docs/private"]))
+        stub_page("https://docs.test/docs/a", page_html("A"))
+      end
+
+      it { expect(result.map(&:title)).to contain_exactly("Index", "A") }
+    end
+
     context "with a page robots.txt disallows" do
       before do
         stub_page("https://docs.test/docs", page_html("Index", links: ["/docs/private"]))

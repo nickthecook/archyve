@@ -19,10 +19,6 @@ module Sources
   # "not reached" until the frontier has drained cleanly. See docs/todo.md,
   # "The web source".
   class Web < Source
-    # Identifies us in logs and in robots.txt. A site that wants to refuse
-    # Archyve specifically has to have something to name.
-    USER_AGENT = "Archyve/2 (+https://github.com/nickthecook/archyve2)".freeze
-
     CONTENT_TYPE = "text/html".freeze
 
     # How long a cached robots.txt stands before it is re-fetched.
@@ -145,7 +141,7 @@ module Sources
     end
 
     def robots
-      @robots ||= Crawl::Robots.parse(cached_robots_txt, agent: USER_AGENT)
+      @robots ||= Crawl::Robots.parse(cached_robots_txt, agent: Endpoints::Web::USER_AGENT)
     end
 
     private
@@ -307,9 +303,7 @@ module Sources
     end
 
     def client
-      endpoint.client(timeout: FETCH_TIMEOUT, raise_errors: false).tap do |connection|
-        connection.headers["User-Agent"] = USER_AGENT
-      end
+      endpoint.client(timeout: FETCH_TIMEOUT, raise_errors: false)
     end
 
     # Kept in `state` and re-read daily. It is a fact about the site rather than

@@ -77,6 +77,23 @@ RSpec.describe Endpoints::Web do
     end
   end
 
+  # Both `#access!` and the crawl go out through `#client`, which is the point:
+  # a site that filters on User-Agent must not be able to see two different
+  # Archyves and disagree with itself about whether this endpoint is reachable.
+  describe "#client" do
+    it "introduces Archyve to the site" do
+      expect(endpoint.client.headers["User-Agent"]).to eq(described_class::USER_AGENT)
+    end
+
+    context "with credentials as well" do
+      let(:attributes) { { auth_scheme: "basic", username: "archyve", password: "hunter2" } }
+
+      it "still sends them" do
+        expect(endpoint.client.headers["Authorization"]).to start_with("Basic ")
+      end
+    end
+  end
+
   describe "#auth_headers" do
     let(:result) { endpoint.auth_headers }
 

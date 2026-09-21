@@ -757,13 +757,19 @@ pages. One document, the start page resolved `out_of_scope`, and `/secret` never
 requested at all — it is absent from the server's hit log, not merely absent
 from the archive.
 
-**Still open: the User-Agent is on the wrong class.** `Sources::Web` sets
-`USER_AGENT` on its own client, so `Endpoints::Web#access!` identifies itself as
-Faraday while the crawl identifies itself as Archyve. A site that filters on
-User-Agent will therefore disagree with itself about whether the endpoint is
-reachable. It identifies Archyve to the site whoever is talking, so it belongs
-on the endpoint — as an override of `Endpoints::Web#client` rather than on the
-`Endpoint` base, which would change BookStack's requests for no reason.
+**The User-Agent moved with it.** It had been a constant on `Sources::Web`, set
+on that class's own client, so `#access!` introduced itself as Faraday while the
+crawl introduced itself as Archyve — and a site filtering on User-Agent would
+disagree with itself about whether the endpoint was reachable. It identifies
+*us* rather than one caller, so it is now `Endpoints::Web::USER_AGENT`, applied
+in an override of `#client` that every path shares. It is also the token
+robots.txt groups are matched against, and reading it from the same constant is
+what keeps "the name we send" and "the name we are judged by" from drifting
+apart.
+
+On `Endpoints::Web` and not on `Endpoint`: BookStack is an API reached with a
+token, and changing what its requests carry would be a change to a working
+integration for no reason.
 
 ## The budget and the heartbeat only tick when a document is produced
 

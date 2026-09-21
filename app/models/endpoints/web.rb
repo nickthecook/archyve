@@ -12,6 +12,18 @@ module Endpoints
     ACCESS_TIMEOUT = 15
     DEFAULT_HEADER_NAME = "Authorization".freeze
 
+    # How Archyve introduces itself to this site. On the endpoint rather than on
+    # the crawler because it identifies *us*, not one caller: `#access!` and the
+    # crawl have to present the same name, or a site that filters on User-Agent
+    # disagrees with itself about whether this endpoint is reachable. It is also
+    # the token robots.txt groups are matched against, so a site that wants to
+    # refuse Archyve specifically has something to name.
+    #
+    # Not on Endpoint itself: BookStack is an API reached with a token, and
+    # changing what its requests carry would be a change to a working
+    # integration for no reason.
+    USER_AGENT = "Archyve/2 (+https://github.com/nickthecook/archyve2)".freeze
+
     # What to send on every request.
     SCHEMES = %w[none basic header].freeze
 
@@ -46,6 +58,10 @@ module Endpoints
     def scheme = auth_scheme.presence || "none"
     def basic? = scheme == "basic"
     def static_header? = scheme == "header"
+
+    def client(timeout: DEFAULT_TIMEOUT, raise_errors: true)
+      super.tap { |connection| connection.headers["User-Agent"] = USER_AGENT }
+    end
 
     def auth_headers
       if basic?
