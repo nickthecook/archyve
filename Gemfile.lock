@@ -461,6 +461,7 @@ DEPENDENCIES
   importmap-rails
   kamal
   neighbor
+  nokogiri
   pg (~> 1.1)
   phlex-rails
   propshaft

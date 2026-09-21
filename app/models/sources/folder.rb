@@ -47,7 +47,7 @@ module Sources
     # without changing content — so Sources::ImportItemJob hashes the bytes
     # it reads and skips re-processing when they match. Cheap check first,
     # honest check only for the files that look changed.
-    def each_item
+    def each_item(_run = nil)
       return enum_for(:each_item) unless block_given?
 
       root = Pathname.new(path).cleanpath

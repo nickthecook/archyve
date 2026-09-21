@@ -3,7 +3,7 @@
 class Endpoint < ApplicationRecord
   MissingImplementationError = Class.new(StandardError)
 
-  TYPES = %w[Endpoints::Bookstack].freeze
+  TYPES = %w[Endpoints::Bookstack Endpoints::Web].freeze
 
   ACCESS_ERROR_LIMIT = 500
   DEFAULT_TIMEOUT = 30
@@ -57,8 +57,8 @@ class Endpoint < ApplicationRecord
   end
 
   # Named `client` because Active Record has its own `connection`.
-  def client(timeout: DEFAULT_TIMEOUT)
-    Http.connection(base_url, timeout: timeout).tap do |connection|
+  def client(timeout: DEFAULT_TIMEOUT, raise_errors: true)
+    Http.connection(base_url, timeout: timeout, raise_errors: raise_errors).tap do |connection|
       auth_headers.each { |header, value| connection.headers[header] = value }
     end
   end

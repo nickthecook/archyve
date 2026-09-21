@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -262,6 +262,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_160000) do
     t.string "disposition"
     t.string "external_id", null: false
     t.bigint "source_sync_id", null: false
+    t.integer "status_code"
     t.datetime "updated_at", null: false
     t.index ["source_sync_id", "disposition"], name: "index_source_sync_items_on_source_sync_id_and_disposition"
     t.index ["source_sync_id", "external_id"], name: "index_source_sync_items_on_source_sync_id_and_external_id", unique: true
@@ -286,6 +287,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_160000) do
     t.integer "unchanged_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.integer "updated_count", default: 0, null: false
+    t.integer "withheld_count", default: 0, null: false
     t.index ["source_id", "started_at"], name: "index_source_syncs_on_source_id_and_started_at"
     t.index ["source_id"], name: "index_source_syncs_on_source_id"
   end

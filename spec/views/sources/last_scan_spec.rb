@@ -29,6 +29,55 @@ RSpec.describe Views::Sources::LastScan do
     end
   end
 
+  # A source that has quietly stopped pruning has to say so on its own page —
+  # one permanently broken URL means it never gets a clean run again.
+  describe "the withheld note" do
+    context "with a scan that removed what it could" do
+      before { source.syncs.create!(started_at: Time.current, status: "completed", removed_count: 2) }
+
+      it { expect(result).not_to include("left alone") }
+    end
+
+    context "with a scan that could not account for some documents" do
+      before do
+        sync = source.syncs.create!(started_at: Time.current, status: "completed", withheld_count: 12)
+        sync.items.create!(external_id: "https://site/slow", disposition: "timeout")
+      end
+
+      # Matched either side of the apostrophe, which Phlex escapes to &#39;.
+      it { expect(result).to include("12 documents this scan") }
+      it { expect(result).to include("reach were left alone") }
+
+      it "says what caused it" do
+        expect(result).to include("1 URL gave no answer")
+      end
+    end
+  end
+
+  # `found` and URLs visited differ, always, and people will ask why — so the
+  # crawl block only appears for a source that produced one.
+  describe "the crawl block" do
+    context "with a scan that recorded no response stats" do
+      before { source.syncs.create!(started_at: Time.current, status: "completed", found_count: 2) }
+
+      it { expect(result).not_to include("URLs visited") }
+    end
+
+    context "with a scan that crawled" do
+      before do
+        source.syncs.create!(started_at: Time.current, status: "completed", found_count: 2,
+          response_stats: { "200" => 12, "404" => 3, "timeout" => 1 })
+      end
+
+      it { expect(result).to include("16 URLs visited") }
+      it { expect(result).to include("200 12") }
+
+      it "explains what never reached HTTP at all" do
+        expect(result).to include("No answer in time")
+      end
+    end
+  end
+
   describe "the broadcast target" do
     context "with no scans yet" do
       it "still renders the region, so the target exists before the first run" do

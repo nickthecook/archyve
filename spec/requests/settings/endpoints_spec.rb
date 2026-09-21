@@ -61,6 +61,14 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
       end
     end
 
+    context "with the website type" do
+      it "renders its sign-in options" do
+        get new_settings_endpoint_path(type: "Endpoints::Web")
+        expect(response.body).to include("HTTP Basic")
+        expect(response.body).to include("Fixed header")
+      end
+    end
+
     context "with a type nobody registered" do
       it "refuses rather than constantizing it" do
         get new_settings_endpoint_path(type: "User")

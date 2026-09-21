@@ -98,7 +98,7 @@ module Sources
     # fewer books, chapters and shelves than pages — and the page list is
     # filtered in Ruby against them. No page body is fetched here; that is
     # ImportItemJob's call, for the pages whose version actually moved.
-    def each_item
+    def each_item(_run = nil)
       return enum_for(:each_item) unless block_given?
 
       books = by_id(index("/api/books"))

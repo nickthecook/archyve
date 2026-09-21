@@ -31,6 +31,7 @@ class Views::Sources::Form < Components::Base
         text_input(:name, @source.name, placeholder: "Reference library", autofocus: true)
       end
 
+      endpoint_field
       type_fields
 
       if @source.supports_sync?
@@ -59,6 +60,53 @@ class Views::Sources::Form < Components::Base
 
   def type_fields
     raise Source::MissingImplementationError, "#{self.class.name} must implement #type_fields"
+  end
+
+  # A source that reads something local has no server to name, and gets no
+  # picker. Everything else needs one chosen before the rest of the form means
+  # much, so it sits directly under the name.
+  def endpoint_field
+    return unless @source.endpoint_type
+
+    field("Server", server_hint) { server_picker }
+  end
+
+  # Fixed after creation: repointing a source at a different server would leave
+  # every document keyed by an id that means something else there.
+  def server_picker
+    return note { p(class: "text-sm text-fg") { @source.endpoint&.name || "none" } } if @source.persisted?
+    return no_endpoints if @endpoints.empty?
+
+    div(class: "flex items-center gap-2") do
+      select(name: "source[endpoint_id]", class: input_classes) do
+        @endpoints.each do |endpoint|
+          option(value: endpoint.id, selected: endpoint.id == @source.endpoint_id) { endpoint.name }
+        end
+      end
+      server_extras
+    end
+  end
+
+  # Where a type that needs a round trip to the server puts the button for it.
+  def server_extras = nil
+
+  def server_hint
+    return "Fixed once the source exists — a source's documents are identified within the server that produced them." if @source.persisted?
+
+    new_server_hint
+  end
+
+  def new_server_hint = "The server this source reads, and the credentials for it."
+
+  def no_endpoints
+    note do
+      p(class: "text-sm text-fg") { "No #{@source.endpoint_type.type_label} endpoints yet." }
+      p(class: "mt-1 text-xs text-faint") do
+        plain "Add one under "
+        a(href: new_settings_endpoint_path, class: "text-accent hover:underline") { "Settings → Endpoints" }
+        plain ", then come back — the credentials are typed once per server, however many sources read it."
+      end
+    end
   end
 
   def action

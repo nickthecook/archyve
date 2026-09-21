@@ -231,7 +231,7 @@ Two layers, kept separate:
 > Splitting them would have bought a stateless-adapter seam that nothing yet
 > needs, at the cost of a second parallel hierarchy — so the word "adapter" does
 > not appear in the code, and the interface is called the **sync contract**:
-> `#each_item` (yielding `Source::Item`) and `#read(external_id)`. Revisit if a
+> `#each_item(run)` (yielding `Source::Item`) and `#read(external_id)`. Revisit if a
 > source ever needs its driver without a database row behind it. The two
 > capability flags above aren't built either; `.supports_sync?` is the only one
 > so far.
@@ -294,6 +294,71 @@ interval. Webhooks/push (S3 events, Bookstack webhooks) added later behind
 
 **Manual upload is just a `manual_upload` source** — keeps a single ingestion
 + progress code path.
+
+**Sources that discover their items (2026-09-20).** Folder and BookStack are
+handed a listing; `Sources::Web` only learns of the next page by fetching the
+last one. Three things in the engine follow from that, and all three are
+general rather than crawler-specific:
+
+- **A scan may span several jobs.** A source declaring `.resumable_scan?` gets a
+  wall-clock budget; on expiry the run goes `paused` and the next scheduler tick
+  resumes it. `documents.last_seen_sync_id` is what makes that possible —
+  tombstoning asks the stamp rather than a `Set` held in memory, which a scan
+  spread over hours cannot keep.
+- **`source_sync_items` is where a run's position lives.** One row per item the
+  run has something to remember about: a pending row is an unmet obligation, a
+  resolved one is proof of an attempt and its outcome, and the unique index on
+  `[source_sync_id, external_id]` does the deduplication so no in-memory seen-set
+  has to. Rolled into `source_syncs.response_stats` at terminal status and then
+  reaped, except for the failures, which are a question about a document over
+  time.
+- **`authoritative_scan?(run)` gates tombstoning.** Absence from a listing means
+  deleted; absence from a crawl means *not reached*. It takes the run because
+  the answer is a property of the pass — for the crawler, whether the frontier
+  drained *and* mostly answered.
+
+**The archive holds the view of the source as Archyve sees it.** This is the
+rule the tombstoning decisions above all reduce to, and it is worth stating
+outright because the tempting mistake is always the same one. When a source
+gives a *definite* answer, that answer is acted on even when it is unwelcome: a
+403 tombstones exactly as a 404 does, because a document Archyve may no longer
+read is not a document it may keep. Retaining content on a guess about why
+access was withdrawn is second-guessing the source, and what the archive then
+holds is a view nobody can check.
+
+The inverse case is not an exception to that rule but the same rule: a timeout,
+a refused connection or a 5xx is not an answer, so nothing follows from it and
+nothing is destroyed. `SourceSyncItem::CONCLUSIVE_DISPOSITIONS` is where the
+line sits.
+
+Which leaves a third case the rule has to be explicit about, because it is the
+one that can destroy an archive: a document the run holds *no record of at all*.
+For a listing source that is absence from the listing and means gone. For a
+crawl it means nothing linked to it — also gone, unless something that failed
+was concealing it, and the two leave identical traces. `authoritative_scan?(run)`
+gates that bucket alone, and answers it bluntly: any inconclusive row anywhere in
+the run and none of the never-seen documents are touched. A ratio is unsound here
+— the pages at risk are the ones missing from the frontier, and so missing from
+the denominator. `source_syncs.withheld_count` records the cost so a source that
+has quietly stopped pruning says so.
+
+Protection against a *mistake* — a credential rotated by accident, a path
+narrowed by a typo — belongs in document revisions and per-run rollback, not in
+making the sync engine hedge. See docs/todo.md.
+
+**Two jsonb columns on `Source`, and the line between them is enforced, not
+conventional.** `config` is what a person set and a form may submit; `state` is
+what the source learned, kept out of the controller's permitted keys. What a
+single *run* learned belongs to the run: a swept run resets the run but not
+`state`, so run-scoped data parked there outlives the thing that gave it
+meaning.
+
+**Extraction can belong to the source.** `Sources::Web` runs Arc90 readability
+before versioning, and the version token is a hash of the *extracted* content,
+never the response body — raw HTML churns on every request, so a body hash would
+re-embed a whole site hourly. It is also a retrieval decision: nav and footer
+repeated across every page would put the same large span in every chunk of every
+document.
 
 Data-model impact: `Document` gains `source_id`, `external_id`,
 `source_version`, `source_metadata`, and a lifecycle status. Sources get

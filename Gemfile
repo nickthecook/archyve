@@ -37,6 +37,7 @@ gem "ruby_llm"
 gem "faraday"
 gem "faraday-multipart"  # multipart file uploads to docling-serve
 gem "faraday-retry"      # backoff for slow/flaky local services
+gem "nokogiri"           # HTML5 parsing for the web source (transitive via loofah, but used directly)
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"

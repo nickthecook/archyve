@@ -59,7 +59,8 @@ module Sources
       "removed_count" => :removed,
       "skipped_count" => :skipped,
       "stale_count" => :stale,
-      "failed_count" => :failed
+      "failed_count" => :failed,
+      "withheld_count" => :withheld
     }.freeze
 
     def self.call(...) = new(...).call
@@ -129,7 +130,7 @@ module Sources
     def scan(run)
       outcome = :drained
 
-      source.each_item do |item|
+      source.each_item(run) do |item|
         # Checked before reconciling, not after: if we have been given up on,
         # the cheapest thing to do is stop writing immediately.
         unless record_progress(run)
@@ -290,20 +291,49 @@ module Sources
     # FROM, not `where.not`: a document no scan has ever stamped has a NULL here,
     # and `NULL <> 5` is NULL, which would quietly exclude exactly the rows that
     # most need tombstoning.
+    #
+    # What a document not stamped by this run means depends on what the run
+    # knows about it, and there are three answers rather than two:
+    #
+    #   a conclusive row     the source answered — 404, 403, redirected away.
+    #                        It is gone. Tombstone it, whatever else the run hit.
+    #   an inconclusive row  a timeout, a 5xx, an error of ours. No information
+    #                        at all, so nothing follows.
+    #   no row whatsoever    never even looked at. For a listing source that is
+    #                        absence from the listing and means gone; for a
+    #                        crawl it means nothing linked to it — which is also
+    #                        gone, *unless* something that failed could have been
+    #                        hiding it. That last question is what
+    #                        `authoritative_scan?` answers, and it is the only
+    #                        one it answers.
+    #
+    # Gating the whole method on it — which is what this used to do — throws the
+    # first bucket away with the third: an unrelated timeout somewhere on a site
+    # would keep a document whose URL had plainly answered 404.
     def tombstone_vanished(run)
-      unless source.authoritative_scan?(run)
-        Rails.logger.warn("Source #{source.id}: scan of #{run.id} was not authoritative; nothing tombstoned")
-        return
-      end
-
-      source.documents
+      unseen = source.documents
         .where.not(status: :removed)
         .where("last_seen_sync_id IS DISTINCT FROM ?", run.id)
-        .where.not(external_id: run.items.failed.select(:external_id))
-        .find_each do |document|
-          counts[:removed] += 1
-          tombstone(document, run)
-        end
+
+      gone = if source.authoritative_scan?(run)
+        unseen.where.not(external_id: run.items.inconclusive.select(:external_id))
+      else
+        unseen.where(external_id: run.items.conclusive.select(:external_id))
+      end
+
+      # Counted rather than merely logged: a site with one permanently broken
+      # URL never gets a clean run, so a source would otherwise stop pruning
+      # forever with nothing on its page saying why.
+      counts[:withheld] = unseen.count - gone.count
+      if counts[:withheld].positive?
+        Rails.logger.warn("Source #{source.id}: run #{run.id} held back " \
+                          "#{counts[:withheld]} documents it could not account for")
+      end
+
+      gone.find_each do |document|
+        counts[:removed] += 1
+        tombstone(document, run)
+      end
     end
 
     def tombstone(document, run)
@@ -317,13 +347,17 @@ module Sources
     end
 
     def finish(run, status:, error: nil)
+      terminal = SourceSync::TERMINAL_STATUSES.include?(status.to_s)
+
       attributes = tallies
       attributes["status"] = status
       attributes["error"] = error
       attributes["last_progress_at"] = Time.current
       attributes["finished_at"] = Time.current unless status == :paused
+      attributes["response_stats"] = run.items.histogram if terminal
 
       run.update!(attributes)
+      reap_items(run) if terminal
 
       # Stamped even when the scan failed, so a source whose folder has been
       # unmounted waits out its interval before trying again instead of being
@@ -334,6 +368,18 @@ module Sources
       # Stamping here would make the source sit out a full interval in the
       # middle of a scan it is part-way through.
       source.update!(last_synced_at: Time.current) unless status == :paused
+    end
+
+    # The rows are the working set; `response_stats` is the durable summary. A
+    # crawl of a large site writes a row per URL because that is how it
+    # remembers the work is done, and keeping them all would mean tens of
+    # millions to answer "how did last Tuesday's crawl go".
+    #
+    # Only the cleanly resolved ones go. A failure is about a document over
+    # time — "this page has failed every scan for a week" is a question the
+    # histogram cannot answer.
+    def reap_items(run)
+      run.items.conclusive.delete_all
     end
 
     def out_of_budget?

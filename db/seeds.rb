@@ -44,17 +44,7 @@ if Rails.env.development?
 end
 
 # The Ollama that OLLAMA_API_BASE points at, if anything does.
-#
-# Deliberately not defaulted, unlike the admin above: an Archyve with no
-# inference server is a legitimate state, and it is the state a fresh clone
-# should be in. Inventing a localhost server nothing is listening on would make
-# every page report an unreachable host instead of an unconfigured one — and
-# those need different answers from whoever is reading them.
 if (ollama_url = ENV["OLLAMA_API_BASE"].presence)
-  # Built as the subclass, not as InferenceServer with `type` assigned: setting
-  # the column doesn't change the Ruby class, so the base class's instance would
-  # skip every validation and callback Ollama defines — including the one that
-  # normalizes the address.
   server = InferenceServers::Ollama.find_or_initialize_by(name: "Ollama")
 
   if server.new_record?

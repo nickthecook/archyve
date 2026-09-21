@@ -5,8 +5,11 @@ class SourcesController < ApplicationController
   # must stay absent — that allowlist is the whole enforcement of the
   # config/state split described in Source. spec/models/source_spec.rb fails if
   # a state key ever appears here.
+  # Only `config` keys, never `state` ones: what a person set, never what a
+  # source learned. spec/models/source_spec.rb holds that line.
   PERMITTED_PARAMS = [
     :name, :path, :endpoint_id, :sync_interval_minutes, :ocr,
+    :path_prefix, :start_path, :content_selector, :max_pages, :max_depth, :crawl_delay_seconds,
     { collection_ids: [], selectors: [] }
   ].freeze
 

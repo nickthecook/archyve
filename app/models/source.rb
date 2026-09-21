@@ -10,8 +10,13 @@
 # A source that returns true from `.supports_sync?` must implement two
 # methods, and Sources::Sync can then sync it with no changes of its own:
 #
-#   #each_item          yields an Item (below) per thing in the source
+#   #each_item(run)     yields an Item (below) per thing in the source
 #   #read(external_id)  returns that item's bytes
+#
+# `run` is the SourceSync being reconciled. Most sources ignore it — a folder
+# enumerates the same way whoever is asking — but a source whose position lives
+# in the database rather than in memory needs it, because the position belongs
+# to the run and not to the source. See Sources::Web.
 #
 # Both are defined below and raise, rather than being left absent. An abstract
 # method that isn't written down is a contract you can only discover by reading
@@ -68,7 +73,7 @@ class Source < ApplicationRecord
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched.
-  TYPES = %w[Sources::Folder Sources::Bookstack Sources::ManualUpload].freeze
+  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Web Sources::ManualUpload].freeze
 
   # Fallback when a source names no interval of its own. On the base class
   # because Source.due_for_sync inlines it into SQL for every type at once.
@@ -332,7 +337,7 @@ class Source < ApplicationRecord
 
   # --- sync contract (see the class comment) ---------------------------------
 
-  def each_item
+  def each_item(_run = nil)
     raise MissingImplementationError, "#{self.class.name} must implement #each_item"
   end
 

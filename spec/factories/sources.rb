@@ -17,6 +17,13 @@ FactoryBot.define do
     selectors { [{ "book" => 1 }] }
   end
 
+  # Needs an Endpoints::Web: the source validates the pairing.
+  factory :web_source, class: "Sources::Web" do
+    sequence(:name) { |n| "Docs #{n}" }
+    endpoint factory: :web_endpoint
+    path_prefix { "/docs" }
+  end
+
   # Points at a real temporary directory, since the source validates that its
   # path exists and is readable. Pass `path` to point it at a fixture tree.
   factory :folder_source, class: "Sources::Folder" do

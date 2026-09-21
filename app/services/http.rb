@@ -14,13 +14,17 @@ module Http
     exceptions: [Faraday::TimeoutError, Faraday::ConnectionFailed]
   }.freeze
 
-  def self.connection(base_url, timeout: 120)
+  # `raise_errors: false` leaves the response to the caller. Only a crawler
+  # wants that: a 301 is a link to follow and a 404 is a fact about the site,
+  # and both arrive as exceptions once `raise_error` is in the stack — which
+  # throws away the response before anything can read it.
+  def self.connection(base_url, timeout: 120, raise_errors: true)
     Faraday.new(url: base_url) do |f|
       f.request :multipart
       f.request :url_encoded
       f.request :retry, **RETRY_OPTIONS
       f.request :instrumentation # emits "request.faraday" on ActiveSupport::Notifications
-      f.response :raise_error    # turn 4xx/5xx into Faraday::Error subclasses
+      f.response :raise_error if raise_errors # turn 4xx/5xx into Faraday::Error subclasses
       f.options.timeout = timeout
       f.adapter Faraday.default_adapter
     end

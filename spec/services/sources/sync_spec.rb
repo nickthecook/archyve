@@ -243,6 +243,118 @@ RSpec.describe Sources::Sync do
       end
     end
 
+    # The three buckets a document not stamped by a run can fall into. A source
+    # that discovers its own items is the only one where the third is in doubt,
+    # so it is stubbed here rather than reached through a crawl.
+    describe "what absence is read as" do
+      let!(:answered) do
+        create(:document, source: source, external_id: "https://site/answered",
+          source_version: "v1", status: "processed")
+      end
+
+      let!(:never_seen) do
+        create(:document, source: source, external_id: "https://site/never-seen",
+          source_version: "v1", status: "processed")
+      end
+
+      before do
+        allow(source).to receive(:authoritative_scan?) { |run| run.items.inconclusive.none? }
+        allow(source).to receive(:each_item) do |run|
+          run.items.create!(external_id: "https://site/answered", disposition: answer, status_code: code)
+          run.items.create!(external_id: "https://site/other", disposition: :ok, status_code: 200)
+        end
+      end
+
+      context "when the source answered about one and nothing else failed" do
+        let(:answer) { :not_found }
+        let(:code) { 404 }
+
+        it "tombstones the one it answered about" do
+          result
+          expect(answered.reload.status).to eq("removed")
+        end
+
+        # Nothing failed, so nothing could have been concealing it: not linked
+        # from anywhere reachable is, for a discovering source, gone.
+        it "tombstones the one it never saw" do
+          result
+          expect(never_seen.reload.status).to eq("removed")
+        end
+
+        it { expect(result.withheld_count).to eq(0) }
+      end
+
+      context "when the source gave no answer about one" do
+        let(:answer) { :timeout }
+        let(:code) { nil }
+
+        it "leaves the one it has no answer about alone" do
+          result
+          expect(answered.reload.status).to eq("processed")
+        end
+
+        # The rule is blunt on purpose: a document never seen is
+        # indistinguishable from one hidden behind the URL that timed out, so
+        # the whole never-seen bucket is held back.
+        it "leaves the one it never saw alone too" do
+          result
+          expect(never_seen.reload.status).to eq("processed")
+        end
+
+        it { expect(result.withheld_count).to eq(2) }
+      end
+
+      # The case that made the old whole-run gate wrong: a definite answer must
+      # not be discarded because something unrelated failed.
+      context "when one answered 404 and something else timed out" do
+        let(:answer) { :not_found }
+        let(:code) { 404 }
+
+        before do
+          allow(source).to receive(:each_item) do |run|
+            run.items.create!(external_id: "https://site/answered", disposition: :not_found, status_code: 404)
+            run.items.create!(external_id: "https://site/slow", disposition: :timeout)
+          end
+        end
+
+        it "still tombstones the one that answered 404" do
+          result
+          expect(answered.reload.status).to eq("removed")
+        end
+
+        it "still holds back the one it never saw" do
+          result
+          expect(never_seen.reload.status).to eq("processed")
+        end
+
+        it { expect(result.withheld_count).to eq(1) }
+      end
+    end
+
+    # Item rows are a scan's working set and the histogram is the durable
+    # summary. A source that discovers its items writes one row per item, so
+    # keeping them all would mean tens of millions of rows to answer "how did
+    # last Tuesday's crawl go".
+    context "with a source that records how each item resolved" do
+      before do
+        allow(source).to receive(:each_item) do |run|
+          run.items.create!(external_id: "https://site/a", disposition: :ok, status_code: 200)
+          run.items.create!(external_id: "https://site/b", disposition: :not_found, status_code: 404)
+          run.items.create!(external_id: "https://site/c", disposition: :timeout)
+        end
+      end
+
+      it "rolls the rows up onto the run" do
+        expect(result.response_stats).to eq("200" => 1, "404" => 1, "timeout" => 1)
+      end
+
+      # A failure is a question about a document over time — "this page has
+      # failed every scan for a week" — which the histogram cannot answer.
+      it "reaps the cleanly resolved rows and keeps the rest" do
+        expect(result.items.pluck(:external_id)).to eq(["https://site/c"])
+      end
+    end
+
     context "with a document whose last ingest failed" do
       before do
         write("broken.md")

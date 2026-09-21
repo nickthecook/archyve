@@ -27,9 +27,9 @@ text, per item, kept somewhere the UI can read.
 
 **Shape of the work.**
 
-- **Per-item failures need a home: `source_sync_items`.** Built 2026-09-20 — see the
-  table under "The web source", phase 4, which this shares with the crawler's
-  frontier. The alternative considered and dropped was a jsonb `failures` column
+- **Per-item failures need a home: `source_sync_items`.** Built 2026-09-20 — the
+  table is in the schema and documented on `SourceSyncItem`, which the crawler's
+  frontier shares. The alternative considered and dropped was a jsonb `failures` column
   on `source_sync` capped at N entries, which is cheaper and was the earlier
   lean. The bug below is what rules it out: once the failure list decides
   whether a document is tombstoned, it is correctness rather than diagnostics,
@@ -55,6 +55,72 @@ text, per item, kept somewhere the UI can read.
   resumable source may be the fifth, and an in-memory list would be lost at every
   pause before it. Same principle as `authoritative_scan?`: absence is only
   evidence of deletion when the scan actually looked.
+
+- **Widened 2026-09-20: the exclusion covered only `failed`.** Found while
+  crawling a real wiki, whose `Special:` pages answer 403. The fix above excluded
+  exactly one disposition, so a URL that timed out, refused the connection,
+  answered 5xx or answered 403 still left its document unstamped and still got
+  tombstoned.
+
+  `authoritative_scan?` looks like it should have caught this and did not, and
+  chasing why produced the rule below.
+
+  **Three buckets, not two.** What an unstamped document means depends on what
+  the run knows about it:
+
+  | The run has | Conclusion |
+  |---|---|
+  | a **conclusive** row — 404, 403, redirected, robots_excluded, nothing_readable, out_of_scope | gone; tombstone it whatever else the run hit |
+  | an **inconclusive** row — timeout, 5xx, refused, an error of ours | no information; never tombstone |
+  | **no row at all** | never looked at. Gone *unless* something that failed could have been hiding it |
+
+  `authoritative_scan?` answers the third line and only the third line. Using it
+  as an early return over the whole of `tombstone_vanished` — which is what the
+  first cut did — throws the first bucket away with the third, so an unrelated
+  timeout somewhere on a site would keep a document whose URL had plainly
+  answered 404. Its own comment always said "whether absence from this scan may
+  be read as deletion"; the name was right and the call site was wrong.
+
+  **And the third line is answered bluntly: any inconclusive row at all.** A
+  ratio was tried first and is unsound, because the pages at risk are precisely
+  the ones *missing* from the frontier and therefore missing from the
+  denominator — a hub failing among five hundred good pages sails under any
+  threshold while concealing everything behind it. Nor can the question be asked
+  per page: a page nothing links to any more and a page hidden behind a timeout
+  leave exactly the same trace, which is none.
+
+  So one unanswered URL, even a leaf that led nowhere, makes the whole never-seen
+  bucket untouchable for that run. Over-conservative in one direction only, and
+  knowingly: a deferred deletion costs a scan interval and fixes itself on the
+  next clean run, while a wrong one costs every chunk and embedding behind the
+  page. `source_syncs.withheld_count` records how many documents it held back,
+  and the run panel says so — a site with one permanently broken URL never gets
+  a clean run, and would otherwise stop pruning forever in silence.
+
+  **A 403 is conclusive**, and it tombstones. That was argued the other way
+  first, on the grounds that a refusal is probably temporary and the content is
+  probably still there. It isn't Archyve's call: the archive stores the view of
+  the source *as Archyve sees it*, and a document it may no longer read is not a
+  document it may keep. Retaining content on a guess about why access was
+  withdrawn is second-guessing the source, and leaves the archive holding a view
+  nobody can check.
+
+  A timeout, a refused connection and a 5xx stay inconclusive, and the
+  distinction is exactly that they are not answers. Protecting against the data
+  loss a genuine mistake would cause belongs in "Document revisions and source
+  rollback" below, not in guessing here.
+
+  Verified against a real server: three pages reachable only through one hub.
+  Healthy, six documents. Hub times out — `removed=0 withheld=4`, nothing lost.
+  Hub 404s — `removed=4 withheld=0`, hub and all three behind it retired. Same
+  four documents, opposite outcomes, one input different.
+
+  **Sharpening it would mean remembering the link graph** — which page led to
+  which, so "reachable only through the failed hub" becomes answerable and one
+  timeout stops blocking unrelated deletions. That is an edges table written
+  every run, and conclusive rows are reaped at terminal status so even the last
+  run's structure is gone. Recorded as a possible refinement; wait for the
+  bluntness to actually hurt before paying for it.
 
   One wrinkle worth keeping: an item with a blank `external_id` is counted but
   not recorded. There is no document it could correspond to, and writing the row
@@ -316,130 +382,145 @@ the thing that discovers they broke.
 - **No failure rows**, so the new `source_sync_items` path sat inert on healthy
   sources rather than masking anything.
 
-### Phase 4 — The crawler
+### Phase 4 — The crawler — **built 2026-09-20**
 
-In this order, because the first three steps are pure functions testable against
-fixtures with no network at all:
+Built in the order below, and single-threaded: the fetcher pool is deferred to
+phase 5, so that the first real crawl debugged canonicalisation, boundaries and
+extraction rather than thread lifecycle at the same time. The pool is a swap
+behind `#each_item` — every query and yield already stays on the enumerating
+thread — so nothing here has to move to add it.
 
-1. **`Endpoints::Web`** — origin plus optional credentials (Basic, or a static
-   bearer/header; cookie and form login are explicitly out of scope). `#access!`
-   is a GET of the origin. `Http` needs redirect handling, which it has none of
-   today: a 301 currently raises through `raise_error`. Handle 3xx in the crawler
-   rather than adding `faraday-follow_redirects`, so each hop can be inspected.
-2. **URL canonicalisation and the boundary rule.** Lowercase host, no trailing
-   slash, no fragment, query strings stripped entirely. Same host only, no
-   extra-host allowlist until one is actually needed. Prefix matching is
-   **segment-aware** — `/docs` must not match `/docsearch` — and re-checked after
-   *every* redirect hop, not only on the seed URL.
-3. **Content extraction.** Arc90 Readability against `Nokogiri::HTML5` (the HTML5
-   parser, not the HTML4 default: it handles real tag soup the way a browser
-   does). Remove `script, style, nav, header, footer, aside, form, noscript,
-   iframe` and anything whose id/class matches the negative regex; score `p`, `td`,
-   `pre`, `div` by text volume; propagate to parent and grandparent; penalise by
-   link density (`link_text_length / total_text_length`, ~1.0 for a nav block and
-   ~0.05 for prose — the single ratio that does most of the work). Try `main`,
-   `article`, `[role=main]` first, since every common doc generator emits one, and
-   fall back to scoring. Per-source `content_selector` as the escape hatch.
-   Preserve `h1`–`h6`: `Ingestion::Chunker` builds its heading path from
-   structure. Add `gem "nokogiri"` explicitly — it is only a transitive
-   dependency via loofah today.
-4. **`source_sync_items`** — per-item outcomes that need to outlive a run's
-   counters, belonging to the run:
+1. **`Endpoints::Web`** — origin plus optional credentials (HTTP Basic, or a
+   fixed header). `#access!` is a GET of the origin. `Http.connection` grew
+   `raise_errors:`, and only the crawler passes false: a 301 is a link to follow
+   and a 404 is a fact about the site, and `raise_error` throws the response away
+   before either can be read. Redirects are handled per-hop in the crawler, as
+   planned.
+2. **`Crawl::Boundary`** — canonicalisation and the boundary rule in one object,
+   because they are the same question asked twice: what is this URL's one
+   spelling, and is that spelling ours. Segment-aware prefix matching, re-checked
+   on every redirect hop.
+3. **`Crawl::Readability` / `Crawl::Page`** — Arc90 against `Nokogiri::HTML5`,
+   with `main`/`article`/`[role=main]` believed first and scoring as the
+   fallback. `nokogiri` is now an explicit dependency.
+4. **`source_sync_items`** — gained `status_code`, and the dispositions the plan
+   listed. `Crawl::Frontier` is the crawl's half of it; `SourceSyncItem.histogram`
+   is the rollup.
+5. **`Sources::Web`** — sitemap when there is one, crawl as the fallback, item
+   rows resolved *after* the yield.
+6. **Politeness** — `Crawl::Robots` (longest-match-wins, not first-match),
+   crawl-delay honoured and settable per source, per-page `meta[name=robots]`,
+   an identifying User-Agent, one connection at a time.
+7. **UI** — both forms, and a "Crawl" block on the run carrying the response
+   histogram with per-key hover text.
+8. **SPA detection** — a page extracting below `Crawl::Page::MINIMUM_TEXT`
+   resolves `nothing_readable` and produces no document; `#read` raises
+   `Ingestion::NothingReadable` if a page that used to extract no longer does.
 
-   ```
-   source_sync_id, external_id
-   disposition   # nil = discovered, not yet attempted
-                 # ok / failed / not_found / server_error / timeout /
-                 # connection_failed / redirected / robots_excluded /
-                 # nothing_readable
-   status_code   # nullable: transport failures have none
-   detail        # jsonb: error class and message, crawl depth
-   unique index on [source_sync_id, external_id]
-   ```
+**Seven things the build settled that the design hadn't.**
 
-   **Rows are never a complete enumeration of what a run saw** — they are the
-   items worth remembering. For Folder and BookStack that means failures only.
-   A source that discovers its items writes one per item, because the row is how
-   it remembers the work is done; that completeness is a property of how that
-   source uses the table, not of the table.
+- **The sitemap's ETag/Last-Modified are not worth keeping, and are not kept.**
+  The plan had `#each_item` conditional-GET the sitemap and replay a cached link
+  set on a 304. There is nowhere good to cache that set — a 50,000-URL list in
+  `sources.state` is multi-megabyte jsonb on a row loaded by every sources page —
+  and, more to the point, nothing needs one. A run's item rows *are* the cached
+  link set: seeding happens once per run, and a resumed pass finds the frontier
+  already seeded and never asks the sitemap again. So the conditional GET would
+  save nothing and the cache would have no reader. `state` therefore holds only
+  the cached robots.txt, which is a genuine cross-run fact.
 
-   Discovering an item is an `insert_all` with `ON CONFLICT DO NOTHING` against
-   the unique index, so dedup is a constraint rather than a discipline — no
-   check-then-act, no in-memory seen-set, no race between two fetchers finding
-   the same link. Attempting it updates the row in place. For a crawl the
-   frontier is `where(disposition: nil)`, "drained" is that scope being empty, a
-   pending row is an unmet obligation and a resolved one is proof an attempt
-   happened and what came of it. Seeding a crawl is one insert; resuming is a
-   query.
+- **A site that canonicalises to trailing slashes would have dead-ended the
+  crawl.** Canonical URLs carry no trailing slash, so such a site answers ours
+  with a redirect back to the same page. Read as an ordinary redirect that is a
+  loop with no exit: the target canonicalises to the row just resolved, which is
+  already resolved, so nothing new is ever discovered. `#fetch_page` follows a
+  redirect *in place* when the target canonicalises to the URL we asked for. It
+  also fixes a second thing that was quietly wrong — relative links now resolve
+  against the URL the server actually served, and for a directory that is a
+  different answer.
 
-   Three consumers, only one of them the crawler: the frontier above, the
-   tombstone exclusion under "Surfacing sync failures", and the per-item failure
-   history that section wants to show. The last two are engine-wide, which is
-   what pays for the table whether or not a second discovering source ever turns
-   up.
+- **The page cap has to be checked per page, not per batch.** A batch is fifty
+  URLs; a cap only honoured between batches overshoots by up to forty-nine. One
+  indexed `COUNT` against one HTTP fetch is not a cost worth saving.
 
-   Reaping differs by disposition. A crawl's successes are bulk and disposable,
-   rolled into the `SourceSync` histogram at terminal status; failures persist,
-   because "this file has failed every scan for a week" is a question about a
-   document over time.
+- **`authoritative?` needs no page-cap clause.** A crawl stopped by its
+  allowance still has pending rows, so it fails the drained check already. The
+  explicit `exhausted?` test the plan implied was both redundant and off by one
+  at exactly the boundary.
 
-   **Todo, not now: split `redirected` by whether the target was inside the
-   boundary.** Purely diagnostic — the crawl loop does not care, because the row
-   is resolved either way and whether a target row exists is already the complete
-   record. Deferred because the payoff is a stat and the "Last scan" row is
-   carrying eight of them already; crawl stats likely want their own block rather
-   than a ninth column. Recorded so it is a choice rather than an oversight.
+- **The histogram keys on the disposition unless the status code *is* the
+  story.** A client-rendered page answers 200 and extracts to nothing; filed
+  under `"200"` it is indistinguishable from the pages that worked, which is the
+  one distinction the crawl stats exist to draw. So `ok` / `not_found` /
+  `server_error` / `redirected` count by number and everything else by name.
 
-5. **`Sources::Web`** — `sitemap.xml` when the site has one, crawl as the
-   fallback. `#each_item` conditional-GETs with stored ETag/Last-Modified; a 304
-   replays the cached link set without re-parsing. `#read` re-fetches and
-   re-extracts. `authoritative_scan?(run)` is the item-row query from Phase 2.
+- **`Frontier#authoritative?` is only answerable before the rows are reaped**,
+  and that is the right way round: its only caller is `tombstone_vanished`,
+  which runs before `finish`. Worth knowing before anyone calls it from the UI.
 
-   **Resolve an item row *after* the yield returns, not before.** `#reconcile` is
-   idempotent per item — a repeated yield finds the document, `changed?` is
-   false, and it counts `unchanged` — so dying between the count and the resolve
-   costs one inflated `found`/`unchanged` next pass. Resolving first inverts the
-   failure into data loss: the row reads resolved, the document never got
-   stamped, the frontier drains, `authoritative_scan?` says yes, and
-   `tombstone_vanished` destroys its chunks. This is the inversion flagged in
-   Phase 1; do not "fix" it back.
+- **`#each_item` takes the run.** The engine always had it — `authoritative_scan?`
+  already took it — but a source whose position is rows rather than memory cannot
+  find its own frontier without it. Folder and BookStack ignore the argument.
 
-   **Parallelism is threads in one pass, not concurrent jobs.** `SyncJob` already
-   holds `limits_concurrency key: source.id, to: 1`, so no second process can
-   ever contend for these rows and the database needs no claiming — no
-   `FOR UPDATE SKIP LOCKED`, no `claimed_at`. Fetcher threads do **HTTP only**;
-   every query, insert and `yield` stays on the enumerating thread, which
-   sidesteps connection-pool sizing and thread-safety entirely. Blocking IO
-   releases the GIL, so this genuinely parallelises the part that waits. Four
-   things that bite:
+- **`path_prefix` was doing two jobs, and `start_path` now does one of them.**
+  Found on a real wiki: pointed at `/Category:Universe_and_lore`, the crawl
+  visited one page and stopped. Every link on a MediaWiki category page goes to
+  `/Article_Name` at the site root, because a category is a *membership*
+  relation and not a path subtree — so the boundary correctly rejected all of
+  them. The same shape turns up on any hub page: a changelog, a hand-written
+  index, a "start here".
 
-   - A `SizedQueue` for results, or fetchers run thousands of pages ahead of a
-     reconcile that is enqueuing import jobs.
-   - Extraction stays on the main thread: it is CPU, so it is GIL-bound, and in a
-     worker it would only steal the lock from threads doing useful waiting.
-   - Shut the pool down from `ensure` with a sentinel, not `kill` — `Sync` breaks
-     out of `#each_item` on budget or abandonment, and leaked threads would go on
-     fetching into a finished run.
-   - Crawl-delay is a property of the host, not of a thread. Two fetchers each
-     honouring the delay hit the site at twice the intended rate; it wants a
-     shared mutex and a next-allowed-at.
+  Where a crawl begins and what it may keep are separate questions, so they are
+  now separate fields. The seed is fetched for its links even when it sits
+  outside the path, and resolves `out_of_scope` rather than becoming a document
+  — the archive was asked for the path, not for the page that points at it. An
+  explicit start also turns the sitemap off: naming a page to begin at is asking
+  for what that page reaches, and seeding the whole site beside it would answer
+  a question nobody asked.
 
-   Worker exceptions come back as a result object carrying an error disposition.
-   A thread that raises takes its exception with it until `join`.
+  The wiki case is then `start_path` = the category, `path_prefix` = `/`, and
+  `max_depth` doing the bounding — which reads as "this category's articles and
+  not much else".
 
-6. **Politeness** — robots.txt and crawl-delay honoured, per-page
-   `meta[name=robots]` too, an identifying User-Agent, one or two connections per
-   host. GET and HEAD only.
-7. **UI** — the source form, and the crawl stats on the run. `found` and URLs
-   visited will differ and people will ask why, so both want hover text: *"Documents
-   this scan found in the source"* against *"Pages the crawler fetched. Higher than
-   found: redirects, dead links and pages with nothing readable are visited but
-   produce no document."* The pattern already exists: `Views::Sources::LastScan`
-   carries a `HINTS` hash and renders each label with a `title:` and a dotted
-   underline, which is the only cue that there is anything to hover.
-8. **SPA detection.** A client-rendered page extracts to near-zero text.
-   `Ingestion::NothingReadable` already has the right shape; the point is that it
-   must report, not silently store an empty document.
+**Verified against a real HTTP server**, not fixtures — a throwaway site served
+from a `TCPServer` in a probe script, crawled through the whole stack including
+Docling and the chunker:
+
+- **First scan** — `found=6 created=6 removed=0 errored=0`, authoritative at
+  tombstoning time, every URL fetched exactly once, all six documents reaching
+  `processed` with chunks.
+- **`response_stats`** — `{"200"=>6, "301"=>1, "404"=>1, "nothing_readable"=>1,
+  "robots_excluded"=>1}`, and every clean row reaped.
+- **Re-scan of an unchanged site** — `found=6 unchanged=6 updated=0 removed=0`.
+  The one that matters most: if the version token had churned on response HTML
+  rather than extracted content, all six would have re-embedded.
+- **One page edited** — `unchanged=5 updated=1`, so the token discriminates.
+- **Individually confirmed**: sitemap seeding reaching a page nothing links to;
+  a robots.txt exclusion never fetched at all; a 404 leaving no document behind;
+  a redirect becoming its own document while the redirecting URL stays a crawl
+  fact and not an archive one; a trailing-slash redirect resolving to a single
+  identity; a relative link on a directory page resolving correctly; nav and
+  footer stripped with `h2` kept for the chunker's heading path.
+
+### Phase 5 — The fetcher pool
+
+Deferred from phase 4, and unchanged from the design there: a `SizedQueue` of
+results, fetcher threads doing HTTP only, extraction and every query and yield
+staying on the enumerating thread, shutdown from `ensure` with a sentinel rather
+than `kill`, and a shared mutex with a next-allowed-at so two fetchers do not
+halve the crawl delay between them. Worker exceptions come back as a result
+object carrying an error disposition.
+
+The single-threaded loop it replaces is `Sources::Web#each_item`, and the seam
+is already where it needs to be: `#visit` is the only thing that touches the
+network, and it hands its result straight to `yield`.
+
+**Also still deferred: split `redirected` by whether the target was inside the
+boundary.** Purely diagnostic — the crawl loop does not care, because the row is
+resolved either way and whether a target row exists is already the complete
+record. Held back because the payoff is a stat, and the crawl block on the run
+now carries a histogram that would rather grow a meaningful key than a
+near-duplicate one. Recorded so it stays a choice rather than an oversight.
 
 ### Decisions, so they don't get re-derived
 
@@ -590,6 +671,45 @@ Archyve's access model, not the site's.
 **Later, not now:** headless rendering for SPAs; cookie/form authentication;
 extra-host allowlists; per-source query-parameter allowlists; per-URL failure
 history (the histogram first, rows only if it proves too coarse).
+
+## Document revisions and source rollback
+
+Shaped 2026-09-20 as the answer to a question that kept coming up in the wrong
+place; nothing built.
+
+**The question it replaces.** Several decisions in the sync engine have been
+tempted to hedge against destroying something valuable — should a 403 tombstone,
+should a page that suddenly extracts to nothing, should a scan that narrowed its
+path. Every hedge is the same move: keep content the source is no longer
+offering, on a guess about why.
+
+That is the wrong place to solve it. The archive's job is to hold the view of
+the source *as Archyve sees it*; a sync that quietly keeps what it can no longer
+read is holding a view nobody can check, and the divergence is invisible
+precisely because nothing reports it. So the sync engine stays faithful, acts on
+every definite answer, and the protection against a *mistake* — a credential
+rotated by accident, a path narrowed by a typo, a site that broke — lives
+somewhere it can be seen and undone.
+
+**Shape.**
+
+- **Document revisions.** A tombstone becomes a revision rather than an erasure:
+  the bytes and the extraction that produced them are kept, and the current
+  document points at its latest revision. Chunks and embeddings are still
+  destroyed — they are derived, expensive to keep and cheap to rebuild — so a
+  restored revision is re-embedded rather than un-deleted.
+- **Rollback is per source and per run.** "Undo the last scan of this source" is
+  the operation people actually want after a bad one, and `SourceSync` already
+  records exactly which documents a run created, updated and retired. A run is
+  therefore the natural unit, and the source page already shows the list.
+- **The stats a rollback decision needs are already there.** `response_stats`
+  and the per-item failure rows are what tell you the scan went wrong; the run
+  that reports `forbidden 412` next to `200 3` is the one to undo.
+
+**What it must not become.** Not an audit log and not version history for
+readers — this is an operator's undo, for the window between a bad scan and
+somebody noticing. Retention should be bounded, and the bound is a decision for
+when it is built.
 
 ## Later
 

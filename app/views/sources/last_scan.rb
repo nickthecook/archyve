@@ -33,8 +33,25 @@ class Views::Sources::LastScan < Components::Base
                "These documents are out of date and will not catch up on their own.",
     "errored" => "The scan hit an error on these items and left them alone — nothing was removed — so the " \
                  "next scan tries again. Failures reading or extracting a file happen later, and appear " \
-                 "as failed documents below."
+                 "as failed documents below.",
+    "visited" => "URLs the crawler fetched. Higher than found: redirects, dead links and pages with " \
+                 "nothing readable are all visited and produce no document."
   }.freeze
+
+  # What a crawl's response keys mean. Status codes speak for themselves; the
+  # named buckets are the things that never reached HTTP at all, or that we
+  # declined before asking.
+  DISPOSITIONS = Hash.new { |_hash, key| "HTTP #{key}" }.merge(
+    "timeout" => "No answer in time, after retries.",
+    "connection_failed" => "The host could not be reached.",
+    "robots_excluded" => "robots.txt asked us not to fetch this.",
+    "nothing_readable" => "Fetched, but nothing to index: a client-rendered page, a noindex, or not HTML.",
+    "redirected" => "Pointed somewhere else. The target was crawled on its own if it was in scope.",
+    "not_found" => "The site says this is gone. Any document from it is removed.",
+    "server_error" => "The site answered with an error of its own.",
+    "failed" => "The scan errored on this item and left it alone.",
+    "out_of_scope" => "Read for the links on it, but outside the path — so no document was made from it."
+  ).freeze
 
   # Keyed on the source, not the run: a new scan replaces this region with a
   # different run, so the target has to outlive any one of them.
@@ -86,8 +103,46 @@ class Views::Sources::LastScan < Components::Base
       header_row
       error_row if @sync.error.present?
       stale_warning if @sync.stale_count.positive?
+      withheld_warning if @sync.withheld_count.positive?
       counts_row
+      crawl_row
       processing_row
+    end
+  end
+
+  # Only a source that discovers its own items has these, and when it does the
+  # numbers above stop being self-explanatory: a crawl fetches more URLs than it
+  # produces documents, every time. Redirects, dead links and pages with nothing
+  # readable are all visited and all produce nothing, so `found` sitting well
+  # below this total is the healthy case rather than a shortfall.
+  def crawl_row
+    stats = @sync.response_stats.presence
+    return if stats.blank?
+
+    div(class: "mt-5 border-t border-line pt-4") do
+      div(class: "mb-2 flex items-center justify-between gap-3") do
+        span(class: "shrink-0 text-xs text-muted") { "Crawl" }
+        span(title: HINTS.fetch("visited"), class: "cursor-help font-mono text-xs text-faint") do
+          span(class: "underline decoration-dotted decoration-line-2 underline-offset-4") do
+            "#{stats.values.sum} URLs visited"
+          end
+        end
+      end
+      dispositions(stats)
+    end
+  end
+
+  # Numeric keys are HTTP status codes; named ones are everything that never got
+  # that far. Ordered by weight, so whatever dominated the crawl reads first.
+  def dispositions(stats)
+    div(class: "flex flex-wrap gap-1.5") do
+      stats.sort_by { |_key, count| -count }.each do |key, count|
+        span(
+          title: DISPOSITIONS[key],
+          class: "rounded border border-line px-1.5 py-0.5 font-mono text-[0.7rem] " \
+                 "#{key.match?(/\A[2-3]\d\d\z/) ? 'text-muted' : 'text-amber-300/80'}"
+        ) { "#{key} #{count}" }
+      end
     end
   end
 
@@ -149,6 +204,23 @@ class Views::Sources::LastScan < Components::Base
         plain "#{count} #{'document'.pluralize(count)} #{count == 1 ? 'is' : 'are'} out of date: "
         plain "the file changed into something this source can't ingest. "
         plain "Raising the size limit and re-syncing will pick #{count == 1 ? 'it' : 'them'} up."
+      end
+    end
+  end
+
+  # A scan that quietly stopped pruning has to say so. The blunt version of the
+  # rule is that one unanswered URL makes the whole run unable to tell "nothing
+  # links here any more" from "something hid it", so this can be a large number
+  # for one timeout — which is the point of showing the cause next to the count.
+  def withheld_warning
+    count = @sync.withheld_count
+    unanswered = @sync.items.inconclusive.count
+
+    div(class: "mb-4 rounded border border-line-2 bg-void/40 px-3 py-2") do
+      p(class: "text-xs text-muted") do
+        plain "#{count} #{'document'.pluralize(count)} this scan didn't reach #{count == 1 ? 'was' : 'were'} left alone. "
+        plain "#{unanswered} #{'URL'.pluralize(unanswered)} gave no answer, so anything behind #{unanswered == 1 ? 'it' : 'them'} "
+        plain "may have been hidden rather than gone. Nothing was removed on that basis; the next clean scan will decide."
       end
     end
   end

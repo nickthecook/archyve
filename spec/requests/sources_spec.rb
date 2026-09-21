@@ -188,6 +188,28 @@ RSpec.describe "Sources", type: :request do
       end
     end
 
+    context "with a type that needs an endpoint" do
+      let!(:endpoint) { create(:web_endpoint, name: "Handbook site") }
+
+      before { get new_source_path(type: "Sources::Web") }
+
+      it { expect(response).to have_http_status(:ok) }
+
+      # Every type that names an endpoint_type gets the picker from the shared
+      # form, so a new one cannot ship without a way to choose its server.
+      it "offers the endpoints of that type" do
+        expect(response.body).to include("Handbook site")
+      end
+    end
+
+    context "with a type that needs an endpoint and none configured" do
+      before { get new_source_path(type: "Sources::Web") }
+
+      it "points at where one is added" do
+        expect(response.body).to include("No Website endpoints yet")
+      end
+    end
+
     context "with a type that isn't a registered source" do
       it "refuses rather than instantiating it" do
         get new_source_path(type: "Kernel")
@@ -339,7 +361,7 @@ RSpec.describe "Sources", type: :request do
         before { get new_source_path(type: "Sources::Bookstack") }
 
         it "points at where one is added" do
-          expect(response.body).to include("No BookStack servers yet")
+          expect(response.body).to include("No BookStack endpoints yet")
         end
       end
     end

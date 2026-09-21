@@ -10,4 +10,11 @@ FactoryBot.define do
 
     factory :bookstack_endpoint
   end
+
+  # The origin only — a path here is a validation error, since the path prefix
+  # belongs to the source.
+  factory :web_endpoint, class: "Endpoints::Web" do
+    sequence(:name) { |n| "Site #{n}" }
+    base_url { "https://docs.test" }
+  end
 end

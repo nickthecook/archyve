@@ -20,31 +20,16 @@ class Views::Sources::Forms::Bookstack < Views::Sources::Form
   private
 
   def type_fields
-    field("Server", server_hint) { server_picker }
     field("What to sync", "Pick as many as you like. Everything inside is taken, and stays in step as pages are added and removed.") { selector_picker }
   end
 
-  def server_hint
-    return "Fixed once the source exists — a source's documents are identified within the server that produced them." if @source.persisted?
-
+  def new_server_hint
     "The wiki, and the API token Archyve reads it with. Archyve sees exactly what that token's BookStack user sees."
   end
 
-  # Fixed after creation: repointing a source at a different wiki would leave
-  # every document keyed by a page id that means something else there.
-  def server_picker
-    return note { p(class: "text-sm text-fg") { @source.endpoint&.name || "none" } } if @source.persisted?
-    return no_endpoints if @endpoints.empty?
-
-    div(class: "flex items-center gap-2") do
-      select(name: "source[endpoint_id]", class: input_classes) do
-        @endpoints.each do |endpoint|
-          option(value: endpoint.id, selected: endpoint.id == @source.endpoint_id) { endpoint.name }
-        end
-      end
-      browse_button
-    end
-  end
+  # Only this type needs one: the selector picker below is drawn from a live
+  # call to the wiki, so changing server has to re-list what is on it.
+  def server_extras = browse_button
 
   # A GET back to this same page, so switching server re-lists what's on it.
   # The form's own fields ride along in the query string, so nothing typed so
@@ -57,17 +42,6 @@ class Views::Sources::Forms::Bookstack < Views::Sources::Form
       formaction: new_source_path(type: @source.class.name),
       class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
     ) { "Browse" }
-  end
-
-  def no_endpoints
-    note do
-      p(class: "text-sm text-fg") { "No BookStack servers yet." }
-      p(class: "mt-1 text-xs text-faint") do
-        plain "Add one under "
-        a(href: new_settings_endpoint_path, class: "text-accent hover:underline") { "Settings → Endpoints" }
-        plain ", then come back — the token is typed once per wiki, however many sources read it."
-      end
-    end
   end
 
   def selector_picker
