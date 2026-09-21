@@ -24,6 +24,7 @@ class Views::Settings::Endpoints::Form < Components::Base
         text_input(:base_url, @endpoint.base_url, placeholder: address_placeholder, mono: true)
       end
 
+      scope_fields
       credential_fields
 
       actions
@@ -35,6 +36,10 @@ class Views::Settings::Endpoints::Form < Components::Base
   def credential_fields
     raise Endpoint::MissingImplementationError, "#{self.class.name} must implement #credential_fields"
   end
+
+  # What narrows this endpoint beyond its address, for a type that has such a
+  # thing. An API token already carries its own limits; a website does not.
+  def scope_fields = nil
 
   def address_hint = "Where the server is."
   def address_placeholder = "https://example.com"
@@ -82,6 +87,12 @@ class Views::Settings::Endpoints::Form < Components::Base
       p(class: "mt-0.5 mb-2 text-xs text-faint") { hint }
       yield
     end
+  end
+
+  # A quiet box for things the form is telling you rather than asking you,
+  # matching Views::Sources::Form.
+  def note(&)
+    div(class: "mt-2 rounded border border-line bg-void/40 px-3 py-2.5", &)
   end
 
   def errors

@@ -1,9 +1,10 @@
 require "rails_helper"
 
 RSpec.describe Crawl::Boundary do
-  subject(:boundary) { described_class.new(origin: origin, prefix: prefix) }
+  subject(:boundary) { described_class.new(origin: origin, scope: scope, prefix: prefix) }
 
   let(:origin) { "https://docs.test" }
+  let(:scope) { nil }
   let(:prefix) { "/docs" }
 
   describe "#seed" do
@@ -21,6 +22,13 @@ RSpec.describe Crawl::Boundary do
       let(:prefix) { "docs/" }
 
       it { expect(result).to eq("https://docs.test/docs") }
+    end
+
+    context "with a scope and no source prefix" do
+      let(:scope) { "/wiki" }
+      let(:prefix) { nil }
+
+      it { expect(result).to eq("https://docs.test/wiki") }
     end
   end
 
@@ -147,6 +155,32 @@ RSpec.describe Crawl::Boundary do
       let(:href) { "https://elsewhere.test/docs/guide" }
 
       it { expect(result).to be_nil }
+    end
+  end
+  # The endpoint's half of the boundary: an admin's limit on what an operator
+  # may reach with that endpoint's credentials.
+  describe "with a scope narrower than the whole site" do
+    let(:scope) { "/wiki" }
+    let(:prefix) { "/wiki/docs" }
+
+    describe "#include?" do
+      it { expect(boundary.include?("https://docs.test/wiki/docs/guide")).to be(true) }
+      it { expect(boundary.include?("https://docs.test/wiki/other")).to be(false) }
+      it { expect(boundary.include?("https://docs.test/elsewhere")).to be(false) }
+    end
+
+    describe "#reachable?" do
+      it { expect(boundary.reachable?("https://docs.test/wiki/index")).to be(true) }
+      it { expect(boundary.reachable?("https://docs.test/elsewhere")).to be(false) }
+      it { expect(boundary.reachable?("https://other.test/wiki/index")).to be(false) }
+    end
+
+    # Not assumed to nest: an admin narrowing the endpoint under a source that
+    # already exists would otherwise leave that source crawling where it likes.
+    context "with a source prefix outside the scope" do
+      let(:prefix) { "/elsewhere" }
+
+      it { expect(boundary.include?("https://docs.test/elsewhere/page")).to be(false) }
     end
   end
 end

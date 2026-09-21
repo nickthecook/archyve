@@ -711,6 +711,111 @@ readers — this is an operator's undo, for the window between a bad scan and
 somebody noticing. Retention should be bounded, and the bound is a decision for
 when it is built.
 
+## Endpoint-scoped crawling — **built 2026-09-20**
+
+An `Endpoints::Web` was an origin plus credentials, and a `Sources::Web` could
+name any path under it — so an operator who may attach a source to that endpoint
+could crawl the *whole host* with an admin's credentials. That is the concern
+already written down for BookStack ("this row is an identity, not just an
+address"), with none of the containment.
+
+**Not by putting a path in `base_url`,** which is what the form's error message
+used to suggest and what sent somebody to the wrong field. `base_url` is handed
+to Faraday by `Endpoint#client`, where `#access!` and the robots.txt fetch issue
+root-relative requests, and `Crawl::Boundary` reads only scheme, host and port
+from its `origin:` — so a path there is silently discarded and the crawl ranges
+over the host regardless. The validation refusing it stays; it now names the
+right field.
+
+**As built.** `Endpoints::Web#path_prefix`, a second `config` key beside
+`base_url` and no part of it, so `client` keeps its origin and nothing else
+moved. `Crawl::Boundary` gained a `scope:` alongside its `prefix:`, and the two
+answer to different people — `scope` is the admin's and binds everything,
+`prefix` is the operator's and says which part of that becomes documents.
+
+- `#include?` — ours to keep — requires *both*. Deliberately not assuming the
+  source's path nests inside the endpoint's, even though a validation says it
+  must: an admin narrowing the scope under a source that already exists would
+  otherwise leave that source crawling where it likes until someone re-saved it.
+- `#reachable?` — ours to fetch at all — is the scope alone, and exists for
+  `start_path`. A start page is *meant* to sit outside the source's prefix, so
+  `#include?` would never have caught it and it would have been a way to fetch
+  any URL on the host with the endpoint's credentials. Nothing becomes a
+  document from it, but the request still goes out.
+- `#access!` now checks the path rather than `/`, which is the more useful
+  question: a host whose front page is fine while `/docs` 404s is not a working
+  endpoint.
+- Enforcement is in `Crawl::Boundary` and not in the form, so links, redirect
+  hops, sitemap entries and the seed are all covered by one chokepoint and a
+  later source type cannot forget it. `Sources::Web#start_url` raises
+  `OutOfScopeError` rather than silently falling back — a run that fails loudly
+  beats a source quietly crawling somewhere it shouldn't.
+
+Verified against a real server: an endpoint confined to `/wiki`, a source on
+`/wiki/docs` starting at `/wiki/index`, and a `/secret/treasure` link on both
+pages. One document, the start page resolved `out_of_scope`, and `/secret` never
+requested at all — it is absent from the server's hit log, not merely absent
+from the archive.
+
+**Still open: the User-Agent is on the wrong class.** `Sources::Web` sets
+`USER_AGENT` on its own client, so `Endpoints::Web#access!` identifies itself as
+Faraday while the crawl identifies itself as Archyve. A site that filters on
+User-Agent will therefore disagree with itself about whether the endpoint is
+reachable. It identifies Archyve to the site whoever is talking, so it belongs
+on the endpoint — as an override of `Endpoints::Web#client` rather than on the
+`Endpoint` base, which would change BookStack's requests for no reason.
+
+## The budget and the heartbeat only tick when a document is produced
+
+Found 2026-09-20 on a real crawl; not fixed. `Sources::Sync#scan` checks
+`record_progress` and `out_of_budget?` inside the block it passes to
+`#each_item` — so both fire only when a source *yields an item*. Every URL a
+crawl fetches that produces no document is invisible to them: 404s, robots
+exclusions, redirects, non-HTML, pages that extract to nothing. On the wiki
+crawl that was 365 URLs out of 1,000.
+
+At a one-second crawl delay the overrun is tens of seconds and harmless. The
+failure mode is a site that asks for `Crawl-delay: 10` and has a long run of
+dead links, where a pass can go an hour without yielding — past `SyncJob`'s
+one-hour semaphore *and* past `SourceSync::STALL_AFTER`. The sweeper then
+retires a run that is alive and well, the semaphore has expired so a second pass
+can start beside it, and the two race each other's tombstones.
+
+That is precisely the race "a retired pass stands down" was built to prevent,
+and it does not help here: `#record_progress` is how a pass learns it has been
+retired, and it is blind at exactly the same moments.
+
+**The fix needs a small addition to the sync contract**, because `Sync` owns the
+budget and `Sources::Web#each_item` owns the loop, and the block is the only
+thing that currently passes between them. Something the source can ask between
+units of work rather than between yields — checked per URL in the crawl loop,
+where `crawl.exhausted?` already is.
+
+## A Folder whose disk is gone tombstones everything
+
+Found 2026-09-20; not fixed. `Dir.glob("**/*", base: root)` returns `[]` for a
+directory that does not exist rather than raising, so `Sources::Folder#each_item`
+yields nothing, the scan drains, `authoritative_scan?` answers true from the base
+class, and every document in the source is retired with its chunks. Verified:
+one document, `processed`, with a chunk; unmount the disk; next scan reports
+`found=0 removed=1` and the document is `removed` with no chunks.
+
+It only reported `failed` by luck — `source.update!` in `#finish` tripped the
+path validation *after* the tombstoning had committed. A failed mount that
+leaves the mountpoint present and empty would have reported `completed`.
+
+**The fix is a precondition, not a guess:** `#each_item` checks the root is a
+readable directory and raises if not. The run fails, nothing is tombstoned, the
+source waits out its interval. The validation already exists on the model; it is
+simply never re-checked at scan time, and a path that was valid when it was
+typed is not a path that is valid now.
+
+Note what this does *not* cover, deliberately: a mountpoint that exists and is
+empty is indistinguishable from a folder somebody emptied, and an empty
+directory is a definite answer. Telling those apart needs "this scan found far
+less than the source holds", which is a threshold and a different argument —
+see the tolerance rejected under "The web source", phase 4.
+
 ## Later
 
 - **Retrieval discrimination is weak on short queries.** Observed 2026-09-07:

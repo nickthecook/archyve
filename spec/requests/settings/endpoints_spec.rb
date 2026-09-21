@@ -62,10 +62,15 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
     end
 
     context "with the website type" do
+      before { get new_settings_endpoint_path(type: "Endpoints::Web") }
+
       it "renders its sign-in options" do
-        get new_settings_endpoint_path(type: "Endpoints::Web")
         expect(response.body).to include("HTTP Basic")
         expect(response.body).to include("Fixed header")
+      end
+
+      it "offers a path to confine it to" do
+        expect(response.body).to include("Confine this endpoint to one part of the site")
       end
     end
 

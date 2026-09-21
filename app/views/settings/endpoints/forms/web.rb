@@ -9,8 +9,29 @@ class Views::Settings::Endpoints::Forms::Web < Views::Settings::Endpoints::Form
 
   private
 
-  def address_hint = "The site's address, without a path. Which part of it to crawl is set on the source."
+  def address_hint = "The site's address, without a path."
   def address_placeholder = "https://docs.example.com"
+
+  # The admin's half of the boundary. Sources pick a path *within* this one, so
+  # it is the only thing standing between an operator and the rest of the host
+  # — worth saying on the form rather than leaving to be discovered.
+  def scope_fields
+    field("Path", scope_hint) do
+      text_input(:path_prefix, @endpoint.path_prefix, placeholder: "the whole site", mono: true)
+      note do
+        p(class: "text-xs text-faint") do
+          plain "Sources on this endpoint can only crawl under this path, and nothing outside it is ever "
+          plain "fetched — not a start page, not a redirect. Matched whole-segment, so /wiki takes "
+          plain "/wiki/Article but not /wikipedia."
+        end
+      end
+    end
+  end
+
+  def scope_hint
+    "Optional. Confine this endpoint to one part of the site, so its credentials can't be used to " \
+      "pull the rest of it."
+  end
 
   def credential_fields
     field("Sign-in", "Whatever a crawler can carry on every request. Cookie and form logins aren't supported.") do

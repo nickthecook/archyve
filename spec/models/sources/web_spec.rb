@@ -59,6 +59,41 @@ RSpec.describe Sources::Web do
       end
     end
 
+    # The endpoint's path is an admin's limit on what an operator may reach with
+    # its credentials, so the source's paths have to sit inside it.
+    context "with an endpoint confined to part of the site" do
+      let(:endpoint) { create(:web_endpoint, base_url: "https://docs.test", path_prefix: "/wiki") }
+
+      context "with a path under the endpoint's" do
+        subject(:source) { build(:web_source, endpoint: endpoint, path_prefix: "/wiki/docs") }
+
+        it { expect(source).to be_valid }
+      end
+
+      context "with a path outside the endpoint's" do
+        subject(:source) { build(:web_source, endpoint: endpoint, path_prefix: "/elsewhere") }
+
+        it "rejects it" do
+          source.valid?
+          expect(source.errors[:path_prefix]).to include(a_string_including("must be under /wiki"))
+        end
+      end
+
+      # The one that is easy to miss: a start page is *meant* to sit outside the
+      # source's own path, so only the endpoint's limit stops it being a way to
+      # reach the rest of the host.
+      context "with a start page outside the endpoint's path" do
+        subject(:source) do
+          build(:web_source, endpoint: endpoint, path_prefix: "/wiki/docs", start_path: "/index")
+        end
+
+        it "rejects it" do
+          source.valid?
+          expect(source.errors[:start_path]).to include(a_string_including("must be under /wiki"))
+        end
+      end
+    end
+
     context "with an endpoint of another type" do
       subject(:source) { build(:web_source, endpoint: create(:bookstack_endpoint)) }
 
@@ -352,6 +387,43 @@ RSpec.describe Sources::Web do
       it "ignores the sitemap" do
         expect(result.map(&:title)).to eq(["Index"])
       end
+    end
+
+    context "with an endpoint confined to part of the site" do
+      subject(:source) do
+        create(:web_source, endpoint: endpoint, path_prefix: "/wiki/docs", start_path: "/wiki/index")
+      end
+
+      let(:endpoint) { create(:web_endpoint, base_url: "https://docs.test", path_prefix: "/wiki") }
+
+      before do
+        stub_page("https://docs.test/wiki/index", page_html("Index", links: ["/wiki/docs/a", "/elsewhere/b"]))
+        stub_page("https://docs.test/wiki/docs/a", page_html("A"))
+        stub_page("https://docs.test/elsewhere/b", page_html("B"))
+      end
+
+      it { expect(result.map(&:title)).to eq(["A"]) }
+
+      # Nothing outside the endpoint's path is fetched at all — the link is not
+      # even queued, so no request goes out carrying its credentials.
+      it "never queues the link outside the endpoint" do
+        result
+        expect(run.items.pluck(:external_id)).not_to include("https://docs.test/elsewhere/b")
+      end
+    end
+
+    # A validation refuses this, so it only happens when an admin narrows the
+    # endpoint under a source that already exists.
+    context "with a start page the endpoint no longer reaches" do
+      subject(:source) do
+        create(:web_source, endpoint: endpoint, path_prefix: "/wiki", start_path: "/index")
+      end
+
+      let(:endpoint) { create(:web_endpoint, base_url: "https://docs.test") }
+
+      before { endpoint.update_column(:config, endpoint.config.merge("path_prefix" => "/wiki")) }
+
+      it { expect { result }.to raise_error(Sources::Web::OutOfScopeError) }
     end
 
     context "with a page budget smaller than the site" do

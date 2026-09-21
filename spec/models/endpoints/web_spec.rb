@@ -18,7 +18,22 @@ RSpec.describe Endpoints::Web do
 
       it "rejects it" do
         endpoint.valid?
-        expect(endpoint.errors[:base_url]).to include(a_string_including("put the path on the source"))
+        expect(endpoint.errors[:base_url]).to include(a_string_including("put the path in the Path field"))
+      end
+    end
+
+    context "with a path" do
+      let(:attributes) { { path_prefix: "/wiki" } }
+
+      it { expect(endpoint).to be_valid }
+    end
+
+    context "with a full address as the path" do
+      let(:attributes) { { path_prefix: "https://docs.test/wiki" } }
+
+      it "rejects it" do
+        endpoint.valid?
+        expect(endpoint.errors[:path_prefix]).to include(a_string_including("must be a path"))
       end
     end
 

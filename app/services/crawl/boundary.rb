@@ -13,18 +13,24 @@ module Crawl
   # site that serves both http and https would otherwise hold two documents per
   # page, and the http→https redirect every such site does would be read as
   # leaving the boundary.
+  #
+  # There are two prefixes, because they answer to different people. `scope` is
+  # the endpoint's, set by an admin, and binds everything — it is the limit on
+  # what an operator may reach with that endpoint's credentials. `prefix` is the
+  # source's, set by an operator, and says which part of that becomes documents.
   class Boundary
     SCHEMES = %w[http https].freeze
 
-    attr_reader :origin, :prefix
+    attr_reader :origin, :scope, :prefix
 
-    def initialize(origin:, prefix: nil)
+    def initialize(origin:, scope: nil, prefix: nil)
       @origin = URI.parse(origin.to_s.strip)
+      @scope = normalize_prefix(scope)
       @prefix = normalize_prefix(prefix)
     end
 
     # Where a crawl with nothing else to go on starts.
-    def seed = "#{origin_root}#{prefix}"
+    def seed = "#{origin_root}#{prefix.presence || scope}"
 
     # A link, as this crawl would record it, or nil if it is not ours to follow.
     def resolve(href, base:)
@@ -32,12 +38,15 @@ module Crawl
       url if url && include?(url)
     end
 
-    def include?(url)
-      uri = URI.parse(url)
-      uri.host&.downcase == origin.host&.downcase && within_prefix?(uri.path)
-    rescue URI::InvalidURIError
-      false
-    end
+    # Ours to keep. Both prefixes are checked rather than assuming the source's
+    # nests inside the endpoint's: a validation says it must, and a scope
+    # narrowed after the fact would otherwise leave the old sources crawling on.
+    def include?(url) = within?(url, prefix) && within?(url, scope)
+
+    # Ours to fetch at all, whether or not anything comes of it. A start page
+    # sits outside the source's prefix by design, so it is this — not
+    # `include?` — that stops it being a way to reach the rest of the host.
+    def reachable?(url) = within?(url, scope)
 
     # Absolute, canonical, and in this crawl's scheme — whether or not it is
     # inside the boundary. Redirect targets are canonicalised before they are
@@ -89,12 +98,19 @@ module Crawl
       normalize_path(path.start_with?("/") ? path : "/#{path}")
     end
 
+    def within?(url, path_prefix)
+      uri = URI.parse(url)
+      uri.host&.downcase == origin.host&.downcase && under?(uri.path, path_prefix)
+    rescue URI::InvalidURIError
+      false
+    end
+
     # Segment-aware, so /docs takes /docs and /docs/guide but not /docsearch.
-    def within_prefix?(path)
-      return true if prefix.empty?
+    def under?(path, path_prefix)
+      return true if path_prefix.empty?
 
       path = normalize_path(path)
-      path == prefix || path.start_with?("#{prefix}/")
+      path == path_prefix || path.start_with?("#{path_prefix}/")
     end
   end
 end

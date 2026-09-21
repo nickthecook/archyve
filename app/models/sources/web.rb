@@ -38,6 +38,11 @@ module Sources
     # Raised when re-reading a page that was fine at scan time no longer works.
     UnreadableError = Class.new(StandardError)
 
+    # Raised when the configured start page sits outside what the endpoint
+    # reaches. A validation refuses that, so this catches the case a validation
+    # can't: an admin narrowing the endpoint under a source that already exists.
+    OutOfScopeError = Class.new(StandardError)
+
     store_accessor :config, :path_prefix, :start_path, :content_selector, :max_pages, :max_depth,
       :crawl_delay_seconds
 
@@ -51,6 +56,7 @@ module Sources
     validates :crawl_delay_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true
     validate :path_prefix_must_be_a_path, if: -> { path_prefix.present? }
     validate :start_path_must_be_a_path, if: -> { start_path.present? }
+    validate :paths_must_be_within_the_endpoint, if: -> { endpoint.is_a?(Endpoints::Web) }
 
     def self.endpoint_type = Endpoints::Web
     def self.supports_sync? = true
@@ -70,7 +76,9 @@ module Sources
     end
 
     def boundary
-      @boundary ||= Crawl::Boundary.new(origin: endpoint.base_url, prefix: path_prefix)
+      @boundary ||= Crawl::Boundary.new(
+        origin: endpoint.base_url, scope: endpoint.path_prefix, prefix: path_prefix
+      )
     end
 
     # Absence means deleted only once the frontier has drained and the pages
@@ -168,8 +176,19 @@ module Sources
       crawl.discover(urls, depth: 0)
     end
 
+    # Checked against the endpoint's path rather than the source's: a start page
+    # is *meant* to sit outside what the source keeps, which is exactly why it
+    # would otherwise be a way to reach the whole host on the endpoint's
+    # credentials.
     def start_url
-      boundary.canonicalize(start_path, base: endpoint.base_url) || boundary.seed
+      url = boundary.canonicalize(start_path, base: endpoint.base_url)
+      return boundary.seed if url.blank?
+
+      unless boundary.reachable?(url)
+        raise OutOfScopeError, "#{start_path} is outside what #{endpoint.name} reaches"
+      end
+
+      url
     end
 
     # Fetch, extract, hand over, *then* resolve the row. The order is the whole
@@ -314,6 +333,22 @@ module Sources
       locations = robots.sitemaps.presence || ["#{boundary.canonicalize("/", base: endpoint.base_url)}/sitemap.xml"]
 
       locations.flat_map { |location| Crawl::Sitemap.urls(location, fetcher: fetcher, boundary: boundary) }.uniq
+    end
+
+    # The endpoint's path is an admin's limit on what an operator may reach with
+    # its credentials, so both of the source's paths have to sit inside it —
+    # `start_path` included, for the reason given on #start_url.
+    def paths_must_be_within_the_endpoint
+      return if endpoint.path_prefix.blank?
+
+      limit = Crawl::Boundary.new(origin: endpoint.base_url, scope: endpoint.path_prefix)
+
+      { path_prefix: path_prefix, start_path: start_path }.each do |attribute, value|
+        next if value.blank?
+        next if limit.reachable?(limit.canonicalize(value, base: endpoint.base_url).to_s)
+
+        errors.add(attribute, "must be under #{endpoint.path_prefix}, which #{endpoint.name} is limited to")
+      end
     end
 
     def path_prefix_must_be_a_path = validate_path(:path_prefix, path_prefix)

@@ -47,10 +47,23 @@ class Views::Sources::Forms::Web < Views::Sources::Form
   def what_gets_crawled
     note do
       p(class: "text-xs text-muted") { "Links are followed within this path only." }
+      endpoint_limit
       p(class: "mt-1.5 text-xs text-faint") do
         plain "Query strings are dropped, so every page has one address. "
         plain "robots.txt and any crawl delay it asks for are honoured, and pages marked noindex are skipped."
       end
+    end
+  end
+
+  # The endpoint may already be confined to part of the site, in which case this
+  # path narrows *that* rather than the whole host. Shown only once a server has
+  # been picked, since until then there is nothing to report.
+  def endpoint_limit
+    limit = @source.endpoint&.path_prefix
+    return if limit.blank?
+
+    p(class: "mt-1.5 text-xs text-amber-200/80") do
+      plain "#{@source.endpoint.name} is limited to #{limit}, so this path must sit under it."
     end
   end
 

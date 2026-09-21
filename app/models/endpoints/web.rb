@@ -15,12 +15,13 @@ module Endpoints
     # What to send on every request.
     SCHEMES = %w[none basic header].freeze
 
-    store_accessor :config, :auth_scheme, :username, :header_name
+    store_accessor :config, :auth_scheme, :username, :header_name, :path_prefix
     credential :password, :header_value
 
     validates :base_url, presence: true
     validates :auth_scheme, inclusion: { in: SCHEMES }, allow_blank: true
     validate :origin_must_have_no_path, if: -> { base_url.present? }
+    validate :path_prefix_must_be_a_path, if: -> { path_prefix.present? }
 
     with_options if: :basic? do
       validates :username, presence: true
@@ -31,13 +32,15 @@ module Endpoints
     # placeholder promises.
     validates :header_value, presence: true, if: :static_header?
 
-    def self.permitted_keys = super + [:auth_scheme, :username, :password, :header_name, :header_value]
+    def self.permitted_keys
+      super + [:auth_scheme, :username, :password, :header_name, :header_value, :path_prefix]
+    end
     def self.form_component = Views::Settings::Endpoints::Forms::Web
 
     def self.type_label = "Website"
 
     def self.description
-      "A website Archyve crawls over HTTP. Optionally authenticated with HTTP Basic or a fixed header."
+      "A website Archyve crawls over HTTP. Optionally authenticated, and optionally confined to one path."
     end
 
     def scheme = auth_scheme.presence || "none"
@@ -54,26 +57,32 @@ module Endpoints
       end
     end
 
-    # The origin itself. A site that answers at all is reachable; whether any
-    # particular subtree is crawlable is the source's question, not the
-    # endpoint's. `raise_error` is left in the stack here deliberately — unlike
-    # the crawl, a 401 or a 503 on the front page is the answer.
+    # The part of the site this endpoint actually reaches, which is the useful
+    # thing to check: a host whose front page is fine while /docs 404s is not a
+    # working endpoint. `raise_error` is left in the stack here deliberately —
+    # unlike the crawl, a 401 or a 503 in answer to this is the answer.
     def access!
-      client(timeout: ACCESS_TIMEOUT).get("/")
+      client(timeout: ACCESS_TIMEOUT).get(path_prefix.presence || "/")
     end
 
     private
 
-    # A path here would be wrong twice over: it is the source's to hold, and
-    # Faraday resolves a relative request against a base *path* by replacing its
-    # last segment, so every crawled URL would be built off a surprising root.
+    # `base_url` goes straight to Faraday, and `#client` is shared with the
+    # robots.txt fetch and every other root-relative request, so it stays the
+    # bare origin. Confining the endpoint is what `path_prefix` is for.
     def origin_must_have_no_path
       uri = URI.parse(base_url)
       return if uri.path.blank? && uri.query.blank?
 
-      errors.add(:base_url, "must be just the site's address — put the path on the source instead")
+      errors.add(:base_url, "must be just the site's address — put the path in the Path field below")
     rescue URI::InvalidURIError
       nil # the base class already reports this
+    end
+
+    def path_prefix_must_be_a_path
+      return if path_prefix.to_s.start_with?("/") && !path_prefix.to_s.include?("://")
+
+      errors.add(:path_prefix, "must be a path beginning with /, not a full address")
     end
   end
 end

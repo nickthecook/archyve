@@ -275,6 +275,14 @@ invalidate what we already ingested?** Base URL and token move you to a
 different server or identity → endpoint. Selectors, sync interval, OCR change
 what you take and how → source.
 
+**A second axis, added 2026-09-20: who is allowed to change it.** An endpoint is
+administered in Settings and merely *used* by whoever attaches a source, so it
+is the only place a limit on an operator can live. `Endpoints::Web#path_prefix`
+confines every source on that endpoint to one part of a site — without it, an
+operator could crawl the whole host on the admin's credentials, which is the
+"an endpoint is an identity" problem with no containment. A setting that
+constrains the person configuring the source cannot itself sit on the source.
+
 **Provider-agnostic sync engine.** Diffs current source items against stored
 `Document`s (keyed by `source_id` + `external_id`) → create / update / delete:
 - **Version token unchanged → skip.** Critical: re-ingest means re-embed (the
