@@ -297,16 +297,24 @@ Also independent of crawling, also worth landing before it.
   This column is the only part of the crawl's bookkeeping that belongs to shared
   `SourceSync`, which is why it lands here and the table does not.
 
-### Phase 3 — Verify
+### Phase 3 — Verify — **done 2026-09-20**
 
-Run the suite, then sync a real Folder source and a real BookStack source end to
-end and confirm counts, tombstones and the source page are unchanged. Phases 1
-and 2 touch the engine every existing source runs through; the crawler must not
-be the thing that discovers they broke.
+Ran against real sources rather than fixtures, which is the point: phases 1 and 2
+touch the engine every existing source runs through, and the crawler must not be
+the thing that discovers they broke.
 
-The tombstone correction in Phase 1 wants a spec of its own, since nothing
-existing covers it: a scan that drains with one item raising inside `#reconcile`
-must leave that document's chunks and feed memberships intact.
+- **Folder, first scan** — `found=3 created=3`, all reaching `processed`.
+- **BookStack, three consecutive re-scans of an unchanged source** — each
+  `found=10 unchanged=10 removed=0`. The one that matters most: if `#redescribe`
+  stopped stamping `last_seen_sync` on the unchanged branch, the second run would
+  have tombstoned all ten.
+- **BookStack, a genuinely changed page** — `updated=1 unchanged=1`, so the
+  version token discriminates rather than marking everything changed.
+- **Folder, a file added then deleted** — `found=3 unchanged=3 removed=1`, and
+  the tombstone was complete: chunks destroyed, the feed membership retracted
+  rather than deleted, the three siblings untouched.
+- **No failure rows**, so the new `source_sync_items` path sat inert on healthy
+  sources rather than masking anything.
 
 ### Phase 4 — The crawler
 
@@ -603,6 +611,22 @@ history (the histogram first, rows only if it proves too coarse).
   - **Stop showing cosine as a percentage.** `(1 - distance) * 100` is a
     compressed, non-linear scale where 61 and 65 look adjacent and aren't.
     Rank, or a normalised score, would mislead less.
+
+- **Chunks reach the model out of document order.** Observed 2026-09-20: asked
+  what phase 4 contains, the answer led with SPA detection, which is step 8. The
+  content was right and the sequence was lost — bad for any document whose order
+  carries meaning, and this plan says outright that its steps are *"in this
+  order, because the first three are pure functions"*.
+
+  The fix is a sort at prompt assembly, not in retrieval. `Fuse` returns hits
+  best-first and assigns citation handles 1..n in that order, which is correct
+  for the results list and must stay; the chunks handed to the model want
+  grouping by document and ordering by `chunks.position`, which already exists
+  and is unique per document. The model then sees handles out of sequence, which
+  is fine — they identify, they don't order.
+
+  Overlap between chunks partly masks this by letting the model stitch on
+  duplicated text, which is a worse mechanism than simply sending them in order.
 
 - **Document lookups that are still by bare id.** The document *selections* in
   `CollectionMembershipsController#create` and `UnsortedController#assign`, and
