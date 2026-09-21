@@ -1,6 +1,15 @@
 class SourcesController < ApplicationController
   require_role :operator
 
+  # Every key a source form may submit. Keys backed by `state` are absent and
+  # must stay absent — that allowlist is the whole enforcement of the
+  # config/state split described in Source. spec/models/source_spec.rb fails if
+  # a state key ever appears here.
+  PERMITTED_PARAMS = [
+    :name, :path, :endpoint_id, :sync_interval_minutes, :ocr,
+    { collection_ids: [], selectors: [] }
+  ].freeze
+
   before_action :set_source, only: [:show, :edit, :update, :destroy, :sync]
 
   def index
@@ -93,8 +102,7 @@ class SourcesController < ApplicationController
   end
 
   def source_params
-    params.require(:source)
-      .permit(:name, :path, :endpoint_id, :sync_interval_minutes, :ocr, collection_ids: [], selectors: [])
+    params.require(:source).permit(*PERMITTED_PARAMS)
   end
 
   # Everything the form needs, including the one part that isn't in our own

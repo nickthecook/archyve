@@ -164,6 +164,85 @@ RSpec.describe Sources::Sync do
       end
     end
 
+    # Same drained pass, same stamps, same missing file — only the contract
+    # differs. A crawl that never reached half a site must not read absence as
+    # deletion.
+    context "with a document whose file is gone, on a scan that is not authoritative" do
+      let!(:document) do
+        create(:document, source: source, external_id: "deleted.md",
+          source_version: "v1", status: "processed")
+      end
+
+      before { allow(source).to receive(:authoritative_scan?).and_return(false) }
+
+      it "leaves the document alone" do
+        result
+        expect(document.reload.status).to eq("processed")
+      end
+
+      it "counts nothing as removed" do
+        expect(result.removed_count).to eq(0)
+      end
+
+      it "keeps its chunks" do
+        create(:chunk, document: document, position: 0)
+        expect { result }.not_to(change { document.chunks.count })
+      end
+
+      it "still completes the run" do
+        expect(result.status).to eq("completed")
+      end
+    end
+
+    # A document whose reconcile raised goes unstamped, which looks exactly like
+    # "gone from the source" to the tombstone query. The run has to remember the
+    # difference, and remember it somewhere that survives a pause.
+    context "with an item whose reconcile raises" do
+      let!(:document) do
+        create(:document, source: source, external_id: "boom.md",
+          source_version: "v1", status: "processed")
+      end
+
+      let(:exploding) do
+        instance_double(Source::Item, external_id: "boom.md", version: "v2", skipped?: false)
+      end
+
+      before do
+        allow(exploding).to receive(:title).and_raise(ArgumentError, "kaboom")
+        allow(source).to receive(:each_item) { |&block| block.call(exploding) }
+      end
+
+      it "counts it as errored" do
+        expect(result.failed_count).to eq(1)
+      end
+
+      it "leaves the document it failed on alone" do
+        result
+        expect(document.reload.status).to eq("processed")
+      end
+
+      it "keeps that document's chunks" do
+        create(:chunk, document: document, position: 0)
+        expect { result }.not_to(change { document.chunks.count })
+      end
+
+      it "records the failure against the run" do
+        expect(result.items.failed.sole.external_id).to eq("boom.md")
+      end
+
+      it "records what went wrong" do
+        expect(result.items.failed.sole.detail)
+          .to include("error" => "ArgumentError", "message" => "kaboom")
+      end
+
+      it "still tombstones a document that is genuinely gone" do
+        gone = create(:document, source: source, external_id: "deleted.md",
+          source_version: "v1", status: "processed")
+        result
+        expect(gone.reload.status).to eq("removed")
+      end
+    end
+
     context "with a document whose last ingest failed" do
       before do
         write("broken.md")

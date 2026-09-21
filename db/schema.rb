@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -256,6 +256,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_140000) do
     t.index ["source_id"], name: "index_source_collections_on_source_id"
   end
 
+  create_table "source_sync_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "detail", default: {}, null: false
+    t.string "disposition"
+    t.string "external_id", null: false
+    t.bigint "source_sync_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_sync_id", "disposition"], name: "index_source_sync_items_on_source_sync_id_and_disposition"
+    t.index ["source_sync_id", "external_id"], name: "index_source_sync_items_on_source_sync_id_and_external_id", unique: true
+    t.index ["source_sync_id"], name: "index_source_sync_items_on_source_sync_id"
+  end
+
   create_table "source_syncs", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "created_count", default: 0, null: false
@@ -265,6 +277,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_140000) do
     t.integer "found_count", default: 0, null: false
     t.datetime "last_progress_at"
     t.integer "removed_count", default: 0, null: false
+    t.jsonb "response_stats", default: {}, null: false
     t.integer "skipped_count", default: 0, null: false
     t.bigint "source_id", null: false
     t.integer "stale_count", default: 0, null: false
@@ -340,6 +353,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_140000) do
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
+  add_foreign_key "source_sync_items", "source_syncs"
   add_foreign_key "source_syncs", "sources"
   add_foreign_key "source_users", "sources"
   add_foreign_key "source_users", "users"

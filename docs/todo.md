@@ -27,12 +27,39 @@ text, per item, kept somewhere the UI can read.
 
 **Shape of the work.**
 
-- **Per-item failures need a home.** Options: a `source_sync_items` table (a
-  row per failure: external_id, error class, message, occurred_at), or a jsonb
-  `failures` column on `source_sync` capped at N entries. The table is the
-  honest version and supports "this file has failed every scan for a week"; the
-  column is cheaper and probably enough to start. Leaning to the column, with
-  the table as the upgrade path if per-item history turns out to matter.
+- **Per-item failures need a home: `source_sync_items`.** Built 2026-09-20 — see the
+  table under "The web source", phase 4, which this shares with the crawler's
+  frontier. The alternative considered and dropped was a jsonb `failures` column
+  on `source_sync` capped at N entries, which is cheaper and was the earlier
+  lean. The bug below is what rules it out: once the failure list decides
+  whether a document is tombstoned, it is correctness rather than diagnostics,
+  and a cap means the overflow gets deleted. Silent data loss that only appears
+  under load is the worst kind to design in.
+
+- **Fixed 2026-09-20: a failed item was tombstoned.** `Sources::Sync#scan`
+  rescues a per-item failure, counts it and moves on, and its comment claimed
+  "the item goes unstamped, so it isn't tombstoned". The code did the opposite.
+  All three `#reconcile` branches stamp `last_seen_sync` *inside* themselves, so
+  a raise before the stamp left an existing document carrying the previous run's
+  id, and `tombstone_vanished` matches `last_seen_sync_id IS DISTINCT FROM
+  run.id` — true for exactly that document. Chunks destroyed and feed
+  memberships retracted, on a pass that reported `completed`.
+
+  Reachable whenever `document.update!` or `#redescribe` fails on a document
+  that already exists: a validation failure, a deadlock, a constraint violation.
+  Live for Folder and BookStack, with nothing to do with crawling.
+
+  Fixed as the comment already claimed: each failure is recorded as an item row
+  and those `external_id`s are excluded from `tombstone_vanished`. Per *run*, not
+  per pass — tombstoning only happens on the pass that drains, which for a
+  resumable source may be the fifth, and an in-memory list would be lost at every
+  pause before it. Same principle as `authoritative_scan?`: absence is only
+  evidence of deletion when the scan actually looked.
+
+  One wrinkle worth keeping: an item with a blank `external_id` is counted but
+  not recorded. There is no document it could correspond to, and writing the row
+  anyway made `#record_failure` raise inside the rescue that exists to stop one
+  bad item costing the scan — turning a skipped item into a failed run.
 - **Classify transient vs permanent.** `Errno::ENOENT` on a file that was there a
   moment ago is transient; a Docling extraction failure on a corrupt PDF is
   permanent. Even a rough split ("network/IO" vs "content") changes what the UI
@@ -191,37 +218,16 @@ would be cut off at the same point forever, never draining and never tombstoning
 `spec/services/sources/sync_spec.rb`'s `make_resumable` is the reference shape.
 
 **That ordering inverts once a source's position is rows rather than a cursor.**
-`Sources::Web` resolves a visit row *after* the yield returns, not before, and
-the reversal is deliberate — see the decision on visit rows below. The rule above
+`Sources::Web` resolves an item row *after* the yield returns, not before, and
+the reversal is deliberate — see the decision on item rows below. The rule above
 still holds for any source whose position lives in memory.
 
-**Correction — a failed item is tombstoned today.** `#scan`'s per-item rescue
-says "the item goes unstamped, so it isn't tombstoned: an item we failed to
-record is not an item we know to be gone". The code does the opposite. All three
-`#reconcile` branches stamp `last_seen_sync` *inside* themselves, so a raise
-before the stamp leaves an existing document carrying the previous run's id, and
-`tombstone_vanished` matches `last_seen_sync_id IS DISTINCT FROM run.id` — true
-for exactly that document. It is tombstoned, chunks destroyed and feed
-memberships retracted, on a pass that reports `completed`.
+**This build revealed a bug it did not cause.** `tombstone_vanished` reads an
+unstamped document as gone, including one left unstamped by a `#reconcile` that
+raised — so a failed item is tombstoned on a pass that reports `completed`. The
+work is under "Surfacing sync failures" above, with the failure store it needs.
 
-Reachable whenever `document.update!` or `#redescribe` fails on a document that
-already exists: a validation failure, a deadlock, a constraint violation. Live
-today for Folder and BookStack, with nothing to do with crawling.
-
-The fix matches what the comment already claims: collect the failed
-`external_id`s and exclude them from `tombstone_vanished`. Same principle as
-`authoritative_scan?` one phase later — absence is only evidence of deletion
-when the scan actually looked.
-
-They have to be collected *per run*, not per pass. `tombstone_vanished` only
-runs on the pass that drains, which for a resumable source may be the fifth one,
-and an in-memory list would have been lost at every pause before it. So this
-wants the per-item failure store already shaped under "Surfacing sync failures"
-above — the two items are the same work, approached from opposite ends: that one
-wants the failures so it can *show* them, this one so it can refuse to draw a
-conclusion from them.
-
-### Phase 2 — Contract groundwork
+### Phase 2 — Contract groundwork — **built 2026-09-20**
 
 Also independent of crawling, also worth landing before it.
 
@@ -275,7 +281,7 @@ Also independent of crawling, also worth landing before it.
   that outlive any one pass, which is what `state` is for.
 
 - **Response-code stats on `SourceSync`.** One jsonb column, written *once* at
-  terminal status by rolling up the visit rows — `group(:disposition).count` —
+  terminal status by rolling up the run's item rows — `group(:disposition).count` —
   which are then reaped. Rows are the working set and the column is the durable
   summary; keeping the rows forever would mean tens of millions of them to answer
   "how did last Tuesday's crawl go", and accumulating the histogram in jsonb
@@ -329,28 +335,45 @@ fixtures with no network at all:
    Preserve `h1`–`h6`: `Ingestion::Chunker` builds its heading path from
    structure. Add `gem "nokogiri"` explicitly — it is only a transitive
    dependency via loofah today.
-4. **`source_sync_visits`** — the crawl's frontier and its disposition log, in
-   one table, belonging to the run:
+4. **`source_sync_items`** — per-item outcomes that need to outlive a run's
+   counters, belonging to the run:
 
    ```
-   source_sync_id, url, depth
-   disposition   # nil = pending; ok / not_found / server_error / timeout /
+   source_sync_id, external_id
+   disposition   # nil = discovered, not yet attempted
+                 # ok / failed / not_found / server_error / timeout /
                  # connection_failed / redirected / robots_excluded /
                  # nothing_readable
    status_code   # nullable: transport failures have none
-   unique index on [source_sync_id, url]
+   detail        # jsonb: error class and message, crawl depth
+   unique index on [source_sync_id, external_id]
    ```
 
-   Discovering a link is an `insert_all` with `ON CONFLICT DO NOTHING` against
-   that index, so dedup is a constraint rather than a discipline — no
-   check-then-act, no in-memory visited set, no race between two fetchers
-   finding the same link. Fetching updates the row in place. The frontier is
-   `where(disposition: nil)`; "drained" is `pending.none?`; a pending row is an
-   unmet obligation and a resolved one is proof an attempt happened and what
-   came of it. Seeding a crawl is one insert; resuming is a query.
+   **Rows are never a complete enumeration of what a run saw** — they are the
+   items worth remembering. For Folder and BookStack that means failures only.
+   A source that discovers its items writes one per item, because the row is how
+   it remembers the work is done; that completeness is a property of how that
+   source uses the table, not of the table.
 
-   Rows are per-run working state and are reaped at terminal status into the
-   `SourceSync` histogram column from Phase 2.
+   Discovering an item is an `insert_all` with `ON CONFLICT DO NOTHING` against
+   the unique index, so dedup is a constraint rather than a discipline — no
+   check-then-act, no in-memory seen-set, no race between two fetchers finding
+   the same link. Attempting it updates the row in place. For a crawl the
+   frontier is `where(disposition: nil)`, "drained" is that scope being empty, a
+   pending row is an unmet obligation and a resolved one is proof an attempt
+   happened and what came of it. Seeding a crawl is one insert; resuming is a
+   query.
+
+   Three consumers, only one of them the crawler: the frontier above, the
+   tombstone exclusion under "Surfacing sync failures", and the per-item failure
+   history that section wants to show. The last two are engine-wide, which is
+   what pays for the table whether or not a second discovering source ever turns
+   up.
+
+   Reaping differs by disposition. A crawl's successes are bulk and disposable,
+   rolled into the `SourceSync` histogram at terminal status; failures persist,
+   because "this file has failed every scan for a week" is a question about a
+   document over time.
 
    **Todo, not now: split `redirected` by whether the target was inside the
    boundary.** Purely diagnostic — the crawl loop does not care, because the row
@@ -362,9 +385,9 @@ fixtures with no network at all:
 5. **`Sources::Web`** — `sitemap.xml` when the site has one, crawl as the
    fallback. `#each_item` conditional-GETs with stored ETag/Last-Modified; a 304
    replays the cached link set without re-parsing. `#read` re-fetches and
-   re-extracts. `authoritative_scan?(run)` is the visits query from Phase 2.
+   re-extracts. `authoritative_scan?(run)` is the item-row query from Phase 2.
 
-   **Resolve a visit row *after* the yield returns, not before.** `#reconcile` is
+   **Resolve an item row *after* the yield returns, not before.** `#reconcile` is
    idempotent per item — a repeated yield finds the document, `changed?` is
    false, and it counts `unchanged` — so dying between the count and the resolve
    costs one inflated `found`/`unchanged` next pass. Resolving first inverts the
@@ -444,7 +467,7 @@ symptom under *Later*.
 that *was* a document and now 404s must tombstone — turning it into an error
 document marks it seen, suppresses the tombstone, and leaves stale chunks
 searchable forever. A URL that was *never* a document is a fact about the crawl,
-not about the archive, so it lives in `source_sync_visits`. Note that
+not about the archive, so it lives in `source_sync_items`. Note that
 `Item#skip_reason` cannot serve here regardless: `Sync#reconcile` returns before
 creating a document, and `count_uningestable` reads a skip as "the source has it,
 we declined it" — the opposite claim to a 404.
@@ -459,7 +482,7 @@ same shape of mistake as hiding a link and calling it access control. And
 `[source_id, external_id]` is unique, so a dead URL would permanently occupy
 document identity space and need cleaning up if the page ever came back.
 
-**Visit rows, not a jsonb visited set.** The first draft of this plan chose jsonb
+**Item rows, not a jsonb visited set.** The first draft of this plan chose jsonb
 for the response-code stats because the requirement looked like *counts*. It is
 actually *identity* — which URL, resolved how — because the crawl needs to know
 what it has already fetched, and identity wants rows.
@@ -471,6 +494,26 @@ cannot remember. Splitting it — documents for the fetched, `state` for the fai
 — puts one concept in two stores with different lifetimes and no constraint tying
 them together. One table holds both, keyed to the run, with the unique index
 doing the deduplication.
+
+**Two ways to resume, and the source picks by what enumeration costs.** Both go
+through `source_sync_items`; the difference is whether re-enumerating is cheap.
+
+*Re-enumerate and skip* suits a source handed a listing — BookStack walks
+`/api/pages` again each pass and passes over anything that already has a row.
+Costs a listing walk per pass, which is ~100 API calls for 50,000 pages against
+a per-item reconcile that dominates it. This is also the *safer* option where it
+applies: a stored cursor into a paginated API is wrong if items are added or
+removed between passes, because offset 500 is not the same offset 500 next time,
+and the scan silently skips or repeats. Dedup by `external_id` cannot drift.
+
+*Durable frontier* is required when enumerating and fetching are the same act.
+A crawl cannot re-enumerate without re-crawling, so its pending rows are the
+position. This is the expensive one, and Web is the only case in sight.
+
+Neither is a cursor, and nothing run-scoped goes in `sources.state`. Note that
+no source is resumable today — `resumable_scan?` has no overrides — so making
+BookStack one is new capability rather than a conversion, and wants its own
+reason to happen.
 
 **No tombstone ceiling — trust the source.** Considered and rejected: refusing
 to tombstone when a scan wants to remove more than some proportion of a
@@ -498,7 +541,7 @@ rebuilt while its page is still fetchable.
 
 **`each_item` becomes a writer.** Resumption means persisting the crawl's
 position mid-scan, and no existing source mutates anything while enumerating.
-What it writes is visit rows, not `sources.state` — the position belongs to the
+What it writes is item rows, not `sources.state` — the position belongs to the
 run, and a row is durable the moment it is inserted, so there is no in-memory
 cursor to flush from an `ensure`.
 
@@ -526,7 +569,7 @@ crawl. The same objection retired the frontier: `state` is source-scoped and
 sized O(1), and anything O(pages) or belonging to one run lives elsewhere.
 
 **Query strings are stripped, with no per-source allowlist** until one proves
-necessary. Cycles are trivial (the visit rows); infinite *spaces* are what kill
+necessary. Cycles are trivial (the item rows); infinite *spaces* are what kill
 crawlers — calendars, facets, sort parameters — and dropping the query string
 closes most of them. Max pages and max depth are the backstop.
 

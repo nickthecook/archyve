@@ -99,6 +99,18 @@ class Source < ApplicationRecord
   validates :endpoint, presence: true, if: -> { self.class.endpoint_type }
   validate :endpoint_must_match_type, if: -> { endpoint && self.class.endpoint_type }
 
+  # Two jsonb columns, two quite different meanings, and they read identically at
+  # the call site — so the rule is worth stating where the accessors are declared:
+  #
+  #   `config` is what a person set, and a form may submit it.
+  #   `state`  is what the *source* learned and keeps across runs. No form may
+  #            touch it; it is kept out of the permitted keys in SourcesController,
+  #            which spec/models/source_spec.rb holds to.
+  #
+  # What a single *run* learned belongs to the run, not here. A run can be swept
+  # and restarted while `state` survives, so run-scoped data parked here outlives
+  # the thing that gave it meaning. See docs/todo.md, "The web source".
+
   # Whether documents from this source get run through OCR. On the base class
   # because it is a property of *extracting* documents, which every source type
   # does, rather than of any one way of fetching them. OCR is expensive.
@@ -301,6 +313,15 @@ class Source < ApplicationRecord
   def self.creatable_types
     TYPES.map(&:constantize).select(&:user_creatable?)
   end
+
+  # Whether absence from this scan may be read as deletion. A Folder or BookStack
+  # scan enumerates an index the source itself maintains, so absence is the source
+  # saying the item is gone. A crawl only reports what it *reached*.
+  #
+  # An instance method where its neighbours below are class-level delegators: the
+  # answer is about one pass rather than about the type, and a crawler weighs it
+  # against per-source settings.
+  def authoritative_scan?(_run) = true
 
   def supports_sync? = self.class.supports_sync?
   def resumable_scan? = self.class.resumable_scan?

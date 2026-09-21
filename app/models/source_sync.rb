@@ -14,6 +14,10 @@
 class SourceSync < ApplicationRecord
   belongs_to :source
 
+  # Items this run has something to remember about — today, the ones that
+  # failed. Destroyed with the run: they describe the run, not the archive.
+  has_many :items, class_name: "SourceSyncItem", dependent: :destroy
+
   # Documents this run created or updated. Nullified, not destroyed, when a run
   # is pruned: the document outlives the record of how it arrived.
   has_many :documents, dependent: :nullify

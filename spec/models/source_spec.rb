@@ -114,6 +114,44 @@ RSpec.describe Source do
     end
   end
 
+  describe "#authoritative_scan?" do
+    subject(:source) { create(:folder_source) }
+
+    let(:run) { create(:source_sync, source: source) }
+
+    it "reads absence as deletion for a type that enumerates an index it maintains" do
+      expect(source.authoritative_scan?(run)).to be(true)
+    end
+  end
+
+  # The config/state split is enforced by the allowlist in SourcesController, not
+  # by convention — `store_accessor :state, …` reads exactly like its `:config`
+  # twin at the call site, so nothing else would catch a state key drifting into
+  # a form.
+  describe "the config/state split" do
+    let(:state_keys) do
+      described_class::TYPES.flat_map { |type| type.constantize.stored_attributes[:state].to_a }
+        .map(&:to_s).uniq
+    end
+
+    let(:permitted_keys) do
+      SourcesController::PERMITTED_PARAMS
+        .flat_map { |entry| entry.is_a?(Hash) ? entry.keys : entry }
+        .map(&:to_s)
+    end
+
+    it "never lets a form submit a key backed by state" do
+      expect(permitted_keys & state_keys).to be_empty
+    end
+
+    # No type declares a state key yet, so the check above would pass whether or
+    # not it could see one. This is what says it could.
+    it "can see a state-backed key when a type declares one" do
+      type = Class.new(Sources::Folder) { store_accessor :state, :crawl_cursor }
+      expect(type.stored_attributes[:state].map(&:to_s)).to include("crawl_cursor")
+    end
+  end
+
   describe ".due_for_sync" do
     subject(:due) { described_class.due_for_sync }
 

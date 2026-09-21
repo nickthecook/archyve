@@ -154,15 +154,29 @@ module Sources
         # bookkeeping errors, not read errors, and the UI calls them "errored"
         # rather than anything implying we tried to read the file.
         #
-        # The item goes unstamped, so it isn't tombstoned: an item we failed to
-        # record is not an item we know to be gone.
+        # The failure is recorded against the run so tombstoning can pass the item
+        # over. Going unstamped is not enough on its own: #reconcile stamps inside
+        # each of its branches, so a raise before the stamp leaves the document
+        # carrying an older run's id — which tombstone_vanished reads as gone.
         counts[:failed] += 1
+        record_failure(run, item, e)
         Rails.logger.error("Source #{source.id} failed on #{item.external_id}: #{e.class}: #{e.message}")
       end
 
       Rails.logger.warn("Sync of source #{source.id} stood down: run #{run.id} was retired") if outcome == :abandoned
 
       outcome
+    end
+
+    # Against the run rather than in memory: tombstoning happens on whichever pass
+    # drains, which for a resumable source is not the pass that saw the failure.
+    def record_failure(run, item, error)
+      # No id, no document it could correspond to, so nothing to hold back from
+      # tombstoning and nothing a person could act on. The count is the whole record.
+      return if item.external_id.blank?
+
+      row = run.items.find_or_initialize_by(external_id: item.external_id)
+      row.update!(disposition: :failed, detail: { "error" => error.class.name, "message" => error.message })
     end
 
     def reconcile(item, run)
@@ -277,9 +291,15 @@ module Sources
     # and `NULL <> 5` is NULL, which would quietly exclude exactly the rows that
     # most need tombstoning.
     def tombstone_vanished(run)
+      unless source.authoritative_scan?(run)
+        Rails.logger.warn("Source #{source.id}: scan of #{run.id} was not authoritative; nothing tombstoned")
+        return
+      end
+
       source.documents
         .where.not(status: :removed)
         .where("last_seen_sync_id IS DISTINCT FROM ?", run.id)
+        .where.not(external_id: run.items.failed.select(:external_id))
         .find_each do |document|
           counts[:removed] += 1
           tombstone(document, run)
