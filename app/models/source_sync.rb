@@ -43,6 +43,20 @@ class SourceSync < ApplicationRecord
 
   def finished? = TERMINAL_STATUSES.include?(status)
 
+  # Close a run for good. The two steps belong together and in this order: the
+  # histogram is the durable form of the item rows, and reaping them without it
+  # loses the only account of how the run went.
+  #
+  # Both endings come through here. A run the sweeper retires is as final as one
+  # that ran to the end of its source, and is the ending more likely to leave a
+  # large crawl's frontier behind.
+  def retire!(status:, error: nil, **attributes)
+    update!(**attributes, status: status, error: error,
+      finished_at: Time.current, response_stats: items.histogram)
+
+    items.spent.delete_all
+  end
+
   # Push the source page's live region when a scan starts and when it ends.
   # Synchronously, not *_later: async broadcasts race and can arrive out of
   # order, which would leave "scanning…" showing after the run had finished.

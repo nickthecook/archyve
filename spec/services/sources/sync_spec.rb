@@ -355,6 +355,21 @@ RSpec.describe Sources::Sync do
       end
     end
 
+    # A crawl stopped by its page allowance ends with a frontier still on the
+    # table, and nothing resumes a terminal run's.
+    context "with a source that leaves rows it never attempted" do
+      before do
+        allow(source).to receive(:each_item) do |run|
+          run.items.create!(external_id: "https://site/a", disposition: :ok, status_code: 200)
+          run.items.create!(external_id: "https://site/unvisited")
+        end
+      end
+
+      it "reaps those too" do
+        expect(result.items.pluck(:external_id)).to be_empty
+      end
+    end
+
     context "with a document whose last ingest failed" do
       before do
         write("broken.md")

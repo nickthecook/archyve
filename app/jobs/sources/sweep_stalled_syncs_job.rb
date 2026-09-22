@@ -17,11 +17,7 @@ module Sources
         # so its view of what is there is partial and must not be read as
         # authoritative. `Sources::Sync` only tombstones on a pass that drained,
         # and retiring this one as completed would imply it had.
-        run.update!(
-          status: :failed,
-          finished_at: Time.current,
-          error: run.error.presence || "worker did not report back"
-        )
+        run.retire!(status: :failed, error: run.error.presence || "worker did not report back")
       end
     end
   end

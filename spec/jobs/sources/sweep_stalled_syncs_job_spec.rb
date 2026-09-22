@@ -54,6 +54,31 @@ RSpec.describe Sources::SweepStalledSyncsJob do
       end
     end
 
+    context "with a stalled crawl that left item rows behind" do
+      let!(:run) do
+        create(:source_sync, source: source, status: "running", finished_at: nil,
+          last_progress_at: 2.hours.ago)
+      end
+
+      before do
+        run.items.create!(external_id: "https://site/a", disposition: :ok, status_code: 200)
+        run.items.create!(external_id: "https://site/b", disposition: :timeout)
+        run.items.create!(external_id: "https://site/unvisited")
+      end
+
+      it "keeps an account of how far it got" do
+        result
+        expect(run.reload.response_stats).to eq("200" => 1, "timeout" => 1)
+      end
+
+      # Nothing else ever collects these: the run is terminal, so no later pass
+      # resumes its frontier, and a stalled crawl's is the bulk of the table.
+      it "drops everything but the unanswered" do
+        result
+        expect(run.items.pluck(:external_id)).to eq(["https://site/b"])
+      end
+    end
+
     context "with a long scan that is still reporting progress" do
       let!(:run) do
         create(:source_sync, source: source, status: "running", started_at: 6.hours.ago,

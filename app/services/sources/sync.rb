@@ -45,7 +45,7 @@ module Sources
     # threshold — a long scan whose numbers move every half-minute reads as
     # stuck. One row-write per source per interval; the poll is happening
     # either way.
-    PROGRESS_INTERVAL = 10.seconds
+    PROGRESS_INTERVAL = 5.seconds
 
     # The run's tally columns, and the key each is kept under while scanning.
     # Read in both directions: seeded from the row when resuming a paused run,
@@ -347,17 +347,13 @@ module Sources
     end
 
     def finish(run, status:, error: nil)
-      terminal = SourceSync::TERMINAL_STATUSES.include?(status.to_s)
+      attributes = tallies.merge(status: status, error: error, last_progress_at: Time.current)
 
-      attributes = tallies
-      attributes["status"] = status
-      attributes["error"] = error
-      attributes["last_progress_at"] = Time.current
-      attributes["finished_at"] = Time.current unless status == :paused
-      attributes["response_stats"] = run.items.histogram if terminal
-
-      run.update!(attributes)
-      reap_items(run) if terminal
+      if SourceSync::TERMINAL_STATUSES.include?(status.to_s)
+        run.retire!(**attributes)
+      else
+        run.update!(attributes)
+      end
 
       # Stamped even when the scan failed, so a source whose folder has been
       # unmounted waits out its interval before trying again instead of being
@@ -368,18 +364,6 @@ module Sources
       # Stamping here would make the source sit out a full interval in the
       # middle of a scan it is part-way through.
       source.update!(last_synced_at: Time.current) unless status == :paused
-    end
-
-    # The rows are the working set; `response_stats` is the durable summary. A
-    # crawl of a large site writes a row per URL because that is how it
-    # remembers the work is done, and keeping them all would mean tens of
-    # millions to answer "how did last Tuesday's crawl go".
-    #
-    # Only the cleanly resolved ones go. A failure is about a document over
-    # time — "this page has failed every scan for a week" is a question the
-    # histogram cannot answer.
-    def reap_items(run)
-      run.items.conclusive.delete_all
     end
 
     def out_of_budget?
@@ -418,9 +402,9 @@ module Sources
       @progress_due = PROGRESS_INTERVAL.from_now
 
       SourceSync.where(id: run.id, status: :running)
-        .update_all(tallies.merge("last_progress_at" => Time.current)) == 1
+        .update_all(tallies.merge(last_progress_at: Time.current)) == 1
     end
 
-    def tallies = COUNT_COLUMNS.to_h { |column, key| [column, counts[key]] }
+    def tallies = COUNT_COLUMNS.to_h { |column, key| [column.to_sym, counts[key]] }
   end
 end
