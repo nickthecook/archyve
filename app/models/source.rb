@@ -134,6 +134,34 @@ class Source < ApplicationRecord
     (sync_interval_minutes.presence || DEFAULT_SYNC_INTERVAL_MINUTES).to_i.minutes
   end
 
+  # When a scan was last asked for by hand. State rather than config: nobody
+  # sets this, the source records that it was asked.
+  store_accessor :state, :sync_requested_at
+
+  # How long a request stands before the source page stops expecting a run to
+  # appear.
+  SYNC_REQUEST_WINDOW = 5.minutes
+
+  def request_sync!
+    update!(sync_requested_at: Time.current.iso8601(3))
+  end
+
+  # A scan is owed: someone asked for one and none has begun since.
+  #
+  # The gap this describes is small and entirely ordinary — Sources::Sync
+  # creates the SourceSync inside the job, so between the button and the run
+  # there is no run to show — but nothing else covers it. The broadcast
+  # announcing the run fires within milliseconds of the redirect, long before
+  # the page it should reach has subscribed, and Turbo Streams do not replay.
+  def sync_requested?
+    requested = sync_requested_at&.to_time
+    return false if requested.nil? || requested < SYNC_REQUEST_WINDOW.ago
+
+    run = latest_sync
+
+    run.nil? || run.started_at < requested
+  end
+
   # Docling's own default, kept deliberately: turning OCR off by default would
   # silently stop extracting every scanned document in an existing archive, and
   # the failure mode — a document that processes to nothing — looks like a

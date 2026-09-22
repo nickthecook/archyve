@@ -546,6 +546,13 @@ RSpec.describe "Sources", type: :request do
         expect { post sync_source_path(source) }
           .to have_enqueued_job(Sources::SyncJob).with(source)
       end
+
+      # Without this the page has nothing to watch until the run exists, and the
+      # broadcast announcing it lands before the page has subscribed.
+      it "records the request so the page keeps watching" do
+        post sync_source_path(source)
+        expect(source.reload).to be_sync_requested
+      end
     end
 
     context "with a source that has nothing to scan" do

@@ -144,11 +144,58 @@ RSpec.describe Source do
       expect(permitted_keys & state_keys).to be_empty
     end
 
-    # No type declares a state key yet, so the check above would pass whether or
-    # not it could see one. This is what says it could.
+    # The check above reads keys off the concrete types, so a key declared on a
+    # subclass has to be visible to it. This is what says it would be.
     it "can see a state-backed key when a type declares one" do
       type = Class.new(Sources::Folder) { store_accessor :state, :crawl_cursor }
       expect(type.stored_attributes[:state].map(&:to_s)).to include("crawl_cursor")
+    end
+  end
+
+  # The window between "Sync now" and the run appearing, which the source page
+  # has nothing else to watch through.
+  describe "#sync_requested?" do
+    subject(:source) { create(:folder_source, path: root) }
+
+    let(:root) { Dir.mktmpdir("archyve-requested-spec") }
+
+    after { FileUtils.remove_entry(root) if File.exist?(root) }
+
+    context "with no request on record" do
+      it { expect(source).not_to be_sync_requested }
+    end
+
+    context "with a request and no run yet" do
+      before { source.request_sync! }
+
+      it { expect(source).to be_sync_requested }
+    end
+
+    context "with a run that started after the request" do
+      before do
+        source.request_sync!
+        source.syncs.create!(started_at: Time.current, status: "running")
+      end
+
+      # The run is the thing to watch now, and it says for itself whether it is
+      # still moving.
+      it { expect(source).not_to be_sync_requested }
+    end
+
+    context "with a run that started before the request" do
+      before do
+        source.syncs.create!(started_at: 1.minute.ago, finished_at: 30.seconds.ago, status: "completed")
+        source.request_sync!
+      end
+
+      it { expect(source).to be_sync_requested }
+    end
+
+    # A job that never reached a worker must not leave the page watching for it.
+    context "with a request older than the window" do
+      before { source.update!(sync_requested_at: (Source::SYNC_REQUEST_WINDOW + 1.minute).ago.iso8601(3)) }
+
+      it { expect(source).not_to be_sync_requested }
     end
   end
 

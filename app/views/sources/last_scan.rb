@@ -62,6 +62,7 @@ class Views::Sources::LastScan < Components::Base
   def initialize(source:)
     @source = source
     @sync = source.latest_sync
+    @requested = source.sync_requested?
   end
 
   def view_template
@@ -84,7 +85,12 @@ class Views::Sources::LastScan < Components::Base
   # Nothing left to watch: the scan is over and every document it produced has
   # reached a terminal state. A stalled run counts as settled — it isn't going to
   # move on its own, and polling forever would be pretending otherwise.
+  #
+  # A scan that has been asked for is the one thing worth watching that isn't
+  # visible here: its run doesn't exist yet, and the broadcast announcing it
+  # arrives before this page is listening. See Source#sync_requested?.
   def settled?
+    return false if @requested
     return true if @sync.nil?
     return true if stalled?
 
@@ -93,8 +99,12 @@ class Views::Sources::LastScan < Components::Base
 
   def empty_state
     div(class: "rounded-lg border border-dashed border-line px-4 py-8 text-center") do
-      p(class: "text-sm text-muted") { "Not scanned yet." }
-      p(class: "mt-1 text-xs text-faint") { "It will run on its own within the scan interval, or use Sync now." }
+      if @requested
+        p(class: "text-sm text-muted") { "Scan requested — waiting for a worker." }
+      else
+        p(class: "text-sm text-muted") { "Not scanned yet." }
+        p(class: "mt-1 text-xs text-faint") { "It will run on its own within the scan interval, or use Sync now." }
+      end
     end
   end
 

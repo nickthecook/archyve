@@ -82,7 +82,12 @@ class SourcesController < ApplicationController
       return redirect_to source_path(@source), alert: "This source has nothing to scan."
     end
 
+    # Recorded before the enqueue, not after: the job can create its run — and
+    # broadcast it — before this request has finished redirecting, and a marker
+    # written afterwards would then look newer than the run it was waiting for.
+    @source.request_sync!
     Sources::SyncJob.perform_later(@source)
+
     redirect_to source_path(@source), notice: "Sync started."
   end
 

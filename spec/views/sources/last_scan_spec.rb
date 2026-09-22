@@ -29,6 +29,40 @@ RSpec.describe Views::Sources::LastScan do
     end
   end
 
+  # Whether the region keeps polling. A finished scan is the end of the story
+  # unless another has just been asked for, in which case the run it is waiting
+  # for doesn't exist yet and no broadcast will reach this page announcing it.
+  describe "watching for a scan that hasn't started" do
+    let(:previous) do
+      source.syncs.create!(started_at: 2.minutes.ago, finished_at: 1.minute.ago, status: "completed")
+    end
+
+    context "with a finished scan and nothing asked for since" do
+      before { previous }
+
+      it { expect(result).to include('data-progress-terminal-value="true"') }
+    end
+
+    context "with a finished scan and a fresh request" do
+      before do
+        previous
+        source.request_sync!
+      end
+
+      it { expect(result).to include('data-progress-terminal-value="false"') }
+    end
+
+    context "with a request and no scan ever" do
+      before { source.request_sync! }
+
+      it { expect(result).to include('data-progress-terminal-value="false"') }
+
+      it "says what it is waiting for" do
+        expect(result).to include("waiting for a worker")
+      end
+    end
+  end
+
   # A source that has quietly stopped pruning has to say so on its own page —
   # one permanently broken URL means it never gets a clean run again.
   describe "the withheld note" do
