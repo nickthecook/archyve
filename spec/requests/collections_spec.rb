@@ -300,6 +300,61 @@ RSpec.describe "Collections", type: :request do
     end
   end
 
+  describe "PATCH /collections/:slug" do
+    subject(:request) { patch collection_path(collection), params: { collection: { description: } } }
+
+    let(:collection) { create(:collection, name: "Handbook") }
+    let(:description) { "Security policy, on-call and incident review." }
+
+    context "when they manage the collection" do
+      before { collection.grant_admin_to!(current_user) }
+
+      it "saves the description" do
+        request
+        expect(collection.reload.description).to eq(description)
+      end
+
+      it "returns to the collection" do
+        request
+        expect(response).to redirect_to(collection_path(collection))
+      end
+
+      it "shows it on the page" do
+        request
+        follow_redirect!
+        expect(response.body).to include("Security policy, on-call and incident review.")
+      end
+
+      # Blank is absent, not a description that says nothing — the chat model is
+      # handed no description at all for this collection.
+      context "when it is cleared" do
+        let(:description) { "   " }
+
+        before { collection.update!(description: "Old text.") }
+
+        it "forgets the old one" do
+          request
+          expect(collection.reload.description).to be_nil
+        end
+      end
+    end
+
+    # Hiding the form is not access control: describing a collection is
+    # curation, and it takes a grant on this collection to do it.
+    context "when they only read the collection" do
+      before { create(:collection_user, collection:, user: current_user, role: :user) }
+
+      it "refuses" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "changes nothing" do
+        expect { request }.not_to change { collection.reload.description }
+      end
+    end
+  end
+
   describe "POST /collections" do
     subject(:request) { post collections_path, params: { collection: { name: } } }
 

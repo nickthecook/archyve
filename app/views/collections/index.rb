@@ -110,6 +110,12 @@ class Views::Collections::Index < Views::Base
             type: "text", name: "collection[name]", placeholder: "Collection name", required: true, autofocus: true,
             class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
           )
+          # Optional here, and editable on the collection itself: someone naming
+          # a collection rarely knows yet what will end up in it.
+          textarea(
+            name: "collection[description]", rows: "2", placeholder: "What it is for (optional)",
+            class: "w-full resize-y rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
+          )
           button(type: "submit", class: "self-end rounded bg-accent px-3 py-1.5 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Create" }
         end
       end
@@ -129,19 +135,27 @@ class Views::Collections::Index < Views::Base
   # data-name lets the client-side filter match without a round trip.
   def card(row)
     collection = row.collection
+    # A column with the meter pushed to the bottom: descriptions vary in length,
+    # and a row of cards whose meters sit at different heights reads as a
+    # jumble rather than as a set that can be compared at a glance.
     a(
       href: collection_path(collection),
-      class: "block rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors",
+      class: "flex h-full flex-col rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors",
       data: { list_filter_target: "item", name: collection.name.downcase }
     ) do
       div(class: "mb-3 flex items-start justify-between gap-3") do
         span(class: "truncate text-sm font-medium text-fg") { collection.name }
         source_marker if row.source_fed
       end
-      meter(row.status_counts, row.documents_count)
-      div(class: "mt-3 flex items-center justify-between text-xs") do
-        span(class: "font-mono tabular-nums text-muted") { "#{row.documents_count} #{'document'.pluralize(row.documents_count)}" }
-        span(class: "text-faint") { updated(row.last_activity_at) }
+      # Clamped rather than truncated: a description is a sentence or two, and
+      # one line of it says less than nothing about what a collection holds.
+      p(class: "mb-3 line-clamp-2 text-xs leading-relaxed text-faint") { collection.description } if collection.description.present?
+      div(class: "mt-auto") do
+        meter(row.status_counts, row.documents_count)
+        div(class: "mt-3 flex items-center justify-between text-xs") do
+          span(class: "font-mono tabular-nums text-muted") { "#{row.documents_count} #{'document'.pluralize(row.documents_count)}" }
+          span(class: "text-faint") { updated(row.last_activity_at) }
+        end
       end
     end
   end

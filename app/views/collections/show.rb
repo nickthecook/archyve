@@ -157,11 +157,52 @@ class Views::Collections::Show < Views::Base
           people_link
         end
       end
+      description
       # Swapped by the document list's poll, not its own — see #documents_region.
       div(id: "collection_meter") do
         meter
         p(class: "mt-3 text-sm text-muted") { count_summary }
       end
+    end
+  end
+
+  # What this collection is for. It reads as prose to whoever opens the page and
+  # goes to the chat model in `list_collections`, which is the harder audience:
+  # a model choosing where to look has only this and the name to go on.
+  def description
+    p(class: "mb-3 text-sm leading-relaxed text-muted") { @collection.description } if @collection.description.present?
+    description_editor if may_on?(@collection, :operator)
+  end
+
+  def description_editor
+    details(class: "mb-4") do
+      summary(class: "cursor-pointer list-none") { description_toggle }
+      description_form
+    end
+  end
+
+  # Dashed and quiet when there is no description — the app's vocabulary for
+  # "not a real thing" (see docs/design.md) — and a plain secondary link once
+  # there is one, because then the affordance is only a way back into an edit.
+  def description_toggle
+    return span(class: "text-xs text-faint hover:text-fg transition-colors") { "Edit description" } if @collection.description.present?
+
+    span(class: "inline-flex items-center gap-2 rounded border border-dashed border-line px-3 py-2 text-xs text-muted hover:border-line-2 hover:text-fg transition-colors") do
+      plain "Describe this collection"
+      span(class: "text-faint") { "so agents know what it contains" }
+    end
+  end
+
+  def description_form
+    form(action: collection_path(@collection), method: "post", class: "mt-3 flex flex-col gap-2") do
+      input(type: "hidden", name: "_method", value: "patch")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      textarea(
+        name: "collection[description]", rows: "3",
+        placeholder: "What this collection is for, and what someone would come here to find.",
+        class: "w-full resize-y rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
+      ) { @collection.description }
+      button(type: "submit", class: "self-start rounded bg-accent px-3 py-1.5 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Save" }
     end
   end
 

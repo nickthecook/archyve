@@ -103,7 +103,11 @@ half an answer in chunk 12 can read 10–14 instead of searching again and hopin
 the neighbour surfaces. `list_collections` and `list_documents` walk the archive
 instead of searching inside it, for questions about *what it holds* and where
 those documents came from — both land on `Retrieval::Corpus`, and a listing
-shows only what is in scope, since the scope *is* the conversation's corpus.
+shows only what is in scope, since the scope *is* the conversation's corpus. A
+collection carries a `description`, written by whoever manages it and handed to
+`list_collections`: a name alone is a coin flip for a model deciding where to
+look. A *generated* summary is a different field and a later question — see
+`docs/todo.md`.
 Still planned: an optional `collections:` on `search_archive`, letting the model
 aim a search at part of its scope. The user's scope stays the ceiling in every
 case — see `docs/todo.md`.

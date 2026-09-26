@@ -35,6 +35,22 @@ RSpec.describe Retrieval::List do
       end
     end
 
+    # "Ops" versus "Platform" is a coin flip; the description is what lets a
+    # model tell them apart.
+    context "when the collection has been described" do
+      before { handbook.update!(description: "Security policy, on-call and incident review.") }
+
+      it "hands the description to the model" do
+        expect(list.collections.entries.first["description"]).to eq("Security policy, on-call and incident review.")
+      end
+    end
+
+    context "when it has not been described" do
+      it "carries no description key, rather than an empty one" do
+        expect(list.collections.entries.first).not_to have_key("description")
+      end
+    end
+
     context "when a collection is one they hold no grant on" do
       before { create(:collection, name: "Payroll") }
 

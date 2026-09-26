@@ -34,6 +34,11 @@ RSpec.describe Tools::ListCollections do
         expect(result[:collections].first["sources"]).to eq(["Wiki"])
       end
 
+      it "says what the collection is for" do
+        collection.update!(description: "Security policy and on-call.")
+        expect(result[:collections].first["description"]).to eq("Security policy and on-call.")
+      end
+
       # A model that writes [3] meaning "the third collection" produces a
       # citation resolving to whatever passage 3 happened to be.
       it "tells the model a listing is not something to cite" do

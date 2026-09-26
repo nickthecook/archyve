@@ -14,6 +14,10 @@ class Collection < ApplicationRecord
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true
 
+  # Blank is absent. A description that came back as "" would read as described
+  # to `present?` and would be handed to the chat model as an empty field.
+  normalizes :description, with: -> { it.strip.presence }
+
   before_validation :set_slug, on: :create
 
   # Everything this person can reach at all — any grant, however weak, since

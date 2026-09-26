@@ -58,6 +58,19 @@ class CollectionsController < ApplicationController
     end
   end
 
+  # The description, and nothing else: a collection's name is its slug's origin
+  # and renaming one would leave every c[] link and conversation scope pointing
+  # at a collection that no longer answers to that name.
+  #
+  # Gated on managing *this* collection rather than on the global role — same
+  # rule as filing a document into it, since describing what a collection is for
+  # is curation, not administration.
+  def update
+    collection = Collection.manageable_by(Current.user).find_by!(slug: params[:slug])
+    collection.update!(collection_params.slice(:description))
+    redirect_to collection_path(collection), notice: "Updated the description."
+  end
+
   # Deleting a collection unfiles its documents; it never destroys them. They
   # belong to the source that produced them, so what goes is the shelf, not the
   # books — anything that was only here becomes Unsorted. Gated on administering
@@ -97,7 +110,7 @@ class CollectionsController < ApplicationController
   end
 
   def collection_params
-    params.require(:collection).permit(:name)
+    params.require(:collection).permit(:name, :description)
   end
 
   # Assemble every row from a fixed set of aggregate queries (no per-collection

@@ -25,7 +25,7 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  resources :collections, only: [:index, :show, :create, :destroy], param: :slug do
+  resources :collections, only: [:index, :show, :create, :update, :destroy], param: :slug do
     # A user adding/removing a document to/from this collection (manual
     # memberships only; source rows are retracted at the source).
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"

@@ -14,7 +14,7 @@ module Tools
 
     def description
       <<~TEXT.strip
-        List the collections this conversation draws on — what each holds, how many
+        List the collections this conversation draws on — what each is for, how many
         documents are in it, and which sources feed it. Use it to answer what the archive
         covers or where its documents come from, and to get the slug that list_documents
         takes. Nothing it returns is a passage, so nothing it returns can be cited.

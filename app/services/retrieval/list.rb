@@ -56,13 +56,15 @@ module Retrieval
       @corpus.documents.where(id: collection.active_memberships.select(:document_id))
     end
 
+    # `compact` so an undescribed collection carries no key at all: an empty
+    # description field reads to a model as a collection that is about nothing.
     def collection_entries(collections)
       counts = document_counts(collections)
       collections.map do
         {
-          "name" => it.name, "slug" => it.slug,
+          "name" => it.name, "slug" => it.slug, "description" => it.description.presence,
           "documents" => counts[it.id].to_i, "sources" => it.sources.map(&:name)
-        }
+        }.compact
       end
     end
 
