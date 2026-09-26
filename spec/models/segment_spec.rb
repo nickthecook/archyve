@@ -45,6 +45,36 @@ RSpec.describe Segment do
         expect(segment.for_history).to include("could not be read")
       end
     end
+
+    # What a listing saw is what a follow-up like "read the second one" depends
+    # on, even though none of it can be cited.
+    context "with a listing of collections" do
+      subject(:segment) { create(:listing_segment) }
+
+      it "replays what it listed" do
+        expect(segment.for_history).to include("Security Handbook (security-handbook, 12 documents)")
+      end
+    end
+
+    context "with a listing of documents" do
+      subject(:segment) { create(:listing_segment, :documents) }
+
+      it "replays the ids, so a follow-up can read one" do
+        expect(segment.for_history).to include("41 Credential rotation")
+      end
+
+      it "says how much of the collection it saw" do
+        expect(segment.for_history).to include("documents 1–2 of 9 in Security Handbook")
+      end
+    end
+
+    context "with a listing that was refused" do
+      subject(:segment) { create(:listing_segment, :refused) }
+
+      it "says the listing failed rather than dropping it from history" do
+        expect(segment.for_history).to include("isn't in this chat's scope")
+      end
+    end
   end
 
   describe "#record_reading!" do
@@ -73,6 +103,36 @@ RSpec.describe Segment do
 
     it "records what the model was shown, not a pointer to it" do
       expect(segment.hits.first.snippet).to eq(chunk.content)
+    end
+  end
+
+  describe "#record_listing!" do
+    subject(:segment) { create(:listing_segment, listing: nil) }
+
+    let(:listing) do
+      Retrieval::Listing.new(
+        kind: :documents, title: "Security Handbook", to: 1, total: 9,
+        entries: [{ "id" => 41, "title" => "Credential rotation", "source" => "Wiki", "chunks" => 14 }]
+      )
+    end
+
+    before { segment.record_listing!(listing) }
+
+    it "records what was listed" do
+      expect(segment.listed_entries.first["title"]).to eq("Credential rotation")
+    end
+
+    it "records how much of the collection it saw" do
+      expect(segment).to have_attributes(listed_from: 1, listed_to: 1, listed_total: 9)
+    end
+
+    # Nothing in a listing is a passage, so nothing in one may be cited.
+    it "records no hits to cite" do
+      expect(segment.hits).to be_empty
+    end
+
+    it "is not a segment a citation resolves against" do
+      expect(segment).not_to be_sourced
     end
   end
 

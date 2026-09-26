@@ -39,6 +39,16 @@ module Retrieval
       @scope ? relation.where(id: @scope.document_ids) : relation
     end
 
+    # The collections this conversation draws on, as a relation. In scope only,
+    # deliberately: a listing that named collections this chat cannot search
+    # would have the model describing documents it cannot draw on, which is the
+    # "I could not find it" versus "that is outside this chat" confusion
+    # Chat::Instructions exists to prevent.
+    def collections
+      relation = Collection.readable_by(@user)
+      @scope ? relation.where(id: @scope.collections.map(&:id)) : relation
+    end
+
     private
 
     # Deliberately retrievable_by, not reachable_by: reading has to match

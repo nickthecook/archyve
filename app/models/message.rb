@@ -38,6 +38,7 @@ class Message < ApplicationRecord
     return unless in_progress?
     return "Reading the results…" if segments.last&.retrieval?
     return "Reading the document…" if segments.last&.reading?
+    return "Reading the listing…" if segments.last&.listing?
 
     # Thinking segments don't count: the model reasoning out loud isn't the
     # answer arriving, and the spinner is what says the answer is still coming.

@@ -152,6 +152,23 @@ module Chat
       broadcast!
     end
 
+    # The model has stopped to walk the archive rather than search it. Nothing
+    # is known before the listing runs — not even which of the two it is — so
+    # the panel that opens here says only that it is looking.
+    def listing_started
+      flush_text
+      flush_thinking
+      @listing_segment = create_segment(:listing)
+      broadcast!
+    end
+
+    # Nothing to absorb: a listing shows no passages, so it contributes no hits
+    # to the turn's citation namespace. See Segment#sourced?.
+    def listing_finished(listing)
+      @listing_segment&.record_listing!(listing)
+      broadcast!
+    end
+
     # ------------------------------------------------------------------------
 
     def finish
@@ -238,9 +255,12 @@ module Chat
     # A search or a read on its own counts as having said something: the panel
     # is visible, so the turn isn't a blank box even when no prose followed.
     #
-    # Thinking does not count. A model that reasons and then says nothing has
-    # failed to answer, and it is a failure worth naming — mis-channelled
-    # replies, where the whole reply arrives as analysis, look exactly like it.
+    # Thinking does not count, and neither does a listing. A model that reasons
+    # and then says nothing has failed to answer, and it is a failure worth
+    # naming — mis-channelled replies look exactly like it, and so does a model
+    # that lists, works out its next call in the analysis channel, and never
+    # makes it. A listing puts no passages on the page to make up for the
+    # silence; the turn simply stopped short.
     def said_nothing?
       @message.error.blank? &&
         @message.segments.reload.none? { it.sourced? || (it.text? && it.content.present?) }

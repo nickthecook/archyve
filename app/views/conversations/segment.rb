@@ -34,6 +34,7 @@ class Views::Conversations::Segment < Components::Base
       when :text then prose
       when :thinking then render Views::Conversations::Thinking.new(segment: @segment)
       when :reading then render Views::Conversations::Reading.new(segment: @segment)
+      when :listing then render Views::Conversations::Listing.new(segment: @segment)
       else render Views::Conversations::Retrieval.new(segment: @segment)
       end
     end

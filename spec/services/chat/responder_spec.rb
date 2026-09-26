@@ -84,9 +84,9 @@ RSpec.describe Chat::Responder do
       # RubyLLM's `calls:` counts tool calls within one response, not rounds
       # within a turn, and raises on an integer. The round budget is the tool's.
       # This passes only because with_tool is the gem's own, not a stub.
-      it "attaches both tools under the names the model is told" do
+      it "attaches every tool under the name the model is told" do
         respond
-        expect(llm.tools.keys).to eq(%i[search_archive read_document])
+        expect(llm.tools.keys).to eq(%i[search_archive read_document list_collections list_documents])
       end
     end
 

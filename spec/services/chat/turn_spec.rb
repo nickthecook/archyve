@@ -199,6 +199,48 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  describe "#listing_started" do
+    let(:listing) do
+      Retrieval::Listing.new(kind: :collections, to: 1, total: 1,
+        entries: [{ "name" => "Security Handbook", "slug" => "security-handbook",
+                    "documents" => 12, "sources" => ["Wiki"] }])
+    end
+
+    context "when the model walks the archive mid-sentence" do
+      before do
+        turn.append("Let me see what is here.")
+        turn.listing_started
+        turn.listing_finished(listing)
+        turn.append("Two collections.")
+        turn.finish
+      end
+
+      it "leaves prose, listing, prose" do
+        expect(segments.map(&:kind)).to eq(%w[text listing text])
+      end
+
+      it "keeps what was listed on the listing segment" do
+        expect(segments.second.listed_entries.first["slug"]).to eq("security-handbook")
+      end
+
+      # Nothing in a listing is a passage, so a citation must not resolve into
+      # one — see Segment#sourced?.
+      it "adds nothing to the turn's citation namespace" do
+        expect(segments.second.hits).to be_empty
+      end
+    end
+
+    # The state the spinner renders. It only exists if the segment is written
+    # before the listing runs, not after it returns.
+    context "while the listing is still running" do
+      before { turn.listing_started }
+
+      it "has nothing recorded yet" do
+        expect(segments.first.listing).to be_nil
+      end
+    end
+  end
+
   # Each segment is counted and timed against its own stream — see Chat::Pace
   # for why the provider's own token total is deliberately not used.
   describe "counting what was generated" do
@@ -270,6 +312,17 @@ RSpec.describe Chat::Turn do
       end
     end
 
+    context "after a listing has returned but before the model speaks" do
+      before do
+        turn.listing_started
+        turn.listing_finished(Retrieval::Listing.new(kind: :collections))
+      end
+
+      it "says it is reading what came back" do
+        expect(turn.message.waiting_on).to eq("Reading the listing…")
+      end
+    end
+
     # Streaming prose is its own evidence of progress.
     context "while prose is streaming" do
       before { turn.append("Production credentials ") }
@@ -321,6 +374,22 @@ RSpec.describe Chat::Turn do
       # The retrieval panel is on the page, so the turn isn't a blank box.
       it "does not call that an empty turn" do
         expect(turn.message.error).to be_nil
+      end
+    end
+
+    # The failure this catches in the wild: the model lists, works out its next
+    # call in the analysis channel, and never makes it. A listing puts no
+    # passages on the page, so the turn has answered nothing and must say so
+    # rather than ending quietly with a panel and no reply.
+    context "when the model listed but never wrote prose" do
+      before do
+        turn.listing_started
+        turn.listing_finished(Retrieval::Listing.new(kind: :collections))
+        turn.finish
+      end
+
+      it "says it finished without answering" do
+        expect(turn.message.error).to eq("The model finished without answering.")
       end
     end
   end

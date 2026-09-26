@@ -1,13 +1,18 @@
 # frozen_string_literal: true
 
 module Chat
-  # The system prompt. Three jobs, in order of how badly they go wrong when
+  # The system prompt. Four jobs, in order of how badly they go wrong when
   # they're missing.
   #
   # **Name the scope.** A model that doesn't know what it can reach will report
   # that the archive lacks something when the truth is the user narrowed the
   # chat to one document. It says "I couldn't find it" instead of "that's
   # outside what this chat is drawing on", and the user believes it.
+  #
+  # **A listing is not a source.** Collections and document titles are things
+  # the model was told, not passages it was shown, and a model that cites "[3]"
+  # meaning the third collection produces a citation resolving to whatever
+  # passage 3 happened to be — wrong, and invisibly so.
   #
   # **Cite by handle, address by id.** Two names, and mixing them up breaks
   # both. A handle ("1") names a passage it was shown and is what Archyve
@@ -22,7 +27,7 @@ module Chat
   # where it matters most, because instructions at the top of a long
   # conversation carry less weight than the sentence it just read.
   #
-  # A chat scoped to no collections gets a different prompt for all three: there
+  # A chat scoped to no collections gets a different prompt for all of them: there
   # is no search tool, nothing to cite, and the model's own knowledge is all
   # there is — so it is told that rather than being told off for using it.
   class Instructions
@@ -76,6 +81,15 @@ module Chat
         is chunk 12 of 47 is read further with read_document(document: <that id>,
         from: 10, to: 14). Only ever read an id you were given; a document you were
         not shown cannot be read, and guessing at ids finds nothing.
+
+        To answer what this archive holds rather than what it says, walk it:
+        list_collections names the collections this conversation draws on, how many
+        documents each holds and which sources feed them; list_documents takes one of
+        those slugs and names the documents in it, with the id read_document takes. A
+        question like "what is in the handbook?" is both calls and then an answer, all
+        in this turn — never stop after a tool result, and never leave your next step
+        as a thought. Say what a listing showed in your own words: there are no
+        passages in one, so cite nothing from it.
 
         Cite what you use. Every passage you are shown, searched or read, comes with a
         handle, and you cite it by writing the handle in square brackets — [1], or

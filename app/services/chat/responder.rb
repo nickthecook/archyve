@@ -99,11 +99,20 @@ module Chat
       shared = {
         corpus: Retrieval::Corpus.for(@conversation),
         handles: Retrieval::Handles.new,
-        observer: turn,
-        max_rounds: Setting.chat_max_tool_rounds
+        observer: turn
       }
+      rounds = Setting.chat_max_tool_rounds
+      # Listings get their own, looser budget: they cost no embedding call, and
+      # finding one's way around an archive takes more steps than answering from
+      # it. See the setting for where the ceiling comes from.
+      listing_rounds = Setting.chat_max_listing_rounds
 
-      [Tools::Search.new(limit: Setting.chat_result_limit, **shared), Tools::Read.new(**shared)]
+      [
+        Tools::Search.new(limit: Setting.chat_result_limit, max_rounds: rounds, **shared),
+        Tools::Read.new(max_rounds: rounds, **shared),
+        Tools::ListCollections.new(max_rounds: listing_rounds, **shared),
+        Tools::ListDocuments.new(max_rounds: listing_rounds, **shared)
+      ]
     end
 
     # Everything before this question. Past searches come back with it — see

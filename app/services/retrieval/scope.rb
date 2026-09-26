@@ -97,10 +97,25 @@ module Retrieval
       { "c" => collections.map(&:slug).presence || [""] }
     end
 
+    # The collections this scope draws on. A document scope answers with the
+    # readable collections that document is filed in rather than with none: the
+    # chat reaches that document *through* them, and a listing that came back
+    # empty would read as an archive with nothing in it.
+    def collections
+      @collections ||= readable_collections.to_a
+    end
+
     private
 
-    def collections
-      @collections ||= Collection.readable_by(@user).where(slug: @slugs).to_a
+    def readable_collections
+      relation = Collection.readable_by(@user)
+      return relation.where(id: collection_ids_of_scoped_document) if @document_id
+
+      relation.where(slug: @slugs)
+    end
+
+    def collection_ids_of_scoped_document
+      CollectionMembership.active.where(document_id: @document_id).select(:collection_id)
     end
 
     def readable_documents = Document.retrievable_by(@user)

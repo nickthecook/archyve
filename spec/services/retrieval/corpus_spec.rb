@@ -68,6 +68,53 @@ RSpec.describe Retrieval::Corpus do
     end
   end
 
+  describe "#collections" do
+    subject(:corpus) { described_class.new(user:, scope:) }
+
+    let(:user) { create(:user) }
+    let(:scope) { nil }
+
+    let(:collection) { create(:collection, name: "Security Handbook") }
+    let(:document) { create(:document) }
+
+    before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+    context "when they hold a grant on it" do
+      before { create(:collection_user, collection:, user:) }
+
+      it "includes it" do
+        expect(corpus.collections).to include(collection)
+      end
+    end
+
+    context "when they hold no grant on it" do
+      it "excludes it" do
+        expect(corpus.collections).not_to include(collection)
+      end
+    end
+
+    # The scope is the conversation's corpus, and listing past it has the model
+    # describing documents this chat cannot draw on.
+    context "when the scope names a different collection" do
+      let(:user) { create(:user, role: :admin) }
+      let(:scope) { Retrieval::Scope.from_params({ c: [create(:collection).slug] }, user:) }
+
+      it "excludes it, even from an admin" do
+        expect(corpus.collections).not_to include(collection)
+      end
+    end
+
+    # A chat pinned to one document still reaches it through a collection.
+    context "when the scope names one document" do
+      let(:user) { create(:user, role: :admin) }
+      let(:scope) { Retrieval::Scope.from_params({ doc: document.id }, user:) }
+
+      it "answers with the collections that document is filed in" do
+        expect(corpus.collections).to contain_exactly(collection)
+      end
+    end
+  end
+
   describe "#filters" do
     # Search leans on an empty list to skip the join to documents entirely, so
     # "unrestricted" has to come back as nothing rather than as a filter that

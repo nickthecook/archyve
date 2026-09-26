@@ -3,49 +3,13 @@
 Work that is known, shaped, and deliberately not done yet. Decisions that shape
 the system live in `architecture.md`; this is the queue.
 
-## More tools for the model
+## The model narrows its own search
 
-`search_archive` and `read_document` exist (2026-09-26). Two more tools and one
-parameter finish the shape: a model should be able to answer *"what is in this
-archive?"* by walking it, not only by searching inside it — and it should be
-able to aim a search at part of its scope rather than all of it.
-
-The three are independent and can land in any order.
-
-- **`list_collections`** — no parameters; the collections this conversation
-  draws on, each with its description, document count, and the sources feeding
-  it. Provenance is half the point: *"where do these documents come from?"* is a
-  question no amount of searching answers. Collections are named by **slug**,
-  not id — they already have one, it is `to_param`, and it is the `c[]` wire
-  format `Retrieval::Scope` uses.
-- **`list_documents`** — one collection by slug; title, id, source and chunk
-  count per document, so a promising title goes straight to `read_document`.
-  Needs `from`/`limit` paging with a reported total, mirroring `read_document`
-  so the model meets one convention rather than two.
-
-Both land on `Retrieval::Corpus` and on the naming rule in `architecture.md`.
-A slug outside the corpus resolves to nothing, worded exactly as
-`read_document`'s `not_found` is.
-
-**Settled: a listing shows only what is in scope.** A chat scoped to the
-Security Handbook lists that, not every collection the reader could have picked.
-The scope *is* the conversation's corpus, and listing past it has the model
-describing documents this chat cannot draw on — the "I couldn't find it" versus
-"that's outside this chat" confusion `Chat::Instructions` exists to prevent.
-So `Corpus#collections`, deliberately left unwritten until this was decided:
-
-```ruby
-def collections
-  relation = Collection.readable_by(@user)
-  @scope ? relation.where(slug: @scope.slugs) : relation
-end
-```
-
-`Retrieval::Scope` keeps `@slugs` private and needs a reader. The
-document-scoped case (`doc` with no `c`) should answer with the readable
-collections that document is in, not none.
-
-### The feature this unlocks: the model narrows its own search
+`search_archive` and `read_document` exist, and `list_collections` and
+`list_documents` landed with them (2026-09-26): a model can now answer *"what is
+in this archive?"* by walking it, not only by searching inside it. What is left
+of that shape is one parameter — the model aiming a search at part of its scope
+rather than all of it.
 
 **`search_archive` gains an optional `collections:` parameter.** Always on, not
 a mode. The user's scope stays exactly what it is — a hard ceiling they chose —
@@ -86,20 +50,6 @@ exists to prevent, arriving by a new route. It needs its own status, naming the
 collections that do exist so the model can retry, and it must never look like a
 no-match. Worth a spec of its own, phrased as the security-property specs are.
 
-**Where `list_collections` fits now.** Not as a prerequisite — search works
-without it — but as how the model learns it can do better, and as the answer to
-provenance questions. Listing the in-scope collections into the first turn
-preemptively is still worth doing, since the scope is known before the model
-speaks; build that listing and the tool from the same `Corpus#collections` or
-they drift.
-
-**Metadata is now an improvement, not a blocker.** `collections` is `id, name,
-slug` and timestamps, and "Ops" versus "Platform" is a coin flip — so a
-`collections.description` column (shown and edited in the collection UI, fed to
-`list_collections`) is what makes narrowing worth the model's while. But nothing
-breaks without it: no description means the model narrows less often, and
-searching the whole scope is the same search Archyve runs today.
-
 **Small ones.** A scope of one collection, or a `doc` scope, makes the parameter
 a no-op — `params_schema` is an instance method reading a class-level
 definition, so a tool instance can drop the parameter when there is nothing to
@@ -107,22 +57,26 @@ narrow, rather than advertising a knob that cannot do anything. And the
 retrieval panel should say which collections were searched when the model
 narrowed, or the transcript stops explaining the result.
 
-### Open when that slice starts
+### Left over from the listing tools
 
-- **The transcript panel.** Not a `reading` segment — no passages, no hits,
-  nothing citable, so `HitCard` doesn't apply. A `listing` kind with its results
-  in jsonb is the likely shape; worth one look at whether the panel shell
-  generalises before writing a fourth one.
-- **Nothing in a listing is citable, and the prompt must say so.** A model
-  writing `[3]` to mean "the third collection" produces a citation resolving to
-  whatever passage 3 happens to be — quietly wrong, the worst kind.
-- **Round budgets.** Listing costs no embedding call, so
-  `Setting.chat_max_tool_rounds` (default 2) is likely too tight — but a model
-  walking `list_documents` across forty collections is a real failure mode.
-  A separate, larger allowance for listings is the likely answer.
-- **`documents.chunks_count`.** `list_documents` needs a chunk count per
-  document, which `Tools::Search` currently gets with a grouped count over its
-  result set. Two callers justify the counter cache; one did not.
+- **`collections.description`.** The table is `id, name, slug` and timestamps,
+  and "Ops" versus "Platform" is a coin flip. A description column — shown and
+  edited in the collection UI, fed to `list_collections` — is what makes
+  narrowing worth the model's while. Nothing breaks without it: no description
+  means the model narrows less often, and searching the whole scope is the same
+  search Archyve runs today.
+- **Listing the in-scope collections into the first turn**, preemptively. The
+  scope is known before the model speaks, so it need not spend a round finding
+  out what it is drawing on. Build that listing from `Corpus#collections`, the
+  same place the tool reads, or the two drift.
+- **`documents.chunks_count`.** Both `Tools::Search` and `Retrieval::List` now
+  reach for a chunk count with a grouped count over their result set. Two
+  callers is what justified the counter cache; one did not.
+- **The listing panel expands into rows, not cards.** Rows link to the
+  collection or document they name, and a row whose document has since been
+  deleted links to a 404 — `HitCard` guards against that because it holds the
+  association and this does not. Cheap to fix if it ever bites: the ids are in
+  the segment, so one lookup per panel would do it.
 
 ## Surfacing sync failures to the user
 

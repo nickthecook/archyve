@@ -31,6 +31,15 @@ module Tools
       super()
     end
 
+    # Said on every listing result, and phrased as permission rather than
+    # prohibition on purpose: a small model told only "these cannot be cited"
+    # reads it as "these cannot be used" and goes quiet on a question the
+    # listing just answered. What it must not do is write a handle — one that
+    # writes [3] meaning "the third collection" produces a citation resolving to
+    # whatever passage 3 happened to be, wrong and quietly.
+    NOT_CITABLE = "Tell the user what this shows, in your own words. There are no passages here, " \
+                  "so write no citation handles for these rows."
+
     private
 
     attr_reader :corpus, :handles, :observer

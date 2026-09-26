@@ -49,6 +49,34 @@ FactoryBot.define do
           "from" => 10, "to" => 14, "total" => 47 }
       end
     end
+
+    factory :listing_segment do
+      kind { "listing" }
+      content { nil }
+      listing do
+        { "kind" => "collections", "from" => 1, "to" => 2, "total" => 2,
+          "entries" => [
+            { "name" => "Security Handbook", "slug" => "security-handbook",
+              "documents" => 12, "sources" => ["Wiki"] },
+            { "name" => "Runbooks", "slug" => "runbooks", "documents" => 3, "sources" => [] }
+          ] }
+      end
+
+      trait :documents do
+        listing do
+          { "kind" => "documents", "title" => "Security Handbook",
+            "from" => 1, "to" => 2, "total" => 9,
+            "entries" => [
+              { "id" => 41, "title" => "Credential rotation", "source" => "Wiki", "chunks" => 14 },
+              { "id" => 42, "title" => "Bastion access", "source" => "Wiki", "chunks" => 0 }
+            ] }
+        end
+      end
+
+      trait :refused do
+        listing { { "kind" => "documents", "refusal" => "not_found" } }
+      end
+    end
   end
 
   factory :hit do

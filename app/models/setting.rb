@@ -30,6 +30,16 @@ class Setting < ApplicationRecord
       default: 2,
       type: :integer,
       description: "How many times the model may search the archive in one turn."
+    ),
+    # The same guard for walking the archive, and looser: a listing costs no
+    # embedding call and no vector scan, and a model finding its way around
+    # genuinely needs more than two steps — list the collections, then list one,
+    # then list another. Still capped, because a model walking list_documents
+    # across every collection it was shown is a real failure mode.
+    "chat.max_listing_rounds" => Definition.new(
+      default: 4,
+      type: :integer,
+      description: "How many times the model may list part of the archive in one turn."
     )
   }.freeze
 
@@ -51,6 +61,7 @@ class Setting < ApplicationRecord
     # boot rather than at retrieval time.
     def chat_result_limit = self["chat.result_limit"]
     def chat_max_tool_rounds = self["chat.max_tool_rounds"]
+    def chat_max_listing_rounds = self["chat.max_listing_rounds"]
 
     private
 
