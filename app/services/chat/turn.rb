@@ -9,7 +9,7 @@ module Chat
   # back into that sequence — every time the model stops talking to search, the
   # current text segment is closed and a retrieval segment opens in its place.
   #
-  # It is also the observer Retrieval::Tool reports to, which is how the search
+  # It is also the observer the tools report to, which is how a search or a read
   # appears in the transcript *while it runs* rather than only once it returns.
   class Turn
     # Streaming a token at a time would mean a broadcast per token. Rendering is
@@ -118,7 +118,7 @@ module Chat
       broadcast if due?
     end
 
-    # --- Retrieval::Tool observer -------------------------------------------
+    # --- Tools::Base observer ------------------------------------------------
 
     # The model has stopped to search. Close whatever it was saying and open a
     # retrieval segment now, with the queries but no results — this is the state
@@ -132,14 +132,23 @@ module Chat
 
     def retrieval_finished(outcome)
       @retrieval_segment&.record!(outcome)
-      # Held for the streaming renders that follow. Cited resolves citation
-      # handles against the retrieval segment above the prose — which is this
-      # one — and left to work that out itself it walks every segment of the
-      # message on every tick. `includes(:document)` because Chat::Prose asks
-      # each hit whether it is followable and for its title, both of which
-      # reach through the association; without it the walk is gone and a
-      # query per hit takes its place.
-      @hits = @retrieval_segment&.hits&.includes(:document)&.index_by(&:handle) || {}
+      absorb(@retrieval_segment)
+      broadcast!
+    end
+
+    # The model has stopped to read a document. The id is all that is known
+    # before the read runs — the title comes back with it — so the panel that
+    # opens here names nothing yet, which is what the spinner state renders.
+    def reading_started(_document_id)
+      flush_text
+      flush_thinking
+      @reading_segment = create_segment(:reading)
+      broadcast!
+    end
+
+    def reading_finished(reading)
+      @reading_segment&.record_reading!(reading)
+      absorb(@reading_segment)
       broadcast!
     end
 
@@ -170,6 +179,20 @@ module Chat
     end
 
     private
+
+    # Held for the streaming renders that follow. Cited resolves citation
+    # handles against the segments above the prose, and left to work that out
+    # itself it walks every segment of the message on every tick.
+    #
+    # Merged rather than replaced: handles run on across a whole turn, so a
+    # search, a read and a second search all cite into one namespace, and prose
+    # after the third can still cite the first. `includes(:document)` because
+    # Chat::Prose asks each hit whether it is followable and for its title,
+    # both of which reach through the association; without it the walk is gone
+    # and a query per hit takes its place.
+    def absorb(segment)
+      @hits.merge!(segment&.hits&.includes(:document)&.index_by(&:handle) || {})
+    end
 
     # Stops the page waiting. Every exit from a turn goes through here, so a
     # path that forgets it leaves a spinner running for good.
@@ -212,7 +235,7 @@ module Chat
 
     def due? = Time.current - @broadcast_at >= BROADCAST_INTERVAL
 
-    # A search on its own counts as having said something: the retrieval panel
+    # A search or a read on its own counts as having said something: the panel
     # is visible, so the turn isn't a blank box even when no prose followed.
     #
     # Thinking does not count. A model that reasons and then says nothing has
@@ -220,7 +243,7 @@ module Chat
     # replies, where the whole reply arrives as analysis, look exactly like it.
     def said_nothing?
       @message.error.blank? &&
-        @message.segments.reload.none? { it.retrieval? || (it.text? && it.content.present?) }
+        @message.segments.reload.none? { it.sourced? || (it.text? && it.content.present?) }
     end
 
     def broadcast

@@ -13,5 +13,8 @@ class SearchController < ApplicationController
   # — the access-control rules have to be the same object, not the same idea.
   # A failure comes back as an Outcome rather than raising, so an unreachable
   # embedding server degrades to a message instead of a 500.
-  def search = Retrieval::Search.new(user: Current.user, scope: @scope).call(@query)
+  def search
+    corpus = Retrieval::Corpus.new(user: Current.user, scope: @scope)
+    Retrieval::Search.new(corpus:).call(@query)
+  end
 end

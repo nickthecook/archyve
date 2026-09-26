@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module Retrieval
-  # Cosine-nearest chunks for one or more queries, narrowed by two independent
-  # filters: what this person may read at all, and what they asked to search.
+  # Cosine-nearest chunks for one or more queries, narrowed to the corpus.
   #
   # **This is where access control is enforced for retrieval.** The search page
   # and the chat tool both come through here, and neither can widen what the
-  # other sees: the readable filter is applied from `user`, never from anything
-  # a caller passed in, and never from anything a model said. The chat tool
-  # can't name a collection because it is never given one to name.
+  # other sees: the filters come from Corpus, which is built from a user and a
+  # bound scope, never from anything a caller passed in and never from anything
+  # a model said. The chat tool can't name a collection because it is never
+  # given one to name.
   #
   # Several queries fuse into one ranking (see Fuse) rather than being returned
   # separately, so the model gets one deduplicated, fairly-merged set instead of
@@ -22,9 +22,8 @@ module Retrieval
     # Most callers want a page of results; chat wants Setting.chat_result_limit.
     DEFAULT_LIMIT = 20
 
-    def initialize(user:, scope: nil)
-      @user = user
-      @scope = scope
+    def initialize(corpus:)
+      @corpus = corpus
     end
 
     # queries: String or Array<String>. => Outcome
@@ -57,8 +56,8 @@ module Retrieval
       relation = Embedding.where(embedding_model: model.name)
 
       # Subqueries rather than plucked id lists, so a large archive stays in
-      # SQL. Both filters are ANDed: readable *and* in scope.
-      filters = [retrievable_document_ids, @scope&.document_ids].compact
+      # SQL. Every filter is ANDed: readable *and* in scope.
+      filters = @corpus.filters
       unless filters.empty?
         relation = relation.joins(chunk: :document)
         filters.each { |ids| relation = relation.where(documents: { id: ids }) }
@@ -75,17 +74,6 @@ module Retrieval
         hits: Fuse.call(candidate_lists, limit:),
         candidate_count: candidate_lists.flatten.map(&:chunk_id).uniq.size
       )
-    end
-
-    # What this query may draw on, as a subquery; nil means unrestricted.
-    #
-    # Document.retrievable_by is strictly collection-based, deliberately
-    # narrower than .reachable_by: a document in no collection is in nobody's
-    # corpus, even though an operator can open it from /unsorted to file it.
-    def retrievable_document_ids
-      return nil if @user.admin?
-
-      Document.retrievable_by(@user).select(:id)
     end
   end
 end

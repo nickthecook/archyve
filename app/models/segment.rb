@@ -4,11 +4,12 @@
 # — and keeping them ordered is what lets the transcript show the pause where it
 # actually happened rather than tidying the tool call away into a footnote.
 #
-# Three kinds, and they use different columns:
+# Four kinds, and they use different columns:
 #
 #   text       `content` — prose, rendered as paragraphs
 #   thinking   `content` — the model's own reasoning, collapsed in the transcript
 #   retrieval  `queries`, `candidate_count`, `failure_kind`, and its hits
+#   reading    `reading` — which document and range was read, and its hits
 #
 # ## Three outcomes, not two
 #
@@ -23,7 +24,10 @@ class Segment < ApplicationRecord
 
   has_many :hits, -> { order(:handle) }, dependent: :destroy, inverse_of: :segment
 
-  enum :kind, { text: 0, retrieval: 1, thinking: 2 }, validate: true
+  # `reading` rather than `read`: the predicate Rails generates from it sits
+  # beside ActiveRecord's own reading vocabulary without shadowing anything,
+  # and "a reading segment" is what this is.
+  enum :kind, { text: 0, retrieval: 1, thinking: 2, reading: 3 }, validate: true
 
   validates :position, presence: true, uniqueness: { scope: :message_id }
   validates :content, presence: true, if: :prose?
@@ -50,6 +54,10 @@ class Segment < ApplicationRecord
   # declare itself as prose.
   def prose? = text? || thinking?
 
+  # The two kinds that put passages in front of the model, and so the two whose
+  # hits a citation can resolve against.
+  def sourced? = retrieval? || reading?
+
   # Retrieval ran and came back empty — the honest "your archive doesn't cover
   # this", which a failure must never be mistaken for.
   def found_nothing? = retrieval? && !failed? && hits.empty?
@@ -68,6 +76,7 @@ class Segment < ApplicationRecord
   # searched.
   def for_history
     return content if text?
+    return read_history if reading?
     # Thinking is deliberately *not* replayed. It was never said to the person
     # asking, and handing a model its own previous reasoning invites it to carry
     # on from it rather than answer afresh — the reason providers drop the
@@ -85,18 +94,55 @@ class Segment < ApplicationRecord
   # quietly rewrite itself the next time a source synced.
   def record!(outcome)
     update!(candidate_count: outcome.candidate_count, failure_kind: outcome.failure&.kind&.to_s)
+    record_hits(outcome.hits)
+  end
 
-    outcome.hits.each do |hit|
+  # What a read found, in the same shape. The range is written to the segment
+  # rather than derived from the hits, because the hits outlive their chunks —
+  # see the columns note above.
+  def record_reading!(result)
+    update!(reading: {
+      "document_id" => result.document&.id, "title" => result.document&.title,
+      "from" => result.from, "to" => result.to, "total" => result.total,
+      "refusal" => result.refusal&.to_s
+    }.compact)
+    record_hits(result.hits)
+  end
+
+  # What was read, and out of how much. Always says the total, so a whole short
+  # document reads differently from the first page of a long one.
+  def range
+    span = reading_from == reading_to ? "chunk #{reading_from}" : "chunks #{reading_from}–#{reading_to}"
+    "#{span} of #{reading_total}"
+  end
+
+  def read_title = reading&.dig("title")
+  def reading_from = reading&.dig("from")
+  def reading_to = reading&.dig("to")
+  def reading_total = reading&.dig("total")
+  def refused? = reading&.dig("refusal").present?
+
+  private
+
+  def record_hits(found)
+    found.each do |hit|
       hits.create!(
         handle: hit.handle, chunk: hit.chunk, document: hit.document,
-        distance: hit.distance, score: hit.score,
+        distance: hit.distance, score: hit.score, position: hit.chunk.position,
         snippet: hit.chunk.content, document_title: hit.document.title,
         heading_path: hit.heading_path.presence
       )
     end
   end
 
-  private
+  # Replayed from the stored snippets, like a past search — see the note on
+  # for_history. A refused read is replayed too: a model that isn't told its
+  # last read failed will assume it succeeded and answer from nothing.
+  def read_history
+    return "[tried to read a document; it could not be read]" if refused? || read_title.nil?
+
+    ["[read #{read_title}, #{range}]", *hits.map { history_line(it) }].join("\n")
+  end
 
   def quoted_queries = Array(queries).map { "“#{it}”" }.to_sentence
 

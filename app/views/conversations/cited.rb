@@ -4,9 +4,9 @@
 # into links. The rendering itself is Chat::Prose — this is the part that knows
 # *which* results a handle refers to.
 #
-# Handles are resolved against the retrieval segment *preceding* this prose in
-# the same turn, because that is the set the model was looking at when it wrote
-# them. Handle 1 means something different in each block.
+# Handles are resolved against every search and read *preceding* this prose in
+# the same turn, because handles run on across a turn rather than restarting in
+# each block — so prose written after a second search can still cite the first.
 class Views::Conversations::Cited < Components::Base
   # `hits` prebuilt is the streaming path: Chat::Turn already holds the map for
   # the search this prose follows, and the lookback below would otherwise walk
@@ -23,15 +23,14 @@ class Views::Conversations::Cited < Components::Base
 
   private
 
-  # The hits of the nearest retrieval segment above this one in the turn.
+  # Every hit put in front of the model above this prose, in one map.
   # An empty map is a real answer — prose written before any search has no
   # citations to resolve — so this memoises on nil rather than on blank, and a
   # caller that passes {} gets {} instead of a walk.
   def hits
     @hits ||= @segment.message.segments
-      .select { it.retrieval? && it.position < @segment.position }
-      .last
-      &.hits
-      &.index_by(&:handle) || {}
+      .select { it.sourced? && it.position < @segment.position }
+      .flat_map(&:hits)
+      .index_by(&:handle)
   end
 end

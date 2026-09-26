@@ -9,9 +9,12 @@ module Chat
   # chat to one document. It says "I couldn't find it" instead of "that's
   # outside what this chat is drawing on", and the user believes it.
   #
-  # **Cite by handle.** The model is given "1", "2" and nothing else. Archyve
-  # resolves those to links, so a handle it invents resolves to nothing and a
-  # URL it writes is worthless. Saying so is cheaper than filtering it out.
+  # **Cite by handle, address by id.** Two names, and mixing them up breaks
+  # both. A handle ("1") names a passage it was shown and is what Archyve
+  # resolves to a link; an id (412) names a document and is what read_document
+  # takes. A handle it invents resolves to nothing, a URL it writes is
+  # worthless, and an id it guesses is refused. Saying so is cheaper than
+  # filtering it out.
   #
   # **Don't fill the gaps from memory.** A model that has been told the archive
   # is the authority will still happily answer a question the archive didn't
@@ -61,22 +64,32 @@ module Chat
         This conversation is drawing on: #{@conversation.scope_label}. That is fixed
         for the whole conversation and neither you nor the user can change it here.
 
-        You cannot see any of these documents directly. The only way to read them is
-        search_archive, so call it whenever an answer might depend on what they say.
-        Send two to four differently-worded queries in one call rather than one query
-        at a time — documents rarely use the same words a question does. Not every
-        message needs a search: a greeting or a question about the conversation
-        itself does not.
+        You cannot see any of these documents directly. Start with search_archive,
+        and call it whenever an answer might depend on what they say. Send two to four
+        differently-worded queries in one call rather than one query at a time —
+        documents rarely use the same words a question does. Not every message needs
+        a search: a greeting or a question about the conversation itself does not.
 
-        Cite what you use. Each result comes with a handle, and you cite it by writing
-        the handle in square brackets — [1], or [2][3] where two sources support the
-        same point. Only ever cite a handle from the search results you were actually
-        given; never invent one, never write a URL, and never cite from memory.
+        When a result is clearly the right passage but stops short of answering, read
+        around it with read_document. Every result tells you the id of its document,
+        which chunk it was, and how many chunks that document has — so a result that
+        is chunk 12 of 47 is read further with read_document(document: <that id>,
+        from: 10, to: 14). Only ever read an id you were given; a document you were
+        not shown cannot be read, and guessing at ids finds nothing.
+
+        Cite what you use. Every passage you are shown, searched or read, comes with a
+        handle, and you cite it by writing the handle in square brackets — [1], or
+        [2][3] where two sources support the same point. Handles carry on counting
+        through the whole answer, so later passages have higher numbers. Cite only
+        handles you were actually given; never invent one, never write a URL, never
+        cite an id in place of a handle, and never cite from memory.
 
         If a search finds nothing, say so and say what was searched — do not fall back
-        on general knowledge. If a search cannot run at all, say the archive could not
-        be searched and stop there; a plausible answer from your own training is worse
-        than no answer, because the person asking has no way to tell the difference.
+        on general knowledge. The same goes for a document that could not be read: say
+        so rather than filling the gap. If a search cannot run at all, say the archive
+        could not be searched and stop there; a plausible answer from your own training
+        is worse than no answer, because the person asking has no way to tell the
+        difference.
       TEXT
     end
   end

@@ -40,6 +40,15 @@ FactoryBot.define do
       queries { ["credential rotation"] }
       candidate_count { 12 }
     end
+
+    factory :reading_segment do
+      kind { "reading" }
+      content { nil }
+      reading do
+        { "document_id" => 1, "title" => "Security Handbook",
+          "from" => 10, "to" => 14, "total" => 47 }
+      end
+    end
   end
 
   factory :hit do
@@ -49,8 +58,16 @@ FactoryBot.define do
     handle { 1 }
     distance { 0.2 }
     score { 0.016 }
+    position { chunk&.position }
     snippet { "Production datastore credentials rotate every 90 days." }
     document_title { document&.title || "Security Handbook" }
     heading_path { "Secrets › Rotation" }
+
+    # A chunk the model read rather than found: nothing ranked it.
+    trait :read do
+      association :segment, factory: :reading_segment
+      distance { nil }
+      score { nil }
+    end
   end
 end

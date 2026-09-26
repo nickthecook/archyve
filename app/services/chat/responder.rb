@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Chat
-  # Answers one user message: replays the conversation, hands the model the
-  # retrieval tool, and streams what comes back into a Turn.
+  # Answers one user message: replays the conversation, hands the model its
+  # tools, and streams what comes back into a Turn.
   #
   # ## Why a tool-capable model is required
   #
@@ -80,26 +80,30 @@ module Chat
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))
-      # A chat scoped to no collections gets no search tool at all. Handing it
-      # one that can only return "nothing found" would have the model reporting
-      # an empty archive when the truth is that nobody pointed it at one.
-      chat.with_tool(tool(turn)) if @conversation.searches_archive?
+      # A chat scoped to no collections gets no tools at all. Handing it ones
+      # that can only return "nothing found" would have the model reporting an
+      # empty archive when the truth is that nobody pointed it at one.
+      tools(turn).each { chat.with_tool(it) } if @conversation.searches_archive?
       replay(chat)
       chat
     end
 
-    # The round limit is the tool's own — RubyLLM's `calls:` counts tool calls
+    # One corpus and one handle counter for the whole turn, shared by every
+    # tool: the corpus so search and read can't disagree about what this
+    # conversation can see, the counter so they cite into one namespace.
+    #
+    # The round limit is each tool's own — RubyLLM's `calls:` counts tool calls
     # within one response, not rounds within a turn, and passing a number to it
     # raises.
-    def tool(turn)
-      Retrieval::Tool.new(
-        user: @conversation.user,
-        scope: @conversation.retrieval_scope,
-        scope_label: @conversation.scope_label,
-        limit: Setting.chat_result_limit,
-        max_rounds: Setting.chat_max_tool_rounds,
-        observer: turn
-      )
+    def tools(turn)
+      shared = {
+        corpus: Retrieval::Corpus.for(@conversation),
+        handles: Retrieval::Handles.new,
+        observer: turn,
+        max_rounds: Setting.chat_max_tool_rounds
+      }
+
+      [Tools::Search.new(limit: Setting.chat_result_limit, **shared), Tools::Read.new(**shared)]
     end
 
     # Everything before this question. Past searches come back with it — see

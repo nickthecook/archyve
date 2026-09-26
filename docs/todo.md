@@ -3,6 +3,35 @@
 Work that is known, shaped, and deliberately not done yet. Decisions that shape
 the system live in `architecture.md`; this is the queue.
 
+## More tools for the model
+
+`search_archive` and `read_document` exist (2026-09-26). Two more finish the
+shape: a model should be able to answer *"what is in this archive?"* by walking
+it, not only by searching inside it.
+
+- **`list_collections`** — the collections this conversation draws on, with the
+  sources feeding each, so the model can answer where documents come from.
+- **`list_documents`** — the documents in one collection, with each one's
+  source, so a promising title can be read with `read_document`.
+
+Both land on `Retrieval::Corpus`, which already holds the readable-and-in-scope
+filter, and on the naming rule in `architecture.md` — the model may name a
+collection or a document, and the name resolves through the corpus or not at
+all.
+
+**One question to settle first.** In a chat scoped to one collection, does
+`list_collections` show every collection the reader may access, or only the one
+in scope? In-scope only is the likelier answer — the scope *is* the
+conversation's corpus, and listing beyond it lets the model describe documents
+this chat cannot draw on — but it decides whether `Corpus` grows a
+`#collections` alongside `#documents` or whether listing reaches past it. It was
+deliberately left off `Corpus` rather than guessed at.
+
+**Also worth having when these land.** `list_documents` wants a chunk count per
+document, which `Tools::Search` currently gets with a grouped count over the
+result set. A `documents.chunks_count` counter cache is the right answer once
+two callers want it; one caller does not justify it.
+
 ## Surfacing sync failures to the user
 
 **Problem.** A sync can fail in three quite different ways, and today only the

@@ -19,6 +19,61 @@ RSpec.describe Segment do
         expect(segment.for_history).to be_nil
       end
     end
+
+    # Replayed for the same reason a past search is: a follow-up question about
+    # what was read needs the passages, not a note that reading happened.
+    context "with a reading segment" do
+      subject(:segment) { create(:reading_segment) }
+
+      before { create(:hit, :read, segment:, handle: 9) }
+
+      it "says what was read, and how much of it" do
+        expect(segment.for_history).to include("read Security Handbook, chunks 10–14 of 47")
+      end
+
+      it "replays the passages under the handles the model was given" do
+        expect(segment.for_history).to include("[9] ")
+      end
+    end
+
+    # A model that isn't told its last read failed will assume it succeeded and
+    # answer from nothing.
+    context "with a reading segment that was refused" do
+      subject(:segment) { create(:reading_segment, reading: { "refusal" => "not_found" }) }
+
+      it "says the read failed rather than dropping it from history" do
+        expect(segment.for_history).to include("could not be read")
+      end
+    end
+  end
+
+  describe "#record_reading!" do
+    subject(:segment) { create(:reading_segment, reading: nil) }
+
+    let(:document) { create(:document, title: "Security Handbook") }
+    let(:chunk) { create(:chunk, document:, position: 9) }
+
+    before do
+      segment.record_reading!(
+        Retrieval::Reading.new(
+          document:, from: 10, to: 10, total: 47,
+          hits: [Retrieval::Hit.new(chunk:, document:, handle: 3)]
+        )
+      )
+    end
+
+    # Snapshotted rather than read through the chunk, which a reingest replaces.
+    it "records the range on the segment" do
+      expect(segment.range).to eq("chunk 10 of 47")
+    end
+
+    it "records the passage as a citable hit" do
+      expect(segment.hits.map(&:handle)).to eq([3])
+    end
+
+    it "records what the model was shown, not a pointer to it" do
+      expect(segment.hits.first.snippet).to eq(chunk.content)
+    end
   end
 
   describe "#tokens_per_second" do

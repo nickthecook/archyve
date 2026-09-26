@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_20_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -151,12 +151,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_180000) do
   create_table "hits", force: :cascade do |t|
     t.bigint "chunk_id"
     t.datetime "created_at", null: false
-    t.float "distance", null: false
+    t.float "distance"
     t.bigint "document_id"
     t.string "document_title", null: false
     t.integer "handle", null: false
     t.string "heading_path"
-    t.float "score", null: false
+    t.integer "position"
+    t.float "score"
     t.bigint "segment_id", null: false
     t.text "snippet", null: false
     t.datetime "updated_at", null: false
@@ -222,6 +223,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_20_180000) do
     t.bigint "message_id", null: false
     t.integer "position", null: false
     t.jsonb "queries", default: [], null: false
+    t.jsonb "reading"
     t.integer "token_count"
     t.datetime "updated_at", null: false
     t.index ["message_id", "position"], name: "index_segments_on_message_id_and_position", unique: true

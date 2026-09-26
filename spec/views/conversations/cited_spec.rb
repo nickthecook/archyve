@@ -19,6 +19,40 @@ RSpec.describe Views::Conversations::Cited do
       create(:hit, segment: retrieval, handle: 2, chunk: insulation, document:)
     end
 
+    # Handles run on across a turn rather than restarting in each block, so
+    # prose after a second search can still cite the first. Resolving against
+    # only the nearest block above linked [1] to whatever the *latest* search
+    # put first, which is a citation pointing at the wrong document.
+    context "when the turn searched again before writing this prose" do
+      let(:prose) { create(:segment, message:, position: 3, content: "As above [1], and also [7].") }
+      let(:second) { create(:retrieval_segment, message:, position: 2) }
+      let(:elsewhere) { create(:document, title: "Runbook") }
+
+      before { create(:hit, segment: second, handle: 7, chunk: create(:chunk, document: elsewhere), document: elsewhere) }
+
+      it "still resolves a handle from the first search" do
+        expect(result).to include("/documents/#{document.id}")
+      end
+
+      it "resolves one from the second as well" do
+        expect(result).to include("/documents/#{elsewhere.id}")
+      end
+    end
+
+    # Read passages are cited exactly like searched ones — they are passages
+    # the model was shown, which is all a handle ever means.
+    context "when the turn read a document before writing this prose" do
+      let(:prose) { create(:segment, message:, position: 3, content: "It says so [9].") }
+      let(:reading) { create(:reading_segment, message:, position: 2) }
+      let(:manual) { create(:document, title: "Runbook") }
+
+      before { create(:hit, :read, segment: reading, handle: 9, chunk: create(:chunk, document: manual), document: manual) }
+
+      it "links what was read" do
+        expect(result).to include("/documents/#{manual.id}")
+      end
+    end
+
     context "when the model cites with square brackets" do
       let(:content) { "Press [Registration] first [1]." }
 

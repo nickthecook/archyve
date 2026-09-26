@@ -37,6 +37,7 @@ class Message < ApplicationRecord
   def waiting_on
     return unless in_progress?
     return "Reading the results…" if segments.last&.retrieval?
+    return "Reading the document…" if segments.last&.reading?
 
     # Thinking segments don't count: the model reasoning out loud isn't the
     # answer arriving, and the spinner is what says the answer is still coming.

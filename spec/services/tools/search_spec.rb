@@ -1,14 +1,14 @@
 require "rails_helper"
 
-RSpec.describe Retrieval::Tool do
+RSpec.describe Tools::Search do
   describe "#execute" do
-    subject(:tool) { described_class.new(user:, scope:, scope_label:, observer:) }
+    subject(:tool) { described_class.new(corpus:, handles:, observer:) }
 
     let(:result) { tool.execute(queries:) }
 
     let(:user) { create(:user) }
-    let(:scope) { nil }
-    let(:scope_label) { "the Security Handbook" }
+    let(:corpus) { instance_double(Retrieval::Corpus, label: "the Security Handbook") }
+    let(:handles) { Retrieval::Handles.new }
     let(:observer) { nil }
     let(:queries) { ["credential rotation"] }
 
@@ -32,14 +32,30 @@ RSpec.describe Retrieval::Tool do
         expect(result[:results].first[:handle]).to eq(1)
       end
 
+      # The handle cites the passage; the id addresses the document. Without
+      # the id, a model that found nearly enough in chunk 12 has no way to ask
+      # for chunk 13 — see Tools::Read.
+      it "gives it the document's id, so it can read further" do
+        expect(result[:results].first[:id]).to eq(document.id)
+      end
+
+      it "says where in the document the passage sits, counting from 1" do
+        expect(result[:results].first[:chunk]).to eq(chunk.position + 1)
+      end
+
+      it "says how much document there is to read" do
+        expect(result[:results].first[:chunks]).to eq(1)
+      end
+
       it "gives it the passage to read" do
         expect(result[:results].first[:text]).to eq("Credentials rotate every 90 days.")
       end
 
-      # The model is never given an id, so it can neither follow one nor invent
-      # one — a handle is the only name a source has.
-      it "gives it no ids of any kind" do
-        expect(result[:results].first.keys).not_to include(:id, :chunk_id, :document_id)
+      # A document id is the one identifier the model gets. It is not a link and
+      # not a chunk: it addresses a document, and resolving it goes back through
+      # the corpus — see Tools::Read for why that is enough.
+      it "gives it no identifier it could follow or forge" do
+        expect(result[:results].first.keys).not_to include(:chunk_id, :url, :href)
       end
     end
 
@@ -123,8 +139,37 @@ RSpec.describe Retrieval::Tool do
     end
   end
 
+  # Handles number the whole turn, not each search: a model that searches twice
+  # and cites [2] must mean one passage, and the transcript has to agree with it.
+  describe "handles across a turn" do
+    subject(:tool) { described_class.new(corpus:, handles:) }
+
+    let(:user) { create(:user) }
+    let(:corpus) { instance_double(Retrieval::Corpus, label: "your whole archive") }
+    let(:handles) { Retrieval::Handles.new }
+    let(:document) { create(:document, title: "Security Handbook") }
+    let(:chunk) { create(:chunk, document:, content: "Credentials rotate every 90 days.") }
+    let(:outcome) do
+      Retrieval::Outcome.new(
+        hits: [Retrieval::Hit.new(chunk:, document:, distance: 0.18, score: 0.032, handle: 1)],
+        candidate_count: 9
+      )
+    end
+
+    before do
+      allow(Retrieval::Search).to receive(:new).and_return(instance_double(Retrieval::Search, call: outcome))
+    end
+
+    it "carries on numbering rather than starting over" do
+      tool.execute(queries: ["first"])
+      expect(tool.execute(queries: ["second"])[:results].first[:handle]).to eq(2)
+    end
+  end
+
   describe "#description" do
-    subject(:tool) { described_class.new(user: create(:user), scope_label: "the Security Handbook") }
+    subject(:tool) { described_class.new(corpus:, handles: Retrieval::Handles.new) }
+
+    let(:corpus) { instance_double(Retrieval::Corpus, label: "the Security Handbook") }
 
     # Without this the model reports that the archive lacks something when the
     # truth is that the user narrowed the scope.

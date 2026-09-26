@@ -1,10 +1,11 @@
 # One chunk the model was shown, recorded as it was shown.
 #
 # `handle` is the citation label the model is given — "1", "2" — and the only
-# name it ever has for a source. It cites the handle, Archyve resolves the
-# handle to a link, so the model can neither author a URL nor cite a document
-# that wasn't retrieved. Positional within its segment, so handle 1 exists in
-# every retrieval block and means something different in each.
+# name it ever has for a passage. It cites the handle, Archyve resolves the
+# handle to a link, so the model can neither author a URL nor cite a passage it
+# was never shown. Assigned once per *turn* (Retrieval::Handles), so a turn that
+# searches twice numbers the second block on from the first rather than starting
+# over — otherwise "[2]" names two different passages in one answer.
 #
 # The chunk and document are nullable on purpose. Reingesting a document
 # destroys its chunks and makes new ones; a chat from last week must not lose
@@ -19,11 +20,19 @@ class Hit < ApplicationRecord
 
   validates :handle, presence: true, uniqueness: { scope: :segment_id }
   validates :snippet, :document_title, presence: true
-  validates :distance, :score, presence: true
+  # Absent on a chunk that was read rather than found: nothing ranked it. See
+  # Retrieval::Hit.
+  validates :distance, :score, presence: true, unless: -> { segment&.reading? }
 
   # Cosine distance (0 identical … 2 opposite) → a friendly percentage. Not the
   # sort key — hits are ordered by fused score — so the UI renders it quietly.
-  def similarity = ((1 - distance) * 100).round.clamp(0, 100)
+  # nil for a read, which nothing ranked.
+  def similarity = distance && ((1 - distance) * 100).round.clamp(0, 100)
+
+  # Which chunk of its document this was, as documents#show numbers them. The
+  # recorded position rather than the chunk's own, so it still reads right
+  # after a reingest renumbered them — same reason the snippet is copied.
+  def chunk_number = position && position + 1
 
   # Whether this citation can still be followed to the live document.
   def followable? = document.present?

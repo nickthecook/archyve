@@ -33,6 +33,7 @@ class Views::Conversations::Segment < Components::Base
       case @segment.kind.to_sym
       when :text then prose
       when :thinking then render Views::Conversations::Thinking.new(segment: @segment)
+      when :reading then render Views::Conversations::Reading.new(segment: @segment)
       else render Views::Conversations::Retrieval.new(segment: @segment)
       end
     end

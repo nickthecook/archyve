@@ -543,4 +543,93 @@ RSpec.describe Chat::Turn do
       end
     end
   end
+  describe "#reading_started" do
+    let(:document) { create(:document, title: "Security Handbook") }
+    let(:chunk) { create(:chunk, document:, position: 9, content: "It rotates every 90 days.") }
+    let(:reading) do
+      Retrieval::Reading.new(
+        document:, from: 10, to: 10, total: 47,
+        hits: [Retrieval::Hit.new(chunk:, document:, handle: 1)]
+      )
+    end
+
+    context "when the model reads mid-sentence" do
+      before do
+        turn.append("Let me look at that document.")
+        turn.reading_started(document.id)
+        turn.reading_finished(reading)
+        turn.append("It rotates every 90 days.")
+        turn.finish
+      end
+
+      # Same ordering rule as a search: the transcript records the pause where
+      # it happened rather than tidying the read away.
+      it "leaves prose, reading, prose" do
+        expect(segments.map(&:kind)).to eq(%w[text reading text])
+      end
+
+      it "records which document and range it read" do
+        expect(segments.second.range).to eq("chunk 10 of 47")
+      end
+
+      it "records the passage as a citable hit" do
+        expect(segments.second.hits.map(&:handle)).to eq([1])
+      end
+
+      # Nothing ranked it, so there is no similarity to show.
+      it "leaves the hit unranked" do
+        expect(segments.second.hits.first.distance).to be_nil
+      end
+
+      # Chunks are renumbered by a reingest, so the position is snapshotted for
+      # the same reason the snippet is.
+      it "snapshots where in the document it came from" do
+        expect(segments.second.hits.first.chunk_number).to eq(10)
+      end
+    end
+
+    # A read that refused still happened, and a turn that shows nothing would
+    # have the model asserting things with no visible provenance.
+    context "when the read was refused" do
+      before do
+        turn.reading_started(999_999)
+        turn.reading_finished(Retrieval::Reading.refused(:not_found))
+        turn.finish
+      end
+
+      it "still leaves the segment in the transcript" do
+        expect(segments.map(&:kind)).to eq(["reading"])
+      end
+
+      it "does not count as the turn saying nothing" do
+        expect(turn.message.reload.error).to be_nil
+      end
+    end
+  end
+
+  # Handles number the whole turn. A map that reset on each block would resolve
+  # a citation from the first search against the second search's hits.
+  describe "handles across several rounds" do
+    let(:document) { create(:document, title: "Security Handbook") }
+
+    def outcome(handle)
+      Retrieval::Outcome.new(
+        hits: [Retrieval::Hit.new(chunk: create(:chunk, document:), document:, distance: 0.2, score: 0.1, handle:)],
+        candidate_count: 3
+      )
+    end
+
+    before do
+      turn.retrieval_started(["first"])
+      turn.retrieval_finished(outcome(1))
+      turn.retrieval_started(["second"])
+      turn.retrieval_finished(outcome(2))
+      turn.append("Both say so [1][2].")
+      turn.finish
+    end
+
+    it "keeps every round's hits resolvable" do
+      expect(segments.flat_map { it.hits.map(&:handle) }).to eq([1, 2])
+    end
+  end
 end

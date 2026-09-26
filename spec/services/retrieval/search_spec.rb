@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Retrieval::Search do
   describe "#call" do
-    subject(:search) { described_class.new(user:, scope:) }
+    subject(:search) { described_class.new(corpus: Retrieval::Corpus.new(user:, scope:)) }
 
     let(:result) { search.call(queries) }
 
