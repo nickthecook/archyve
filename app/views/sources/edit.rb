@@ -9,10 +9,14 @@ class Views::Sources::Edit < Views::Base
   end
 
   def view_template
+    breadcrumb(
+      ["Collections", collections_path],
+      ["Sources", sources_path],
+      [@source.name, source_path(@source)],
+      "Edit"
+    )
+
     header(class: "mb-7") do
-      div(class: "mb-1 text-xs text-faint") do
-        a(href: source_path(@source), class: "hover:text-muted transition-colors") { @source.name }
-      end
       h1(class: "text-2xl font-semibold tracking-tight") { "Edit source" }
       p(class: "mt-1 text-sm text-muted") { form_component.edit_blurb }
     end

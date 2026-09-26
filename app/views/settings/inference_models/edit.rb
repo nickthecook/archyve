@@ -7,11 +7,14 @@ class Views::Settings::InferenceModels::Edit < Views::Base
   end
 
   def view_template
-    a(href: settings_inference_server_path(@server), class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← #{@server.name}"
-    end
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Inference", settings_inference_servers_path],
+      [@server.name, settings_inference_server_path(@server)],
+      @model.name
+    )
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       h1(class: "font-mono text-2xl font-semibold tracking-tight") { @model.name }
       p(class: "mt-1 text-sm text-muted") { "On #{@server.name}." }
     end

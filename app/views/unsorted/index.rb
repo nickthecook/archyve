@@ -11,7 +11,7 @@ class Views::Unsorted::Index < Views::Base
   end
 
   def view_template
-    breadcrumb
+    breadcrumb(["Collections", collections_path], "Unsorted")
     header_block
     @documents.any? ? sorter : empty_state
   end
@@ -19,14 +19,6 @@ class Views::Unsorted::Index < Views::Base
   private
 
   def page_title = "Unsorted"
-
-  def breadcrumb
-    nav(class: "mb-5 flex items-center gap-2 text-xs text-faint") do
-      a(href: collections_path, class: "hover:text-muted transition-colors") { "Collections" }
-      span { "›" }
-      span(class: "text-muted") { "Unsorted" }
-    end
-  end
 
   def header_block
     header(class: "mb-7") do

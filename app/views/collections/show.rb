@@ -20,7 +20,7 @@ class Views::Collections::Show < Views::Base
   end
 
   def view_template
-    breadcrumb
+    breadcrumb(["Collections", collections_path], @collection.name)
     header_block
     search
     # Don't offer what will be refused: filing needs operator on this
@@ -146,14 +146,6 @@ class Views::Collections::Show < Views::Base
       href: collection_people_path(@collection),
       class: "text-xs text-muted hover:text-fg transition-colors"
     ) { "People" }
-  end
-
-  def breadcrumb
-    nav(class: "mb-5 flex items-center gap-2 text-xs text-faint") do
-      a(href: collections_path, class: "hover:text-muted transition-colors") { "Collections" }
-      span { "›" }
-      span(class: "text-muted") { @collection.name }
-    end
   end
 
   def header_block

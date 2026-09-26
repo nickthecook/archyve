@@ -62,13 +62,26 @@ where every row leads elsewhere), they stay cards. A rail on every row is a rail
 on none.
 
 Doorways are for pages that stand on their own and offer a way *across*
-(`Views::Settings::Index`, `Views::Collections::Index`). A page you came *down*
-into — one chat, one document, one person — takes the plain back link instead,
-with no rule under it:
+(`Views::Settings::Index`, `Views::Collections::Index`).
+
+### Breadcrumbs
+
+A page you came *down* into — one chat, one document, one person — opens with
+its trail instead, and no rule under it:
 
 ```ruby
-a(href: …, class: "text-sm text-muted hover:text-fg transition-colors") { "← Chat" }
+breadcrumb(["Settings", settings_path], ["Inference", settings_inference_servers_path], @server.name)
 ```
+
+`Views::Base#breadcrumb` takes `[label, href]` crumbs and a bare label for the
+page you are on; the last crumb never links, so no page offers a way back to
+itself. A section root — anything reachable from the top bar — has no trail.
+
+The trail is the whole way down, not just the parent: it is what the page has
+instead of a sidebar, so a reader can see where they are as well as get back.
+Where a page has no fixed parent it says where you came *from* instead — see
+`DocumentsController#back_link`, where a document opened from a chat citation
+leads back to that chat.
 
 ## One box costume
 

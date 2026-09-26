@@ -6,11 +6,14 @@ class Views::Settings::InferenceServers::New < Views::Base
   end
 
   def view_template
-    a(href: new_settings_inference_server_path, class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← Server type"
-    end
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Inference", settings_inference_servers_path],
+      ["Add a server", new_settings_inference_server_path],
+      @server.type_label
+    )
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Add #{@server.type_label}" }
       p(class: "mt-1 text-sm text-muted") { @server.class.description }
     end

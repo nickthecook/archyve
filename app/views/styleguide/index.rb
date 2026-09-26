@@ -37,6 +37,7 @@ class Views::Styleguide::Index < Views::Base
     heading
     section("Palette", "component") { palette }
     section("Doorways", "component") { doorways }
+    section("Breadcrumbs", "component") { breadcrumbs }
     section("Buttons", "pattern") { buttons }
     section("Status", "component") { statuses }
     section("Cards", "pattern") { cards }
@@ -95,6 +96,15 @@ class Views::Styleguide::Index < Views::Base
         description: "Description, count, chevron — the full row.", meta: "2 sources"
       ) { sample_icon }
       render Views::Doorway.new(href: styleguide_path, title: "Title only") { sample_icon }
+    end
+  end
+
+  # The counterpart to a doorway: a doorway leads across, a trail leads back up.
+  # The last crumb is the page itself and doesn't link.
+  def breadcrumbs
+    div(class: "flex flex-col gap-1") do
+      breadcrumb(["Collections", styleguide_path], "Archyve Design")
+      breadcrumb(["Settings", styleguide_path], ["Inference", styleguide_path], ["tensor", styleguide_path], "Edit")
     end
   end
 

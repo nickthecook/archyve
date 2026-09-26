@@ -9,6 +9,13 @@ class Views::Base < Components::Base
 
   private
 
+  # The trail back up, opening any page you came down into. Here rather than on
+  # Components::Base because it belongs to a whole page, never to a fragment of
+  # one. See Views::Breadcrumb for what a crumb is.
+  def breadcrumb(*trail)
+    render Views::Breadcrumb.new(*trail)
+  end
+
   def around_template
     render Views::Layout.new(title: page_title, contained: contained?) do
       super

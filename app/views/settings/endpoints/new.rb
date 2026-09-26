@@ -6,11 +6,14 @@ class Views::Settings::Endpoints::New < Views::Base
   end
 
   def view_template
-    a(href: new_settings_endpoint_path, class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← Endpoint type"
-    end
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Endpoints", settings_endpoints_path],
+      ["Add an endpoint", new_settings_endpoint_path],
+      @endpoint.type_label
+    )
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Add #{@endpoint.type_label}" }
       p(class: "mt-1 text-sm text-muted") { @endpoint.class.description }
     end

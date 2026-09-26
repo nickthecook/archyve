@@ -9,10 +9,9 @@ class Views::Settings::Endpoints::ChooseType < Views::Base
   end
 
   def view_template
+    breadcrumb(["Settings", settings_path], ["Endpoints", settings_endpoints_path], "Add an endpoint")
+
     header(class: "mb-7") do
-      div(class: "mb-1 text-xs text-faint") do
-        a(href: settings_endpoints_path, class: "hover:text-muted transition-colors") { "Endpoints" }
-      end
       h1(class: "text-2xl font-semibold tracking-tight") { "Add an endpoint" }
       p(class: "mt-1 text-sm text-muted") { "Choose what kind of system Archyve will be pulling from." }
     end

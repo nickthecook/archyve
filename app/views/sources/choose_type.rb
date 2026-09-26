@@ -9,10 +9,9 @@ class Views::Sources::ChooseType < Views::Base
   end
 
   def view_template
+    breadcrumb(["Collections", collections_path], ["Sources", sources_path], "Add a source")
+
     header(class: "mb-7") do
-      div(class: "mb-1 text-xs text-faint") do
-        a(href: sources_path, class: "hover:text-muted transition-colors") { "Sources" }
-      end
       h1(class: "text-2xl font-semibold tracking-tight") { "Add a source" }
       p(class: "mt-1 text-sm text-muted") { "Choose where the documents will come from." }
     end

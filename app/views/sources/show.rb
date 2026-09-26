@@ -12,6 +12,8 @@ class Views::Sources::Show < Views::Base
   end
 
   def view_template
+    breadcrumb(["Collections", collections_path], ["Sources", sources_path], @source.name)
+
     heading
     configuration
 
@@ -32,9 +34,6 @@ class Views::Sources::Show < Views::Base
   def heading
     header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div(class: "min-w-0") do
-        div(class: "mb-1 text-xs text-faint") do
-          a(href: sources_path, class: "hover:text-muted transition-colors") { "Sources" }
-        end
         div(class: "flex items-center gap-2") do
           h1(class: "truncate text-2xl font-semibold tracking-tight") { @source.name }
           span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { @source.type_label }

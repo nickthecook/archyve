@@ -9,6 +9,10 @@ class Views::Sources::Index < Views::Base
   end
 
   def view_template
+    # Collections, not Settings: sources live with the content they produce, and
+    # the only way in is the doorway on the collections index.
+    breadcrumb(["Collections", collections_path], "Sources")
+
     heading
     @sources.any? ? list : empty_state
   end
@@ -20,9 +24,6 @@ class Views::Sources::Index < Views::Base
   def heading
     header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div do
-        div(class: "mb-1 text-xs text-faint") do
-          a(href: settings_path, class: "hover:text-muted transition-colors") { "Settings" }
-        end
         h1(class: "text-2xl font-semibold tracking-tight") { "Sources" }
         p(class: "mt-1 text-sm text-muted") { "Where the archive's documents come from, and when each source was last scanned." }
       end

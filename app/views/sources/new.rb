@@ -9,10 +9,14 @@ class Views::Sources::New < Views::Base
   end
 
   def view_template
+    breadcrumb(
+      ["Collections", collections_path],
+      ["Sources", sources_path],
+      ["Add a source", new_source_path],
+      @source.type_label
+    )
+
     header(class: "mb-7") do
-      div(class: "mb-1 text-xs text-faint") do
-        a(href: sources_path, class: "hover:text-muted transition-colors") { "Sources" }
-      end
       h1(class: "text-2xl font-semibold tracking-tight") { form_component.new_heading }
       p(class: "mt-1 text-sm text-muted") { form_component.new_blurb }
     end

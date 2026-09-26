@@ -22,9 +22,12 @@ class Views::Settings::InferenceServers::Discover < Views::Base
   end
 
   def view_template
-    div(class: "mb-1 text-xs text-faint") do
-      a(href: settings_inference_server_path(@server), class: "hover:text-muted transition-colors") { "← #{@server.name}" }
-    end
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Inference", settings_inference_servers_path],
+      [@server.name, settings_inference_server_path(@server)],
+      "Models"
+    )
 
     header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Models on #{@server.name}" }

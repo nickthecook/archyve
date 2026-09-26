@@ -6,6 +6,8 @@ class Views::Documents::Index < Views::Base
   end
 
   def view_template
+    breadcrumb(["Collections", collections_path], "Documents")
+
     header(class: "mb-8") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Documents" }
       p(class: "mt-1 text-sm text-muted") { "Upload a file to ingest it into the archive." }

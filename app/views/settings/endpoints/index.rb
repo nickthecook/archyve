@@ -6,9 +6,9 @@ class Views::Settings::Endpoints::Index < Views::Base
   end
 
   def view_template
-    a(href: settings_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← Settings" }
+    breadcrumb(["Settings", settings_path], "Endpoints")
 
-    header(class: "mt-3 mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
+    header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div do
         h1(class: "text-2xl font-semibold tracking-tight") { "Endpoints" }
         p(class: "mt-1 text-sm text-muted") { "Servers documents come from, and the credentials to reach them." }

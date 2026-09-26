@@ -21,11 +21,14 @@ class Views::Sources::People::Index < Views::Base
   end
 
   def view_template
-    a(href: source_path(@source), class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← #{@source.name}"
-    end
+    breadcrumb(
+      ["Collections", collections_path],
+      ["Sources", sources_path],
+      [@source.name, source_path(@source)],
+      "People"
+    )
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       div(class: "flex items-center gap-2") do
         h1(class: "text-2xl font-semibold tracking-tight") { "People" }
         kind_chip("Source")

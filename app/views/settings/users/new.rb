@@ -6,9 +6,9 @@ class Views::Settings::Users::New < Views::Base
   end
 
   def view_template
-    a(href: settings_users_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← People" }
+    breadcrumb(["Settings", settings_path], ["People", settings_users_path], "Add someone")
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Add someone" }
       p(class: "mt-1 text-sm text-muted") { "There is no public sign-up — accounts are created here." }
     end

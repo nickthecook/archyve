@@ -19,11 +19,9 @@ class Views::Collections::People::Index < Views::Base
   end
 
   def view_template
-    a(href: collection_path(@collection), class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← #{@collection.name}"
-    end
+    breadcrumb(["Collections", collections_path], [@collection.name, collection_path(@collection)], "People")
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       div(class: "flex items-center gap-2") do
         h1(class: "text-2xl font-semibold tracking-tight") { "People" }
         kind_chip("Collection")

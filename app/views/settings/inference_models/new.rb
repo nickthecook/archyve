@@ -8,11 +8,14 @@ class Views::Settings::InferenceModels::New < Views::Base
   end
 
   def view_template
-    a(href: settings_inference_server_path(@server), class: "text-sm text-muted hover:text-fg transition-colors") do
-      "← #{@server.name}"
-    end
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Inference", settings_inference_servers_path],
+      [@server.name, settings_inference_server_path(@server)],
+      "Add a model"
+    )
 
-    header(class: "mt-3 mb-7") do
+    header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Add a model" }
       p(class: "mt-1 text-sm text-muted") do
         "For anything #{@server.name} doesn't list, or won't describe. Fetching models fills this in for you."

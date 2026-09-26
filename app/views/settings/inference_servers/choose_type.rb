@@ -12,10 +12,9 @@ class Views::Settings::InferenceServers::ChooseType < Views::Base
   end
 
   def view_template
+    breadcrumb(["Settings", settings_path], ["Inference", settings_inference_servers_path], "Add a server")
+
     header(class: "mb-7") do
-      div(class: "mb-1 text-xs text-faint") do
-        a(href: settings_inference_servers_path, class: "hover:text-muted transition-colors") { "Inference" }
-      end
       h1(class: "text-2xl font-semibold tracking-tight") { "Add a server" }
       p(class: "mt-1 text-sm text-muted") { "Choose what Archyve will be talking to." }
     end

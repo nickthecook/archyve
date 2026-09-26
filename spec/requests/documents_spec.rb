@@ -1,6 +1,12 @@
 require "rails_helper"
 
 RSpec.describe "Documents", type: :request do
+  # The one crumb above a document's own name. Matched as markup because several
+  # of these labels — "Chat" especially — also appear in the top bar.
+  def crumb(label, href)
+    %(<a href="#{href}" class="hover:text-muted transition-colors">#{label}</a>)
+  end
+
   describe "POST /documents" do
     subject(:request) { post documents_path, params: }
 
@@ -174,7 +180,7 @@ RSpec.describe "Documents", type: :request do
 
       it "links back to that collection" do
         request
-        expect(response.body).to include("← Handbook").and include(collection_path(collection))
+        expect(response.body).to include(crumb("Handbook", collection_path(collection)))
       end
     end
 
@@ -183,7 +189,7 @@ RSpec.describe "Documents", type: :request do
 
       it "links back to all documents" do
         request
-        expect(response.body).to include("← All documents")
+        expect(response.body).to include(crumb("All documents", documents_path))
       end
     end
 
@@ -192,7 +198,7 @@ RSpec.describe "Documents", type: :request do
 
       it "links back to the search results, preserving the query" do
         request
-        expect(response.body).to include("← Search results").and include("#{search_path}?q=hello")
+        expect(response.body).to include(crumb("Search results", referer))
       end
     end
 
@@ -201,7 +207,7 @@ RSpec.describe "Documents", type: :request do
 
       it "falls back to the Collections section home" do
         request
-        expect(response.body).to include("← Collections").and include(collections_path)
+        expect(response.body).to include(crumb("Collections", collections_path))
       end
     end
 
@@ -211,7 +217,7 @@ RSpec.describe "Documents", type: :request do
 
       it "links back to that chat" do
         request
-        expect(response.body).to include("← Framing a fireplace").and include(conversation_path(conversation))
+        expect(response.body).to include(crumb("Framing a fireplace", conversation_path(conversation)))
       end
     end
 
@@ -268,7 +274,7 @@ RSpec.describe "Documents", type: :request do
 
       it "sends them back to Chat" do
         request
-        expect(response.body).to include("← Chat").and include(conversations_path)
+        expect(response.body).to include(crumb("Chat", conversations_path))
       end
 
       it "does not offer Collections" do

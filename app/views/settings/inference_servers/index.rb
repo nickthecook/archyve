@@ -7,9 +7,9 @@ class Views::Settings::InferenceServers::Index < Views::Base
   end
 
   def view_template
-    a(href: settings_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← Settings" }
+    breadcrumb(["Settings", settings_path], "Inference")
 
-    header(class: "mt-3 mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
+    header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
       div do
         h1(class: "text-2xl font-semibold tracking-tight") { "Inference" }
         p(class: "mt-1 text-sm text-muted") { "Where Archyve sends prompts, and which models it may use." }

@@ -7,7 +7,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   end
 
   def view_template
-    a(href: settings_endpoints_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← Endpoints" }
+    breadcrumb(["Settings", settings_path], ["Endpoints", settings_endpoints_path], @endpoint.name)
 
     heading
     access_panel
@@ -20,7 +20,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   def page_title = @endpoint.name
 
   def heading
-    header(class: "mt-3 mb-7 flex flex-wrap items-start justify-between gap-4") do
+    header(class: "mb-7 flex flex-wrap items-start justify-between gap-4") do
       div(class: "min-w-0") do
         div(class: "flex items-center gap-2") do
           h1(class: "text-2xl font-semibold tracking-tight") { @endpoint.name }

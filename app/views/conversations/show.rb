@@ -29,14 +29,14 @@ class Views::Conversations::Show < Views::Base
   def page_title = @conversation.title.presence || "Chat"
 
   def back_link
-    a(href: conversations_path, class: "text-sm text-muted hover:text-fg transition-colors") { "← All chats" }
+    breadcrumb(["Chat", conversations_path], @conversation.title.presence || "Untitled chat")
   end
 
   # Stated here as well as in the composer chip and the model's instructions.
   # It belongs to the conversation rather than to any one message, and the only
   # way to change it is a new chat — so the banner says both.
   def scope_banner
-    div(class: "mt-3 mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 bg-ink/60 px-4 py-3") do
+    div(class: "mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 bg-ink/60 px-4 py-3") do
       span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Drawing on" }
       span(class: "text-sm text-fg") { drawing_on }
       span(class: "ml-auto text-xs text-faint") do
