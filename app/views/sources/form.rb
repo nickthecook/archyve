@@ -27,7 +27,7 @@ class Views::Sources::Form < Components::Base
 
       errors if @source.errors.any?
 
-      field("Name", "A label for this source — how it appears throughout Archyve.") do
+      field("Name", "A label for this source. It sits under every document it produces, so keep it short — “Homelab wiki”, not a sentence.") do
         text_input(:name, @source.name, placeholder: "Reference library", autofocus: true)
       end
 

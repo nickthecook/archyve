@@ -314,14 +314,15 @@ class Views::Collections::Show < Views::Base
   def document_row(row)
     document = row.document
     li(class: "flex items-center justify-between gap-3 px-5 py-4") do
-      a(href: document_path(document), class: "min-w-0 flex-1 truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
+      div(class: "min-w-0 flex-1") do
+        a(href: document_path(document), class: "block truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
+        provenance(document)
+      end
       div(class: "flex shrink-0 items-center gap-3") do
         render Views::Documents::StatusBadge.new(status: document.status)
-        if row.origin != "manual"
-          source_tag
-        elsif may_on?(@collection, :operator)
-          remove_button(document)
-        end
+        # Only a manual membership is user-removable; a fed row is retracted at
+        # the source, which the provenance line above names.
+        remove_button(document) if row.origin == "manual" && may_on?(@collection, :operator)
         delete_button(document) if row.purgeable
       end
     end
@@ -355,9 +356,21 @@ class Views::Collections::Show < Views::Base
     end
   end
 
-  # A source-fed row isn't user-removable — it's retracted at the source.
-  def source_tag
-    span(class: "text-xs text-faint", title: "Fed by a source — remove it at the source") { "Source" }
+  # Which source produced this, and where it sits inside it. A blank path — a
+  # manual upload, or anything at the top of its source — leaves the name alone.
+  def provenance(document)
+    text = [document.source.name, path_within_source(document)].compact.join(" · ")
+    p(class: "mt-1 truncate text-xs text-faint", title: text) { text }
+  end
+
+  # Sources get named after whatever they point at, so the first segment is
+  # usually the source name again — "Technology · Technology/Services". Drop
+  # the echo. Nothing is left for a manual upload, or for anything sitting at
+  # the top of its source.
+  def path_within_source(document)
+    segments = document.path.to_s.split("/")
+    segments.shift if segments.first == document.source.name
+    segments.join("/").presence
   end
 
   def empty_state
