@@ -1,12 +1,12 @@
 require "rails_helper"
 
-RSpec.describe "Settings::Purposes", :unauthenticated, type: :request do
+RSpec.describe "Settings::Prompts", :unauthenticated, type: :request do
   let(:admin) { create(:user, :admin) }
 
   before { sign_in(admin) }
 
-  describe "GET /settings/purpose" do
-    subject(:request) { get settings_purpose_path }
+  describe "GET /settings/prompt" do
+    subject(:request) { get settings_prompt_path }
 
     context "when nothing has been set" do
       it "shows an empty form" do
@@ -25,8 +25,8 @@ RSpec.describe "Settings::Purposes", :unauthenticated, type: :request do
     end
   end
 
-  describe "PATCH /settings/purpose" do
-    subject(:request) { patch settings_purpose_path, params: { purpose: "Answer company policy questions." } }
+  describe "PATCH /settings/prompt" do
+    subject(:request) { patch settings_prompt_path, params: { purpose: "Answer company policy questions." } }
 
     it "stores it" do
       request
@@ -45,7 +45,7 @@ RSpec.describe "Settings::Purposes", :unauthenticated, type: :request do
     before { sign_in(operator) }
 
     it "refuses" do
-      get settings_purpose_path
+      get settings_prompt_path
       expect(response).to redirect_to(root_path)
     end
   end

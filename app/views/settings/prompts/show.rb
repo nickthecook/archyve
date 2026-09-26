@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-class Views::Settings::Purposes::Show < Views::Base
+class Views::Settings::Prompts::Show < Views::Base
   def initialize(purpose:)
     @purpose = purpose
   end
 
   def view_template
-    breadcrumb(["Settings", settings_path], "Purpose")
+    breadcrumb(["Settings", settings_path], "Prompt")
 
     header(class: "mb-7") do
-      h1(class: "text-2xl font-semibold tracking-tight") { "Purpose" }
-      p(class: "mt-1 text-sm text-muted") { "What this Archyve is for, and who it's answering." }
+      h1(class: "text-2xl font-semibold tracking-tight") { "Prompt" }
+      p(class: "mt-1 text-sm text-muted") { "What every chat's system prompt tells the model." }
     end
 
-    form(action: settings_purpose_path, method: "post", class: "flex flex-col gap-6") do
+    form(action: settings_prompt_path, method: "post", class: "flex flex-col gap-6") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "patch")
 
@@ -41,7 +41,7 @@ class Views::Settings::Purposes::Show < Views::Base
 
   private
 
-  def page_title = "Purpose"
+  def page_title = "Prompt"
 
   def guidance
     "Appended to the system prompt on every chat, after Archyve's own instructions. Say who's using " \

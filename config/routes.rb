@@ -72,9 +72,9 @@ Rails.application.routes.draw do
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
     resources :users, except: [:show]
-    # What this instance is for, appended to the system prompt on every chat.
-    # A single free-text value per instance, not a CRUD resource — see Setting.
-    resource :purpose, only: [:show, :update]
+    # The system prompt every chat uses. A single page for prompt-related
+    # settings, not a CRUD resource — see Setting.
+    resource :prompt, only: [:show, :update]
     # Where Archyve sends prompts. Under Settings rather than beside Sources:
     # a source is content, an inference server is system administration, and
     # only an admin has any business repointing the app at a different LLM.
