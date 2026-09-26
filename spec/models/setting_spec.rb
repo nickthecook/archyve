@@ -32,6 +32,22 @@ RSpec.describe Setting do
     end
   end
 
+  describe ".chat_instance_purpose" do
+    context "when nobody has set it" do
+      it "defaults to blank" do
+        expect(described_class.chat_instance_purpose).to eq("")
+      end
+    end
+
+    context "when an admin has set it" do
+      before { described_class["chat.instance_purpose"] = "Answer questions for my family." }
+
+      it "returns it" do
+        expect(described_class.chat_instance_purpose).to eq("Answer questions for my family.")
+      end
+    end
+  end
+
   describe ".[]=" do
     context "when setting the same key twice" do
       before do

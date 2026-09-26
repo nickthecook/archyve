@@ -40,6 +40,18 @@ class Setting < ApplicationRecord
       default: 4,
       type: :integer,
       description: "How many times the model may list part of the archive in one turn."
+    ),
+    # Appended to the system prompt after Archyve's own instructions — see
+    # Chat::Instructions. Free text because "who is this for" doesn't fit a
+    # number or a boolean, and a blank default means a fresh install injects
+    # nothing rather than an empty sentence.
+    "chat.instance_purpose" => Definition.new(
+      default: "",
+      type: :string,
+      description: "What this instance is for and who it's answering. Appended to the system prompt " \
+        "on every chat, after Archyve's own instructions. A sentence or two, not a policy document " \
+        "— it should say who's using this instance and what they need from it, not how to cite " \
+        "sources or search the archive, which the base prompt already covers."
     )
   }.freeze
 
@@ -62,6 +74,7 @@ class Setting < ApplicationRecord
     def chat_result_limit = self["chat.result_limit"]
     def chat_max_tool_rounds = self["chat.max_tool_rounds"]
     def chat_max_listing_rounds = self["chat.max_listing_rounds"]
+    def chat_instance_purpose = self["chat.instance_purpose"]
 
     private
 

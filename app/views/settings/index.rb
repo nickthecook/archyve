@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
-  def initialize(people_count:, server_count:, model_count:, endpoint_count:)
+  def initialize(people_count:, server_count:, model_count:, endpoint_count:, purpose:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
     @endpoint_count = endpoint_count
+    @purpose = purpose
   end
 
   def view_template
@@ -37,6 +38,13 @@ class Views::Settings::Index < Views::Base
         description: "Servers documents come from, and the credentials to reach them.",
         meta: endpoint_meta
       ) { endpoint_icon }
+
+      entry(
+        href: settings_purpose_path,
+        title: "Purpose",
+        description: "What this Archyve is for, told to the model on every chat.",
+        meta: purpose_meta
+      ) { purpose_icon }
     end
   end
 
@@ -72,6 +80,10 @@ class Views::Settings::Index < Views::Base
     "#{@endpoint_count} #{'endpoint'.pluralize(@endpoint_count)}"
   end
 
+  def purpose_meta
+    @purpose.present? ? "set" : "not set"
+  end
+
   def people_icon
     svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
       s.circle(cx: "9", cy: "8", r: "3.2")
@@ -93,6 +105,14 @@ class Views::Settings::Index < Views::Base
       s.path(d: "M9 3v6M15 3v6")
       s.rect(x: "6", y: "9", width: "12", height: "6", rx: "1.6")
       s.path(d: "M12 15v6")
+    end
+  end
+
+  def purpose_icon
+    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
+      s.path(d: "M12 4v11")
+      s.path(d: "M7 10.5 12 15l5-4.5")
+      s.path(d: "M5 19.5h14")
     end
   end
 end

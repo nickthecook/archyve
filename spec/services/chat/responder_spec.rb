@@ -112,6 +112,16 @@ RSpec.describe Chat::Responder do
       end
     end
 
+    context "when an admin has set an instance purpose" do
+      before { Setting["chat.instance_purpose"] = "Answer questions for my family from our home archive." }
+
+      it "appends it to the system prompt" do
+        respond
+        system_prompt = llm.messages.select { it.role == :system }.map { it.content.to_s }.join
+        expect(system_prompt).to include("Answer questions for my family from our home archive.")
+      end
+    end
+
     context "when no chat model is configured" do
       let(:conversation) { create(:conversation, inference_model: nil) }
 

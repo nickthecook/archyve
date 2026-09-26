@@ -38,10 +38,25 @@ module Chat
     end
 
     def to_s
-      @conversation.searches_archive? ? retrieval_prompt : unaided_prompt
+      [base_prompt, purpose_addendum].compact.join("\n\n")
     end
 
     private
+
+    def base_prompt
+      @conversation.searches_archive? ? retrieval_prompt : unaided_prompt
+    end
+
+    # An admin's say on what this instance is for, set at Settings > Purpose.
+    # Appended rather than woven in, so it can never override the rules above
+    # it — a family-archive purpose still gets the same citation and search
+    # behaviour as a company one.
+    def purpose_addendum
+      purpose = Setting.chat_instance_purpose
+      return if purpose.blank?
+
+      "This instance's purpose, set by its administrator: #{purpose}"
+    end
 
     # No collections were chosen, so there is no search tool and nothing to
     # cite. The model is told that plainly — a model that thinks it has an
