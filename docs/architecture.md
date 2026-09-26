@@ -102,7 +102,9 @@ indiscriminate context injection. RubyLLM's tool-calling support underpins this.
 half an answer in chunk 12 can read 10–14 instead of searching again and hoping
 the neighbour surfaces. `list_collections` and `list_documents` are planned
 next, for questions about *what the archive holds* rather than what is inside
-it — see `docs/todo.md`.
+it, along with an optional `collections:` on `search_archive` that lets the
+model aim a search at part of its scope. The user's scope stays the ceiling in
+every case — see `docs/todo.md`.
 
 **Naming is not access.** The original rule was that the model got no
 identifier of any kind, only positional handles. That was right for one search
