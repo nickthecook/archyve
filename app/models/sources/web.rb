@@ -61,6 +61,8 @@ module Sources
     def self.type_label = "Website"
     def self.form_component = Views::Sources::Forms::Web
 
+    def location = [endpoint&.host, path_prefix.presence].compact.join
+
     # What is stored is extracted HTML — the images were links in the original
     # and are not even that by the time Readability has been through it.
     def self.supports_ocr? = false

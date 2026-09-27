@@ -46,6 +46,8 @@ module Sources
     def self.type_label = "BookStack"
     def self.form_component = Views::Sources::Forms::Bookstack
 
+    def location = endpoint&.host
+
     # The markdown export carries image *links*, not images, so there is nothing
     # in the document to read text from.
     def self.supports_ocr? = false

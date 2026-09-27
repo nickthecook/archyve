@@ -38,6 +38,12 @@ class Endpoint < ApplicationRecord
 
   def type_label = self.class.type_label
 
+  def host
+    return if base_url.blank?
+
+    URI.parse(base_url).host
+  end
+
   def credentials = super || {}
 
   def clear_credential(name)

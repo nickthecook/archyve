@@ -425,6 +425,11 @@ class Source < ApplicationRecord
   # STI class name would be noise.
   def type_label = self.class.type_label
 
+  # Where this source's documents live, for a reader who has to tell two
+  # similarly-named sources apart — a filesystem path, a site's host. Nil for a
+  # type with nowhere to point (manual upload).
+  def location = nil
+
   private
 
   def endpoint_must_match_type

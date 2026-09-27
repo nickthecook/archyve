@@ -35,6 +35,8 @@ module Sources
     def self.user_creatable? = true
     def self.form_component = Views::Sources::Forms::Folder
 
+    def location = path
+
     def self.description
       "A directory on the machine running Archyve. Scanned on an interval; read, never written."
     end
