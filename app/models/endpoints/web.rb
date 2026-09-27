@@ -22,7 +22,7 @@ module Endpoints
     # Not on Endpoint itself: BookStack is an API reached with a token, and
     # changing what its requests carry would be a change to a working
     # integration for no reason.
-    USER_AGENT = "Archyve/2 (+https://github.com/nickthecook/archyve2)".freeze
+    USER_AGENT = "Archyve (+https://github.com/nickthecook/archyve)".freeze
 
     # What to send on every request.
     SCHEMES = %w[none basic header].freeze

@@ -1,4 +1,4 @@
-name: archyve2-deps
+name: archyve-deps
 
 # Local development dependencies for Archyve 2.
 # Postgres ships with pgvector prebuilt (pgvector/pgvector image), so the
@@ -12,13 +12,13 @@ services:
     environment:
       POSTGRES_USER: archyve
       POSTGRES_PASSWORD: archyve
-      POSTGRES_DB: archyve2_development
+      POSTGRES_DB: archyve_development
     ports:
       - "5432:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U archyve -d archyve2_development"]
+      test: ["CMD-SHELL", "pg_isready -U archyve -d archyve_development"]
       interval: 5s
       timeout: 5s
       retries: 10

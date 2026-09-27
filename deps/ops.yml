@@ -12,6 +12,6 @@ actions:
     command: docker compose logs --tail 100 -f
     alias: l
   psql:
-    command: docker compose exec postgres psql -U archyve archyve2_development
+    command: docker compose exec postgres psql -U archyve archyve_development
   sh:
     command: docker compose exec postgres bash
