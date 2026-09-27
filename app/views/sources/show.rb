@@ -6,13 +6,15 @@
 class Views::Sources::Show < Views::Base
   include Phlex::Rails::Helpers::TurboStreamFrom
 
-  def initialize(source:, syncs:)
+  def initialize(source:, syncs:, back: nil)
     @source = source
     @syncs = syncs
+    @back = back
   end
 
   def view_template
-    breadcrumb(["Collections", collections_path], ["Sources", sources_path], @source.name)
+    middle = @back ? [@back.label, @back.href] : ["Sources", sources_path]
+    breadcrumb(["Collections", collections_path], middle, @source.name)
 
     heading
     configuration

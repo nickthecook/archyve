@@ -10,4 +10,19 @@ class ApplicationController < ActionController::Base
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
+
+  private
+
+  # The path of a same-origin referrer, or nil. Shared by controllers that
+  # build a "came from" back-link from `request.referer` — see
+  # DocumentsController#back_link.
+  def referer_path
+    referer = request.referer
+    return unless referer
+
+    uri = URI(referer)
+    uri.path if uri.host == request.host
+  rescue URI::InvalidURIError
+    nil
+  end
 end

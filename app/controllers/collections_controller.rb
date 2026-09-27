@@ -44,6 +44,7 @@ class CollectionsController < ApplicationController
       source_fed: collection.sources.exists?,
       candidates: addable_documents(collection),
       sources: collection.sources.order(:name),
+      manageable_source_ids: manageable_source_ids(collection),
       attachable_sources: attachable_sources(collection)
     )
   end
@@ -99,6 +100,14 @@ class CollectionsController < ApplicationController
   def addable_documents(collection)
     already_in = collection.collection_memberships.active.select(:document_id)
     Document.where.not(status: "removed").where.not(id: already_in).order(:title)
+  end
+
+  # Which of this collection's sources the user may open. Independent of access
+  # to the collection itself — SourcesController gates on Source.manageable_by,
+  # not on any grant here — so the fed list can't link to a page that would
+  # then refuse. See CollectionSourcesController#create.
+  def manageable_source_ids(collection)
+    Source.manageable_by(Current.user).where(id: collection.sources.select(:id)).ids.to_set
   end
 
   # Sources this person may feed into the collection, minus the ones already

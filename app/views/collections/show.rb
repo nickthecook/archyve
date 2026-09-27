@@ -9,13 +9,14 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:, sources:, attachable_sources:)
+  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:, sources:, manageable_source_ids:, attachable_sources:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
     @source_fed = source_fed
     @candidates = candidates
     @sources = sources
+    @manageable_source_ids = manageable_source_ids
     @attachable_sources = attachable_sources
   end
 
@@ -63,11 +64,28 @@ class Views::Collections::Show < Views::Base
   def fed_list
     ul(class: "mb-4 divide-y divide-line/60") do
       @sources.each do |source|
-        li(class: "flex items-center justify-between gap-3 py-2.5") do
-          span(class: "truncate text-sm text-fg") { source.name }
+        li(class: "flex items-start justify-between gap-3 py-2.5") do
+          div(class: "min-w-0") do
+            div(class: "flex items-center gap-2") do
+              source_name(source)
+              span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { source.type_label }
+            end
+            p(class: "mt-0.5 truncate font-mono text-[0.7rem] text-faint") { source.location } if source.location.present?
+          end
           detach_button(source)
         end
       end
+    end
+  end
+
+  # Only a link where the destination would actually let them in — attaching a
+  # source only needs a grant on it, but opening it needs SourcesController's
+  # own bar. See CollectionsController#manageable_source_ids.
+  def source_name(source)
+    if @manageable_source_ids.include?(source.id)
+      a(href: source_path(source), class: "truncate text-sm text-fg hover:text-accent transition-colors") { source.name }
+    else
+      span(class: "truncate text-sm text-fg") { source.name }
     end
   end
 
@@ -92,20 +110,73 @@ class Views::Collections::Show < Views::Base
   end
 
   def attach_form
-    form(action: collection_sources_path(@collection), method: "post", class: "flex flex-wrap items-end gap-3") do
+    form(
+      action: collection_sources_path(@collection), method: "post",
+      class: "flex flex-wrap items-end gap-3", data: { controller: "source-picker" }
+    ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       div(class: "flex-1 basis-56 min-w-0") do
-        label(class: "block mb-2 text-xs text-faint", for: "collection_source_id") { "Draw on another source" }
-        select(id: "collection_source_id", name: "source_id", required: true, class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg outline-none focus:border-accent transition-colors") do
-          option(value: "", disabled: true, selected: true) { "Choose a source…" }
-          @attachable_sources.each { |source| option(value: source.id) { source.name } }
-        end
+        label(class: "block mb-2 text-xs text-faint") { "Draw on another source" }
+        source_picker
       end
-      button(
-        type: "submit",
-        class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
-      ) { "Attach" }
+      attach_button
     end
+  end
+
+  # A <select> can't lay out a name, a type pill and a location on one row, and
+  # that's exactly what tells "Network" the Folder apart from "Network design"
+  # the BookStack — see app/javascript/controllers/source_picker_controller.js.
+  def source_picker
+    details(class: "relative group") do
+      summary(
+        class: "flex cursor-pointer list-none items-center justify-between gap-2 rounded border border-line " \
+               "bg-void/60 px-3 py-2 text-sm text-fg outline-none group-open:border-accent transition-colors",
+        data: { source_picker_target: "label" }
+      ) do
+        span { "Choose a source…" }
+        chevron
+      end
+      div(
+        role: "listbox",
+        class: "absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded border border-line-2 bg-ink shadow-lg divide-y divide-line/60"
+      ) do
+        @attachable_sources.each { |source| source_option(source) }
+      end
+    end
+    input(type: "hidden", name: "source_id", data: { source_picker_target: "input" })
+  end
+
+  def source_option(source)
+    div(
+      role: "option",
+      class: "cursor-pointer px-3 py-2 hover:bg-void/60 transition-colors",
+      data: {
+        source_picker_target: "option", action: "click->source-picker#select",
+        value: source.id, label: source.name
+      }
+    ) do
+      div(class: "flex items-center justify-between gap-2") do
+        span(class: "truncate text-sm text-fg") { source.name }
+        span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { source.type_label }
+      end
+      p(class: "mt-0.5 truncate font-mono text-[0.7rem] text-faint") { source.location } if source.location.present?
+    end
+  end
+
+  def attach_button
+    button(
+      type: "submit", disabled: true,
+      data: { source_picker_target: "submit" },
+      class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
+             "disabled:opacity-40 disabled:pointer-events-none transition-colors"
+    ) { "Attach" }
+  end
+
+  def chevron
+    svg(
+      class: "shrink-0 text-faint transition-transform group-open:rotate-180",
+      width: "14", height: "14", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true"
+    ) { |s| s.path(d: "m6 9 6 6 6-6") }
   end
 
   # Deliberately plain and at the bottom, not a red button next to the title.

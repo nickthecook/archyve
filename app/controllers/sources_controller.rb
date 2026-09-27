@@ -1,6 +1,10 @@
 class SourcesController < ApplicationController
   require_role :operator
 
+  # Where the breadcrumb's middle crumb points. A source is reachable from its
+  # own index, but also from any collection it feeds — see #back_link.
+  BackLink = Data.define(:label, :href)
+
   # Every key a source form may submit. Keys backed by `state` are absent and
   # must stay absent — that allowlist is the whole enforcement of the
   # config/state split described in Source. spec/models/source_spec.rb fails if
@@ -22,7 +26,8 @@ class SourcesController < ApplicationController
   def show
     render Views::Sources::Show.new(
       source: @source,
-      syncs: @source.syncs.recent.limit(10)
+      syncs: @source.syncs.recent.limit(10),
+      back: back_link
     )
   end
 
@@ -95,6 +100,18 @@ class SourcesController < ApplicationController
 
   def set_source
     @source = Source.manageable_by(Current.user).find(params[:id])
+  end
+
+  # A source opened from a collection it feeds returns there; anything else
+  # falls back to the Sources index, which is a section root and needs no
+  # referrer to justify itself.
+  def back_link
+    path = referer_path
+    slug = path&.match(%r{\A/collections/([^/]+)\z})&.captures&.first
+    return unless slug
+
+    collection = Collection.readable_by(Current.user).find_by(slug:)
+    BackLink.new(label: collection.name, href: collection_path(collection)) if collection
   end
 
   # The type comes from the URL. Only types a person may actually add are

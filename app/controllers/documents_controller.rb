@@ -157,15 +157,4 @@ class DocumentsController < ApplicationController
 
     BackLink.new(label: "Chat", href: conversations_path)
   end
-
-  # The path of a same-origin referrer, or nil.
-  def referer_path
-    referer = request.referer
-    return unless referer
-
-    uri = URI(referer)
-    uri.path if uri.host == request.host
-  rescue URI::InvalidURIError
-    nil
-  end
 end
