@@ -174,5 +174,34 @@ RSpec.describe Docling::Result do
         expect(Ingestion::Chunker.new.chunk(result)).not_to be_empty
       end
     end
+    # The third shape, and the one that cost the most: a heading that owns its
+    # section, where the section's paragraphs arrive as `inline` groups — the
+    # same nesting a list item uses for its own words. Read as fragments they
+    # collapse into the heading, which produced 13,000-character chunks and an
+    # embedding server refusing them for exceeding its context.
+    context "when a heading owns its section as inline groups" do
+      let(:raw) do
+        JSON.parse(Rails.root.join("spec/fixtures/files/docling_owned_sections_response.json").read)
+      end
+
+      it "keeps the heading to its own words" do
+        expect(items.select(&:heading?).map(&:text)).to eq(["Page Title", "Section", "Other"])
+      end
+
+      it "returns the section's paragraphs as blocks of their own" do
+        expect(items.reject(&:heading?).map(&:text)).to eq(
+          ["First paragraph with a link in it.", "Second paragraph with emphasis in it.", "Third paragraph."]
+        )
+      end
+
+      it "still rejoins each paragraph's own fragments" do
+        expect(items.map(&:markdown)).to include("First paragraph with a [link](http://x/) in it.")
+      end
+
+      it "leaves no chunk over the chunker's maximum" do
+        lengths = Ingestion::Chunker.new.chunk(result).map { it.content.length }
+        expect(lengths).to all(be <= Ingestion::Chunker::MAX_CHARS)
+      end
+    end
   end
 end

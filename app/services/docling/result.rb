@@ -97,11 +97,24 @@ module Docling
     # A text node's children are the blocks *beneath* it — in the hierarchical
     # shape docling emits for some documents, a heading owns its entire section.
     # Reading the second kind as the first collapses a document into its title.
+    # An inline group's children are all fragments of it. Below anything else,
+    # an inline group is a fragment only when the node has no text of its own —
+    # that is a list item, whose words hang beneath a blank entry. A node that
+    # *does* carry its own text already has all of it, and an inline group under
+    # that is the next block down: an HTML heading owns the paragraphs of its
+    # section this way, and reading them as more of the heading swallows the
+    # section into it.
     def fragment_children(node)
-      inline?(node) ? children_of(node) : children_of(node).select { inline?(it) }
+      return children_of(node) if inline?(node)
+      return [] if node["text"].to_s.strip.present?
+
+      children_of(node).select { inline?(it) }
     end
 
-    def block_children(node) = inline?(node) ? [] : children_of(node).reject { inline?(it) }
+    # Whatever the node's own text did not account for. Set difference rather
+    # than the opposite predicate, so the two can never both claim a child or
+    # both disown one.
+    def block_children(node) = inline?(node) ? [] : children_of(node) - fragment_children(node)
 
     # Fragments rejoin with a space, as docling's own serializer does, minus the
     # stray space that leaves in front of punctuation trailing a link or an
