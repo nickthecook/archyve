@@ -9,6 +9,9 @@
   max-width: 1040px;
   margin: 0 auto;
   overflow: hidden;
+  /* nudged up on mobile when the on-screen keyboard would otherwise cover the
+     ask field — see corridor_controller.js#adjustForKeyboard */
+  transition: transform 0.25s ease;
   /* how long the three section links take to fade in on load — tweak me */
   --facet-reveal-duration: 0.4s;
 }

@@ -65,6 +65,7 @@ export default class extends Controller {
     this.vel = 0
     this.litAmt = 0
     this.litTarget = 0
+    this.kbShift = 0
     this.px = 0; this.py = 0; this.tpx = 0; this.tpy = 0
     this.lastLen = 0
     this.running = false
@@ -82,6 +83,7 @@ export default class extends Controller {
     if (this.raf) cancelAnimationFrame(this.raf)
     document.removeEventListener("turbo:before-cache", this._beforeCache)
     this.ringsTarget.replaceChildren()
+    this.unwatchKeyboard()
   }
 
   // --- input wiring (Stimulus actions) --------------------------------------
@@ -95,8 +97,59 @@ export default class extends Controller {
     this.kick()
   }
 
-  light() { this.lastLen = this.inputTarget.value.length; this.element.classList.add("is-lit"); this.litTarget = 1; this.kick() }
-  dim() { this.element.classList.remove("is-lit"); this.litTarget = 0; this.kick() }
+  light() {
+    this.lastLen = this.inputTarget.value.length
+    this.element.classList.add("is-lit")
+    this.litTarget = 1
+    this.kick()
+    this.watchKeyboard()
+  }
+
+  dim() {
+    this.element.classList.remove("is-lit")
+    this.litTarget = 0
+    this.kick()
+    this.unwatchKeyboard()
+  }
+
+  // The stage is a fixed, non-scrolling 100vh — mobile browsers don't shrink
+  // that layout viewport for the keyboard, so there's nothing for the usual
+  // "scroll the focused field into view" behaviour to act on, and the field
+  // (pinned at 63.8% down) can end up under the keyboard. visualViewport
+  // reports the actual visible height net of the keyboard, so nudging the
+  // stage up by exactly that shortfall tracks the real keyboard on any
+  // device instead of guessing a height.
+  watchKeyboard() {
+    if (!window.visualViewport || this._vvHandler) return
+    this._vvHandler = () => this.adjustForKeyboard()
+    visualViewport.addEventListener("resize", this._vvHandler)
+    visualViewport.addEventListener("scroll", this._vvHandler)
+    this.adjustForKeyboard()
+  }
+
+  unwatchKeyboard() {
+    if (this._vvHandler) {
+      visualViewport.removeEventListener("resize", this._vvHandler)
+      visualViewport.removeEventListener("scroll", this._vvHandler)
+      this._vvHandler = null
+    }
+    this.kbShift = 0
+    this.element.style.transform = ""
+  }
+
+  adjustForKeyboard() {
+    const vv = visualViewport
+    // getBoundingClientRect() already reflects any shift from the previous
+    // call, so add it back to recover the field's unshifted position —
+    // otherwise each call would compound on top of the last.
+    const fieldRect = this.inputTarget.closest(".ask-field").getBoundingClientRect()
+    const naturalBottom = fieldRect.bottom + this.kbShift
+    const visibleBottom = vv.offsetTop + vv.height
+    const margin = 20
+
+    this.kbShift = Math.max(0, naturalBottom - visibleBottom + margin)
+    this.element.style.transform = this.kbShift > 0 ? `translateY(-${this.kbShift.toFixed(1)}px)` : ""
+  }
 
   peer(event) {
     if (this.reduce) return
