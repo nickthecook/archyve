@@ -96,6 +96,8 @@ class Source < ApplicationRecord
   has_many :collections, through: :source_collections
   has_many :documents, dependent: :destroy
   has_many :syncs, class_name: "SourceSync", dependent: :destroy
+  has_many :reprocesses, class_name: "SourceReprocess", dependent: :destroy
+
 
   validates :name, presence: true
 
@@ -357,6 +359,8 @@ class Source < ApplicationRecord
   def authoritative_scan?(_run) = true
 
   def supports_sync? = self.class.supports_sync?
+
+  def current_reprocess = reprocesses.running.first
   def resumable_scan? = self.class.resumable_scan?
   def supports_ocr? = self.class.supports_ocr?
   def endpoint_type = self.class.endpoint_type

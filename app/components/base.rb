@@ -8,6 +8,7 @@ class Components::Base < Phlex::HTML
   include Phlex::Rails::Helpers::Routes
   include Phlex::Rails::Helpers::FormAuthenticityToken
   include Phlex::Rails::Helpers::TimeAgoInWords
+  include Phlex::Rails::Helpers::NumberWithDelimiter
   include Phlex::Rails::Helpers::CurrentPage
 
   # No built-in adapter for cookies; register one so `cookies` works here too.

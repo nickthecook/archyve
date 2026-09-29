@@ -123,6 +123,10 @@ class Document < ApplicationRecord
   # its source, and re-ingesting it would undo that.
   def reprocessable? = !removed? && file.attached?
 
+  # The set form of `reprocessable?`, for the bulk path — asking each row
+  # whether its file is attached is one query per document.
+  scope :reprocessable, -> { where.not(status: :removed).joins(:file_attachment) }
+
   # Whether deleting this actually removes it from the archive. A syncable source
   # re-creates its documents on the next scan, so there the deletion belongs at
   # the source; a tombstone has already left the source and won't come back.

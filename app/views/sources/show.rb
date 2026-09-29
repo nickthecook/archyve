@@ -26,6 +26,7 @@ class Views::Sources::Show < Views::Base
     latest_run
 
     history if @syncs.many?
+    render Views::Sources::Reprocess.new(source: @source)
     danger_zone
   end
 

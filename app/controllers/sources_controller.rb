@@ -17,7 +17,8 @@ class SourcesController < ApplicationController
     { collection_ids: [], selectors: [] }
   ].freeze
 
-  before_action :set_source, only: [:show, :edit, :update, :destroy, :sync]
+  before_action :set_source,
+    only: [:show, :edit, :update, :destroy, :sync, :reprocess, :cancel_reprocess]
 
   def index
     render Views::Sources::Index.new(sources: Source.manageable_by(Current.user).order(:name))
@@ -94,6 +95,32 @@ class SourcesController < ApplicationController
     Sources::SyncJob.perform_later(@source)
 
     redirect_to source_path(@source), notice: "Sync started."
+  end
+
+  # Re-extract every document this source has already produced, from the files
+  # already stored. What changed is the pipeline, not the source, so this never
+  # contacts the far end — that is `sync`, and on a large source the two are
+  # very different amounts of work.
+  def reprocess
+    return redirect_to(source_path(@source), alert: "A reprocess is already running.") if @source.current_reprocess
+
+    total = @source.documents.reprocessable.count
+    return redirect_to(source_path(@source), alert: "There's nothing to reprocess.") if total.zero?
+
+    run = @source.reprocesses.create!(total: total)
+    Sources::ReprocessJob.perform_later(run)
+    redirect_to source_path(@source), notice: "Reprocessing #{total} documents."
+  end
+
+  # Stops the run handing over any more documents. What is already in the queue
+  # still converts — it was handed over, and reaching into the queue to claw
+  # back a window's worth of work is not worth the coupling.
+  def cancel_reprocess
+    run = @source.current_reprocess
+    return redirect_to(source_path(@source), alert: "No reprocess is running.") if run.nil?
+
+    run.cancel!
+    redirect_to source_path(@source), notice: "Reprocess stopped. Documents already queued will finish."
   end
 
   private

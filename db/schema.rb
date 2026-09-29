@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_140547) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_29_145449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -261,6 +261,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_140547) do
     t.index ["source_id"], name: "index_source_collections_on_source_id"
   end
 
+  create_table "source_reprocesses", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "cursor", default: 0, null: false
+    t.integer "enqueued", default: 0, null: false
+    t.datetime "finished_at"
+    t.bigint "source_id", null: false
+    t.string "status", default: "running", null: false
+    t.integer "total", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_id"], name: "index_source_reprocesses_on_running_source", unique: true, where: "((status)::text = 'running'::text)"
+    t.index ["source_id"], name: "index_source_reprocesses_on_source_id"
+  end
+
   create_table "source_sync_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.jsonb "detail", default: {}, null: false
@@ -360,6 +373,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_140547) do
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
+  add_foreign_key "source_reprocesses", "sources"
   add_foreign_key "source_sync_items", "source_syncs"
   add_foreign_key "source_syncs", "sources"
   add_foreign_key "source_users", "sources"
