@@ -4,6 +4,8 @@
 # appears here too — it produces documents like any other source, it just has
 # nothing to poll.
 class Views::Sources::Index < Views::Base
+  LIVE_REGION = "sources_list".freeze
+
   def initialize(sources:)
     @sources = sources
   end
@@ -34,10 +36,26 @@ class Views::Sources::Index < Views::Base
     end
   end
 
+  # The whole list is the live region: the statuses on these cards move while
+  # work runs elsewhere, and nothing broadcasts to an index — per-source
+  # broadcasts would be a message apiece to redraw one badge.
   def list
-    div(class: "flex flex-col gap-3") do
+    div(id: LIVE_REGION, data: progress_data(terminal: !watching?), class: "flex flex-col gap-3") do
       @sources.each { |source| card(source) }
     end
+  end
+
+  # Poll only while something here can still change on its own. A list of
+  # settled sources is a static page, and polling it for every visitor would be
+  # a request every couple of seconds to redraw the same thing.
+  def watching? = reprocessing.any? || scanning.any?
+
+  # Mid-scan, either holding a job or stopped on its budget — both are states a
+  # source moves off without anyone asking.
+  def scanning
+    @scanning ||= SourceSync.where(source: @sources)
+      .where.not(status: SourceSync::TERMINAL_STATUSES)
+      .pluck(:source_id).to_set
   end
 
   def card(source)
@@ -53,7 +71,7 @@ class Views::Sources::Index < Views::Base
           end
           p(class: "mt-1 truncate font-mono text-xs text-faint") { subtitle(source) }
         end
-        sync_state(source)
+        state(source)
       end
       div(class: "mt-3 flex items-center gap-4 text-xs text-muted") do
         span(class: "font-mono tabular-nums") { document_count(source) }
@@ -76,6 +94,30 @@ class Views::Sources::Index < Views::Base
     return "never scanned" if source.last_synced_at.nil?
 
     "scanned #{time_ago_in_words(source.last_synced_at)} ago"
+  end
+
+  # What the source is doing now, or failing that what its last scan did. A
+  # reprocess wins because it is happening, where a sync status is a thing that
+  # already happened — and it is the only state a manual-upload source has,
+  # since those never scan.
+  def state(source)
+    return reprocess_state if reprocessing.include?(source.id)
+
+    sync_state(source)
+  end
+
+  # One query for the page rather than one per card: this list is already a
+  # column of per-source counts, and another round trip apiece is not the way
+  # to add to it.
+  def reprocessing
+    @reprocessing ||= SourceReprocess.running.where(source: @sources).pluck(:source_id).to_set
+  end
+
+  def reprocess_state
+    span(class: "shrink-0 inline-flex items-center gap-1.5 text-xs text-muted") do
+      span(class: "h-1.5 w-1.5 rounded-full bg-accent")
+      plain "reprocessing"
+    end
   end
 
   # A dot for the last run's outcome. Absent for sources that never scan,

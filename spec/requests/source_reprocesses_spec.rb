@@ -146,4 +146,63 @@ RSpec.describe "Source reprocessing", type: :request do
       end
     end
   end
+  describe "GET /sources" do
+    context "with a run going" do
+      before { create(:source_reprocess, source:, total: 40) }
+
+      it "says so on the source's card" do
+        get sources_path
+        expect(response.body).to include("reprocessing")
+      end
+    end
+
+    # A manual-upload source has no sync status at all, so this is the only
+    # thing its card can say about what it is doing.
+    context "with a run going on a source that never scans" do
+      let(:source) { create(:source) }
+
+      before { create(:source_reprocess, source:, total: 40) }
+
+      it "still says so" do
+        get sources_path
+        expect(response.body).to include("reprocessing")
+      end
+    end
+
+    context "with no run going" do
+      it "says nothing about reprocessing" do
+        get sources_path
+        expect(response.body).not_to include("reprocessing")
+      end
+    end
+
+    describe "keeping the list current" do
+      context "while a run is going" do
+        before { create(:source_reprocess, source:, total: 40) }
+
+        it "polls, so the badge appears and clears without a reload" do
+          get sources_path
+          expect(response.body).to include('data-progress-terminal-value="false"')
+        end
+      end
+
+      context "while a scan is going" do
+        before { create(:source_sync, source:, status: "running") }
+
+        it "polls too, since the same cards carry the scan status" do
+          get sources_path
+          expect(response.body).to include('data-progress-terminal-value="false"')
+        end
+      end
+
+      context "when every source has settled" do
+        before { create(:source_sync, source:, status: "completed") }
+
+        it "stops polling rather than redrawing a static page for every visitor" do
+          get sources_path
+          expect(response.body).to include('data-progress-terminal-value="true"')
+        end
+      end
+    end
+  end
 end
