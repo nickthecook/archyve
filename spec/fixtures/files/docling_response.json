@@ -8,7 +8,7 @@
       "name": "sample",
       "origin": {
         "mimetype": "text/markdown",
-        "binary_hash": 12527130719648081146,
+        "binary_hash": 18331565253758892211,
         "filename": "sample.md",
         "uri": null
       },
@@ -41,19 +41,25 @@
             "$ref": "#/texts/5"
           },
           {
-            "$ref": "#/texts/6"
+            "$ref": "#/groups/1"
           },
           {
-            "$ref": "#/texts/7"
+            "$ref": "#/texts/12"
           },
           {
-            "$ref": "#/texts/8"
+            "$ref": "#/groups/2"
           },
           {
-            "$ref": "#/texts/9"
+            "$ref": "#/texts/20"
           },
           {
-            "$ref": "#/texts/10"
+            "$ref": "#/texts/21"
+          },
+          {
+            "$ref": "#/texts/22"
+          },
+          {
+            "$ref": "#/texts/23"
           }
         ],
         "content_layer": "body",
@@ -73,6 +79,93 @@
             },
             {
               "$ref": "#/texts/3"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "group",
+          "label": "inline"
+        },
+        {
+          "self_ref": "#/groups/1",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/6"
+            },
+            {
+              "$ref": "#/texts/7"
+            },
+            {
+              "$ref": "#/texts/8"
+            },
+            {
+              "$ref": "#/texts/9"
+            },
+            {
+              "$ref": "#/texts/10"
+            },
+            {
+              "$ref": "#/texts/11"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "group",
+          "label": "inline"
+        },
+        {
+          "self_ref": "#/groups/2",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/13"
+            },
+            {
+              "$ref": "#/texts/16"
+            },
+            {
+              "$ref": "#/texts/19"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "list",
+          "label": "list"
+        },
+        {
+          "self_ref": "#/groups/3",
+          "parent": {
+            "$ref": "#/texts/13"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/14"
+            },
+            {
+              "$ref": "#/texts/15"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "group",
+          "label": "inline"
+        },
+        {
+          "self_ref": "#/groups/4",
+          "parent": {
+            "$ref": "#/texts/16"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/17"
+            },
+            {
+              "$ref": "#/texts/18"
             }
           ],
           "content_layer": "body",
@@ -178,6 +271,102 @@
         {
           "self_ref": "#/texts/6",
           "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Documents flow through",
+          "text": "Documents flow through",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/7",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Docling",
+          "text": "Docling",
+          "formatting": null,
+          "hyperlink": "https://docling-project.github.io/"
+        },
+        {
+          "self_ref": "#/texts/8",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "for",
+          "text": "for",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/9",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "extraction, then",
+          "text": "extraction, then",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/10",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "chunking",
+          "text": "chunking",
+          "formatting": {
+            "bold": false,
+            "italic": true,
+            "underline": false,
+            "strikethrough": false,
+            "script": "baseline"
+          },
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/11",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": ", then embedding.",
+          "text": ", then embedding.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/12",
+          "parent": {
             "$ref": "#/body"
           },
           "children": [],
@@ -185,13 +374,138 @@
           "meta": null,
           "label": "text",
           "prov": [],
-          "orig": "Documents flow through Docling for extraction, then chunking, then embedding.",
-          "text": "Documents flow through Docling for extraction, then chunking, then embedding.",
+          "orig": "Each stage is a job:",
+          "text": "Each stage is a job:",
           "formatting": null,
           "hyperlink": null
         },
         {
-          "self_ref": "#/texts/7",
+          "self_ref": "#/texts/13",
+          "parent": {
+            "$ref": "#/groups/2"
+          },
+          "children": [
+            {
+              "$ref": "#/groups/3"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [],
+          "orig": "",
+          "text": "",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": false,
+          "marker": ""
+        },
+        {
+          "self_ref": "#/texts/14",
+          "parent": {
+            "$ref": "#/groups/3"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "extraction, which calls",
+          "text": "extraction, which calls",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/15",
+          "parent": {
+            "$ref": "#/groups/3"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Docling",
+          "text": "Docling",
+          "formatting": {
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "strikethrough": false,
+            "script": "baseline"
+          },
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/16",
+          "parent": {
+            "$ref": "#/groups/2"
+          },
+          "children": [
+            {
+              "$ref": "#/groups/4"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [],
+          "orig": "",
+          "text": "",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": false,
+          "marker": ""
+        },
+        {
+          "self_ref": "#/texts/17",
+          "parent": {
+            "$ref": "#/groups/4"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "chunking, which is",
+          "text": "chunking, which is",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/18",
+          "parent": {
+            "$ref": "#/groups/4"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "structure-aware",
+          "text": "structure-aware",
+          "formatting": null,
+          "hyperlink": "https://example.com/chunking"
+        },
+        {
+          "self_ref": "#/texts/19",
+          "parent": {
+            "$ref": "#/groups/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [],
+          "orig": "embedding",
+          "text": "embedding",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": false,
+          "marker": ""
+        },
+        {
+          "self_ref": "#/texts/20",
           "parent": {
             "$ref": "#/body"
           },
@@ -207,7 +521,7 @@
           "level": 2
         },
         {
-          "self_ref": "#/texts/8",
+          "self_ref": "#/texts/21",
           "parent": {
             "$ref": "#/body"
           },
@@ -222,7 +536,7 @@
           "hyperlink": null
         },
         {
-          "self_ref": "#/texts/9",
+          "self_ref": "#/texts/22",
           "parent": {
             "$ref": "#/body"
           },
@@ -238,7 +552,7 @@
           "level": 1
         },
         {
-          "self_ref": "#/texts/10",
+          "self_ref": "#/texts/23",
           "parent": {
             "$ref": "#/body"
           },
@@ -266,7 +580,7 @@
   },
   "status": "success",
   "errors": [],
-  "processing_time": 0.0015457759946002625,
+  "processing_time": 0.003697316000398132,
   "timings": {},
   "confidence": {
     "parse_score": null,

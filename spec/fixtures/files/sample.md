@@ -9,7 +9,14 @@ sources and makes them searchable.
 
 ### Ingestion
 
-Documents flow through Docling for extraction, then chunking, then embedding.
+Documents flow through [Docling](https://docling-project.github.io) for
+extraction, then *chunking*, then embedding.
+
+Each stage is a job:
+
+- extraction, which calls **Docling**
+- chunking, which is [structure-aware](https://example.com/chunking)
+- embedding
 
 ### Retrieval
 
