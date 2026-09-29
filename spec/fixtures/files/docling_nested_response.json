@@ -1,0 +1,173 @@
+{
+  "document": {
+    "filename": "nested2.md",
+    "md_content": null,
+    "json_content": {
+      "schema_name": "DoclingDocument",
+      "version": "1.10.0",
+      "name": "nested2",
+      "origin": {
+        "mimetype": "text/html",
+        "binary_hash": 5174932414398073838,
+        "filename": "nested2.md",
+        "uri": null
+      },
+      "furniture": {
+        "self_ref": "#/furniture",
+        "parent": null,
+        "children": [],
+        "content_layer": "furniture",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "body": {
+        "self_ref": "#/body",
+        "parent": null,
+        "children": [
+          {
+            "$ref": "#/texts/0"
+          }
+        ],
+        "content_layer": "body",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "groups": [],
+      "texts": [
+        {
+          "self_ref": "#/texts/0",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/1"
+            },
+            {
+              "$ref": "#/texts/2"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "label": "title",
+          "prov": [],
+          "orig": "Nested Doc",
+          "text": "Nested Doc",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/1",
+          "parent": {
+            "$ref": "#/texts/0"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Opening paragraph.",
+          "text": "Opening paragraph.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/2",
+          "parent": {
+            "$ref": "#/texts/0"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/3"
+            },
+            {
+              "$ref": "#/texts/4"
+            },
+            {
+              "$ref": "#/texts/5"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "label": "section_header",
+          "prov": [],
+          "orig": "Section One",
+          "text": "Section One",
+          "formatting": null,
+          "hyperlink": null,
+          "level": 1
+        },
+        {
+          "self_ref": "#/texts/3",
+          "parent": {
+            "$ref": "#/texts/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Body under the section.",
+          "text": "Body under the section.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/4",
+          "parent": {
+            "$ref": "#/texts/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "An embedded HTML block.",
+          "text": "An embedded HTML block.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/5",
+          "parent": {
+            "$ref": "#/texts/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [],
+          "orig": "Closing paragraph.",
+          "text": "Closing paragraph.",
+          "formatting": null,
+          "hyperlink": null
+        }
+      ],
+      "pictures": [],
+      "tables": [],
+      "key_value_items": [],
+      "form_items": [],
+      "pages": {}
+    },
+    "html_content": null,
+    "text_content": null,
+    "doctags_content": null,
+    "doclang_content": null
+  },
+  "status": "success",
+  "errors": [],
+  "processing_time": 0.003452739998465404,
+  "timings": {},
+  "confidence": {
+    "parse_score": null,
+    "layout_score": null,
+    "table_score": null,
+    "ocr_score": null,
+    "mean_score": null,
+    "low_score": null,
+    "mean_grade": "unspecified",
+    "low_grade": "unspecified"
+  }
+}

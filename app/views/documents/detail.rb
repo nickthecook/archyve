@@ -88,6 +88,17 @@ class Views::Documents::Detail < Components::Base
         span(class: "text-xs font-semibold uppercase tracking-wide text-faint") { "Chunk #{chunk.position + 1}" }
         span(class: "text-xs text-faint truncate") { breadcrumb } if breadcrumb.present?
       end
+      body(chunk)
+    end
+  end
+
+  # `content` is shaped for the embedding and the model's prompt, breadcrumb and
+  # all; `markdown` is the same blocks put back the way the document had them.
+  # Chunks stored before that column existed have none, and show what they have.
+  def body(chunk)
+    if chunk.markdown.present?
+      div(class: "answer text-sm leading-relaxed text-muted") { raw safe(Markdown.to_html(chunk.markdown)) }
+    else
       pre(class: "whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted") { chunk.content }
     end
   end

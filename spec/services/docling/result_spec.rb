@@ -77,5 +77,102 @@ RSpec.describe Docling::Result do
         expect(texts).not_to include("")
       end
     end
+
+    describe "the display form" do
+      let(:markdown) { items.map(&:markdown) }
+
+      it "puts back the link docling flattened into a bare fragment" do
+        expect(markdown).to include(
+          "Documents flow through [Docling](https://docling-project.github.io/) for extraction, " \
+          "then *chunking*, then embedding."
+        )
+      end
+
+      it "puts back emphasis inside a list item" do
+        expect(markdown).to include("extraction, which calls **Docling**")
+      end
+
+      it "matches the plain form wherever the source carried no markup" do
+        plain = items.find { it.text == "Each stage is a job:" }
+        expect(plain.markdown).to eq(plain.text)
+      end
+    end
+    # A PDF's text is not markdown, and rendering it as if it were is how a door
+    # manual struck half a sentence through. Exercised through the real renderer
+    # because the bug is in what commonmark makes of the string, not the string.
+    describe "text that a markdown renderer would misread" do
+      subject(:rendered) { Markdown.to_html(item.markdown).strip }
+
+      let(:item) { described_class.new(raw_for(source)).items.first }
+
+      def raw_for(text)
+        { "document" => { "json_content" => {
+          "body" => { "children" => [{ "$ref" => "#/texts/0" }] },
+          "texts" => [{ "self_ref" => "#/texts/0", "label" => "text", "text" => text, "children" => [] }]
+        } } }
+      end
+
+      context "when the text contains tildes" do
+        let(:source) { "Bee~ree ~reep Normal Authentication Mode Bee~ree" }
+
+        it "does not strike it through" do
+          expect(rendered).to eq("<p>Bee~ree ~reep Normal Authentication Mode Bee~ree</p>")
+        end
+      end
+
+      context "when a numbered step opens the text" do
+        let(:source) { "1. Touch the number pad 2. Enter Pin Number" }
+
+        it "stays a paragraph rather than becoming an ordered list" do
+          expect(rendered).to eq("<p>1. Touch the number pad 2. Enter Pin Number</p>")
+        end
+      end
+
+      context "when a dash opens the text" do
+        let(:source) { "- Force Lock features" }
+
+        it "stays a paragraph rather than becoming a bullet" do
+          expect(rendered).to eq("<p>- Force Lock features</p>")
+        end
+      end
+
+      context "when a hash opens the text" do
+        let(:source) { "# S9116BI ED:02" }
+
+        it "stays a paragraph rather than becoming a heading" do
+          expect(rendered).to eq("<p># S9116BI ED:02</p>")
+        end
+      end
+
+      context "when the text carries other inline syntax" do
+        let(:source) { "use snake_case_names and *stars* and a | pipe" }
+
+        it "renders every character as written" do
+          expect(rendered).to eq("<p>use snake_case_names and *stars* and a | pipe</p>")
+        end
+      end
+    end
+    # Docling has two shapes for the same document, and which one it picks is not
+    # ours to predict — a raw HTML block in the markdown is enough to switch it.
+    # Where the flat shape hangs every element off the body, this one has a
+    # heading own the section beneath it, so the walk has to descend.
+    context "when docling nests the document under its headings" do
+      let(:raw) { JSON.parse(Rails.root.join("spec/fixtures/files/docling_nested_response.json").read) }
+
+      it "returns every element rather than collapsing the document into its title" do
+        expect(items.map(&:text)).to eq(
+          ["Nested Doc", "Opening paragraph.", "Section One", "Body under the section.",
+           "An embedded HTML block.", "Closing paragraph."]
+        )
+      end
+
+      it "keeps the headings as headings" do
+        expect(items.select(&:heading?).map(&:text)).to eq(["Nested Doc", "Section One"])
+      end
+
+      it "leaves body text chunkable, which a swallowed document is not" do
+        expect(Ingestion::Chunker.new.chunk(result)).not_to be_empty
+      end
+    end
   end
 end

@@ -8,7 +8,11 @@ module Docling
     # caption, ...); `level` is the heading depth for section_header/title; `page`
     # is the source page number when the input carried provenance (PDFs do,
     # markdown/plain text don't).
-    Item = Data.define(:text, :label, :level, :page) do
+    #
+    # `text` and `markdown` are the same element said twice: plain for the
+    # embedding and the model's prompt, marked up for display. One walk produces
+    # both, so the two can't come to describe different elements.
+    Item = Data.define(:text, :markdown, :label, :level, :page) do
       def heading? = label == "section_header" || label == "title"
     end
 
@@ -49,40 +53,88 @@ module Docling
     # itself blank. Starting from `body` also excludes the `furniture` layer,
     # where repeated page headers and footers live.
     def items
-      items_in(body["children"])
+      items_for(children_of(body))
     end
 
     private
 
     def body = json_content["body"] || {}
 
-    def items_in(refs)
-      Array(refs).flat_map do |ref|
-        node = resolve(ref)
-        next [] if node.nil?
+    def items_for(nodes) = nodes.flat_map { |node| node_items(node) }
 
-        container?(node) ? items_in(node["children"]) : Array(item_for(node))
-      end
+    # A list is pure structure — it holds blocks, not words — so it contributes
+    # nothing of its own. Anything else is an element, and may still own the
+    # blocks that follow it.
+    def node_items(node)
+      return items_for(children_of(node)) if container?(node)
+
+      Array(item_for(node)) + items_for(block_children(node))
     end
 
     def item_for(node)
-      text = text_under(node)
-      return if text.empty?
+      leaves = leaves_under(node)
+      return if leaves.empty?
 
-      Item.new(text: text, label: label_for(node), level: level_for(node), page: page_under(node))
+      Item.new(
+        text: join(leaves.map { it["text"].strip }),
+        markdown: disarm(join(leaves.map { decorate(it) })),
+        label: label_for(node),
+        level: level_for(node),
+        page: page_under(node)
+      )
     end
+
+    # The fragments carrying this element's text, in document order. A list
+    # item's own entry is blank and its words hang below it, so a node
+    # contributes itself *and* its fragments rather than one or the other.
+    def leaves_under(node)
+      own = node["text"].to_s.strip.empty? ? [] : [node]
+      own + fragment_children(node).flat_map { |child| leaves_under(child) }
+    end
+
+    # Docling nests two different things the same way, and telling them apart is
+    # the whole job. An `inline` group's children are fragments of one paragraph.
+    # A text node's children are the blocks *beneath* it — in the hierarchical
+    # shape docling emits for some documents, a heading owns its entire section.
+    # Reading the second kind as the first collapses a document into its title.
+    def fragment_children(node)
+      inline?(node) ? children_of(node) : children_of(node).select { inline?(it) }
+    end
+
+    def block_children(node) = inline?(node) ? [] : children_of(node).reject { inline?(it) }
 
     # Fragments rejoin with a space, as docling's own serializer does, minus the
     # stray space that leaves in front of punctuation trailing a link or an
     # emphasised run.
-    def text_under(node)
-      fragments(node).join(" ").gsub(/\s+(?=[,.;:!?)\]])/, "")
+    def join(parts) = parts.join(" ").gsub(/\s+(?=[,.;:!?)\]])/, "")
+
+    # Docling keeps the inline detail markdown was written with — `formatting`
+    # per fragment, `hyperlink` for a link's anchor text — so the display form
+    # can be put back rather than approximated. Underline and sub/superscript
+    # have no markdown spelling and are dropped.
+    def decorate(leaf)
+      format = leaf["formatting"] || {}
+      text = escape(leaf["text"].strip)
+      text = "**#{text}**" if format["bold"]
+      text = "*#{text}*" if format["italic"]
+      text = "~~#{text}~~" if format["strikethrough"]
+      leaf["hyperlink"].present? ? "[#{text}](#{leaf['hyperlink']})" : text
     end
 
-    def fragments(node)
-      own = node["text"].to_s.strip
-      nested = children_of(node).flat_map { |child| fragments(child) }
-      own.empty? ? nested : [own, *nested]
+    # Document text is not markdown and must not be read as it: a chunk about
+    # `snake_case_names` should not come out half-italic, and a manual that says
+    # "Bee~ree" should not strike itself through.
+    def escape(text) = text.gsub(/[\\`*_\[\]<>~|]/) { "\\#{it}" }
+
+    # Inline escaping is not enough. An item's markdown is a single line, so text
+    # that merely *begins* the way a heading or a list begins opens a block that
+    # was never in the document — a numbered step ("1. Touch the pad") is the
+    # one that turns up constantly in scanned manuals. A digit can't take a
+    # backslash, so there the delimiter after it is escaped instead.
+    def disarm(text)
+      text.sub(/\A(\#{1,6}|[-+]|\d{1,9}[.)])(?=\s|\z)/) do |marker|
+        marker.end_with?(".", ")") ? "#{marker[..-2]}\\#{marker[-1]}" : "\\#{marker}"
+      end
     end
 
     def page_under(node)
@@ -92,10 +144,11 @@ module Docling
 
     def children_of(node) = Array(node["children"]).filter_map { |ref| resolve(ref) }
 
-    # A group that is not `inline` is structure (a list, a section); an inline
-    # group *is* the paragraph, so it becomes one item rather than being walked
-    # into.
-    def container?(node) = group?(node) && node["label"] != "inline"
+    # A group that is not `inline` is structure (a list); an inline group *is*
+    # the paragraph, so it becomes one item rather than being walked into.
+    def container?(node) = group?(node) && !inline?(node)
+
+    def inline?(node) = group?(node) && node["label"] == "inline"
 
     def group?(node) = node["self_ref"].to_s.start_with?("#/groups/")
 

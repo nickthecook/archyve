@@ -4,7 +4,7 @@ RSpec.describe ProcessDocumentJob do
   subject(:job) { described_class.new }
 
   let(:document) { create(:document, :with_file) }
-  let(:items) { [Docling::Result::Item.new(text: "Body text.", label: "text", level: nil, page: nil)] }
+  let(:items) { [Docling::Result::Item.new(text: "Body text.", markdown: "Body text.", label: "text", level: nil, page: nil)] }
   let(:docling_result) { instance_double(Docling::Result, items: items, partial?: false, errors: []) }
   let(:client) { instance_double(Docling::Client, convert: docling_result) }
   let(:vector) { Array.new(Embedding::DIMENSIONS) { 0.1 } }

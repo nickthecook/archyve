@@ -122,7 +122,9 @@ class ProcessDocumentJob < ApplicationJob
   def store(document, chunks)
     document.chunks.destroy_all
     chunks.each_with_index do |chunk, position|
-      record = document.chunks.create!(position: position, content: chunk.content, structure: chunk.structure)
+      record = document.chunks.create!(
+        position: position, content: chunk.content, markdown: chunk.markdown, structure: chunk.structure
+      )
       stage(:embed) { embed(record) }
     end
   end
