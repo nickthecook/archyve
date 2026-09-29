@@ -69,6 +69,9 @@ Rails.application.routes.draw do
   # is a maker's tool, but it ships so the deployed app can be checked against
   # its own rules.
   get "styleguide", to: "styleguide#index"
+  # Solid Queue's dashboard — queues, running/failed jobs, retry/discard.
+  # Admin-only via MissionControlJobsBaseController.
+  mount MissionControl::Jobs::Engine, at: "/jobs"
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
     resources :users, except: [:show]

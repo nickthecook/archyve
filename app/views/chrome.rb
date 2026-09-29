@@ -56,6 +56,7 @@ class Views::Chrome < Components::Base
           Current.user.email_address
         end
         menu_link("Preferences", account_path)
+        menu_link("Jobs", mission_control_jobs_path) if may?(:admin)
         sign_out
       end
     end

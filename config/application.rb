@@ -39,6 +39,9 @@ module Archyve
     # Don't generate system test files.
     config.generators.system_tests = nil
 
+    # Mission Control - Jobs dashboard reads Solid Queue's tables directly.
+    config.mission_control.jobs.adapters = [:solid_queue]
+
     # Active Record encryption keys come from the environment, not credentials,
     # so every environment can hold its own without anyone managing a master.key
     # — ops loads them from config/<env>/secrets.ejson. The railtie splats
