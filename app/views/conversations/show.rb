@@ -89,7 +89,7 @@ class Views::Conversations::Show < Views::Base
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
-        name: "message", rows: "2", autofocus: true, autocomplete: "off",
+        name: "message", rows: "2", autocomplete: "off",
         placeholder: ask_placeholder,
         data: { composer_target: "field", action: "input->composer#autogrow" },
         class: "w-full resize-none overflow-y-auto max-h-72 bg-transparent text-[0.95rem] " \

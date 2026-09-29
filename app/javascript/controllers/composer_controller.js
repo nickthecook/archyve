@@ -7,8 +7,9 @@ import { Controller } from "@hotwired/stimulus"
 // the key filter rather than in here, because Stimulus drops any keydown whose
 // modifier state doesn't match the filter exactly — a bare `keydown.enter`
 // action never sees a Ctrl+Enter to test for. And it listens on @document so
-// the shortcut works wherever the caret is: the box only autofocuses on load,
-// and a click anywhere else would otherwise silently disarm the shortcut.
+// the shortcut works wherever the caret is: the box autofocuses on load (on
+// desktop — see #connect), and a click anywhere else would otherwise silently
+// disarm the shortcut.
 export default class extends Controller {
   static targets = ["field"]
 
@@ -17,6 +18,11 @@ export default class extends Controller {
     // markup asked for rather than collapsing to a single line.
     this.minHeight = this.fieldTarget.clientHeight
     this.autogrow()
+
+    // Autofocus pops the keyboard on mobile, covering about half the screen —
+    // the chat list and a just-answered message both want to be seen, not
+    // typed over. Below Tailwind's `sm` breakpoint, leave the field alone.
+    if (!matchMedia("(max-width: 639px)").matches) this.fieldTarget.focus()
   }
 
   // Clearing the height before measuring is what lets the box shrink again;
