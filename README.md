@@ -65,8 +65,10 @@ In `config/<env>/secrets.ejson`:
 
 `ARCHYVE_SSO_ISSUER` is the realm URL — the one the discovery document lives
 under at `{issuer}/.well-known/openid-configuration`. `ARCHYVE_HOST` pins
-`config.hosts` in production; the OIDC `redirect_uri` is built from the `Host`
-header, so this is what stops a spoofed one bending it.
+`config.hosts`; the OIDC `redirect_uri` is built from the `Host` header, so
+this is what stops a spoofed one bending it. An optional `ARCHYVE_EXTRA_HOSTS`
+(comma-separated) adds further permitted hosts alongside it, in any
+environment — e.g. a LAN hostname used to reach a dev server.
 
 ### 2. The client
 

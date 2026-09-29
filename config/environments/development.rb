@@ -1,7 +1,9 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-  config.hosts << "shard.local:3000"
+  # Extra hosts allowed to reach the dev server, e.g. a LAN hostname, beyond
+  # what Rails permits by default. Comma-separated.
+  config.hosts.concat(ENV.fetch("ARCHYVE_EXTRA_HOSTS", "").split(",").map(&:strip))
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Make code changes take effect immediately without server restart.

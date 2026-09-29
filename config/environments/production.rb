@@ -87,8 +87,11 @@ Rails.application.configure do
   #
   # Guarded rather than defaulted: an allow list containing the wrong host
   # rejects every real request, which is a worse failure than not having one.
+  #
+  # ARCHYVE_EXTRA_HOSTS (comma-separated) adds further permitted hosts
+  # alongside ARCHYVE_HOST, e.g. an internal hostname used for health checks.
   if (host = ENV["ARCHYVE_HOST"].presence)
-    config.hosts = [host]
+    config.hosts = [host, *ENV.fetch("ARCHYVE_EXTRA_HOSTS", "").split(",").map(&:strip)]
   end
 
   # Skip DNS rebinding protection for the default health check endpoint.
