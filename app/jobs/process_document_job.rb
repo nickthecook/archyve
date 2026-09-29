@@ -8,7 +8,12 @@
 # knows which document to go looking for, which is exactly what the person
 # staring at a red badge does not know.
 class ProcessDocumentJob < ApplicationJob
-  queue_as :ingestion
+  # Own queue, not :ingestion: a Docling conversion is the one job here heavy
+  # enough to pin a CPU core and chew through memory for minutes, so it's
+  # throttled independently in config/queue.yml (DOCLING_JOB_CONCURRENCY)
+  # rather than sharing the ingestion pool's thread count with the cheap
+  # sync/import jobs.
+  queue_as :docling
 
   # Serialize per document so two runs (a reprocess enqueued while the first is
   # still embedding, or a reclaimed job after a worker dies) can't race on
