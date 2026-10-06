@@ -249,14 +249,22 @@ Four consequences worth knowing before touching this:
   embedding, or a `skip_reason` for families Archyve has no kind for (image,
   transcription, speech, moderation, legacy completion). Those skips retire
   themselves as kinds are added. An id RubyLLM has no pattern for lands in
-  family `other` and yields `kind: nil` — the picker then asks. **Import
-  requires tool support**: a chat model that can't call tools is listed but
-  disabled, since retrieval reaches the model as a tool and one that can't call
-  it can never touch the archive. Embedding models are exempt — they call
-  nothing. `nil` (no pattern) is treated as "no" here, which hides dated
-  snapshots like `gpt-4-0613`; their undated equivalents are usually in the
-  list, and *Add manually* takes anything. Loosening it means blocking only
-  known-`false`.
+  family `other` and yields `kind: nil` and `supports_tools: nil` — the picker
+  then asks with a kind select, and says *tool support unknown* on the row.
+  **Import requires tool support**: a chat model the provider says can't call
+  tools is listed but disabled, since retrieval reaches the model as a tool and
+  one that can't call it can never touch the archive. Embedding models are
+  exempt — they call nothing. Where tool support wasn't reported, **ticking the
+  row is the answer** — the model imports as tool-capable, because a person
+  read the note and imported it anyway. A second checkbox for the same question
+  was worse: it made the tick mean nothing on its own, and a missed box became
+  an error after the submit rather than a decision before it. The controller
+  refuses a chat model arriving without tool support regardless, since
+  disabling a row is a claim about the page and not about the request. An
+  earlier version
+  blocked `nil` too, to hide dated snapshots like `gpt-4-0613`; that made every
+  model on a self-hosted OpenAI-compatible host (vLLM, LM Studio) unimportable,
+  because RubyLLM's patterns cover OpenAI's catalogue and nothing else.
 - **The embedding model is guarded by the corpus, not by a flag.**
   `InferenceModel` refuses an embedder while vectors produced by a *different*
   model exist, because those are what a switch would strand. With an empty

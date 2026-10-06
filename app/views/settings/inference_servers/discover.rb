@@ -8,10 +8,15 @@
 # said so on every row, and the hedging cost more in confusion than it bought in
 # accuracy. Anything discovery gets wrong is fixable on the model's own form.
 #
-# A chat model that can't call tools is shown but not importable: Archyve gives
-# the model retrieval as a tool, so one that can't call tools can hold a
-# conversation without ever reaching the archive, which is the only reason to
-# add it. Embedding models are exempt — they never call anything.
+# A chat model the provider says can't call tools is shown but not importable:
+# Archyve gives the model retrieval as a tool, so one that can't call tools can
+# hold a conversation without ever reaching the archive, which is the only
+# reason to add it. Embedding models are exempt — they never call anything.
+#
+# A provider that didn't say is not refused: the row says tool support is
+# unknown and the tick answers it. Blocking on nil made every model on a vLLM
+# or LM Studio host unimportable, since RubyLLM has an id pattern for OpenAI's
+# own catalogue and nothing else.
 class Views::Settings::InferenceServers::Discover < Views::Base
   def initialize(server:, discovered:, existing:, embedding_locked:, has_embedding_model:)
     @server = server
@@ -116,10 +121,20 @@ class Views::Settings::InferenceServers::Discover < Views::Base
         end
         note = blocked || detail(model).presence
         p(class: "mt-0.5 text-xs text-faint") { note } if note
+        tools_note if model.supports_tools.nil? && blocked.nil?
         carried(model)
       end
-      kind_control(model, blocked)
+      kind_control(model) unless blocked
     end
+  end
+
+  # Where tool support wasn't reported, ticking the row is the answer: the
+  # model imports as tool-capable because a person said to import it. Said out
+  # loud beforehand rather than collected in a second checkbox, which made the
+  # tick mean nothing on its own and turned a wrong answer into an error after
+  # the fact.
+  def tools_note
+    p(class: "mt-0.5 text-xs text-faint") { "Tool support unknown — tick only if it can call tools." }
   end
 
   # Why a row can't be ticked, or nil. Said out loud on the row rather than
@@ -136,7 +151,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
     # they are asked to turn text into a vector and never call anything, so
     # requiring tool support of them would block the one model the archive
     # cannot work without.
-    "Can't call tools, so it couldn't draw on the archive in chat." unless model.supports_tools
+    "Can't call tools, so it couldn't draw on the archive in chat." if model.supports_tools == false
   end
 
   def embedding_blocked_reason
@@ -160,16 +175,18 @@ class Views::Settings::InferenceServers::Discover < Views::Base
 
   # What discovery already worked out, carried through the form so importing
   # doesn't have to ask the server all over again.
+  #
+  # Tool support rides along for a model discovery didn't report on, because
+  # importing one is the person saying it calls tools — see #tools_note. Only
+  # a reported `false` withholds it, and that row can't be ticked anyway.
   def carried(model)
     input(type: "hidden", name: "context_windows[#{model.name}]", value: model.context_window) if model.context_window
     input(type: "hidden", name: "dimensions[#{model.name}]", value: model.dimensions) if model.dimensions
-    input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1") if model.supports_tools
+    input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1") unless model.supports_tools == false
   end
 
   # A select where the provider couldn't say, a fixed value where it could.
-  def kind_control(model, blocked)
-    return if blocked
-
+  def kind_control(model)
     if model.kind.nil?
       select(
         name: "kinds[#{model.name}]",

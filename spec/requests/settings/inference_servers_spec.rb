@@ -276,6 +276,32 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
         request
         expect(row_for("gpt-5.6-luna")).not_to include(%(type="checkbox" name="supports_tools))
       end
+
+      # The one it couldn't pattern-match is the ordinary case on a vLLM or
+      # LM Studio host, where no id looks like OpenAI's. Refusing those on a
+      # silence rather than a "no" left the whole server unimportable.
+      it "says tool support is unknown" do
+        request
+        expect(row_for("some-unreleased-model")).to include("Tool support unknown")
+      end
+
+      it "doesn't claim the model can't call tools" do
+        request
+        expect(row_for("some-unreleased-model")).not_to include("Can&#39;t call tools")
+      end
+
+      it "leaves that model tickable" do
+        request
+        expect(row_for("some-unreleased-model")).not_to include("disabled")
+      end
+
+      # Ticking it is the answer, so the row carries tool support the same way
+      # a reported one does — there is no second box to tick.
+      it "treats importing it as the answer" do
+        request
+        expect(row_for("some-unreleased-model"))
+          .to include(%(type="hidden" name="supports_tools[some-unreleased-model]"))
+      end
     end
 
     describe "the order of the list" do
@@ -357,6 +383,42 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       it "reports the rejection rather than silently skipping it" do
         request
         expect(flash[:alert]).to include("gemma4:latest")
+      end
+    end
+
+    # The picker greys these rows out and disables their boxes, which is a
+    # client-side claim and nothing more. A post that arrives anyway is refused
+    # here: a chat model that can't call tools can never reach the archive.
+    context "when a chat model arrives without tool support" do
+      subject(:request) do
+        post import_settings_inference_server_path(server), params: {
+          models: ["qwen3.8-27b"], kinds: { "qwen3.8-27b" => "chat" }
+        }
+      end
+
+      it "doesn't create it" do
+        expect { request }.not_to change(InferenceModel, :count)
+      end
+
+      it "says why" do
+        request
+        expect(flash[:alert]).to include("qwen3.8-27b (can't call tools)")
+      end
+    end
+
+    # The exemption, again: the tool rule must never reach the one model the
+    # archive can't work without.
+    context "when an embedding model is ticked without tool support" do
+      subject(:request) do
+        post import_settings_inference_server_path(server), params: {
+          models: ["nomic-embed-text:v1.5"],
+          kinds: { "nomic-embed-text:v1.5" => "embedding" },
+          dimensions: { "nomic-embed-text:v1.5" => "768" }
+        }
+      end
+
+      it "creates it" do
+        expect { request }.to change(InferenceModel, :count).by(1)
       end
     end
 

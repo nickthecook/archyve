@@ -138,11 +138,26 @@ module Settings
 
       Array(params[:models]).reject(&:blank?).each do |name|
         kind = params.dig(:kinds, name).presence || "chat"
-        model = @server.inference_models.new(name:, kind:, **attributes_for(name))
+        attributes = attributes_for(name)
+
+        if toolless_chat?(kind, attributes)
+          rejected << "#{name} (can't call tools)"
+          next
+        end
+
+        model = @server.inference_models.new(name:, kind:, **attributes)
         model.save ? created += 1 : rejected << "#{name} (#{model.errors.full_messages.to_sentence})"
       end
 
       [created, rejected]
+    end
+
+    # The same rule the picker greys a row out for, enforced where it counts:
+    # disabling a checkbox is a claim about the page, not about the request.
+    # A chat model that can't call tools can never reach the archive, so there
+    # is nothing to import however the post was assembled.
+    def toolless_chat?(kind, attributes)
+      kind == "chat" && !attributes[:supports_tools]
     end
 
     # Capability figures come back through the form rather than being looked up
