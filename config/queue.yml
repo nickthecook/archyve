@@ -17,7 +17,7 @@ default: &default
     # threads are cheap here and starvation is the real risk: a single long
     # scan holding one used to leave few for everything else.
     - queues: [ default, ingestion ]
-      threads: 8
+      threads: <%= ENV.fetch("JOB_THREADS", 8) %>
       processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
       polling_interval: 1
 

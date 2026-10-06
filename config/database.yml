@@ -17,7 +17,14 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  #
+  # Sized for the busiest *process*, which is the Solid Queue worker rather
+  # than Puma: config/queue.yml gives it JOB_THREADS job threads, and the
+  # process needs one more for its heartbeat. Starve that heartbeat and the
+  # worker is pruned as dead while still running — it polls on forever without
+  # claiming anything, and jobs stop silently. Spare slots are free; the pool
+  # opens connections lazily.
+  pool: <%= [ENV.fetch("RAILS_MAX_THREADS", 3), ENV.fetch("JOB_THREADS", 8), ENV.fetch("DOCLING_JOB_CONCURRENCY", 2)].map(&:to_i).max + 2 %>
 
 
 # Dev/test connect over TCP to the Postgres container in deps/compose.yaml.
