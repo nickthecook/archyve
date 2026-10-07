@@ -56,15 +56,6 @@ module Settings
       @model = @server.inference_models.find(params[:id])
     end
 
-    # The embedding model can't be edited away or deleted once the corpus holds
-    # vectors it produced — doing either would leave every stored embedding
-    # naming a model Archyve no longer knows how to reach, and searches would
-    # quietly return nothing.
-    #
-    # The views hide these controls too. Both are needed: hiding a link is not
-    # access control, and this is the half that a curl can't route around.
-    # Creating is refused by InferenceModel itself, since that guard has to hold
-    # for imports as well.
     def refuse_frozen_embedding
       return unless @model.embedding? && Embedding.exists?
 
@@ -75,10 +66,8 @@ module Settings
 
     def embedding_locked? = Embedding.exists?
 
-    # `kind` is permitted on create and dropped on update: a chat model that
-    # became an embedding model would strand nothing, but an embedding model
-    # that became a chat model would orphan the corpus. Changing kind means
-    # deleting and re-adding, which the guard above makes people think about.
+    # `kind` permitted on create and dropped on update
+    # an embedding model that became a chat model would orphan the corpus
     def model_params
       params.require(:inference_model)
         .permit(:name, :display_name, :kind, :dimensions, :context_window, :supports_tools, :enabled, :preferred)

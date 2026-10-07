@@ -55,6 +55,30 @@ RSpec.describe InferenceModel do
     it "is allowed for a chat model" do
       expect(build(:inference_model, :preferred)).to be_valid
     end
+
+    context "when another chat model is already preferred" do
+      let!(:incumbent) { create(:inference_model, :preferred) }
+
+      it "demotes it on create" do
+        create(:inference_model, :preferred, inference_server: create(:ollama_server))
+        expect(incumbent.reload).not_to be_preferred
+      end
+
+      it "demotes it on update" do
+        create(:inference_model).update!(preferred: true)
+        expect(incumbent.reload).not_to be_preferred
+      end
+
+      it "leaves it alone when another model is saved without preferring it" do
+        create(:inference_model).update!(display_name: "Qwen 3.8")
+        expect(incumbent.reload).to be_preferred
+      end
+
+      it "leaves it alone when it is saved again" do
+        incumbent.update!(display_name: "Qwen 3.8")
+        expect(incumbent.reload).to be_preferred
+      end
+    end
   end
 
   describe "only one embedding model" do

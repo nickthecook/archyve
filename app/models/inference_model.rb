@@ -28,6 +28,8 @@ class InferenceModel < ApplicationRecord
   validate :only_one_embedding_model
   validate :corpus_must_be_empty, on: :create, if: :embedding?
 
+  before_save :demote_the_incumbent, if: -> { chat? && preferred? && will_save_change_to_preferred? }
+
   scope :usable, -> { where(enabled: true) }
 
   # Chat models that can actually do the job. Archyve's retrieval is a tool the
@@ -72,6 +74,10 @@ class InferenceModel < ApplicationRecord
       "must be #{Embedding::DIMENSIONS} — the embeddings column is a vector(#{Embedding::DIMENSIONS}), " \
       "so a #{dimensions}-dimension model can't be stored in it"
     )
+  end
+
+  def demote_the_incumbent
+    self.class.chat.where(preferred: true).where.not(id:).update_all(preferred: false)
   end
 
   def only_chat_models_are_preferred

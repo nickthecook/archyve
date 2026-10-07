@@ -22,7 +22,7 @@ class Views::Settings::Prompts::Show < Views::Base
         p(class: "mt-0.5 mb-2 text-xs text-faint") { guidance }
         textarea(
           id: "purpose", name: "purpose", rows: "5", autofocus: true,
-          placeholder: "e.g. Answer questions for my family from our home archive.",
+          placeholder: "e.g. Be concise in your responses. If the context of a question is not clear, search the archive.",
           data: { controller: "autogrow", action: "input->autogrow#resize" },
           class: "w-full resize-none overflow-y-hidden rounded border border-line bg-void/60 px-3 py-2 " \
             "text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
