@@ -52,6 +52,17 @@ class Setting < ApplicationRecord
         "on every chat, after Archyve's own instructions. A sentence or two, not a policy document " \
         "— it should say who's using this instance and what they need from it, not how to cite " \
         "sources or search the archive, which the base prompt already covers."
+    ),
+    # Recording every outbound inference call to api_calls — see ApiCall.
+    # ARCHYVE_RECORD_API_CALLS sets the default, so a deployment can boot with
+    # recording already on; a row overrides it, which is what lets it be
+    # switched on against a server that is already misbehaving.
+    "debug.record_api_calls" => Definition.new(
+      default: ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_API_CALLS", nil)) || false,
+      type: :boolean,
+      description: "Record outbound inference requests and responses, with their bodies, to the " \
+        "api_calls table. For debugging a provider that isn't behaving — it writes a row per chat " \
+        "and per model discovery call, and those rows are swept once they are a few days old."
     )
   }.freeze
 
@@ -75,6 +86,7 @@ class Setting < ApplicationRecord
     def chat_max_tool_rounds = self["chat.max_tool_rounds"]
     def chat_max_listing_rounds = self["chat.max_listing_rounds"]
     def chat_instance_purpose = self["chat.instance_purpose"]
+    def record_api_calls? = self["debug.record_api_calls"]
 
     private
 

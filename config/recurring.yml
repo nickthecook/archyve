@@ -34,6 +34,13 @@ default: &default
     command: "Session.expired.delete_all"
     schedule: every hour at minute 7
 
+  # Recorded API calls carry request and response bodies, so they are swept by
+  # age whether or not anyone turns recording back off. See ApiCall::RETENTION.
+  sweep_expired_api_calls:
+    class: ApiCalls::SweepExpiredJob
+    queue: default
+    schedule: every hour at minute 23
+
 development:
   <<: *default
 

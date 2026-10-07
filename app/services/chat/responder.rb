@@ -50,6 +50,11 @@ module Chat
     private
 
     def respond(model, turn)
+      # Files any recorded API call under this turn, so a transcript that went
+      # wrong can be read next to the calls that produced it. Nothing when
+      # recording is off — see ApiCall.
+      Current.api_call_traceable = @answer
+
       chat = build_chat(model, turn)
       chat.ask(@user_message.text) do |chunk|
         # Two channels, one stream. Providers that reason put the analysis in

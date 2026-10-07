@@ -119,7 +119,7 @@ module InferenceServers
     end
 
     def connection
-      @connection ||= Http.connection(base_url, timeout: DISCOVERY_TIMEOUT)
+      @connection ||= Http.connection(base_url, timeout: DISCOVERY_TIMEOUT, service_name: "ollama")
     end
 
     # Accepts the /v1 endpoint people have in OLLAMA_API_BASE today and stores

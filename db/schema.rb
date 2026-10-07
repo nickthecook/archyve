@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_29_145449) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -41,6 +41,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_29_145449) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "api_calls", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "duration_ms"
+    t.string "error"
+    t.string "http_method", null: false
+    t.string "kind", null: false
+    t.jsonb "request_body"
+    t.jsonb "request_headers"
+    t.integer "request_length"
+    t.jsonb "response_body"
+    t.integer "response_code"
+    t.jsonb "response_headers"
+    t.integer "response_length"
+    t.string "service_name", null: false
+    t.boolean "streamed", default: false, null: false
+    t.bigint "traceable_id"
+    t.string "traceable_type"
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["created_at"], name: "index_api_calls_on_created_at"
+    t.index ["traceable_type", "traceable_id"], name: "index_api_calls_on_traceable"
   end
 
   create_table "chunks", force: :cascade do |t|
