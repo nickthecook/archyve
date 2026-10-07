@@ -10,7 +10,12 @@
 class Setting < ApplicationRecord
   UnknownSetting = Class.new(StandardError)
 
-  Definition = Data.define(:default, :type, :description)
+  Definition = Data.define(:default, :type, :description) do
+    # A callable default is resolved on read rather than when this file loads,
+    # which is what lets one come from the environment: DEFINITIONS is built at
+    # boot, and a default baked in then is a snapshot nothing can correct.
+    def default_value = default.respond_to?(:call) ? default.call : default
+  end
 
   DEFINITIONS = {
     # How many retrieved chunks the chat model is given per tool call. A count
@@ -58,7 +63,7 @@ class Setting < ApplicationRecord
     # recording already on; a row overrides it, which is what lets it be
     # switched on against a server that is already misbehaving.
     "debug.record_api_calls" => Definition.new(
-      default: ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_API_CALLS", nil)) || false,
+      default: -> { ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_API_CALLS", nil)) || false },
       type: :boolean,
       description: "Record outbound inference requests and responses, with their bodies, to the " \
         "api_calls table. For debugging a provider that isn't behaving — it writes a row per chat " \
@@ -72,7 +77,7 @@ class Setting < ApplicationRecord
     def [](key)
       definition = definition!(key)
       row = find_by(key:)
-      row ? cast(row.value, definition.type) : definition.default
+      row ? cast(row.value, definition.type) : definition.default_value
     end
 
     def []=(key, value)

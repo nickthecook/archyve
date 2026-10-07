@@ -14,6 +14,27 @@ class ApiCall < ApplicationRecord
   # expire on a timer. ApiCalls::SweepExpiredJob does the deleting.
   RETENTION = 3.days
 
+  # The lowest number that can be an HTTP status, and so the boundary between
+  # "something answered" and the codes below.
+  LOWEST_HTTP_STATUS = 100
+
+  # Why nothing answered. response_code doubles as the outcome of a call: a real
+  # status when the server replied, and one of these when it never did — which
+  # is most of what goes wrong with a self-hosted inference server, and exactly
+  # what a bare nil could not tell apart.
+  #
+  # These are persisted values. Add to the map; never renumber it.
+  NO_RESPONSE = {
+    connection_refused: 1,
+    host_unreachable: 2,
+    dns_failure: 3,
+    timeout: 4,
+    ssl_failure: 5,
+    # Faraday said the connection failed but not why.
+    connection_failed: 6,
+    unknown: 9
+  }.freeze
+
   # Usually the turn a chat call was answering, which is the difference between
   # a list of calls and being able to ask what one conversation did.
   belongs_to :traceable, polymorphic: true, optional: true
@@ -23,12 +44,62 @@ class ApiCall < ApplicationRecord
   scope :expired, -> { where(created_at: ...RETENTION.ago) }
   scope :recent, -> { order(created_at: :desc) }
 
-  # Rescued because this is asked on every outbound call, including ones made
-  # before the schema is loaded — a missing settings table must not take down
-  # the request it is only trying to observe.
-  def self.recording?
-    Setting.record_api_calls?
-  rescue StandardError
-    false
+  # Both exclude a null response_code, which means recording never got as far as
+  # an outcome either way.
+  scope :answered, -> { where(response_code: LOWEST_HTTP_STATUS..) }
+  scope :unanswered, -> { where(response_code: ...LOWEST_HTTP_STATUS) }
+
+  # Deliberately not a Rails enum: `enum` claims the whole column and raises on
+  # any value outside its map, which would reject every real HTTP status. This
+  # gives the same predicates and scopes over a column that also holds 200.
+  NO_RESPONSE.each do |name, code|
+    scope name, -> { where(response_code: code) }
+    define_method(:"#{name}?") { response_code == code }
+  end
+
+  class << self
+    # Rescued because this is asked on every outbound call, including ones made
+    # before the schema is loaded — a missing settings table must not take down
+    # the request it is only trying to observe.
+    def recording?
+      Setting.record_api_calls?
+    rescue StandardError
+      false
+    end
+
+    def no_response_code_for(error)
+      NO_RESPONSE.fetch(no_response_kind(error), NO_RESPONSE[:unknown])
+    end
+
+    private
+
+    def no_response_kind(error)
+      case error
+      when Faraday::TimeoutError, Timeout::Error, Errno::ETIMEDOUT then :timeout
+      when Faraday::SSLError then :ssl_failure
+      when Faraday::ConnectionFailed then connection_failure_kind(error)
+      else :unknown
+      end
+    end
+
+    # Faraday::ConnectionFailed is a wrapper, and what actually happened is the
+    # exception inside it — nil when Faraday raised with a bare string.
+    def connection_failure_kind(error)
+      case error.wrapped_exception
+      when Errno::ECONNREFUSED then :connection_refused
+      when Errno::EHOSTUNREACH, Errno::ENETUNREACH then :host_unreachable
+      when SocketError then :dns_failure
+      else :connection_failed
+      end
+    end
+  end
+
+  def answered? = response_code.present? && response_code >= LOWEST_HTTP_STATUS
+
+  # The symbol naming why nothing answered, or nil when something did.
+  def failure
+    return nil if response_code.nil? || answered?
+
+    NO_RESPONSE.key(response_code) || :unknown
   end
 end

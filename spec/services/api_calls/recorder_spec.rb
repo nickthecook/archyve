@@ -114,7 +114,7 @@ RSpec.describe ApiCalls::Recorder do
       end
 
       context "when the call raises" do
-        let(:app) { ->(_env) { raise Faraday::ConnectionFailed, "refused" } }
+        let(:app) { ->(_env) { raise Faraday::ConnectionFailed, Errno::ECONNREFUSED.new("refused") } }
 
         it "records the failure" do
           expect { result rescue nil }.to change(ApiCall, :count).by(1)
@@ -125,8 +125,40 @@ RSpec.describe ApiCalls::Recorder do
           expect(ApiCall.last.error).to include("Faraday::ConnectionFailed")
         end
 
+        it "puts why nothing answered in response_code" do
+          result rescue nil
+          expect(ApiCall.last.failure).to eq(:connection_refused)
+        end
+
         it "re-raises" do
           expect { result }.to raise_error(Faraday::ConnectionFailed)
+        end
+      end
+
+      context "when a streamed call dies part way through" do
+        let(:sse) { %(data: {"choices":[{"delta":{"reasoning_content":"half a tho) }
+        let(:app) do
+          lambda do |env|
+            env.request.on_data&.call(sse, sse.bytesize, env)
+            raise Faraday::TimeoutError, "timed out"
+          end
+        end
+
+        before { env.request.on_data = ->(_chunk, _bytes, _env) { } }
+
+        it "records the timeout" do
+          result rescue nil
+          expect(ApiCall.last.failure).to eq(:timeout)
+        end
+
+        it "keeps what had already streamed" do
+          result rescue nil
+          expect(ApiCall.last.response_body).to include("half a tho")
+        end
+
+        it "marks the row streamed" do
+          result rescue nil
+          expect(ApiCall.last.streamed).to be(true)
         end
       end
 

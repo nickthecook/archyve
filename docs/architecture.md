@@ -788,6 +788,35 @@ a thin adapter over the same core.
     model's tool-calling judgment. One more reason to keep the agent loop in the
     transport-agnostic service.
 
+## Recorded API calls (built 2026-10-07)
+
+**Principle: when a provider misbehaves, the question is almost always what
+actually crossed the wire** — and a client library's interpretation of that is
+exactly what's in doubt. So `ApiCall` records bodies as Faraday sees them, below
+`:json` on both sides, rather than at Archyve's own seams. The case that prompted
+it: a vLLM host putting Qwen's reasoning in `reasoning_content`, with no way to
+tell from inside the app whether it had been sent, dropped, or mis-parsed.
+
+- **Wired in as Faraday middleware, by prepending
+  `RubyLLM::Connection#setup_middleware`.** RubyLLM builds its connection in
+  `Provider#initialize` and offers no middleware option — `:instrumenter` carries
+  a URL and a status but no bodies. The same class goes into `Http.connection`,
+  which is how Ollama's native discovery (`/api/tags`, `/api/show`) is covered.
+- **Streamed responses have to be teed off `env.request.on_data`.** RubyLLM
+  consumes the stream there, so `env.body` is empty by completion — a recorder
+  that only reads it captures a request and no answer, and nothing fails loudly.
+- **Non-HTTP failures are first-class.** Most inference trouble produces no
+  status at all, and a null response code can't tell a refused connection from a
+  timeout from TLS. `response_code` doubles as the outcome: real statuses are
+  ≥ 100, so `ApiCall::NO_RESPONSE` claims the range below for *why nothing
+  answered*, classified from the exception. A failed call keeps whatever had
+  already streamed, which is where a mid-answer timeout leaves its evidence.
+- **An allowlist, off by default.** Only chat and discovery are recorded;
+  embeddings would be a row per chunk batch, and Docling's request body *is* the
+  uploaded document. `ARCHYVE_RECORD_API_CALLS` sets the default and a `Setting`
+  row overrides it, so recording can be turned on against a server that is
+  already misbehaving. Rows carry bodies, so they expire — `ApiCall::RETENTION`.
+
 ## Open items (to settle during implementation)
 
 - Who may create/configure sources (app-admin vs a dedicated role).

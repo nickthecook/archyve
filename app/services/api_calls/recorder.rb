@@ -36,7 +36,7 @@ module ApiCalls
       begin
         @app.call(env).on_complete { |completed| save(request, started, completed:, stream:) }
       rescue StandardError => e
-        save(request, started, error: e)
+        save(request, started, error: e, stream:)
         raise
       end
     end
@@ -98,11 +98,25 @@ module ApiCalls
 
     def length_of(body) = body.respond_to?(:length) ? body.length : nil
 
+    # Nothing answered, so response_code carries why instead of a status — see
+    # ApiCall::NO_RESPONSE. Whatever had already streamed is kept: a chat that
+    # timed out mid-answer has partial thinking in it, which is the half worth
+    # reading.
+    def failure_attributes(error, stream)
+      {
+        response_code: ApiCall.no_response_code_for(error),
+        error: "#{error.class}: #{error.message}",
+        response_body: Body.summarize(stream),
+        response_length: length_of(stream),
+        streamed: !stream.nil?
+      }
+    end
+
     # Builds the response half in here rather than at the call site so that a
     # failure reading the response is caught by the same rescue as a failed
     # write.
     def save(request, started, completed: nil, stream: nil, error: nil)
-      response = error ? { error: "#{error.class}: #{error.message}" } : response_attributes(completed, stream)
+      response = error ? failure_attributes(error, stream) : response_attributes(completed, stream)
       elapsed = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
 
       ApiCall.create!(**request, **response, duration_ms: elapsed)
