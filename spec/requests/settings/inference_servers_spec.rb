@@ -74,6 +74,26 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       end
     end
 
+    # One API, several servers behind it — see docs/architecture.md. Offered
+    # only where the distinction exists; Ollama is only ever itself.
+    context "with a type whose server could be one of several" do
+      subject(:request) { get new_settings_inference_server_path(type: "InferenceServers::OpenAI") }
+
+      it "offers the software it can tell apart" do
+        request
+        expect(response.body).to include("vLLM").and include("Detect automatically")
+      end
+    end
+
+    context "with a type that is only ever itself" do
+      subject(:request) { get new_settings_inference_server_path(type: "InferenceServers::Ollama") }
+
+      it "asks nothing about software" do
+        request
+        expect(response.body).not_to include("Detect automatically")
+      end
+    end
+
     context "with a type that isn't a server at all" do
       subject(:request) { get new_settings_inference_server_path(type: "User") }
 
@@ -159,6 +179,39 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       it "replaces it" do
         request
         expect(server.reload.api_key).to eq("sk-replaced")
+      end
+    end
+
+    context "when the software is chosen by hand" do
+      let(:attributes) { { flavour: "vllm" } }
+
+      it "overrules what detection found" do
+        request
+        expect(server.reload).to be_vllm
+      end
+    end
+
+    # Unlike the key, a blank here is an answer: "go back to detecting it".
+    context "when the software is set back to automatic" do
+      let(:attributes) { { flavour: "" } }
+
+      before { server.update!(flavour: "vllm") }
+
+      it "stops overruling detection" do
+        request
+        expect(server.reload.flavour).to be_blank
+      end
+    end
+
+    context "when a flavour is posted to a server that has none" do
+      let(:server) { create(:ollama_server) }
+      let(:attributes) { { name: "Renamed", flavour: "vllm" } }
+
+      # Permitted per type, so an attribute the row has no accessor for is
+      # dropped rather than raising its way to a 500.
+      it "is ignored" do
+        request
+        expect(server.reload.name).to eq("Renamed")
       end
     end
   end

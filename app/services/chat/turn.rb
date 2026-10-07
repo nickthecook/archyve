@@ -68,7 +68,7 @@ module Chat
     # skipping those silently deletes every paragraph break and list newline in
     # the answer — the model streams whitespace as its own chunks, so the prose
     # arrives as "…while the door is open:1.Open the battery compartment".
-    def append(delta)
+    def append(delta, tokens: 1)
       return if delta.nil? || delta.empty?
 
       @buffer << delta
@@ -92,7 +92,7 @@ module Chat
       created = @text_segment.nil?
       @text_segment ||= create_segment(:text, content: @buffer.dup)
       @text_pace ||= Pace.new
-      @text_pace.tick
+      @text_pace.tick(tokens)
       return broadcast! if created || flushed
 
       broadcast if due?
@@ -103,7 +103,7 @@ module Chat
     # `chunk.thinking`). Kept as its own segment kind so the transcript can show
     # it collapsed, and so it can be left out of history — see
     # Segment#for_history.
-    def append_thinking(delta)
+    def append_thinking(delta, tokens: 1)
       return if delta.nil? || delta.empty?
 
       @thinking_buffer << delta
@@ -112,7 +112,7 @@ module Chat
       created = @thinking_segment.nil?
       @thinking_segment ||= create_segment(:thinking, content: @thinking_buffer.dup)
       @thinking_pace ||= Pace.new
-      @thinking_pace.tick
+      @thinking_pace.tick(tokens)
       return broadcast! if created
 
       broadcast if due?

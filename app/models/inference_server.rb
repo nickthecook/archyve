@@ -82,6 +82,11 @@ class InferenceServer < ApplicationRecord
   def self.requires_api_key? = false
   def self.requires_base_url? = true
 
+  # Which variants of this provider are worth telling apart, as stored value =>
+  # label. Empty for a provider that is only ever itself; see
+  # InferenceServers::OpenAI, where one API has several servers behind it.
+  def self.flavours = {}
+
 
   def self.creatable_types
     TYPES.map(&:constantize).select(&:user_creatable?)
@@ -90,6 +95,12 @@ class InferenceServer < ApplicationRecord
   def type_label = self.class.type_label
   def requires_api_key? = self.class.requires_api_key?
   def requires_base_url? = self.class.requires_base_url?
+  def flavours = self.class.flavours
+
+  # Extra request parameters a streaming chat with this server needs. Empty for
+  # a provider that streams in a way Archyve can already read — see
+  # InferenceServers::OpenAI#stream_params for the one that doesn't.
+  def stream_params = {}
 
   # The per-call RubyLLM config for this server.
   #
@@ -113,7 +124,10 @@ class InferenceServer < ApplicationRecord
   # rejected key, and raising would turn a diagnostic into a 500.
   def check!
     models = available_models
-    update!(last_checked_at: Time.current, last_check_status: "ok", last_check_error: nil)
+    update!(
+      last_checked_at: Time.current, last_check_status: "ok", last_check_error: nil,
+      **learned_from_discovery
+    )
     models
   rescue StandardError => e
     Rails.logger.error("inference server #{id} check failed: #{e.class}: #{e.message}")
@@ -212,6 +226,11 @@ class InferenceServer < ApplicationRecord
   end
 
   private
+
+  # What discovery learned about the *server* rather than its models, written
+  # with the health mark so a check stays one write. Read only after
+  # #available_models has run, which is what fills it in.
+  def learned_from_discovery = {}
 
   def api_key_must_be_present
     errors.add(:api_key, "is required for #{self.class.type_label}") if api_key.blank?

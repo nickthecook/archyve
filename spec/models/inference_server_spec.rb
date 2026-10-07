@@ -317,8 +317,10 @@ RSpec.describe InferenceServer do
         ]
       end
 
-      def model_info(id, context_window:, capabilities:)
-        instance_double(RubyLLM::Model::Info, id:, context_window:, capabilities:)
+      def model_info(id, context_window:, capabilities:, owned_by: "openai")
+        instance_double(
+          RubyLLM::Model::Info, id:, context_window:, capabilities:, metadata: { owned_by: }
+        )
       end
 
       before do
@@ -444,6 +446,81 @@ RSpec.describe InferenceServer do
             expect(model).not_to be_skipped
           end
         end
+      end
+    end
+
+    # Several very different servers speak this API, and they stream in
+    # different enough ways that Archyve has to know which it is talking to —
+    # see #stream_params. Detected rather than asked for.
+    describe "which server it is" do
+      subject(:server) { create(:openai_server) }
+
+      let(:owned_by) { "openai" }
+
+      before do
+        listed = [
+          instance_double(
+            RubyLLM::Model::Info,
+            id: "qwen3-27b", context_window: 24_576, capabilities: ["function_calling"],
+            metadata: { owned_by: }
+          )
+        ]
+        allow(RubyLLM::Provider).to receive(:resolve).with(:openai)
+          .and_return(class_double(RubyLLM::Providers::OpenAI, new: instance_double(
+            RubyLLM::Providers::OpenAI, list_models: listed
+          )))
+      end
+
+      context "when the models it lists are owned by vllm" do
+        let(:owned_by) { "vllm" }
+
+        it "records what the endpoint said about itself" do
+          server.check!
+          expect(server.detected_flavour).to eq("vllm")
+        end
+
+        it "asks for the token counts a rate needs" do
+          server.check!
+          expect(server.stream_params).to eq(return_token_ids: true)
+        end
+      end
+
+      context "when the endpoint claims nothing recognisable" do
+        it "detects nothing rather than guessing" do
+          server.check!
+          expect(server.detected_flavour).to be_nil
+        end
+
+        it "sends nothing a stock OpenAI endpoint would reject" do
+          server.check!
+          expect(server.stream_params).to eq({})
+        end
+      end
+
+      # The address now answers for something else. A detection kept from the
+      # last check would go on asking it for fields it has never heard of.
+      context "when a server detected as vLLM stops looking like one" do
+        before { server.update!(detected_flavour: "vllm") }
+
+        it "forgets what it saw before" do
+          server.check!
+          expect(server.detected_flavour).to be_nil
+        end
+      end
+
+      # Detection is a guess about somebody else's infrastructure, and a proxy
+      # can hide what is behind it. Then the person setting this up knows better.
+      context "when a flavour has been chosen by hand" do
+        before { server.update!(flavour: "vllm") }
+
+        it "outranks what detection saw" do
+          server.check!
+          expect(server).to be_vllm
+        end
+      end
+
+      it "rejects a flavour it has no behaviour for" do
+        expect(build(:openai_server, flavour: "whatever")).not_to be_valid
       end
     end
 

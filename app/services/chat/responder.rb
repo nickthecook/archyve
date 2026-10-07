@@ -57,12 +57,16 @@ module Chat
 
       chat = build_chat(model, turn)
       chat.ask(@user_message.text) do |chunk|
+        # One count for both channels, because a chunk carries text on one of
+        # them: whichever it is, the other call returns before it ticks. One
+        # token per delta for a server that doesn't count them — see Chat::Pace.
+        tokens = chunk.streamed_token_count || 1
         # Two channels, one stream. Providers that reason put the analysis in
         # `thinking` and only the reply in `content`; the turn keeps them apart
         # so the transcript can too. A provider that doesn't reason simply never
         # sets it.
-        turn.append_thinking(chunk.thinking&.text)
-        turn.append(chunk.content)
+        turn.append_thinking(chunk.thinking&.text, tokens:)
+        turn.append(chunk.content, tokens:)
       end
       # Once per turn, not once per chunk: `ask` is a single call, however much
       # it streams back through the block above.
@@ -89,6 +93,8 @@ module Chat
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))
+      params = model.inference_server.stream_params
+      chat.with_params(**params) if params.any?
       # A chat scoped to no collections gets no tools at all. Handing it ones
       # that can only return "nothing found" would have the model reporting an
       # empty archive when the truth is that nobody pointed it at one.

@@ -24,6 +24,20 @@ RSpec.describe Chat::Pace do
       end
     end
 
+    # vLLM batches: one event, several tokens, and it says how many. Counting
+    # events instead reports every model on such a host at the rate it flushes.
+    context "when the server counts the tokens in each delta" do
+      before do
+        allow(Time).to receive(:current).and_return(Time.zone.at(0), Time.zone.at(1))
+        pace.tick(4)
+        pace.tick(3)
+      end
+
+      it "counts the tokens rather than the deltas" do
+        expect(pace.attributes[:token_count]).to eq(7)
+      end
+    end
+
     context "when a single delta arrives" do
       before { pace.tick }
 

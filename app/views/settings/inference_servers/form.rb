@@ -22,6 +22,8 @@ class Views::Settings::InferenceServers::Form < Components::Base
         text_input(:base_url, @server.base_url, placeholder: address_placeholder, mono: true)
       end
 
+      field("Software", software_hint) { flavour_select } if @server.flavours.any?
+
       field("API key", key_hint) { key_input } if shows_key?
 
       actions
@@ -44,6 +46,27 @@ class Views::Settings::InferenceServers::Form < Components::Base
 
   def address_placeholder
     @server.requires_base_url? ? "http://localhost:11434" : "https://api.openai.com/v1"
+  end
+
+  def software_hint
+    "Which server is behind the address. Archyve works it out the first time it talks to one — " \
+      "set it by hand if something in between hides what it is."
+  end
+
+  def flavour_select
+    select(name: "inference_server[flavour]", class: input_classes) do
+      option(value: "", selected: @server.flavour.blank?) { detected_label }
+      @server.flavours.each do |value, label|
+        option(value: value, selected: @server.flavour == value) { label }
+      end
+    end
+  end
+
+  # Blank means "whatever the server says it is", so the option names what that
+  # currently amounts to rather than implying nothing is known.
+  def detected_label
+    detected = @server.flavours[@server.detected_flavour]
+    detected ? "Detect automatically — #{detected}" : "Detect automatically"
   end
 
   # An optional key is still worth offering: an Ollama behind a reverse proxy

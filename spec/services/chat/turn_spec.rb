@@ -274,6 +274,19 @@ RSpec.describe Chat::Turn do
       end
     end
 
+    # What a server that batches tokens into one event reports for each of them.
+    context "when the deltas carry their own token counts" do
+      before do
+        turn.append("Every ", tokens: 3)
+        turn.append("90 days. ", tokens: 4)
+        turn.finish
+      end
+
+      it "counts tokens rather than deltas" do
+        expect(segments.map(&:token_count)).to eq([7])
+      end
+    end
+
     # Nothing was generated, so there is no rate to claim — not a rate of zero.
     context "when the turn only searched" do
       before do

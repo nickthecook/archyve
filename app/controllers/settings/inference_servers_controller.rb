@@ -33,7 +33,7 @@ module Settings
 
     def create
       server = build_server
-      server.assign_attributes(server_params)
+      server.assign_attributes(server_params(server))
 
       if server.save
         redirect_to settings_inference_server_path(server), notice: "Added “#{server.name}”."
@@ -47,7 +47,7 @@ module Settings
     end
 
     def update
-      if @server.update(update_params)
+      if @server.update(update_params(@server))
         redirect_to settings_inference_server_path(@server), notice: "Saved."
       else
         render Views::Settings::InferenceServers::Edit.new(server: @server), status: :unprocessable_entity
@@ -118,14 +118,21 @@ module Settings
       type.constantize.new
     end
 
-    def server_params
-      params.require(:inference_server).permit(:name, :base_url, :api_key)
+    # Flavour is permitted only for a type that has flavours, so a post naming
+    # one for a server with no such setting is dropped rather than raising.
+    def server_params(server)
+      keys = [:name, :base_url, :api_key]
+      keys << :flavour if server.flavours.any?
+      params.require(:inference_server).permit(*keys)
     end
 
-    # A blank key means "leave it alone". The form never echoes the stored key,
-    # so submitting the form unchanged would otherwise wipe it.
-    def update_params
-      server_params.compact_blank
+    # A blank key means "leave it alone": the form never echoes the stored key,
+    # so submitting it unchanged would otherwise wipe it. Everything else is
+    # taken as sent — a blank address means OpenAI itself, and a blank flavour
+    # means "go back to detecting it".
+    def update_params(server)
+      permitted = server_params(server)
+      permitted.except(:api_key).merge(permitted.slice(:api_key).compact_blank)
     end
 
     def unreachable_message

@@ -43,9 +43,52 @@ RSpec.describe Chat::Responder do
     # case: a model that doesn't reason never sets it.
     let(:thinking) { nil }
 
+    # What a server that batches tokens into one event reports for the chunk;
+    # nil is the ordinary case, and means one token per delta.
+    let(:streamed_token_count) { nil }
+
+    let(:chunk) { double(content: reply, thinking: thinking, streamed_token_count:) }
+
     before do
-      allow(llm).to receive(:complete) { |&block| block&.call(double(content: reply, thinking: thinking)) }
+      allow(llm).to receive(:complete) { |&block| block&.call(chunk) }
       allow_any_instance_of(InferenceServer).to receive(:llm_context).and_return(double(chat: llm))
+    end
+
+    # Counting deltas is only right for a server that streams one token per
+    # event. vLLM does not, and says how many are in each when asked — see
+    # Chat::Pace and InferenceServers::OpenAI#stream_params.
+    context "when the server counts the tokens in each chunk" do
+      let(:streamed_token_count) { 4 }
+
+      it "records what the server counted, not the delta" do
+        respond
+        expect(turn.segments.sole.token_count).to eq(4)
+      end
+    end
+
+    context "when the server counts nothing" do
+      it "falls back to a token per delta" do
+        respond
+        expect(turn.segments.sole.token_count).to eq(1)
+      end
+    end
+
+    # The parameter is vLLM's, and asking OpenAI itself for it would be an
+    # unknown argument on every call.
+    context "when the server needs a streaming parameter" do
+      before { allow_any_instance_of(InferenceServer).to receive(:stream_params).and_return({ return_token_ids: true }) }
+
+      it "passes it to the chat" do
+        expect(llm).to receive(:with_params).with(return_token_ids: true).and_call_original
+        respond
+      end
+    end
+
+    context "when the server needs none" do
+      it "leaves the payload alone" do
+        expect(llm).not_to receive(:with_params)
+        respond
+      end
     end
 
     # The analysis channel is not the answer: it belongs in its own segment, so

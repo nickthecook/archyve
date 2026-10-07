@@ -40,6 +40,15 @@ module InferenceServers
       /\A(?:babbage|davinci)\z/ => "a legacy completion model"
     }.freeze
 
+    # Which server is behind the API, as stored value => label. It decides how a
+    # streamed chat is counted — see #stream_params — and is detected rather
+    # than asked for, so nobody has to know that any of this is a question.
+    FLAVOURS = { "openai" => "OpenAI", "vllm" => "vLLM" }.freeze
+
+    # What vLLM puts in `owned_by` on every model it lists. OpenAI itself says
+    # "openai" or "system"; a gateway says whatever it is proxying.
+    VLLM_OWNER = "vllm".freeze
+
     # Embedding models are recognisable, but unusable without a dimension count
     # this API never reports — and Archyve's column is a fixed 768. Pointed at
     # the manual form, which has a dimensions field and validates it.
@@ -49,6 +58,12 @@ module InferenceServers
     before_validation :normalize_base_url
 
     validates :api_key, presence: true
+    validates :flavour, inclusion: { in: FLAVOURS.keys }, allow_blank: true
+
+    # `flavour` is a person overruling the detection; `detected_flavour` is what
+    # the endpoint last said about itself, rewritten on every check so a host
+    # that becomes something else stops being read as what it was.
+    store_accessor :config, :flavour, :detected_flavour
 
     def self.type_label = "OpenAI"
 
@@ -59,6 +74,14 @@ module InferenceServers
     # An address is optional here, unlike Ollama: blank means OpenAI proper.
     def self.requires_base_url? = false
     def self.requires_api_key? = true
+    def self.flavours = FLAVOURS
+
+    def flavour_in_effect = flavour.presence || detected_flavour
+    def vllm? = flavour_in_effect == VLLM_OWNER
+
+    # vLLM batches several tokens into one streamed event, so asking it to name
+    # the tokens in each is the only way to know a rate. See Chat::Pace.
+    def stream_params = vllm? ? { return_token_ids: true } : {}
 
     def ruby_llm_provider = :openai
 
@@ -76,10 +99,20 @@ module InferenceServers
     # Reported as nil so the import screen asks instead of writing a confident
     # wrong answer into the row.
     def available_models
-      provider.list_models.map { |info| describe(info) }
+      listed = provider.list_models
+      @detected_flavour = detect_flavour(listed)
+      listed.map { |info| describe(info) }
     end
 
     private
+
+    # Nil for anything that isn't recognisably vLLM, rather than a guess at
+    # "openai": not-vLLM is all this knows, and the form says so.
+    def detect_flavour(listed)
+      VLLM_OWNER if listed.any? { it.metadata[:owned_by] == VLLM_OWNER }
+    end
+
+    def learned_from_discovery = { detected_flavour: @detected_flavour }
 
     # Classification comes from RubyLLM's family patterns, which are a guess at
     # the id rather than anything the endpoint said — so an id it has no pattern

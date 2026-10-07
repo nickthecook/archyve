@@ -817,6 +817,32 @@ tell from inside the app whether it had been sent, dropped, or mis-parsed.
   row overrides it, so recording can be turned on against a server that is
   already misbehaving. Rows carry bodies, so they expire — `ApiCall::RETENTION`.
 
+## Which OpenAI-compatible server it is (built 2026-10-07)
+
+**Principle: the people configuring Archyve should not have to learn how their
+inference server streams.** One API has several servers behind it, and they
+differ in ways the app cannot ignore — so `InferenceServers::OpenAI` carries a
+*flavour*, detected rather than asked for.
+
+- **Detected from `/v1/models`, which discovery already fetches.** vLLM stamps
+  every model it lists `owned_by: "vllm"`; OpenAI says `openai` or `system`.
+  `#check!` writes what it saw to `detected_flavour`, every time, so an address
+  that starts answering for something else stops being read as what it was. A
+  flavour chosen by hand on the form outranks it — a proxy in between can hide
+  what it is fronting, and then the person knows better. Nothing recognisable
+  detects as nothing: not-vLLM is all that evidence supports.
+- **What it currently decides is how a turn is counted.** vLLM flushes its
+  stream on a ~55ms clock with however many tokens it produced in between, so
+  counting SSE events as tokens reported every model on such a host at a flat
+  ~18 tok/s whatever it was really doing. `#stream_params` asks vLLM for
+  `return_token_ids`, and `Chat::Pace` ticks by the count in each chunk — see
+  that class for why the response's own total can't stand in for it, and
+  `config/initializers/ruby_llm_token_count.rb` for the field RubyLLM drops.
+- **Why not send the parameter to everyone.** `return_token_ids` is vLLM's, and
+  an unknown argument is a rejected call rather than a quietly ignored field.
+  The flavour is what keeps a provider-specific request off every other
+  provider.
+
 ## Open items (to settle during implementation)
 
 - Who may create/configure sources (app-admin vs a dedicated role).
