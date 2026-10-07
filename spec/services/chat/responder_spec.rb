@@ -47,7 +47,11 @@ RSpec.describe Chat::Responder do
     # nil is the ordinary case, and means one token per delta.
     let(:streamed_token_count) { nil }
 
-    let(:chunk) { double(content: reply, thinking: thinking, streamed_token_count:) }
+    # What the server says the prompt cost it, on the usage chunk that ends a
+    # round. nil on every chunk before it.
+    let(:input_tokens) { nil }
+
+    let(:chunk) { double(content: reply, thinking: thinking, streamed_token_count:, input_tokens:) }
 
     before do
       allow(llm).to receive(:complete) { |&block| block&.call(chunk) }
@@ -70,6 +74,24 @@ RSpec.describe Chat::Responder do
       it "falls back to a token per delta" do
         respond
         expect(turn.segments.sole.token_count).to eq(1)
+      end
+    end
+
+    # Every provider Archyve speaks to reports this — RubyLLM asks for it with
+    # stream_options on the OpenAI shape, which Ollama and vLLM both honour.
+    context "when the server reports what the prompt cost it" do
+      let(:input_tokens) { 4_210 }
+
+      it "records it against the turn" do
+        respond
+        expect(turn.input_tokens).to eq(4_210)
+      end
+    end
+
+    context "when the server reports nothing" do
+      it "leaves the turn unmeasured rather than claiming zero" do
+        respond
+        expect(turn.input_tokens).to be_nil
       end
     end
 

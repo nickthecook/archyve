@@ -12,6 +12,10 @@ module InferenceServers
   # /v1/models is a list of ids and nothing more. Discovered#kind comes back nil
   # and the import screen asks. That isn't a shortcoming worth coding around —
   # the endpoint genuinely doesn't know.
+  #
+  # vLLM is the one that says more than the standard requires: every entry
+  # carries the context length it is serving that model at. See
+  # #context_window_for and the initializer it points to.
   class OpenAI < InferenceServer
     # What RubyLLM calls tool support in a Model::Info's capabilities, and the
     # family it reports for an id it has no pattern for.
@@ -92,12 +96,15 @@ module InferenceServers
 
     # => Array<Discovered>. No kind — see the class comment.
     #
-    # Context window and tool support are worth taking from RubyLLM, but only
-    # where it actually recognises the model. For anything else its capability
-    # module falls back to defaults — 4,096 tokens and no function calling —
-    # and those are pattern-matching guesses, not something the endpoint said.
-    # Reported as nil so the import screen asks instead of writing a confident
-    # wrong answer into the row.
+    # Tool support is worth taking from RubyLLM, but only where it actually
+    # recognises the model: for anything else its capability module falls back to
+    # defaults — 4,096 tokens and no function calling — and those are
+    # pattern-matching guesses, not something the endpoint said. Reported as nil
+    # so the import screen asks instead of writing a confident wrong answer into
+    # the row.
+    #
+    # The context window is the exception, because vLLM does say — see
+    # #context_window_for.
     def available_models
       listed = provider.list_models
       @detected_flavour = detect_flavour(listed)
@@ -122,7 +129,12 @@ module InferenceServers
     def describe(info)
       family = family_for(info.id)
 
-      return Discovered.new(name: info.id) if family == UNKNOWN_FAMILY
+      # An id the registry has no pattern for is the case max_model_len exists
+      # for, so this branch keeps it: the *kind* is genuinely unknowable here and
+      # the import screen asks, but a served context length is the endpoint's own
+      # answer rather than a guess at the id, and there is no reason to discard
+      # it along with the rest.
+      return Discovered.new(name: info.id, context_window: info.metadata[:max_model_len]) if family == UNKNOWN_FAMILY
       return Discovered.new(name: info.id, kind: :embedding, skip_reason: EMBEDDING_SKIP) if embedding?(family)
 
       if (reason = unusable_reason(family))
@@ -132,9 +144,19 @@ module InferenceServers
       Discovered.new(
         name: info.id,
         kind: :chat,
-        context_window: info.context_window,
+        context_window: context_window_for(info),
         supports_tools: info.capabilities.include?(FUNCTION_CALLING)
       )
+    end
+
+    # What the endpoint said, where it said anything — see
+    # config/initializers/ruby_llm_max_model_len.rb. Preferred over the
+    # registry's figure because a served length is a fact about this host, and
+    # the registry's is a guess at the id; it is also the one the chat page
+    # measures context against, so a wrong denominator shows up there as a bar
+    # that never fills or one that is always full.
+    def context_window_for(info)
+      info.metadata[:max_model_len] || info.context_window
     end
 
     # Reaching into RubyLLM's capability module is a coupling, but the

@@ -140,6 +140,74 @@ RSpec.describe InferenceServer do
         end
       end
 
+      # The import screen is the only other place a context window is written, so
+      # a model imported before its provider could report one would stay blank
+      # for as long as the row lived — and the meter above the composer has no
+      # denominator without it.
+      context "when discovery reports a window for a model that is already imported" do
+        let!(:model) { create(:inference_model, inference_server: server, name: "qwen3-27b", context_window: nil) }
+
+        before do
+          allow(server).to receive(:available_models).and_return([
+            InferenceServer::Discovered.new(name: "qwen3-27b", kind: :chat, context_window: 65_536)
+          ])
+        end
+
+        it "fills it in" do
+          server.check!
+          expect(model.reload.context_window).to eq(65_536)
+        end
+      end
+
+      # The window belongs to the server, and a host restarted with a different
+      # --max-model-len is serving a different length than it was yesterday. A
+      # stale figure is the denominator the chat page measures context against.
+      context "when the server is now serving a different window" do
+        let!(:model) { create(:inference_model, inference_server: server, name: "qwen3-27b", context_window: 8_192) }
+
+        before do
+          allow(server).to receive(:available_models).and_return([
+            InferenceServer::Discovered.new(name: "qwen3-27b", kind: :chat, context_window: 65_536)
+          ])
+        end
+
+        it "takes the new figure" do
+          server.check!
+          expect(model.reload.context_window).to eq(65_536)
+        end
+      end
+
+      # Only the providers that genuinely report one say anything here. An
+      # endpoint that stayed quiet must not be read as "no window".
+      context "when discovery reports no window" do
+        let!(:model) { create(:inference_model, inference_server: server, name: "qwen3-27b", context_window: 8_192) }
+
+        before do
+          allow(server).to receive(:available_models).and_return([
+            InferenceServer::Discovered.new(name: "qwen3-27b", kind: :chat)
+          ])
+        end
+
+        it "keeps what the row had" do
+          server.check!
+          expect(model.reload.context_window).to eq(8_192)
+        end
+      end
+
+      # Importing is a person's choice. A server that has grown a model is not
+      # Archyve's cue to start using it.
+      context "when discovery reports a model nobody imported" do
+        before do
+          allow(server).to receive(:available_models).and_return([
+            InferenceServer::Discovered.new(name: "brand-new", kind: :chat, context_window: 65_536)
+          ])
+        end
+
+        it "creates nothing" do
+          expect { server.check! }.not_to change(InferenceModel, :count)
+        end
+      end
+
       context "when the server is unreachable" do
         before { allow(server).to receive(:available_models).and_raise(Faraday::ConnectionFailed, "refused") }
 
@@ -317,9 +385,10 @@ RSpec.describe InferenceServer do
         ]
       end
 
-      def model_info(id, context_window:, capabilities:, owned_by: "openai")
+      def model_info(id, context_window:, capabilities:, owned_by: "openai", max_model_len: nil)
         instance_double(
-          RubyLLM::Model::Info, id:, context_window:, capabilities:, metadata: { owned_by: }
+          RubyLLM::Model::Info, id:, context_window:, capabilities:,
+          metadata: { owned_by:, max_model_len: }
         )
       end
 
@@ -357,6 +426,34 @@ RSpec.describe InferenceServer do
 
         it "reports no context window rather than the 4,096 fallback" do
           expect(model.context_window).to be_nil
+        end
+      end
+
+      # vLLM serves each model at a fixed length and says so. It is the better
+      # number than anything RubyLLM's registry pattern-matched out of the id:
+      # a server started with less truncates whatever the weights could manage.
+      context "with a model the endpoint reports a served length for" do
+        let(:listed) do
+          [
+            model_info("gpt-4o", context_window: 128_000, capabilities: %w[function_calling],
+                                 owned_by: "vllm", max_model_len: 24_576),
+            model_info("qwen3-27b", context_window: 4_096, capabilities: [],
+                                    owned_by: "vllm", max_model_len: 32_768)
+          ]
+        end
+
+        it "takes the endpoint's figure over the registry's" do
+          expect(discovered.find { |m| m.name == "gpt-4o" }.context_window).to eq(24_576)
+        end
+
+        # The case the field exists for: an id no registry has a pattern for,
+        # where the alternative is nil and a person typing it in by hand.
+        it "reports it for a model RubyLLM has never heard of" do
+          expect(discovered.find { |m| m.name == "qwen3-27b" }.context_window).to eq(32_768)
+        end
+
+        it "still leaves the kind for a person to decide" do
+          expect(discovered.find { |m| m.name == "qwen3-27b" }.kind).to be_nil
         end
       end
 
@@ -446,6 +543,34 @@ RSpec.describe InferenceServer do
             expect(model).not_to be_skipped
           end
         end
+      end
+    end
+
+    # RubyLLM's model parser keeps only `object` and `owned_by` from each entry,
+    # so config/initializers/ruby_llm_max_model_len.rb puts the served length
+    # back. Exercised through the real parser: the prepend is the part that can
+    # quietly stop working, and nothing else would notice.
+    describe "carrying a served length through RubyLLM" do
+      subject(:parsed) do
+        create(:openai_server).send(:provider).send(
+          :parse_list_models_response, response, "openai", RubyLLM::Providers::OpenAI::Capabilities
+        )
+      end
+
+      let(:response) do
+        instance_double(Faraday::Response, body: {
+          "data" => [
+            { "id" => "qwen3-27b", "object" => "model", "owned_by" => "vllm", "max_model_len" => 32_768 }
+          ]
+        })
+      end
+
+      it "keeps what the endpoint said" do
+        expect(parsed.sole.metadata[:max_model_len]).to eq(32_768)
+      end
+
+      it "leaves the fields RubyLLM already carried alone" do
+        expect(parsed.sole.metadata[:owned_by]).to eq("vllm")
       end
     end
 

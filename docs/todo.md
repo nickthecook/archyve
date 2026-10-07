@@ -951,6 +951,15 @@ see the tolerance rejected under "The web source", phase 4.
   Overlap between chunks partly masks this by letting the model stitch on
   duplicated text, which is a worse mechanism than simply sending them in order.
 
+- **Ollama reports the window the weights allow, not the one it loaded.**
+  `/api/show` gives `{family}.context_length`, which is the model's maximum;
+  `/api/ps` gives `context_length` for each resident model, which is what the
+  host is actually serving and what truncates. A host that loads a 128k model at
+  the 4k default therefore has a stored window 32× too large, and the meter
+  reads nearly empty for a conversation that is about to be cut off. `/api/ps`
+  only knows about models currently loaded, so it supplements `/api/show`
+  rather than replacing it.
+
 - **Document lookups that are still by bare id.** The document *selections* in
   `CollectionMembershipsController#create` and `UnsortedController#assign`, and
   the removal in `#destroy`, take ids without filtering by reachability. The

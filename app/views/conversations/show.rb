@@ -72,20 +72,37 @@ class Views::Conversations::Show < Views::Base
     div(
       id: Views::Conversations::Message.thread_dom_id(@conversation),
       class: "flex flex-col gap-10",
-      data: progress_data(terminal: @messages.none?(&:in_progress?), idle: 2000)
+      data: progress_data(
+        terminal: @messages.none?(&:in_progress?), idle: 2000,
+        # The meter sits outside this region but goes stale with it, and its own
+        # broadcast is lost to exactly the failures this poll covers — a cable
+        # that never came up, a second tab. Swapped from the same response.
+        also: [Views::Conversations::ContextMeter.dom_id(@conversation)]
+      )
     ) do
       @messages.each { render Views::Conversations::Message.new(message: it) }
     end
   end
 
+  # The meter sits in the composer's own block rather than before it, so the
+  # gap above the box is the same whether or not there is a reading to show —
+  # see Views::Conversations::ContextMeter, which renders an empty element when
+  # there isn't.
   def composer
+    div(class: "mt-10") do
+      render Views::Conversations::ContextMeter.new(conversation: @conversation)
+      ask
+    end
+  end
+
+  def ask
     form(
       action: conversation_messages_path(@conversation), method: "post",
       data: {
         controller: "composer",
         action: "keydown.ctrl+enter@document->composer#submit keydown.meta+enter@document->composer#submit"
       },
-      class: "mt-10 flex flex-col gap-3 rounded-lg border border-line-2 bg-ink/60 p-4"
+      class: "flex flex-col gap-3 rounded-lg border border-line-2 bg-ink/60 p-4"
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(

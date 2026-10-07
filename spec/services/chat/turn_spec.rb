@@ -301,6 +301,50 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  describe "#note_context" do
+    # A turn that searches is several requests, and each one's count already
+    # covers the history the one before it counted. Summing them would report a
+    # conversation as a multiple of its own size.
+    context "when the model takes several rounds" do
+      before do
+        turn.append("Let me check.")
+        turn.note_context(1_200)
+        turn.note_context(4_800)
+        turn.finish
+      end
+
+      it "records the largest prompt, not their total" do
+        expect(turn.message.reload.input_tokens).to eq(4_800)
+      end
+    end
+
+    context "when the server reports nothing" do
+      before do
+        turn.append("Ninety days.")
+        turn.finish
+      end
+
+      it "leaves the turn unmeasured rather than claiming zero" do
+        expect(turn.message.reload.input_tokens).to be_nil
+      end
+    end
+
+    # The meter lives above the composer, outside the turn it was measured by,
+    # so it can't ride the message replace.
+    context "when the turn closes" do
+      before do
+        turn.append("Ninety days.")
+        turn.note_context(4_800)
+        turn.finish
+      end
+
+      it "pushes the context meter to the page" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, hash_including(target: "context_conversation_#{conversation.id}"))
+      end
+    end
+  end
+
   describe "waiting for the model" do
     context "while the turn is still running" do
       it "reports itself in progress from the moment it exists" do

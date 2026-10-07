@@ -38,4 +38,14 @@ class Conversation < ApplicationRecord
   def searches_archive? = !retrieval_scope&.names_nothing?
 
   def next_message_position = (messages.maximum(:position) || 0) + 1
+
+  # The most recent turn a server reported a prompt size for.
+  #
+  # The context meter describes the conversation, but only a turn can have been
+  # measured — and the window it was measured against belongs to the model that
+  # answered *it*, which the person may since have switched away from. So the
+  # turn carries both halves of the ratio and the meter reads them together.
+  def last_measured_turn
+    messages.assistant.where.not(input_tokens: nil).includes(:inference_model).last
+  end
 end

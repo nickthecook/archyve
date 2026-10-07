@@ -138,6 +138,7 @@ class InferenceServer < ApplicationRecord
       last_checked_at: Time.current, last_check_status: "ok", last_check_error: nil,
       **learned_from_discovery
     )
+    adopt_discovered_capabilities(models)
     models
   rescue StandardError => e
     Rails.logger.error("inference server #{id} check failed: #{e.class}: #{e.message}")
@@ -248,6 +249,38 @@ class InferenceServer < ApplicationRecord
   # with the health mark so a check stays one write. Read only after
   # #available_models has run, which is what fills it in.
   def learned_from_discovery = {}
+
+  # Take the context window discovery reports for a model that is already
+  # imported, replacing whatever the row held.
+  #
+  # The window belongs to the server, not to the row: a vLLM restarted with a
+  # different --max-model-len is serving a different length from the one it was
+  # serving yesterday, and the stored figure is a cache of the server's answer
+  # rather than a setting of Archyve's. A stale one is worse than useless here —
+  # it is the denominator the chat page measures context against, so being wrong
+  # shows up as a bar that never fills or one that is always full.
+  #
+  # The consequence to know about: a figure typed into the model form does not
+  # survive the next check. There is deliberately nowhere to pin one, because a
+  # pinned number is the stale-denominator problem with an owner.
+  #
+  # Nothing is created. Importing is a person's choice, and a server that has
+  # grown a model is not Archyve's cue to start using it.
+  def adopt_discovered_capabilities(discovered)
+    windows = discovered.to_h { [it.name, it.context_window.presence&.to_i] }
+
+    inference_models.find_each do |model|
+      window = windows[model.name]
+      next if window.nil? || window == model.context_window
+
+      # Not update!: this runs inside a check, whose whole job is to report
+      # rather than raise, and a row that has gone invalid for an unrelated
+      # reason would take the diagnostic down with it.
+      next if model.update(context_window: window)
+
+      Rails.logger.warn("couldn't adopt context window for model #{model.id}: #{model.errors.full_messages.to_sentence}")
+    end
+  end
 
   def api_key_must_be_present
     errors.add(:api_key, "is required for #{self.class.type_label}") if api_key.blank?

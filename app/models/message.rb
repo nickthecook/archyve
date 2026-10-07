@@ -47,6 +47,17 @@ class Message < ApplicationRecord
 
   def next_segment_position = (segments.maximum(:position) || 0) + 1
 
+  # What share of the model's context window this turn's prompt filled, or nil
+  # when either number is unknown — a provider that reported no usage, or a
+  # model whose window nobody has filled in. Can exceed 1: the window is what
+  # Archyve was told, and a server started with less will have truncated.
+  def context_fraction
+    window = inference_model&.context_window
+    return if input_tokens.nil? || window.nil?
+
+    input_tokens.to_f / window
+  end
+
   # How fast the model ran for this turn — every token it produced over the time
   # it spent producing them. The turn's rate rather than any one segment's,
   # because it sits beside the attribution, which is the turn's too.

@@ -67,6 +67,10 @@ module Chat
         # sets it.
         turn.append_thinking(chunk.thinking&.text, tokens:)
         turn.append(chunk.content, tokens:)
+        # How much of the window this conversation now fills, as the server
+        # counted it. Arrives on its own chunk at the end of each round, which
+        # carries no text — so it is noted here rather than alongside a delta.
+        turn.note_context(chunk.input_tokens)
       end
       # Once per turn, not once per chunk: `ask` is a single call, however much
       # it streams back through the block above.

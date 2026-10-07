@@ -60,6 +60,23 @@ module Chat
       # closes. See Chat::Pace.
       @text_pace = nil
       @thinking_pace = nil
+      @input_tokens = nil
+    end
+
+    # What the server said this turn's prompt cost it: the conversation so far,
+    # the instructions, the tool schemas and every tool result the model was
+    # handed. Written to the turn when it closes — see
+    # Views::Conversations::ContextMeter for what reads it.
+    #
+    # The high-water mark across the turn, never the sum. A turn that searches
+    # is several requests, and each one's count already covers the history the
+    # one before it counted; adding them up would report a conversation as a
+    # multiple of its own size, and the more the model searched the further out
+    # it would be.
+    def note_context(input_tokens)
+      return if input_tokens.nil?
+
+      @input_tokens = [@input_tokens.to_i, input_tokens].max
     end
 
     # One streamed delta of prose.
@@ -214,8 +231,21 @@ module Chat
     # Stops the page waiting. Every exit from a turn goes through here, so a
     # path that forgets it leaves a spinner running for good.
     def complete!
-      @message.update!(completed_at: Time.current)
+      @message.update!(completed_at: Time.current, input_tokens: @input_tokens)
       broadcast!
+      broadcast_context
+    end
+
+    # The meter above the composer. It rides its own broadcast rather than the
+    # message replace because it is a fact about the conversation, not about this
+    # turn — and only on completion, which is when the server has reported the
+    # count at all.
+    def broadcast_context
+      Turbo::StreamsChannel.broadcast_replace_to(
+        @conversation,
+        target: Views::Conversations::ContextMeter.dom_id(@conversation),
+        html: Views::Conversations::ContextMeter.new(conversation: @conversation).call
+      )
     end
 
     def create_segment(kind, **attributes)
