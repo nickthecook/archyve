@@ -201,6 +201,15 @@ task prefixes (`search_document:` / `search_query:`) at index and query time.
 Design consequences:
 - Store the **embedding model id + dimension** with every vector; validate query
   embeddings match the active corpus and fail loudly on mismatch.
+- **The corpus must always have a model that can read it.** Two halves of one
+  rule: `InferenceModel#corpus_must_be_empty` refuses a *different* embedder
+  while vectors exist, and `#removal_refusal` refuses removing the one they came
+  from — asked by `InferenceServer` too, since deleting a server cascades to its
+  models. Both retire the day re-embedding exists. The vectors themselves are
+  never at risk: `embeddings.embedding_model` is free text with no foreign key,
+  so it outlives any row, and `Embedding.corpus_model` reads the name back —
+  which is what a replacement model has to claim to make the corpus searchable
+  again, and so what the settings page names when no row holds it.
 - Make **re-embedding a first-class Solid Queue job** ("change model → re-embed
   all chunks"), treated as normal, not an emergency.
 - **Pick the starting embedding model now** to size the column. Starting with

@@ -121,6 +121,12 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
       it "is refused" do
         expect { request }.not_to change(InferenceModel, :count)
       end
+
+      it "says how much depends on it" do
+        request
+        follow_redirect!
+        expect(response.body).to include("1 chunk is embedded with #{model.name}")
+      end
     end
   end
 end

@@ -538,6 +538,41 @@ RSpec.describe InferenceServer do
     end
   end
 
+  # Removing a server takes its models with it, so the rule protecting the
+  # archive's embedder has to hold here too — the cascade must not get around
+  # what the model itself refuses.
+  describe "removing a server whose model the corpus depends on" do
+    subject(:removal) { server.destroy }
+
+    let(:server) { create(:ollama_server) }
+    let!(:embedder) { create(:embedding_model, inference_server: server, name: "nomic-embed-text:v1.5") }
+    let!(:chat_model) { create(:inference_model, inference_server: server, kind: :chat, name: "gpt-oss:20b") }
+
+    before { create_list(:embedding, 3, embedding_model: "nomic-embed-text:v1.5") }
+
+    it "is refused" do
+      expect { removal }.not_to change(described_class, :count)
+    end
+
+    it "says why" do
+      removal
+      expect(server.errors.full_messages.to_sentence).to include("3 chunks are embedded")
+    end
+
+    # Refused means nothing happened: the cascade rolls back with the rest.
+    it "takes none of its models with it" do
+      expect { removal }.not_to change(InferenceModel, :count)
+    end
+
+    context "when nothing was embedded with its model" do
+      before { Embedding.delete_all }
+
+      it "is removed with its models" do
+        expect { removal }.to change(InferenceModel, :count).by(-2)
+      end
+    end
+  end
+
   describe "the provider contract" do
     # Not NotImplementedError: that descends from ScriptError, so it would sail
     # straight through the rescue in #check! and the check would blow up instead

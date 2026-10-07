@@ -61,6 +61,46 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       request
       expect(response.body).to include("data-turbo-confirm").and include("Remove “tensor” and its models?")
     end
+
+    context "when the corpus depends on this server's embedding model" do
+      before do
+        create(:embedding_model, inference_server: server, name: "nomic-embed-text:v1.5")
+        create(:embedding, embedding_model: "nomic-embed-text:v1.5")
+      end
+
+      it "offers no way to remove it" do
+        request
+        expect(response.body).not_to include("data-turbo-confirm")
+      end
+    end
+
+    # One embedding model per archive, so a server that isn't holding it is
+    # ordinary rather than broken.
+    context "when another server holds the embedding model" do
+      before do
+        create(:embedding_model, inference_server: create(:ollama_server, name: "elsewhere"))
+      end
+
+      it "says where it is" do
+        request
+        expect(response.body).to include("elsewhere")
+      end
+
+      it "doesn't claim search is down" do
+        request
+        expect(response.body).not_to include("search can't run")
+      end
+    end
+
+    # The name is the only way back: a replacement has to claim it exactly.
+    context "when the corpus outlived its embedding model" do
+      before { create(:embedding, embedding_model: "nomic-embed-text:v1.5") }
+
+      it "names what the vectors were embedded with" do
+        request
+        expect(response.body).to include("nomic-embed-text:v1.5")
+      end
+    end
   end
 
   describe "GET /settings/inference_servers/new" do
@@ -220,6 +260,39 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       it "is ignored" do
         request
         expect(server.reload.name).to eq("Renamed")
+      end
+    end
+  end
+
+  describe "DELETE /settings/inference_servers/:id" do
+    subject(:request) { delete settings_inference_server_path(server) }
+
+    let(:server) { create(:ollama_server, name: "tensor") }
+
+    context "with only chat models" do
+      before { create(:inference_model, inference_server: server, kind: :chat) }
+
+      it "removes it" do
+        expect { request }.to change(InferenceServer, :count).by(-1)
+      end
+    end
+
+    # Hiding the button is a claim about the page. The cascade would take the
+    # archive's embedder with it, and nothing can re-embed yet.
+    context "when the cascade would take the corpus's embedder" do
+      before do
+        create(:embedding_model, inference_server: server, name: "nomic-embed-text:v1.5")
+        create(:embedding, embedding_model: "nomic-embed-text:v1.5")
+      end
+
+      it "refuses" do
+        expect { request }.not_to change(InferenceServer, :count)
+      end
+
+      it "says why" do
+        request
+        follow_redirect!
+        expect(response.body).to include("1 chunk is embedded with nomic-embed-text:v1.5")
       end
     end
   end

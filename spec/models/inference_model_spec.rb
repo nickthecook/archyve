@@ -129,6 +129,46 @@ RSpec.describe InferenceModel do
     end
   end
 
+  # The other half of the freeze: that one refuses a different embedder while
+  # vectors exist, this refuses removing the one they came from.
+  describe "removing a model the corpus depends on" do
+    subject(:removal) { model.destroy }
+
+    context "when it is the embedder the corpus was built with" do
+      let!(:model) { create(:embedding_model, name: "nomic-embed-text:v1.5") }
+
+      before { create_list(:embedding, 2, embedding_model: "nomic-embed-text:v1.5") }
+
+      it "is refused" do
+        expect { removal }.not_to change(described_class, :count)
+      end
+
+      it "says how much depends on it" do
+        removal
+        expect(model.errors.full_messages.to_sentence).to include("2 chunks are embedded")
+      end
+    end
+
+    context "when nothing was embedded with it" do
+      let!(:model) { create(:embedding_model) }
+
+      it "is removed" do
+        expect { removal }.to change(described_class, :count).by(-1)
+      end
+    end
+
+    # A chat model leaves nothing behind that depends on it.
+    context "when it is a chat model and the corpus is full" do
+      let!(:model) { create(:inference_model, kind: :chat) }
+
+      before { create(:embedding, embedding_model: "nomic-embed-text:v1.5") }
+
+      it "is removed" do
+        expect { removal }.to change(described_class, :count).by(-1)
+      end
+    end
+  end
+
   describe ".active_embedding" do
     context "when nothing is configured" do
       # A fresh install seeds no server at all, so nil is an ordinary answer

@@ -2,9 +2,11 @@
 
 # One server: whether Archyve can reach it, and what it may use it for.
 class Views::Settings::InferenceServers::Show < Views::Base
-  def initialize(server:, embedded_chunk_count:)
+  def initialize(server:, embedded_chunk_count:, active_embedding:, corpus_model:)
     @server = server
     @embedded_chunk_count = embedded_chunk_count
+    @active_embedding = active_embedding
+    @corpus_model = corpus_model
   end
 
   def view_template
@@ -49,6 +51,8 @@ class Views::Settings::InferenceServers::Show < Views::Base
   # confirmation rather than beside the button, because that is the moment
   # somebody is deciding. Same danger weight as removing an endpoint.
   def remove_button
+    return blocked_remove_button if @server.removal_refusal
+
     form(
       action: settings_inference_server_path(@server),
       method: "post",
@@ -63,6 +67,14 @@ class Views::Settings::InferenceServers::Show < Views::Base
 
   def remove_confirmation
     "Remove “#{@server.name}” and its models? Documents already embedded keep their vectors."
+  end
+
+  # Disabled rather than hidden, the same way an endpoint with sources still
+  # shows its button: a control that vanishes leaves somebody looking for it.
+  # The reason is spelled out in the embedding panel below, which is where the
+  # archive's dependency on this server is already explained.
+  def blocked_remove_button
+    span(class: "#{danger_button} opacity-40", aria_disabled: "true", title: @server.removal_refusal) { "Remove" }
   end
 
   def check_panel
@@ -158,7 +170,14 @@ class Views::Settings::InferenceServers::Show < Views::Base
 
     section(class: "mb-8") do
       h2(class: "mb-3 text-sm font-medium text-fg") { "Embedding model" }
-      model ? embedding_panel(model) : no_embedding_model
+
+      if model
+        embedding_panel(model)
+      elsif @active_embedding
+        embedding_elsewhere
+      else
+        no_embedding_model
+      end
     end
   end
 
@@ -169,7 +188,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
         span(class: "font-mono tabular-nums text-xs text-muted") { "#{model.dimensions} dimensions" }
       end
       p(class: "mt-2 text-xs text-faint") { embedding_note }
-      div(class: "mt-3") { remove(model) } unless frozen_corpus?
+      div(class: "mt-3") { remove(model) } if model.removal_refusal.nil?
     end
   end
 
@@ -183,13 +202,35 @@ class Views::Settings::InferenceServers::Show < Views::Base
     end
   end
 
+  # An archive has one embedding model, so another server holding it is the
+  # ordinary case — and this page claiming search can't run would be a lie
+  # about a perfectly healthy archive.
+  def embedding_elsewhere
+    div(class: "rounded-lg border border-dashed border-line px-4 py-10 text-center") do
+      p(class: "text-sm text-muted") do
+        "#{@active_embedding.name} on #{@active_embedding.inference_server.name}."
+      end
+      p(class: "mt-1 text-xs text-faint") { "One archive, one embedding model — this server isn't it." }
+    end
+  end
+
+  # Names what the corpus was embedded with, because that string is the only
+  # way back: a replacement model has to claim it exactly, and nothing else on
+  # any page would say what it was.
   def no_embedding_model
     div(class: "rounded-lg border border-dashed border-line px-4 py-10 text-center") do
       p(class: "text-sm text-muted") { "No embedding model." }
+      p(class: "mt-1 text-xs text-faint") { orphaned_corpus_note } if @corpus_model
       p(class: "mt-1 text-xs text-faint") do
         "Documents can't be processed and search can't run until one is configured."
       end
     end
+  end
+
+  def orphaned_corpus_note
+    "#{delimited(@embedded_chunk_count)} #{'chunk'.pluralize(@embedded_chunk_count)} " \
+      "#{@embedded_chunk_count == 1 ? 'is' : 'are'} embedded with #{@corpus_model} — add that model back to " \
+      "search them again."
   end
 
   def frozen_corpus? = @embedded_chunk_count.positive?

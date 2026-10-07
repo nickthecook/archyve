@@ -6,7 +6,7 @@ module Settings
 
     before_action :set_server
     before_action :set_model, only: [:edit, :update, :destroy]
-    before_action :refuse_frozen_embedding, only: [:update, :destroy]
+    before_action :refuse_frozen_embedding, only: [:update]
 
     def new
       render Views::Settings::InferenceModels::New.new(
@@ -41,8 +41,14 @@ module Settings
       end
     end
 
+    # Refusal is the model's own — see InferenceModel#removal_refusal, which the
+    # cascade from a deleted server has to obey too. Editing a frozen embedder
+    # is a different rule, and still belongs to refuse_frozen_embedding above.
     def destroy
-      @model.destroy!
+      unless @model.destroy
+        return redirect_to settings_inference_server_path(@server), alert: @model.removal_refusal
+      end
+
       redirect_to settings_inference_server_path(@server), notice: "Removed #{@model.name}."
     end
 
@@ -56,6 +62,8 @@ module Settings
       @model = @server.inference_models.find(params[:id])
     end
 
+    # Changing a frozen embedder, as opposed to removing it: a model that is
+    # renamed or re-dimensioned strands the vectors just as thoroughly.
     def refuse_frozen_embedding
       return unless @model.embedding? && Embedding.exists?
 

@@ -16,7 +16,9 @@ module Settings
     def show
       render Views::Settings::InferenceServers::Show.new(
         server: @server,
-        embedded_chunk_count: Embedding.count
+        embedded_chunk_count: Embedding.count,
+        active_embedding: InferenceModel.active_embedding,
+        corpus_model: Embedding.corpus_model
       )
     end
 
@@ -57,8 +59,14 @@ module Settings
     # Deleting cascades to this server's models. It does not touch the vectors
     # they produced: embeddings.embedding_model is a free-text record of what
     # embedded each chunk, and stays true after the row that named it is gone.
+    #
+    # Refused when the cascade would take the archive's embedder with it — the
+    # same rule the page greys the button out for, enforced where it counts.
     def destroy
-      @server.destroy!
+      unless @server.destroy
+        return redirect_to settings_inference_server_path(@server), alert: @server.removal_refusal
+      end
+
       redirect_to settings_inference_servers_path, notice: "Removed “#{@server.name}”."
     end
 

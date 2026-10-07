@@ -30,6 +30,8 @@ class InferenceModel < ApplicationRecord
 
   before_save :demote_the_incumbent, if: -> { chat? && preferred? && will_save_change_to_preferred? }
 
+  before_destroy :corpus_must_not_depend_on_this
+
   scope :usable, -> { where(enabled: true) }
 
   # Chat models that can actually do the job. Archyve's retrieval is a tool the
@@ -60,7 +62,34 @@ class InferenceModel < ApplicationRecord
 
   def label = display_name.presence || name
 
+  # Why this model can't be removed, or nil. Public because the page has to be
+  # able to say so without attempting the delete, and the controller has to
+  # refuse it — the same rule answered in one place rather than two.
+  #
+  # Only an embedding model is ever protected: a chat model leaves nothing
+  # behind that depends on it, which is why removing one is ordinary.
+  def removal_refusal
+    return unless embedding?
+
+    dependent = Embedding.where(embedding_model: name).count
+    return if dependent.zero?
+
+    "#{dependent} #{'chunk'.pluralize(dependent)} #{dependent == 1 ? 'is' : 'are'} embedded with #{name}. " \
+      "Removing it would leave them unsearchable, and Archyve can't re-embed yet."
+  end
+
   private
+
+  # The other half of corpus_must_be_empty: that one refuses a *different*
+  # embedder while vectors exist, and this refuses removing the one they were
+  # produced by. Together they mean the corpus always has a model that can read
+  # it, which is what keeps search answering.
+  def corpus_must_not_depend_on_this
+    return if removal_refusal.nil?
+
+    errors.add(:base, removal_refusal)
+    throw :abort
+  end
 
   # The embeddings.embedding column is a vector(768) with one cosine HNSW index.
   # A model of any other width cannot physically be stored in it, so it can

@@ -64,6 +64,10 @@ class InferenceServer < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   validate :api_key_must_be_present, if: -> { self.class.requires_api_key? }
 
+  # prepend, so this answers before the dependent: :destroy cascade declared
+  # above, rather than destroying models the rollback then has to put back.
+  before_destroy :models_must_be_removable, prepend: true
+
   store_accessor :config, :base_url
 
   # There is deliberately no manageable_by/administrable_by scope trio here,
@@ -96,6 +100,12 @@ class InferenceServer < ApplicationRecord
   def requires_api_key? = self.class.requires_api_key?
   def requires_base_url? = self.class.requires_base_url?
   def flavours = self.class.flavours
+
+  # Why this server can't be removed, or nil — the first of its models that
+  # refuses. Removing a server takes its models with it, so the rule protecting
+  # the archive's embedder has to be asked here too, and before the cascade
+  # rather than after half of it.
+  def removal_refusal = inference_models.filter_map(&:removal_refusal).first
 
   # Extra request parameters a streaming chat with this server needs. Empty for
   # a provider that streams in a way Archyve can already read — see
@@ -226,6 +236,13 @@ class InferenceServer < ApplicationRecord
   end
 
   private
+
+  def models_must_be_removable
+    return if removal_refusal.nil?
+
+    errors.add(:base, removal_refusal)
+    throw :abort
+  end
 
   # What discovery learned about the *server* rather than its models, written
   # with the health mark so a check stays one write. Read only after
