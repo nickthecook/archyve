@@ -299,6 +299,25 @@ RSpec.describe "Conversations", type: :request do
         request
         expect(Chat::RespondJob).to have_received(:perform_later)
       end
+
+      # The redirect is a full page load, and on a phone a conversation of any
+      # length puts the new turn below the fold — so landing at the top shows
+      # the asker the start of a chat they have already read.
+      it "lands on the question just asked rather than the top of the page" do
+        request
+        question = conversation.messages.user.last
+        expect(response).to redirect_to(conversation_path(conversation, anchor: "message_#{question.id}"))
+      end
+    end
+
+    # Nothing was asked, so there is nothing to land on.
+    context "when the box was empty" do
+      let(:conversation) { create(:conversation, user: current_user) }
+
+      it "goes back to the transcript without an anchor" do
+        post conversation_messages_path(conversation), params: { message: "   " }
+        expect(response).to redirect_to(conversation_path(conversation))
+      end
     end
 
     context "when it belongs to somebody else" do

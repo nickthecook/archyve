@@ -5,13 +5,19 @@ class MessagesController < ApplicationController
   # arrives over the cable as the model produces it — so this redirects
   # straight back to the transcript, where the new turn is already waiting with
   # a spinner in it.
+  #
+  # Anchored at the question just asked, rather than at the top of the page.
+  # The redirect is a full page load, and on a phone a conversation of any
+  # length then puts the new turn well below the fold — so the person who just
+  # pressed Send is looking at the start of a chat they have already read, with
+  # nothing on screen to say their message went anywhere. Landing on their own
+  # question puts the answer where it is about to stream in, directly below it.
   def create
     conversation = Current.user.conversations.find(params[:conversation_id])
     question = params[:message].to_s.strip
+    asked = Chat::Ask.call(conversation, question, model: chosen_model) if question.present?
 
-    Chat::Ask.call(conversation, question, model: chosen_model) if question.present?
-
-    redirect_to conversation_path(conversation)
+    redirect_to conversation_path(conversation, anchor: asked && Views::Conversations::Message.dom_id(asked))
   end
 
   private

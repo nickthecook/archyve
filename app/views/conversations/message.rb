@@ -31,8 +31,16 @@ class Views::Conversations::Message < Components::Base
   # A person's message is contained; the model's answer flows on the page.
   # Weight from being a different kind of thing rather than a louder card —
   # see docs/design.md on the box costume.
+  #
+  # Both carry scroll-mt because this element is an anchor target:
+  # MessagesController sends the asker back to their own question, and without
+  # it the question lands flush against the top edge of the viewport. Written
+  # out in each branch rather than interpolated in — Tailwind scans these files
+  # as text, and a class name it only ever sees in halves doesn't exist.
   def wrapper_class
-    @message.user? ? "flex justify-end" : "flex flex-col gap-4 max-w-[68ch]"
+    return "scroll-mt-6 flex justify-end" if @message.user?
+
+    "scroll-mt-6 flex flex-col gap-4 max-w-[68ch]"
   end
 
   def from_user
