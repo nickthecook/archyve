@@ -20,6 +20,12 @@ class Message < ApplicationRecord
   # Everything a person said, which is always one segment's worth.
   def text = segments.filter_map(&:content).join("\n\n")
 
+  # What this turn said in its own words. Narrower than #history_content, which
+  # also carries the searches and reads — and those are already inside a
+  # measured turn's input_tokens, because the round that reported that figure
+  # was sent them. Chat::Context is the one caller that has to tell them apart.
+  def spoken = segments.select(&:text?).filter_map(&:content).join("\n\n")
+
   # This turn as the model should see it when the conversation is replayed —
   # prose, plus any searches it ran and what they returned. See
   # Segment#for_history for why past retrievals are replayed at all.

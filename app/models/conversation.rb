@@ -39,13 +39,16 @@ class Conversation < ApplicationRecord
 
   def next_message_position = (messages.maximum(:position) || 0) + 1
 
-  # The most recent turn a server reported a prompt size for.
+  # The turn the context meter reads — the last one carrying a prompt size at
+  # all. On a settled conversation that is a figure the server reported; while a
+  # turn is running it is that turn's own estimate, and the meter draws the two
+  # differently. See Chat::Context.
   #
-  # The context meter describes the conversation, but only a turn can have been
+  # The meter describes the conversation, but only a turn can have been
   # measured — and the window it was measured against belongs to the model that
   # answered *it*, which the person may since have switched away from. So the
   # turn carries both halves of the ratio and the meter reads them together.
-  def last_measured_turn
+  def context_turn
     messages.assistant.where.not(input_tokens: nil).includes(:inference_model).last
   end
 end

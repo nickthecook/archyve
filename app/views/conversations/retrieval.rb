@@ -106,9 +106,17 @@ class Views::Conversations::Retrieval < Components::Base
   end
 
 
+  # Nothing under the queries while the search is still running. There are no
+  # hits yet, and saying so is a claim about the archive rather than about the
+  # state of the search — an expanded panel mid-search read "Searching the
+  # archive…" above "Nothing in this chat's scope matched", which is how a
+  # working search comes to look like a broken one. The row fills in when
+  # results land, the same way the tally does.
   def body
     div(class: "flex flex-col gap-3 border-t border-line/60 p-4") do
       queries
+      next if running?
+
       @segment.hits.any? ? hits : nothing
     end
   end
