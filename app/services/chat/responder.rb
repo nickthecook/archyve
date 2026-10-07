@@ -20,6 +20,10 @@ module Chat
   # the question along with the answer, and the person asking has no idea
   # whether their archive is broken or their model is.
   class Responder
+    # Enough for a provider to say what it wants — vLLM's tool-call refusal
+    # names two flags — without a wall of JSON landing in the transcript.
+    PROVIDER_MESSAGE_LIMIT = 300
+
     def self.call(user_message, answer) = new(user_message, answer).call
 
     # `answer` is the assistant turn, already opened by Chat::Ask — see the note
@@ -62,7 +66,7 @@ module Chat
     rescue StandardError => e
       Rails.logger.error("chat turn failed for conversation #{@conversation.id}: #{e.class}: #{e.message}")
       note_unreachable(model, e)
-      turn.fail!(unreachable_message(model))
+      turn.fail!(failure_message(model, e))
     end
 
     # Only a genuine no-answer marks the server down. This rescue is deliberately
@@ -134,6 +138,23 @@ module Chat
 
     def no_tools_message(model)
       "#{model.label} can't call tools, so it can't search your archive. Pick a tool-capable model."
+    end
+
+    # A server that answered with a refusal is not a server that is down, and
+    # saying "check that it's running" sends someone to look at the one thing
+    # that is fine. A vLLM host refusing tool calls names the two flags it
+    # wants started with; that sentence belongs on the turn, not only the log.
+    #
+    # Provider messages come through because they are written for whoever is
+    # wiring the thing up. Ours don't: this rescue is deliberately broad enough
+    # to catch Archyve's own bugs, and a NoMethodError means nothing to the
+    # person who asked a question.
+    def failure_message(model, error)
+      return unreachable_message(model) if InferenceServer.unreachable_error?(error)
+      return "Something went wrong answering that. The details are in the log." unless error.is_a?(RubyLLM::Error)
+
+      name = model&.inference_server&.name || "The chat model"
+      "#{name} couldn't answer: #{error.message.truncate(PROVIDER_MESSAGE_LIMIT)}"
     end
 
     def unreachable_message(model)

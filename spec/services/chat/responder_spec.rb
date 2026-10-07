@@ -184,6 +184,32 @@ RSpec.describe Chat::Responder do
         respond
         expect(chat_model.inference_server.reload).to be_reachable
       end
+
+      it "doesn't tell anyone to check a server that answered" do
+        respond
+        expect(turn.error).not_to include("Check that it's running")
+      end
+    end
+
+    # The message is the whole value here: a vLLM host refusing tool calls
+    # names the flags it wants to be started with, and that sentence is what
+    # ends the search. Saying "couldn't reach it" instead sent someone to look
+    # at a server that was answering every request.
+    context "when the chat server refuses the request" do
+      let(:refusal) { %("auto" tool choice requires --enable-auto-tool-choice and --tool-call-parser to be set) }
+
+      before { allow(llm).to receive(:complete).and_raise(RubyLLM::BadRequestError, refusal) }
+
+      it "passes the provider's reason through to the turn" do
+        respond
+        expect(turn.error).to include(refusal)
+      end
+
+      it "leaves the server reachable" do
+        chat_model.inference_server.mark_reachable!
+        respond
+        expect(chat_model.inference_server.reload).to be_reachable
+      end
     end
 
     context "when Archyve itself has a bug" do
@@ -193,6 +219,13 @@ RSpec.describe Chat::Responder do
         chat_model.inference_server.mark_reachable!
         respond
         expect(chat_model.inference_server.reload).to be_reachable
+      end
+
+      # Our own backtrace is noise to the person who asked a question, and
+      # "couldn't reach it" would be a lie about a server that is fine.
+      it "says nothing about the server or the exception" do
+        respond
+        expect(turn.error).to eq("Something went wrong answering that. The details are in the log.")
       end
     end
 
