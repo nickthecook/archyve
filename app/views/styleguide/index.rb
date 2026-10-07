@@ -39,6 +39,7 @@ class Views::Styleguide::Index < Views::Base
     section("Doorways", "component") { doorways }
     section("Breadcrumbs", "component") { breadcrumbs }
     section("Buttons", "pattern") { buttons }
+    section("Switches", "component") { switches }
     section("Status", "component") { statuses }
     section("Cards", "pattern") { cards }
     section("Derived & empty", "pattern") { derived }
@@ -115,6 +116,25 @@ class Views::Styleguide::Index < Views::Base
           button(type: "button", class: classes) { label }
           span(class: "text-[0.7rem] text-faint") { role }
         end
+      end
+    end
+  end
+
+  # The real control, rendered outside its form and as type="button" so both
+  # states can sit here without a poke flipping a setting. A switch acts on its
+  # own — it is the one control with no Save behind it.
+  def switches
+    div(class: "rounded-lg border border-line bg-ink/40 p-4") do
+      div(class: "flex flex-wrap items-center gap-x-8 gap-y-3") do
+        [false, true].each do |on|
+          div(class: "flex items-center gap-2.5") do
+            render Views::Settings::Switch.new(on: on, label: "Example setting", type: "button")
+            span(class: "font-mono text-[0.65rem] text-faint") { on ? "on" : "off" }
+          end
+        end
+      end
+      p(class: "mt-4 text-xs text-faint") do
+        "Brass only while on: it reports a state that costs something. Off is structure, not colour."
       end
     end
   end

@@ -45,29 +45,7 @@ class Views::Settings::Toggle < Components::Base
       # The value being moved to, so a double-click can't land somewhere
       # unintended and a stale page can't flip something it never showed.
       input(type: "hidden", name: "value", value: (!@on).to_s)
-      switch
+      render Views::Settings::Switch.new(on: @on, label: @copy[:label])
     end
-  end
-
-  # Brass only while on — it is reporting a state that costs something, which is
-  # what the accent is for.
-  def switch
-    button(
-      type: "submit",
-      role: "switch",
-      aria_checked: @on.to_s,
-      aria_label: @copy[:label],
-      class: "relative inline-flex h-5 w-9 items-center rounded-full border transition-colors #{track}"
-    ) do
-      span(class: "block h-3.5 w-3.5 rounded-full transition-transform #{knob}")
-    end
-  end
-
-  def track
-    @on ? "border-accent bg-accent" : "border-line bg-void hover:border-line-2"
-  end
-
-  def knob
-    @on ? "translate-x-[18px] bg-void" : "translate-x-[3px] bg-muted"
   end
 end

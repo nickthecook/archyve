@@ -27,6 +27,18 @@ RSpec.describe "Styleguide", :unauthenticated, type: :request do
         request
         expect(response.body).to include("border-l-accent")
       end
+
+      it "shows the switch in both states" do
+        request
+        expect(response.body).to include('aria-checked="false"', 'aria-checked="true"')
+      end
+
+      # A style guide that mutates the app when poked is worse than no style
+      # guide: these switches are outside any form and must stay that way.
+      it "renders switches that cannot submit anything" do
+        request
+        expect(response.body).not_to include(settings_preferences_path)
+      end
     end
 
     context "when signed in as an operator" do
