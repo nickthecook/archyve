@@ -13,7 +13,7 @@ class Views::Settings::Index < Views::Base
   def view_template
     header(class: "mb-8") do
       h1(class: "text-2xl font-semibold tracking-tight") { "Settings" }
-      p(class: "mt-1 text-sm text-muted") { "People, inference, endpoints, and preferences." }
+      p(class: "mt-1 text-sm text-muted") { "People, inference, endpoints, and general settings." }
     end
 
     # Cards, not doorways. Every row here leads elsewhere, which makes this a
