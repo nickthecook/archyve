@@ -93,6 +93,10 @@ class Setting < ApplicationRecord
     def chat_instance_purpose = self["chat.instance_purpose"]
     def record_api_calls? = self["debug.record_api_calls"]
 
+    # The settings that are a single on/off, and so can be flipped in place
+    # from the settings index rather than needing a page and a Save button.
+    def toggles = DEFINITIONS.select { |_key, definition| definition.type == :boolean }
+
     private
 
     def definition!(key)

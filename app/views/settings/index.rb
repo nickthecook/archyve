@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
-  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:)
+  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, record_api_calls:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
     @endpoint_count = endpoint_count
     @prompt = prompt
+    @record_api_calls = record_api_calls
   end
 
   def view_template
@@ -46,11 +47,25 @@ class Views::Settings::Index < Views::Base
         meta: prompt_meta
       ) { prompt_icon }
     end
+
+    preferences
   end
 
   private
 
   def page_title = "Settings"
+
+  # Deliberately not cards: everything above leads somewhere, these act here.
+  # Hairlines rather than another row of boxes — weight comes from being unlike
+  # the cards, not from being a louder one. See docs/design.md.
+  def preferences
+    section(class: "mt-10") do
+      h2(class: "text-xs font-medium uppercase tracking-wider text-faint") { "General settings" }
+      div(class: "mt-1 divide-y divide-line") do
+        render Views::Settings::Toggle.new(key: "debug.record_api_calls", on: @record_api_calls)
+      end
+    end
+  end
 
   def entry(href:, title:, description:, meta:, &icon)
     a(

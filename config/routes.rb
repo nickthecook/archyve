@@ -78,6 +78,10 @@ Rails.application.routes.draw do
     # The system prompt every chat uses. A single page for prompt-related
     # settings, not a CRUD resource — see Setting.
     resource :prompt, only: [:show, :update]
+    # Instance-wide on/off switches, flipped from the settings index itself —
+    # too small each to be worth a page. Update-only: there is nothing to show
+    # that the index doesn't already.
+    resource :preferences, only: [:update]
     # Where Archyve sends prompts. Under Settings rather than beside Sources:
     # a source is content, an inference server is system administration, and
     # only an admin has any business repointing the app at a different LLM.
