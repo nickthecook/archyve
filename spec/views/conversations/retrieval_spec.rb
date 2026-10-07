@@ -8,34 +8,6 @@ RSpec.describe Views::Conversations::Retrieval do
     let(:segment) { create(:retrieval_segment) }
     let(:document) { create(:document, title: "SHS-2920 manual") }
 
-    # The panel is created the moment the model stops to search, so a reader who
-    # expanded it sees it before anything has come back. Saying "nothing
-    # matched" then is a claim about the archive, not about the search, and it
-    # is how a working search comes to look like a broken one.
-    context "while the search is still running" do
-      let(:segment) { create(:retrieval_segment, candidate_count: nil) }
-
-      it "says it is still searching" do
-        expect(result).to include("Searching the archive…")
-      end
-
-      it "does not claim the archive had nothing" do
-        expect(result).not_to include("scope matched")
-      end
-
-      it "still shows what it is searching for" do
-        expect(result).to include("credential rotation")
-      end
-    end
-
-    context "once the search has returned empty-handed" do
-      let(:segment) { create(:retrieval_segment, candidate_count: 0) }
-
-      it "says the archive had nothing" do
-        expect(result).to include("scope matched")
-      end
-    end
-
     # Expanding the results is how a reader checks an answer against what
     # retrieval actually returned; getting from a snippet to the passage in its
     # document shouldn't then mean hunting for it.

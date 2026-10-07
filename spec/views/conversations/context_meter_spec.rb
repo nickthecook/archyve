@@ -77,36 +77,6 @@ RSpec.describe Views::Conversations::ContextMeter do
       end
     end
 
-    # The server reports a prompt size only when a turn ends, so a turn in flight
-    # shows Chat::Context's guess — marked, because it visibly jumps when the
-    # real figure lands and an unmarked jump reads as a glitch.
-    context "while the turn is still running" do
-      before do
-        create(:message, conversation:, role: "assistant", position: 2,
-                         inference_model: model, input_tokens: 12_431, completed_at: nil)
-      end
-
-      it "marks the reading as a guess" do
-        expect(reading).to eq("Context ~12.4k / 131.1k")
-      end
-
-      it "fills the bar anyway" do
-        expect(meter).to include("width: 9.48%")
-      end
-
-      it "says so at length in the title" do
-        expect(meter).to include("reports the real figure when the turn ends")
-      end
-    end
-
-    context "once the turn has closed" do
-      before { answered(input_tokens: 12_431) }
-
-      it "drops the mark" do
-        expect(reading).not_to include("~")
-      end
-    end
-
     describe "the bands" do
       {
         "under half the window" => [40_000, "bg-emerald-600"],

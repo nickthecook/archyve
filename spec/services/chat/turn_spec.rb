@@ -329,8 +329,8 @@ RSpec.describe Chat::Turn do
       end
     end
 
-    # The meter lives above the composer, outside the turn it reads, so it can't
-    # ride the message replace.
+    # The meter lives above the composer, outside the turn it was measured by,
+    # so it can't ride the message replace.
     context "when the turn closes" do
       before do
         turn.append("Ninety days.")
@@ -340,81 +340,7 @@ RSpec.describe Chat::Turn do
 
       it "pushes the context meter to the page" do
         expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
-          .with(conversation, hash_including(target: "context_conversation_#{conversation.id}")).at_least(:once)
-      end
-    end
-  end
-
-  # The server reports a prompt size once per request, at the end of it — so a
-  # turn that calls no tool says nothing until it is over, and the bar would sit
-  # still for the whole minute somebody is watching it. See Chat::Context.
-  describe "the running estimate" do
-    # A turn the server did measure, for the estimate to build on.
-    let!(:measured) do
-      create(:message, conversation:, role: "assistant", position: 1,
-                       input_tokens: 4_000, completed_at: Time.current)
-    end
-
-    # Asserted at a segment boundary, which always writes. Between boundaries the
-    # guess is staged on the write clock rather than every delta — see
-    # Chat::Turn::WRITE_EVERY — so the row lags the count by design.
-    context "while the model is streaming" do
-      before { turn.append("Ninety days. ", tokens: 10) }
-
-      it "counts the tokens streamed on top of the last measured turn" do
-        expect(message.reload.input_tokens).to eq(4_010)
-      end
-    end
-
-    # Reasoning never reaches a later prompt — Segment#for_history drops it — so
-    # a model that thinks at length must not drive the bar up for it.
-    context "while the model is reasoning" do
-      before { 3.times { turn.append_thinking("Let me think. ", tokens: 50) } }
-
-      it "leaves the guess where it was" do
-        expect(message.reload.input_tokens).to eq(4_000)
-      end
-    end
-
-    # A search is the biggest jump in a turn and the one nothing else observes:
-    # the passages go into the prompt but never stream back as deltas.
-    context "when a search returns" do
-      let(:outcome) { Retrieval::Outcome.new(hits: [], candidate_count: 0) }
-
-      before do
-        turn.retrieval_started(["rotation"])
-        turn.retrieval_finished(outcome)
-      end
-
-      it "adds what replay will send" do
-        expect(message.reload.input_tokens).to be > 4_000
-      end
-    end
-
-    # The invariant the column depends on: on a settled turn it means what the
-    # server said, so a guess must not survive one.
-    context "when the turn closes having been measured" do
-      before do
-        turn.append("Ninety days.", tokens: 10)
-        turn.note_context(9_999)
-        turn.finish
-      end
-
-      it "replaces the guess with the server's figure" do
-        expect(message.reload.input_tokens).to eq(9_999)
-      end
-    end
-
-    context "when the turn closes unmeasured" do
-      before do
-        turn.append("Ninety days.", tokens: 10)
-        turn.finish
-      end
-
-      # A guess left behind on a finished turn is indistinguishable from a
-      # measurement, and the meter would stop marking it as one.
-      it "clears the guess rather than leaving it to look like a count" do
-        expect(message.reload.input_tokens).to be_nil
+          .with(conversation, hash_including(target: "context_conversation_#{conversation.id}"))
       end
     end
   end

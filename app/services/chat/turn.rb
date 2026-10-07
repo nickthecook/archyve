@@ -61,10 +61,6 @@ module Chat
       @text_pace = nil
       @thinking_pace = nil
       @input_tokens = nil
-      # Built before anything is written to this turn: it reads the last turn
-      # that carries a figure, which would be this one the moment a guess is
-      # staged. See Chat::Context.
-      @context = Context.new(@conversation)
     end
 
     # What the server said this turn's prompt cost it: the conversation so far,
@@ -114,7 +110,6 @@ module Chat
       @text_segment ||= create_segment(:text, content: @buffer.dup)
       @text_pace ||= Pace.new
       @text_pace.tick(tokens)
-      @context.tick(tokens)
       return broadcast! if created || flushed
 
       broadcast if due?
@@ -135,9 +130,6 @@ module Chat
       @thinking_segment ||= create_segment(:thinking, content: @thinking_buffer.dup)
       @thinking_pace ||= Pace.new
       @thinking_pace.tick(tokens)
-      # No @context tick here, unlike #append: reasoning is dropped from replay
-      # (Segment#for_history), so none of it reaches a later prompt however much
-      # of it the model produces. See Chat::Context.
       return broadcast! if created
 
       broadcast if due?
@@ -158,7 +150,6 @@ module Chat
     def retrieval_finished(outcome)
       @retrieval_segment&.record!(outcome)
       absorb(@retrieval_segment)
-      @context.absorb(@retrieval_segment)
       broadcast!
     end
 
@@ -175,7 +166,6 @@ module Chat
     def reading_finished(reading)
       @reading_segment&.record_reading!(reading)
       absorb(@reading_segment)
-      @context.absorb(@reading_segment)
       broadcast!
     end
 
@@ -193,7 +183,6 @@ module Chat
     # to the turn's citation namespace. See Segment#sourced?.
     def listing_finished(listing)
       @listing_segment&.record_listing!(listing)
-      @context.absorb(@listing_segment)
       broadcast!
     end
 
@@ -241,28 +230,16 @@ module Chat
 
     # Stops the page waiting. Every exit from a turn goes through here, so a
     # path that forgets it leaves a spinner running for good.
-    # Writing input_tokens here is what makes the column mean one thing on a
-    # settled turn: the server's own count, or nothing. Whatever guess
-    # Chat::Context staged while the turn ran is overwritten — including with
-    # nil, for a provider that reported no usage, because a guess left behind on
-    # a finished turn would be indistinguishable from a measurement.
     def complete!
       @message.update!(completed_at: Time.current, input_tokens: @input_tokens)
       broadcast!
-    end
-
-    # The guess goes on the row because the meter renders from the database,
-    # like every other broadcast here. Only while the turn is open — once it has
-    # closed, #complete! owns that column.
-    def stage_context
-      return unless @message.completed_at.nil?
-
-      @message.update_columns(input_tokens: @context.tokens)
+      broadcast_context
     end
 
     # The meter above the composer. It rides its own broadcast rather than the
-    # message replace because it sits outside the turn — it is a fact about the
-    # conversation, and the element is not inside the one being replaced.
+    # message replace because it is a fact about the conversation, not about this
+    # turn — and only on completion, which is when the server has reported the
+    # count at all.
     def broadcast_context
       Turbo::StreamsChannel.broadcast_replace_to(
         @conversation,
@@ -324,13 +301,7 @@ module Chat
       @ticks += 1
       stage(@text_segment, @buffer)
       stage(@thinking_segment, @thinking_buffer)
-      # The meter renders from the row, so it moves on the write clock rather
-      # than the tick clock — which is also what keeps a bar creeping up by a
-      # token at a time from costing a broadcast per token.
-      if (@ticks % WRITE_EVERY).zero?
-        write_staged
-        broadcast_context
-      end
+      write_staged if (@ticks % WRITE_EVERY).zero?
       broadcast_segment(@text_segment)
       broadcast_segment(@thinking_segment)
     end
@@ -353,7 +324,6 @@ module Chat
     def write_staged
       write_segment(@text_segment)
       write_segment(@thinking_segment)
-      stage_context
     end
 
     # update_columns, not update!: this runs throughout a stream, the content is
@@ -403,7 +373,6 @@ module Chat
         target: Views::Conversations::Message.dom_id(@message),
         html: Views::Conversations::Message.new(message: @message).call
       )
-      broadcast_context
     end
   end
 end
