@@ -108,6 +108,7 @@ Before making a button solid, ask whether clicking it *commits* anything.
 | Solid | `bg-accent text-void hover:bg-accent-dim` | The action that commits — form submits. |
 | Outlined | `border border-accent/60 bg-accent/10 text-accent hover:bg-accent/20 hover:border-accent` | Primary controls that only *open* something. Add `group-open:` for disclosures. |
 | Quiet | `border border-line text-muted hover:text-fg hover:border-line-2` | Secondary actions. |
+| Danger | `border border-red-400/40 text-red-300 hover:bg-red-400/10` | Destroys something. Never solid, always paired with a `turbo_confirm` — the cost belongs in the confirmation, not beside the button. |
 
 Give outlined buttons a border even where the design doesn't demand one: a
 borderless button sits 2px shorter than bordered siblings in a flex row.

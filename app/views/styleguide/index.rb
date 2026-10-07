@@ -30,7 +30,9 @@ class Views::Styleguide::Index < Views::Base
     ["Outlined", "Primary, but only opens something",
      "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm font-medium text-accent hover:bg-accent/20 hover:border-accent transition-colors"],
     ["Quiet", "Secondary actions",
-     "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"]
+     "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"],
+    ["Danger", "Destroys something — always confirmed",
+     "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 transition-colors"]
   ].freeze
 
   def view_template

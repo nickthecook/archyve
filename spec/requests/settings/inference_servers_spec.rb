@@ -53,6 +53,14 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
         )
       end
     end
+
+    # It used to be a line of faint text below the models, which read as a
+    # caption rather than a control. Confirmed because it destroys — see the
+    # accent ladder in docs/design.md.
+    it "offers removing the server as a confirmed action" do
+      request
+      expect(response.body).to include("data-turbo-confirm").and include("Remove “tensor” and its models?")
+    end
   end
 
   describe "GET /settings/inference_servers/new" do
