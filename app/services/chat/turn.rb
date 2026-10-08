@@ -3,10 +3,9 @@
 module Chat
   # Builds one assistant turn as it happens, and pushes it to the browser.
   #
-  # A turn is a sequence of segments, not a growing blob of text, because a
-  # reply that searches genuinely is three things in order: prose, a search,
+  # A turn is a sequence of segments: prose, a search,
   # more prose. This class is what turns a stream of deltas and tool callbacks
-  # back into that sequence — every time the model stops talking to search, the
+  # into that sequence — every time the model stops talking to search, the
   # current text segment is closed and a retrieval segment opens in its place.
   #
   # It is also the observer the tools report to, which is how a search or a read
@@ -18,23 +17,7 @@ module Chat
     # last word of a turn is never left waiting for a tick that doesn't come.
     BROADCAST_INTERVAL = 0.1
 
-    # Ticks per write. Every tick stages the buffer on the segment in memory —
-    # that is what the broadcast renders from, so the page is never behind —
-    # but only every Nth tick puts it in the database.
-    #
-    # The row is what a crash leaves behind, and what a page load reads. A
-    # reader is barely affected: a browser arriving mid-turn renders content up
-    # to N ticks old and the next broadcast corrects it within a tick. A crash
-    # is the real cost — up to N ticks of prose lost from a turn that, having
-    # crashed, never completed anyway.
-    #
-    # Worth it because the write is not the expensive part: `content` grows all
-    # turn, and past ~2KB Postgres moves it out of line, so every tick
-    # re-chunks the whole value into TOAST storage and orphans the last copy.
-    # The bytes written across a turn go with the square of the tick count, so
-    # the saving grows with the length of the answer.
-    #
-    # 1 writes on every tick, which is what this did before.
+    # Ticks per write. Every tick renders the page, but only every Nth tick puts it in the database.
     WRITE_EVERY = [ENV.fetch("ARCHYVE_CHAT_WRITE_EVERY", "5").to_i, 1].max
 
     attr_reader :message
@@ -63,16 +46,9 @@ module Chat
       @input_tokens = nil
     end
 
-    # What the server said this turn's prompt cost it: the conversation so far,
-    # the instructions, the tool schemas and every tool result the model was
-    # handed. Written to the turn when it closes — see
-    # Views::Conversations::ContextMeter for what reads it.
-    #
     # The high-water mark across the turn, never the sum. A turn that searches
     # is several requests, and each one's count already covers the history the
-    # one before it counted; adding them up would report a conversation as a
-    # multiple of its own size, and the more the model searched the further out
-    # it would be.
+    # one before it counted.
     def note_context(input_tokens)
       return if input_tokens.nil?
 

@@ -52,6 +52,8 @@ module Tools
 
     private
 
+    def default_max_rounds = Setting.chat_max_read_rounds
+
     # One handle namespace for the whole turn, stamped before the observer sees
     # the reading so the transcript and the model cite the same numbers.
     def handled(reading)

@@ -8,7 +8,19 @@ class SettingsController < ApplicationController
       model_count: InferenceModel.count,
       endpoint_count: Endpoint.count,
       prompt: Setting.chat_instance_purpose,
+      rounds: rounds,
       record_api_calls: Setting.record_api_calls?
     )
+  end
+
+  private
+
+  # In the order a turn spends them, not the order they were added.
+  def rounds
+    {
+      "chat.max_search_rounds" => Setting.chat_max_search_rounds,
+      "chat.max_read_rounds" => Setting.chat_max_read_rounds,
+      "chat.max_listing_rounds" => Setting.chat_max_listing_rounds
+    }
   end
 end

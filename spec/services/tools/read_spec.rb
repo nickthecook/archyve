@@ -140,6 +140,20 @@ RSpec.describe Tools::Read do
       end
     end
 
+    # Reads used to share the search budget, so a model that found four
+    # candidate documents could open two and had to report the rest unreadable.
+    context "when the search budget is spent but the read budget is not" do
+      before do
+        Setting["chat.max_search_rounds"] = 1
+        Setting["chat.max_read_rounds"] = 3
+        2.times { tool.execute(document: document.id, from: 1, to: 1) }
+      end
+
+      it "still reads" do
+        expect(result[:status]).to eq("ok")
+      end
+    end
+
     context "with an observer watching the turn" do
       let(:observer) { spy("observer") }
 

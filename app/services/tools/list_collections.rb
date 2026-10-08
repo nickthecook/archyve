@@ -38,6 +38,8 @@ module Tools
 
     private
 
+    def default_max_rounds = Setting.chat_max_listing_rounds
+
     def respond(listing)
       return nothing if listing.empty?
 

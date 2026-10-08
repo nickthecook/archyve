@@ -28,21 +28,24 @@ class Setting < ApplicationRecord
       type: :integer,
       description: "How many search results the chat model sees per retrieval."
     ),
-    # How many times the model may call the retrieval tool in one turn before
-    # Archyve stops answering it. A guard against a confused model looping, not
-    # a quality dial — two rounds is enough to search, read, and search again.
-    "chat.max_tool_rounds" => Definition.new(
-      default: 2,
+    # Each of the three below caps one tool, not the turn — a model that has
+    # searched to its limit can still read. See Tools::Base#over_budget?.
+    "chat.max_search_rounds" => Definition.new(
+      default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_SEARCH_ROUNDS", 2) },
       type: :integer,
       description: "How many times the model may search the archive in one turn."
     ),
-    # The same guard for walking the archive, and looser: a listing costs no
-    # embedding call and no vector scan, and a model finding its way around
-    # genuinely needs more than two steps — list the collections, then list one,
-    # then list another. Still capped, because a model walking list_documents
-    # across every collection it was shown is a real failure mode.
+    # Looser than search: how many documents are worth reading is set by what
+    # the search found, not by the model going in circles.
+    "chat.max_read_rounds" => Definition.new(
+      default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_READ_ROUNDS", 4) },
+      type: :integer,
+      description: "How many documents the model may read in one turn."
+    ),
+    # Looser again: a listing costs no embedding call and no vector scan, and
+    # finding one's way around takes more steps than answering.
     "chat.max_listing_rounds" => Definition.new(
-      default: 4,
+      default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_LISTING_ROUNDS", 4) },
       type: :integer,
       description: "How many times the model may list part of the archive in one turn."
     ),
@@ -88,7 +91,8 @@ class Setting < ApplicationRecord
     # Named readers, so callers don't pass strings around and typos fail at
     # boot rather than at retrieval time.
     def chat_result_limit = self["chat.result_limit"]
-    def chat_max_tool_rounds = self["chat.max_tool_rounds"]
+    def chat_max_search_rounds = self["chat.max_search_rounds"]
+    def chat_max_read_rounds = self["chat.max_read_rounds"]
     def chat_max_listing_rounds = self["chat.max_listing_rounds"]
     def chat_instance_purpose = self["chat.instance_purpose"]
     def record_api_calls? = self["debug.record_api_calls"]
@@ -98,6 +102,14 @@ class Setting < ApplicationRecord
     def toggles = DEFINITIONS.select { |_key, definition| definition.type == :boolean }
 
     private
+
+    # Anything unset or unparseable falls back to the default: `.to_i` alone
+    # turns a typo into 0, which for a round budget is a tool the model can
+    # never call.
+    def positive_integer_env(name, fallback)
+      value = ENV.fetch(name, nil).to_i
+      value.positive? ? value : fallback
+    end
 
     def definition!(key)
       DEFINITIONS.fetch(key) { raise UnknownSetting, "no such setting: #{key.inspect}" }

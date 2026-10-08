@@ -52,6 +52,8 @@ module Tools
 
     private
 
+    def default_max_rounds = Setting.chat_max_listing_rounds
+
     def respond(listing)
       return not_found if listing.refused?
       return overshot(listing) if listing.overshot?

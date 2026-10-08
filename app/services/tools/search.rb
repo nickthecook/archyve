@@ -67,6 +67,8 @@ module Tools
 
     private
 
+    def default_max_rounds = Setting.chat_max_search_rounds
+
     # Fuse numbers its own ranking 1..n, which is what the search page wants.
     # A turn wants one namespace across every search and read in it, so the
     # handles are re-stamped here — before the observer sees the outcome, so the

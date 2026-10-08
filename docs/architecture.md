@@ -112,9 +112,16 @@ Still planned: an optional `collections:` on `search_archive`, letting the model
 aim a search at part of its scope. The user's scope stays the ceiling in every
 case — see `docs/todo.md`.
 
-Listings get their own, looser round budget (`chat.max_listing_rounds`): they
-cost no embedding call, and finding one's way around an archive takes more steps
-than answering from it.
+**Round budgets are per tool, not per turn.** Each tool counts its own rounds
+against its own setting — `chat.max_search_rounds` (2), `chat.max_read_rounds`
+(4), `chat.max_listing_rounds` (4), each editable on the settings index and each
+taking its default from `ARCHYVE_CHAT_MAX_<SEARCH|READ|LISTING>_ROUNDS` — so
+spending one leaves the others whole. They were one shared number while search was the only tool, which capped
+reading at the search budget: a model that found four candidate documents could
+open two and had to report the rest as unreadable. Reads are looser because how
+many are worth opening is set by what the search found, listings looser still
+because they cost no embedding call and no vector scan. A spent budget is a
+refusal in the tool result, not a halted loop — see `Tools::Base`.
 
 **A tool result names the next call, and a listing says it may be spoken.** Both
 came out of watching gpt-oss:20b answer *"what documents are in X?"*: it called

@@ -1,6 +1,15 @@
 require "rails_helper"
 
 RSpec.describe Setting do
+  # Pinned so the suite doesn't read whoever's shell set them for their own
+  # debugging — the round budgets all take their default from the environment.
+  before do
+    allow(ENV).to receive(:fetch).and_call_original
+    %w[SEARCH READ LISTING].each do |budget|
+      allow(ENV).to receive(:fetch).with("ARCHYVE_CHAT_MAX_#{budget}_ROUNDS", nil).and_return(nil)
+    end
+  end
+
   describe ".[]" do
     subject(:result) { described_class["chat.result_limit"] }
 
@@ -44,6 +53,56 @@ RSpec.describe Setting do
 
       it "returns it" do
         expect(described_class.chat_instance_purpose).to eq("Answer questions for my family.")
+      end
+    end
+  end
+
+  describe "the round budgets" do
+    {
+      "chat.max_search_rounds" => ["ARCHYVE_CHAT_MAX_SEARCH_ROUNDS", 2],
+      "chat.max_read_rounds" => ["ARCHYVE_CHAT_MAX_READ_ROUNDS", 4],
+      "chat.max_listing_rounds" => ["ARCHYVE_CHAT_MAX_LISTING_ROUNDS", 4]
+    }.each do |key, (variable, default)|
+      context "with #{key}" do
+        context "when the environment says nothing" do
+          it "falls back to its declared default" do
+            expect(described_class[key]).to eq(default)
+          end
+        end
+
+        context "when the environment sets it" do
+          before { allow(ENV).to receive(:fetch).with(variable, nil).and_return("7") }
+
+          it "takes its default from there" do
+            expect(described_class[key]).to eq(7)
+          end
+        end
+      end
+    end
+  end
+
+  describe ".chat_max_read_rounds" do
+    before do
+      allow(ENV).to receive(:fetch).with("ARCHYVE_CHAT_MAX_READ_ROUNDS", nil).and_return(env)
+    end
+
+    let(:env) { nil }
+
+    context "when the environment sets something that isn't a count" do
+      let(:env) { "lots" }
+
+      it "falls back to the default rather than refusing every read" do
+        expect(described_class.chat_max_read_rounds).to eq(4)
+      end
+    end
+
+    context "when an admin has set it" do
+      let(:env) { "9" }
+
+      before { described_class["chat.max_read_rounds"] = 3 }
+
+      it "overrides the environment" do
+        expect(described_class.chat_max_read_rounds).to eq(3)
       end
     end
   end

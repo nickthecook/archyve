@@ -26,7 +26,7 @@ module Tools
       @corpus = corpus
       @handles = handles
       @observer = observer
-      @max_rounds = max_rounds || Setting.chat_max_tool_rounds
+      @max_rounds = max_rounds || default_max_rounds
       @rounds = 0
       super()
     end
@@ -46,10 +46,13 @@ module Tools
 
     def scope_label = @corpus.label
 
-    # The guard against a model working in circles. Counted per tool rather
-    # than across the turn: searching twice and reading twice is the intended
-    # budget, not two of either.
-    #
+    # Each tool keeps its own count against its own setting, so spending one
+    # budget leaves the others whole — a model that has searched twice can
+    # still read. Every tool must name the setting it draws on.
+    def default_max_rounds
+      raise NotImplementedError, "#{self.class} must say which round budget it spends"
+    end
+
     # Counted here rather than handed to RubyLLM: its `calls:` option is about
     # how many tool calls a single response may contain, not how many rounds a
     # turn may take, and there is no round limit in the gem to lean on.

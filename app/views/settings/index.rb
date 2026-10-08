@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
-  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, record_api_calls:)
+  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, rounds:, record_api_calls:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
     @endpoint_count = endpoint_count
     @prompt = prompt
+    @rounds = rounds
     @record_api_calls = record_api_calls
   end
 
@@ -62,6 +63,7 @@ class Views::Settings::Index < Views::Base
     section(class: "mt-10") do
       h2(class: "text-xs font-medium uppercase tracking-wider text-faint") { "General settings" }
       div(class: "mt-1 divide-y divide-line") do
+        @rounds.each { |key, value| render Views::Settings::Number.new(key:, value:) }
         render Views::Settings::Toggle.new(key: "debug.record_api_calls", on: @record_api_calls)
       end
     end

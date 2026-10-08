@@ -9,6 +9,9 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
     # debugging — see ApiCall.recording?.
     allow(ENV).to receive(:fetch).and_call_original
     allow(ENV).to receive(:fetch).with("ARCHYVE_RECORD_API_CALLS", nil).and_return(nil)
+    %w[SEARCH READ LISTING].each do |budget|
+      allow(ENV).to receive(:fetch).with("ARCHYVE_CHAT_MAX_#{budget}_ROUNDS", nil).and_return(nil)
+    end
   end
 
   describe "GET /settings" do
@@ -17,6 +20,18 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
     it "offers the toggle" do
       request
       expect(response.body).to include("Record API calls")
+    end
+
+    it "offers every round budget" do
+      request
+      expect(response.body)
+        .to include("Searches per turn").and include("Documents read per turn").and include("Listings per turn")
+    end
+
+    it "shows what it is currently set to" do
+      Setting["chat.max_read_rounds"] = 7
+      request
+      expect(response.body).to include('name="value" value="7"')
     end
 
     context "when the setting is off" do
@@ -90,7 +105,57 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
       end
     end
 
-    context "with a setting that is not a toggle" do
+    context "when changing a number" do
+      let(:params) { { key: "chat.max_read_rounds", value: "6" } }
+
+      it "takes effect" do
+        request
+        expect(Setting.chat_max_read_rounds).to eq(6)
+      end
+
+      context "when Turbo asks for a stream" do
+        subject(:request) do
+          patch settings_preferences_path, params: params, as: :turbo_stream
+        end
+
+        it "swaps just the one row" do
+          request
+          expect(response.body).to include(%(target="#{Views::Settings::Number.dom_id('chat.max_read_rounds')}"))
+        end
+
+        it "sends back the saved value" do
+          request
+          expect(response.body).to include('name="value" value="6"')
+        end
+      end
+
+      context "with a value that isn't a number" do
+        let(:params) { { key: "chat.max_read_rounds", value: "lots" } }
+
+        it "refuses rather than storing a zero" do
+          request
+          expect(Setting.chat_max_read_rounds).to eq(4)
+        end
+
+        it "says so" do
+          request
+          expect(flash[:alert]).to eq("That needs to be a number, 1 or more.")
+        end
+      end
+
+      # Zero is the dangerous one: it reads as a setting rather than a mistake,
+      # and leaves the model a tool it can never call.
+      context "with a value of zero" do
+        let(:params) { { key: "chat.max_read_rounds", value: "0" } }
+
+        it "refuses" do
+          request
+          expect(Setting.chat_max_read_rounds).to eq(4)
+        end
+      end
+    end
+
+    context "with a setting the index renders no control for" do
       let(:params) { { key: "chat.result_limit", value: "true" } }
 
       it "refuses rather than writing a boolean into it" do

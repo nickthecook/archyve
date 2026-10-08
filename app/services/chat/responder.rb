@@ -111,26 +111,20 @@ module Chat
     # tool: the corpus so search and read can't disagree about what this
     # conversation can see, the counter so they cite into one namespace.
     #
-    # The round limit is each tool's own — RubyLLM's `calls:` counts tool calls
-    # within one response, not rounds within a turn, and passing a number to it
-    # raises.
+    # Each tool spends its own round budget and reads its own setting for it —
+    # see Tools::Base#default_max_rounds.
     def tools(turn)
       shared = {
         corpus: Retrieval::Corpus.for(@conversation),
         handles: Retrieval::Handles.new,
         observer: turn
       }
-      rounds = Setting.chat_max_tool_rounds
-      # Listings get their own, looser budget: they cost no embedding call, and
-      # finding one's way around an archive takes more steps than answering from
-      # it. See the setting for where the ceiling comes from.
-      listing_rounds = Setting.chat_max_listing_rounds
 
       [
-        Tools::Search.new(limit: Setting.chat_result_limit, max_rounds: rounds, **shared),
-        Tools::Read.new(max_rounds: rounds, **shared),
-        Tools::ListCollections.new(max_rounds: listing_rounds, **shared),
-        Tools::ListDocuments.new(max_rounds: listing_rounds, **shared)
+        Tools::Search.new(limit: Setting.chat_result_limit, **shared),
+        Tools::Read.new(**shared),
+        Tools::ListCollections.new(**shared),
+        Tools::ListDocuments.new(**shared)
       ]
     end
 
