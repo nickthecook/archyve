@@ -13,9 +13,9 @@ module InferenceServers
   # and the import screen asks. That isn't a shortcoming worth coding around —
   # the endpoint genuinely doesn't know.
   #
-  # vLLM is the one that says more than the standard requires: every entry
-  # carries the context length it is serving that model at. See
-  # #context_window_for and the initializer it points to.
+  # vLLM and LiteLLM say more than the standard requires: every entry carries the
+  # context length it is serving that model at, under a field name each picked
+  # for itself. See #context_window_for and the initializer it points to.
   class OpenAI < InferenceServer
     # What RubyLLM calls tool support in a Model::Info's capabilities, and the
     # family it reports for an id it has no pattern for.
@@ -129,12 +129,15 @@ module InferenceServers
     def describe(info)
       family = family_for(info.id)
 
-      # An id the registry has no pattern for is the case max_model_len exists
+      # An id the registry has no pattern for is the case a served length exists
       # for, so this branch keeps it: the *kind* is genuinely unknowable here and
       # the import screen asks, but a served context length is the endpoint's own
       # answer rather than a guess at the id, and there is no reason to discard
       # it along with the rest.
-      return Discovered.new(name: info.id, context_window: info.metadata[:max_model_len]) if family == UNKNOWN_FAMILY
+      if family == UNKNOWN_FAMILY
+        return Discovered.new(name: info.id, context_window: info.metadata[:served_context_window])
+      end
+
       return Discovered.new(name: info.id, kind: :embedding, skip_reason: EMBEDDING_SKIP) if embedding?(family)
 
       if (reason = unusable_reason(family))
@@ -150,13 +153,13 @@ module InferenceServers
     end
 
     # What the endpoint said, where it said anything — see
-    # config/initializers/ruby_llm_max_model_len.rb. Preferred over the
+    # config/initializers/ruby_llm_served_context_window.rb. Preferred over the
     # registry's figure because a served length is a fact about this host, and
     # the registry's is a guess at the id; it is also the one the chat page
     # measures context against, so a wrong denominator shows up there as a bar
     # that never fills or one that is always full.
     def context_window_for(info)
-      info.metadata[:max_model_len] || info.context_window
+      info.metadata[:served_context_window] || info.context_window
     end
 
     # Reaching into RubyLLM's capability module is a coupling, but the

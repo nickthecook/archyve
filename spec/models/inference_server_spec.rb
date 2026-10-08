@@ -385,10 +385,10 @@ RSpec.describe InferenceServer do
         ]
       end
 
-      def model_info(id, context_window:, capabilities:, owned_by: "openai", max_model_len: nil)
+      def model_info(id, context_window:, capabilities:, owned_by: "openai", served_context_window: nil)
         instance_double(
           RubyLLM::Model::Info, id:, context_window:, capabilities:,
-          metadata: { owned_by:, max_model_len: }
+          metadata: { owned_by:, served_context_window: }
         )
       end
 
@@ -436,9 +436,9 @@ RSpec.describe InferenceServer do
         let(:listed) do
           [
             model_info("gpt-4o", context_window: 128_000, capabilities: %w[function_calling],
-                                 owned_by: "vllm", max_model_len: 24_576),
+                                 owned_by: "vllm", served_context_window: 24_576),
             model_info("qwen3-27b", context_window: 4_096, capabilities: [],
-                                    owned_by: "vllm", max_model_len: 32_768)
+                                    owned_by: "vllm", served_context_window: 32_768)
           ]
         end
 
@@ -547,9 +547,9 @@ RSpec.describe InferenceServer do
     end
 
     # RubyLLM's model parser keeps only `object` and `owned_by` from each entry,
-    # so config/initializers/ruby_llm_max_model_len.rb puts the served length
-    # back. Exercised through the real parser: the prepend is the part that can
-    # quietly stop working, and nothing else would notice.
+    # so config/initializers/ruby_llm_served_context_window.rb puts the served
+    # length back. Exercised through the real parser: the prepend is the part
+    # that can quietly stop working, and nothing else would notice.
     describe "carrying a served length through RubyLLM" do
       subject(:parsed) do
         create(:openai_server).send(:provider).send(
@@ -557,20 +557,43 @@ RSpec.describe InferenceServer do
         )
       end
 
-      let(:response) do
-        instance_double(Faraday::Response, body: {
-          "data" => [
-            { "id" => "qwen3-27b", "object" => "model", "owned_by" => "vllm", "max_model_len" => 32_768 }
-          ]
-        })
+      let(:response) { instance_double(Faraday::Response, body: { "data" => [entry] }) }
+
+      context "when the endpoint is vLLM" do
+        let(:entry) do
+          { "id" => "qwen3-27b", "object" => "model", "owned_by" => "vllm", "max_model_len" => 32_768 }
+        end
+
+        it "keeps what the endpoint said" do
+          expect(parsed.sole.metadata[:served_context_window]).to eq(32_768)
+        end
+
+        it "leaves the fields RubyLLM already carried alone" do
+          expect(parsed.sole.metadata[:owned_by]).to eq("vllm")
+        end
       end
 
-      it "keeps what the endpoint said" do
-        expect(parsed.sole.metadata[:max_model_len]).to eq(32_768)
+      # LiteLLM reports the same thing under its own name, and `owned_by` is
+      # whatever it is proxying — so the field is all there is to go on.
+      context "when the endpoint is LiteLLM" do
+        let(:entry) do
+          {
+            "id" => "qwen3.8-27b", "object" => "model", "owned_by" => "openai",
+            "max_input_tokens" => 65_536, "max_output_tokens" => 65_536
+          }
+        end
+
+        it "keeps what the endpoint said" do
+          expect(parsed.sole.metadata[:served_context_window]).to eq(65_536)
+        end
       end
 
-      it "leaves the fields RubyLLM already carried alone" do
-        expect(parsed.sole.metadata[:owned_by]).to eq("vllm")
+      context "when the endpoint is OpenAI itself" do
+        let(:entry) { { "id" => "gpt-4o", "object" => "model", "owned_by" => "system" } }
+
+        it "reports nothing rather than a guess" do
+          expect(parsed.sole.metadata[:served_context_window]).to be_nil
+        end
       end
     end
 
