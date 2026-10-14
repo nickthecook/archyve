@@ -197,9 +197,13 @@ it is the one accent rail on that page. The menu row itself is
 `Views::MenuCard`, shared with the Settings menu.
 The generator never runs over the same model twice, so what keeps the pages
 looking alike as models are added is not it but the kit they render:
-`Views::Admin::Heading`, `Section`, `Table`, `FieldList`, `Field`, `Json` and
-`Empty`, with `Views::Admin::Formats` for how a value reads (`ago`, `yes_no`,
-`count`, `text`, and `—` for nothing).
+`Views::Admin::Heading`, `Section`, `Table`, `FieldList`, `Field`, `Json`,
+`Filters`, `Facet` and `Empty`, with `Views::Admin::Formats` for how a value
+reads (`ago`, `yes_no`, `count`, `text`, and `—` for nothing).
+
+Which filters a list offers is the resource's own business, not the kit's: see
+`ApiCalls::Listing`, where a facet is one line naming the param, what it offers
+and how it narrows. Filtering is a GET form, so a filtered list stays a URL.
 
 Fields are guessed from the table's columns, which is a starting point rather
 than an answer: labels and the index blurb are written for a reader, and the

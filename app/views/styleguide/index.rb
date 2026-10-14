@@ -224,6 +224,7 @@ class Views::Styleguide::Index < Views::Base
   # from stand-in rows, since this page has no records of its own.
   def admin_pages
     div(class: "flex flex-col gap-4") do
+      render Views::Admin::Filters.new(action: styleguide_path, facets: sample_facets)
       render Views::Admin::Table.new(rows: samples, fields: record_fields, href: ->(_row) { styleguide_path })
       render Views::Admin::FieldList.new(record: samples.first, fields: record_fields + [body_field])
       render Views::Admin::Empty.new(
@@ -231,6 +232,13 @@ class Views::Styleguide::Index < Views::Base
         hint: "Dashed and quiet, like every other empty state."
       )
     end
+  end
+
+  def sample_facets
+    [
+      Views::Admin::Facet.new(label: "Kind", param: "kind", options: ["chat", "discovery"], selected: "chat"),
+      Views::Admin::Facet.new(label: "Host", param: "host", options: ["tensor"])
+    ]
   end
 
   def record_fields

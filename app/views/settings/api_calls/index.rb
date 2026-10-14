@@ -3,10 +3,12 @@
 class Views::Settings::ApiCalls::Index < Views::Base
   include Views::Admin::Formats
 
-  def initialize(api_calls:, limit:, recording:)
+  def initialize(api_calls:, limit:, recording:, facets:, filtered:)
     @api_calls = api_calls
     @limit = limit
     @recording = recording
+    @facets = facets
+    @filtered = filtered
   end
 
   def view_template
@@ -16,12 +18,21 @@ class Views::Settings::ApiCalls::Index < Views::Base
       blurb: "What Archyve sent an inference server and what came back, while recording was on."
     )
 
+    filters
     @api_calls.any? ? listing : empty
   end
 
   private
 
   def page_title = "API calls"
+
+  # Nothing to narrow, and nothing narrowing: an empty page shouldn't offer
+  # controls for the rows it hasn't got.
+  def filters
+    return unless @api_calls.any? || @filtered
+
+    render Views::Admin::Filters.new(action: settings_api_calls_path, facets: @facets)
+  end
 
   def listing
     render Views::Admin::Table.new(
@@ -35,7 +46,7 @@ class Views::Settings::ApiCalls::Index < Views::Base
   def fields
     [
       Views::Admin::Field.new("When", mono: true) { |call| ago(call.created_at) },
-      Views::Admin::Field.new("Service") { |call| text(call.service_name) },
+      Views::Admin::Field.new("Host") { |call| text(call.host) },
       Views::Admin::Field.new("Kind") { |call| text(call.kind) },
       Views::Admin::Field.new("Outcome") { |call| render Views::Settings::ApiCalls::Outcome.new(api_call: call) },
       Views::Admin::Field.new("Took", numeric: true) { |call| took(call) }
@@ -58,9 +69,14 @@ class Views::Settings::ApiCalls::Index < Views::Base
     render Views::Admin::Empty.new(message: empty_message, hint: empty_hint)
   end
 
-  def empty_message = @recording ? "Nothing recorded yet." : "Not recording."
+  def empty_message
+    return "No calls match." if @filtered
+
+    @recording ? "Nothing recorded yet." : "Not recording."
+  end
 
   def empty_hint
+    return "Clear the filters to see everything that was recorded." if @filtered
     return "Calls appear here as they go out." if @recording
 
     "Turn on “Record API calls” below the settings menu to start keeping them."

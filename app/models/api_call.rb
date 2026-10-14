@@ -43,6 +43,25 @@ class ApiCall < ApplicationRecord
 
   scope :expired, -> { where(created_at: ...RETENTION.ago) }
   scope :recent, -> { order(created_at: :desc) }
+  scope :of_kind, ->(kind) { where(kind:) }
+
+  # The host is inside the URL rather than a column of its own, so both of these
+  # go through the URLs themselves: one parser decides what a host is, and the
+  # filter can't disagree with the list of hosts it offers. However many calls
+  # there are, the distinct URLs are a handful — an endpoint per server.
+  def self.urls = unscope(:order).distinct.pluck(:url)
+
+  def self.hosts = urls.filter_map { host_in(it) }.uniq.sort
+
+  def self.at_host(host)
+    where(url: urls.select { host_in(it) == host })
+  end
+
+  def self.host_in(url)
+    URI.parse(url).host
+  rescue URI::InvalidURIError
+    nil
+  end
 
   # Both exclude a null response_code, which means recording never got as far as
   # an outcome either way.
@@ -93,6 +112,8 @@ class ApiCall < ApplicationRecord
       end
     end
   end
+
+  def host = self.class.host_in(url)
 
   def answered? = response_code.present? && response_code >= LOWEST_HTTP_STATUS
 

@@ -25,20 +25,62 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
     end
 
     context "with a call that was answered" do
-      before { create(:api_call, service_name: "ollama", kind: "chat", duration_ms: 1234) }
+      before { create(:api_call, url: "http://tensor:11434/v1/chat/completions", kind: "chat", duration_ms: 1234) }
 
-      it "lists what it was and what came back" do
+      # The host, not the service: "ollama" is the client stack the call went
+      # through, which doesn't say which of two Ollama servers answered.
+      it "lists where it went and what came back" do
         request
-        expect(response.body).to include("ollama", "chat", "200", "1,234 ms")
+        expect(response.body).to include("tensor", "chat", "200", "1,234 ms")
       end
     end
 
-    context "with a call nothing answered" do
-      before { create(:api_call, :refused) }
+    describe "filtering" do
+      let!(:chat) { create(:api_call, kind: "chat", url: "http://tensor:11434/v1/chat/completions") }
+      let!(:discovery) { create(:api_call, kind: "discovery", url: "https://i.rmtly.com/v1/models") }
 
-      it "says why instead of showing a status" do
+      # `host` is also url_for's option for the host of the URL it is building,
+      # so a path helper swallows it — see ApiCalls::Listing.
+      def filter(**values) = get(settings_api_calls_path(params: values))
+
+      def lists?(call) = response.body.include?(%(href="#{settings_api_call_path(call)}"))
+
+      context "by kind" do
+        it "keeps that kind and drops the others" do
+          filter(kind: "discovery")
+          expect(lists?(discovery)).to be(true)
+          expect(lists?(chat)).to be(false)
+        end
+      end
+
+      context "by host" do
+        it "keeps that host and drops the others" do
+          filter(host: "tensor")
+          expect(lists?(chat)).to be(true)
+          expect(lists?(discovery)).to be(false)
+        end
+      end
+
+      context "by both at once" do
+        it "narrows to what matches neither" do
+          filter(kind: "chat", host: "i.rmtly.com")
+          expect(response.body).to include("No calls match.")
+        end
+      end
+
+      # The filters are a URL anyone can edit, and a host whose last call has
+      # been swept is a stale bookmark rather than an error.
+      context "with a value that isn't on offer" do
+        it "ignores it rather than refusing" do
+          filter(host: "nowhere.test")
+          expect(lists?(chat)).to be(true)
+          expect(lists?(discovery)).to be(true)
+        end
+      end
+
+      it "offers every host that was called" do
         request
-        expect(response.body).to include("connection refused")
+        expect(response.body).to include(%(<option value="tensor">), %(<option value="i.rmtly.com">))
       end
     end
 

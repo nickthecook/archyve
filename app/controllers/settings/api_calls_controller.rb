@@ -5,10 +5,14 @@ module Settings
     LIMIT = 100
 
     def index
+      listing = ApiCalls::Listing.new(params)
+
       render Views::Settings::ApiCalls::Index.new(
-        api_calls: ApiCall.recent.limit(LIMIT),
+        api_calls: listing.rows(limit: LIMIT),
         limit: LIMIT,
-        recording: ApiCall.recording?
+        recording: ApiCall.recording?,
+        facets: listing.facets,
+        filtered: listing.filtered?
       )
     end
 
