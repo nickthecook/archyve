@@ -1,0 +1,43 @@
+require "rails_helper"
+
+RSpec.describe "<%= namespace_module %>::<%= plural_name.camelize %>", :unauthenticated, type: :request do
+  before { sign_in(create(:user, :admin)) }
+
+  describe "GET /<%= namespace %>/<%= plural_name %>" do
+    subject(:request) { get <%= index_path_helper %> }
+
+    context "with none to show" do
+      it "says so rather than showing an empty table" do
+        request
+        expect(response.body).to include("No <%= human_plural_down %> yet")
+      end
+    end
+
+    context "with one" do
+      let!(:<%= singular_name %>) { create(:<%= singular_name %>) }
+
+      it "lists it" do
+        request
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when an operator asks" do
+      before { sign_in(create(:user, :operator)) }
+
+      it "is refused" do
+        request
+        expect(response).to redirect_to(root_path)
+      end
+    end
+  end
+
+  describe "GET /<%= namespace %>/<%= plural_name %>/:id" do
+    let(:<%= singular_name %>) { create(:<%= singular_name %>) }
+
+    it "renders the record" do
+      get <%= show_path_helper(singular_name) %>
+      expect(response).to have_http_status(:ok)
+    end
+  end
+end

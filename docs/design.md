@@ -177,3 +177,35 @@ phone already. The rules that keep it there:
 4. The page's content, using the card costume for repeated items.
 5. Derived/empty states dashed and quiet.
 6. At most one solid brass button, and only if it commits.
+
+## Admin pages come from a generator
+
+A model's admin screens are generated rather than written:
+
+```
+bin/rails generate admin:resource ApiCall
+```
+
+That emits a controller, a Phlex index and show view, a request spec, and a
+route inside `namespace :settings` — ordinary pages you own and edit afterwards.
+
+They hang off **the Admin page**, `/settings/admin`: one card per model, and
+the trail every generated page leads back through. Settings reaches it by a
+doorway above the rule rather than a row of its menu, because browsing stored
+records is a different job from changing what Archyve does — which is also why
+it is the one accent rail on that page. The menu row itself is
+`Views::MenuCard`, shared with the Settings menu.
+The generator never runs over the same model twice, so what keeps the pages
+looking alike as models are added is not it but the kit they render:
+`Views::Admin::Heading`, `Section`, `Table`, `FieldList`, `Field`, `Json` and
+`Empty`, with `Views::Admin::Formats` for how a value reads (`ago`, `yes_no`,
+`count`, `text`, and `—` for nothing).
+
+Fields are guessed from the table's columns, which is a starting point rather
+than an answer: labels and the index blurb are written for a reader, and the
+generator only knows what the columns are called.
+
+A `Views::Admin::Field` block either returns a String, which is printed, or
+renders its own markup and returns anything else — a badge or a link can't be a
+String. `app/views/settings/api_calls/` is a generated resource that was then
+customized: its own outcome badge, and fields grouped into sections.

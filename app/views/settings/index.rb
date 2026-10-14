@@ -17,31 +17,34 @@ class Views::Settings::Index < Views::Base
       p(class: "mt-1 text-sm text-muted") { "People, inference, endpoints, and general settings." }
     end
 
+    admin
+    render Views::Rule.new
+
     # Cards, not doorways. Every row here leads elsewhere, which makes this a
     # menu page — and a rail on every row is a rail on none. See docs/design.md.
     div(class: "flex flex-col gap-3") do
-      entry(
+      render Views::MenuCard.new(
         href: settings_users_path,
         title: "People",
         description: "Who can sign in, and how much of Archyve they see.",
         meta: "#{@people_count} #{'person'.pluralize(@people_count)}"
       ) { people_icon }
 
-      entry(
+      render Views::MenuCard.new(
         href: settings_inference_servers_path,
         title: "Inference",
         description: "Where Archyve sends prompts, and which models it may use.",
         meta: inference_meta
       ) { server_icon }
 
-      entry(
+      render Views::MenuCard.new(
         href: settings_endpoints_path,
         title: "Endpoints",
         description: "Servers documents come from, and the credentials to reach them.",
         meta: endpoint_meta
       ) { endpoint_icon }
 
-      entry(
+      render Views::MenuCard.new(
         href: settings_prompt_path,
         title: "Prompt",
         description: "What every chat's system prompt tells the model.",
@@ -56,6 +59,18 @@ class Views::Settings::Index < Views::Base
 
   def page_title = "Settings"
 
+  # The records Archyve keeps, rather than the settings that produce them. A
+  # different enough job to sit above the rule, in the zone for links out.
+  def admin
+    div(class: "mb-8") do
+      render Views::Doorway.new(
+        href: settings_admin_path,
+        title: "Admin",
+        description: "What Archyve has stored, model by model."
+      ) { admin_icon }
+    end
+  end
+
   # Deliberately not cards: everything above leads somewhere, these act here.
   # Hairlines rather than another row of boxes — weight comes from being unlike
   # the cards, not from being a louder one. See docs/design.md.
@@ -66,20 +81,6 @@ class Views::Settings::Index < Views::Base
         @rounds.each { |key, value| render Views::Settings::Number.new(key:, value:) }
         render Views::Settings::Toggle.new(key: "debug.record_api_calls", on: @record_api_calls)
       end
-    end
-  end
-
-  def entry(href:, title:, description:, meta:, &icon)
-    a(
-      href: href,
-      class: "flex items-center gap-4 rounded-lg border border-line bg-ink/40 px-5 py-4 hover:border-line-2 transition-colors"
-    ) do
-      span(class: "grid h-9 w-9 shrink-0 place-items-center rounded bg-accent/10 text-accent", &icon)
-      div(class: "min-w-0 flex-1") do
-        p(class: "text-sm font-medium text-fg") { title }
-        p(class: "mt-0.5 text-xs text-faint") { description }
-      end
-      span(class: "shrink-0 font-mono tabular-nums text-xs text-muted") { meta }
     end
   end
 
@@ -99,6 +100,13 @@ class Views::Settings::Index < Views::Base
 
   def prompt_meta
     @prompt.present? ? "set" : "not set"
+  end
+
+  def admin_icon
+    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
+      s.rect(x: "3", y: "4", width: "18", height: "16", rx: "1.6")
+      s.path(d: "M3 9.5h18M3 14.5h18")
+    end
   end
 
   def people_icon

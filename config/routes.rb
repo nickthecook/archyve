@@ -74,6 +74,9 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/jobs"
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
+    # The records Archyve keeps, as rows — the way into the generated model
+    # pages below. Distinct from the settings that produce them.
+    get "admin", to: "admin#index"
     resources :users, except: [:show]
     # The system prompt every chat uses. A single page for prompt-related
     # settings, not a CRUD resource — see Setting.
@@ -82,6 +85,9 @@ Rails.application.routes.draw do
     # too small each to be worth a page. Update-only: there is nothing to show
     # that the index doesn't already.
     resource :preferences, only: [:update]
+    # What was recorded while debug.record_api_calls was on. Read-only: rows
+    # expire on their own, so there is nothing here to edit or tidy up.
+    resources :api_calls, only: [:index, :show]
     # Where Archyve sends prompts. Under Settings rather than beside Sources:
     # a source is content, an inference server is system administration, and
     # only an admin has any business repointing the app at a different LLM.

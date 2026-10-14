@@ -1,0 +1,25 @@
+module <%= namespace_module %>
+  class <%= controller_class %> < ApplicationController
+    require_role :admin
+
+    LIMIT = 100
+
+    def index
+      render <%= view_module %>::Index.new(
+        <%= plural_name %>: <%= class_name %>.<%= default_order %>.limit(LIMIT),
+        limit: LIMIT
+      )
+    end
+
+    def show
+      render <%= view_module %>::Show.new(<%= singular_name %>: <%= class_name %>.find(params[:id]))
+    end
+<% if options[:destroy] -%>
+
+    def destroy
+      <%= class_name %>.find(params[:id]).destroy
+      redirect_to <%= index_path_helper %>, notice: "Removed."
+    end
+<% end -%>
+  end
+end

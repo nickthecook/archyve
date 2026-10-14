@@ -35,6 +35,8 @@ class Views::Styleguide::Index < Views::Base
      "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 transition-colors"]
   ].freeze
 
+  SAMPLE = Struct.new(:recorded, :service, :took, :body)
+
   def view_template
     heading
     section("Palette", "component") { palette }
@@ -44,6 +46,8 @@ class Views::Styleguide::Index < Views::Base
     section("Switches", "component") { switches }
     section("Status", "component") { statuses }
     section("Cards", "pattern") { cards }
+    section("Menu rows", "component") { menu_rows }
+    section("Admin pages", "component") { admin_pages }
     section("Derived & empty", "pattern") { derived }
     section("Numerals", "pattern") { numerals }
     section("Working", "component") { spinners }
@@ -160,6 +164,18 @@ class Views::Styleguide::Index < Views::Base
     end
   end
 
+  # The card a menu page repeats: no rail, because every row leads elsewhere.
+  # The counterpart to a doorway, which is the one row that does get one.
+  def menu_rows
+    div(class: "flex flex-col gap-3") do
+      render Views::MenuCard.new(
+        href: styleguide_path, title: "With everything",
+        description: "Icon, description and a count — the full row.", meta: "4 models"
+      ) { sample_icon }
+      render Views::MenuCard.new(href: styleguide_path, title: "Title only") { sample_icon }
+    end
+  end
+
   def derived
     div(class: "rounded-lg border border-dashed border-line px-4 py-8 text-center") do
       p(class: "text-sm text-muted") { "Dashed means \"not a real thing\"" }
@@ -201,6 +217,39 @@ class Views::Styleguide::Index < Views::Base
         plain "Reduced motion holds it still and breathes instead."
       end
     end
+  end
+
+  # The kit generated admin pages are built from — a table of records, one
+  # record as a field list, and what either shows with nothing in it. Rendered
+  # from stand-in rows, since this page has no records of its own.
+  def admin_pages
+    div(class: "flex flex-col gap-4") do
+      render Views::Admin::Table.new(rows: samples, fields: record_fields, href: ->(_row) { styleguide_path })
+      render Views::Admin::FieldList.new(record: samples.first, fields: record_fields + [body_field])
+      render Views::Admin::Empty.new(
+        message: "Nothing recorded yet.",
+        hint: "Dashed and quiet, like every other empty state."
+      )
+    end
+  end
+
+  def record_fields
+    [
+      Views::Admin::Field.new("When", mono: true) { |row| row.recorded },
+      Views::Admin::Field.new("Service") { |row| row.service },
+      Views::Admin::Field.new("Took", numeric: true) { |row| row.took }
+    ]
+  end
+
+  def body_field
+    Views::Admin::Field.new("Body") { |row| render Views::Admin::Json.new(value: row.body) }
+  end
+
+  def samples
+    [
+      SAMPLE.new("2 minutes ago", "ollama", "1,234 ms", { "model" => "llama3.2", "stream" => true }),
+      SAMPLE.new("3 hours ago", "docling", "812 ms", nil)
+    ]
   end
 
   def sample_icon

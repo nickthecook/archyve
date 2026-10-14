@@ -1,0 +1,33 @@
+Description:
+    Emits the admin pages for one model: a controller, a Phlex index and show
+    view, a request spec, and a route.
+
+    The pages are plain Phlex classes you own and edit afterwards. What keeps
+    them looking alike as models are added is the Views::Admin kit they render
+    (Heading, Table, FieldList, Field, Json) — not this generator, which never
+    runs over the same model twice.
+
+    Fields are guessed from the table's columns, which is a starting point, not
+    an answer: the labels and the blurb are written for a reader, and the
+    generator only knows column names.
+
+Example:
+    bin/rails generate admin:resource ApiCall
+
+    Creates:
+        app/controllers/settings/api_calls_controller.rb
+        app/views/settings/api_calls/index.rb
+        app/views/settings/api_calls/show.rb
+        spec/requests/settings/api_calls_spec.rb
+    And adds to config/routes.rb, inside `namespace :settings`:
+        resources :api_calls, only: [:index, :show]
+
+    The pages hang off the Admin page at /settings/admin: that is where their
+    breadcrumbs lead back through, and where you add the card linking to them.
+    The trail is written into the templates rather than derived from --namespace,
+    so a page emitted elsewhere needs its own.
+
+Options:
+    --columns=created_at service_name kind   Index table columns, in order.
+    --namespace=settings                     Controller/view/route namespace.
+    --destroy                                Add a destroy action and a Remove button.

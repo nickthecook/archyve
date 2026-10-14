@@ -1,0 +1,52 @@
+# frozen_string_literal: true
+
+class <%= view_module %>::Show < Views::Base
+  include Views::Admin::Formats
+
+  def initialize(<%= singular_name %>:)
+    @<%= singular_name %> = <%= singular_name %>
+  end
+
+  def view_template
+    breadcrumb(
+      ["Settings", settings_path],
+      ["Admin", settings_admin_path],
+      ["<%= title %>", <%= index_path_helper %>],
+      <%= title_expression %>
+    )
+    render Views::Admin::Heading.new(title: <%= title_expression %>)
+    render Views::Admin::FieldList.new(record: @<%= singular_name %>, fields:)
+<% if options[:destroy] -%>
+    remove
+<% end -%>
+  end
+
+  private
+
+  def page_title = <%= title_expression %>
+
+  def fields
+    [
+      <%= detail_fields.join(",\n      ") %>
+    ]
+  end
+<% if options[:destroy] -%>
+
+  def remove
+    form(
+      action: <%= show_path_helper("@#{singular_name}") %>,
+      method: "post",
+      class: "mt-6 flex justify-end",
+      data: { turbo_confirm: "Remove this <%= human_name.downcase %>?" }
+    ) do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      input(type: "hidden", name: "_method", value: "delete")
+      button(
+        type: "submit",
+        class: "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 " \
+               "hover:bg-red-400/10 transition-colors"
+      ) { "Remove" }
+    end
+  end
+<% end -%>
+end

@@ -1,0 +1,49 @@
+# frozen_string_literal: true
+
+class <%= view_module %>::Index < Views::Base
+  include Views::Admin::Formats
+
+  def initialize(<%= plural_name %>:, limit:)
+    @<%= plural_name %> = <%= plural_name %>
+    @limit = limit
+  end
+
+  def view_template
+    breadcrumb(["Settings", settings_path], ["Admin", settings_admin_path], "<%= title %>")
+    render Views::Admin::Heading.new(
+      title: "<%= title %>",
+      blurb: "TODO: one sentence saying what this page is for."
+    )
+
+    @<%= plural_name %>.any? ? listing : empty
+  end
+
+  private
+
+  def page_title = "<%= title %>"
+
+  def listing
+    render Views::Admin::Table.new(
+      rows: @<%= plural_name %>,
+      fields:,
+      href: ->(record) { <%= show_path_helper("record") %> }
+    )
+    more_note
+  end
+
+  def fields
+    [
+      <%= index_fields.join(",\n      ") %>
+    ]
+  end
+
+  def more_note
+    return if @<%= plural_name %>.size < @limit
+
+    p(class: "mt-3 text-xs text-faint") { "Showing the most recent #{@limit}." }
+  end
+
+  def empty
+    render Views::Admin::Empty.new(message: "No <%= human_plural_down %> yet.")
+  end
+end
