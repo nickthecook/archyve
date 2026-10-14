@@ -23,6 +23,11 @@ gem "phlex-rails"
 # pgvector support for Active Record: vector columns + nearest-neighbor search
 gem "neighbor"
 
+# Cursor pagination for Active Record. Chosen over an offset pager because the
+# admin lists are written to while they are read; chosen over Pagy and Kaminari
+# because it renders nothing — the nav is a Phlex component. See docs/design.md.
+gem "activerecord_cursor_paginate"
+
 # Markdown for what the model writes back. GFM, because that is the dialect
 # models emit — tables, fenced code, strikethrough — and it escapes raw HTML
 # rather than trusting a completion with the page.

@@ -3,9 +3,8 @@
 class <%= view_module %>::Index < Views::Base
   include Views::Admin::Formats
 
-  def initialize(<%= plural_name %>:, limit:)
-    @<%= plural_name %> = <%= plural_name %>
-    @limit = limit
+  def initialize(page:)
+    @page = page
   end
 
   def view_template
@@ -15,7 +14,7 @@ class <%= view_module %>::Index < Views::Base
       blurb: "TODO: one sentence saying what this page is for."
     )
 
-    @<%= plural_name %>.any? ? listing : empty
+    @page.any? ? listing : empty
   end
 
   private
@@ -24,23 +23,17 @@ class <%= view_module %>::Index < Views::Base
 
   def listing
     render Views::Admin::Table.new(
-      rows: @<%= plural_name %>,
+      rows: @page.records,
       fields:,
       href: ->(record) { <%= show_path_helper("record") %> }
     )
-    more_note
+    render Views::Admin::Pager.new(page: @page, action: <%= index_path_helper %>)
   end
 
   def fields
     [
       <%= index_fields.join(",\n      ") %>
     ]
-  end
-
-  def more_note
-    return if @<%= plural_name %>.size < @limit
-
-    p(class: "mt-3 text-xs text-faint") { "Showing the most recent #{@limit}." }
   end
 
   def empty

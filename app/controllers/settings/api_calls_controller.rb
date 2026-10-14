@@ -2,17 +2,14 @@ module Settings
   class ApiCallsController < ApplicationController
     require_role :admin
 
-    LIMIT = 100
-
     def index
       listing = ApiCalls::Listing.new(params)
 
       render Views::Settings::ApiCalls::Index.new(
-        api_calls: listing.rows(limit: LIMIT),
-        limit: LIMIT,
+        page: listing.page,
         recording: ApiCall.recording?,
         facets: listing.facets,
-        filtered: listing.filtered?
+        query: listing.query
       )
     end
 

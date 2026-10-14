@@ -6,6 +6,9 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
   describe "GET /settings/api_calls" do
     subject(:request) { get settings_api_calls_path }
 
+    # The Older button's href, whatever cursor and filters it happens to carry.
+    def older_link = response.body[/href="([^"]*after=[^"]*)"/, 1]&.then { CGI.unescapeHTML(it) }
+
     context "with nothing recorded and recording off" do
       before { Setting["debug.record_api_calls"] = false }
 
@@ -81,6 +84,35 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
       it "offers every host that was called" do
         request
         expect(response.body).to include(%(<option value="tensor">), %(<option value="i.rmtly.com">))
+      end
+    end
+
+    describe "paging" do
+      before { stub_const("Admin::Page::PER_PAGE", 1) }
+
+      let!(:older) { create(:api_call, created_at: 2.hours.ago, url: "http://tensor:11434/v1/chat/completions") }
+      let!(:newer) { create(:api_call, created_at: 1.hour.ago, url: "https://i.rmtly.com/v1/chat/completions") }
+
+      def lists?(call) = response.body.include?(%(href="#{settings_api_call_path(call)}"))
+
+      it "shows the newest screen first, with a way on and none back" do
+        request
+        expect(lists?(newer)).to be(true)
+        expect(lists?(older)).to be(false)
+        expect(response.body).to include("Older →")
+        expect(response.body).not_to include("Newer")
+      end
+
+      it "follows Older to the next screen" do
+        request
+        get older_link
+        expect(lists?(older)).to be(true)
+        expect(lists?(newer)).to be(false)
+      end
+
+      it "keeps the filters while paging" do
+        get settings_api_calls_path(params: { kind: "chat" })
+        expect(older_link).to include("kind=chat")
       end
     end
 

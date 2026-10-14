@@ -3,12 +3,11 @@
 class Views::Settings::ApiCalls::Index < Views::Base
   include Views::Admin::Formats
 
-  def initialize(api_calls:, limit:, recording:, facets:, filtered:)
-    @api_calls = api_calls
-    @limit = limit
+  def initialize(page:, recording:, facets:, query:)
+    @page = page
     @recording = recording
     @facets = facets
-    @filtered = filtered
+    @query = query
   end
 
   def view_template
@@ -19,27 +18,29 @@ class Views::Settings::ApiCalls::Index < Views::Base
     )
 
     filters
-    @api_calls.any? ? listing : empty
+    @page.any? ? listing : empty
   end
 
   private
 
   def page_title = "API calls"
+  def filtered? = @query.any?
 
   # Nothing to narrow, and nothing narrowing: an empty page shouldn't offer
   # controls for the rows it hasn't got.
   def filters
-    return unless @api_calls.any? || @filtered
+    return unless @page.any? || filtered?
 
     render Views::Admin::Filters.new(action: settings_api_calls_path, facets: @facets)
   end
 
   def listing
     render Views::Admin::Table.new(
-      rows: @api_calls,
+      rows: @page.records,
       fields:,
       href: ->(call) { settings_api_call_path(call) }
     )
+    render Views::Admin::Pager.new(page: @page, action: settings_api_calls_path, params: @query)
     sweep_note
   end
 
@@ -56,13 +57,7 @@ class Views::Settings::ApiCalls::Index < Views::Base
   def took(call) = call.duration_ms ? "#{count(call.duration_ms)} ms" : BLANK
 
   def sweep_note
-    p(class: "mt-3 text-xs text-faint") do
-      "#{shown} Calls are deleted once they are #{ApiCall::RETENTION.inspect} old."
-    end
-  end
-
-  def shown
-    @api_calls.size < @limit ? "" : "Showing the most recent #{@limit}. "
+    p(class: "mt-3 text-xs text-faint") { "Calls are deleted once they are #{ApiCall::RETENTION.inspect} old." }
   end
 
   def empty
@@ -70,13 +65,13 @@ class Views::Settings::ApiCalls::Index < Views::Base
   end
 
   def empty_message
-    return "No calls match." if @filtered
+    return "No calls match." if filtered?
 
     @recording ? "Nothing recorded yet." : "Not recording."
   end
 
   def empty_hint
-    return "Clear the filters to see everything that was recorded." if @filtered
+    return "Clear the filters to see everything that was recorded." if filtered?
     return "Calls appear here as they go out." if @recording
 
     "Turn on “Record API calls” below the settings menu to start keeping them."

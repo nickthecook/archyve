@@ -37,6 +37,13 @@ class Views::Styleguide::Index < Views::Base
 
   SAMPLE = Struct.new(:recorded, :service, :took, :body)
 
+  SCREEN = Data.define(:older, :newer) do
+    def older? = older
+    def newer? = newer
+    def older_cursor = "older"
+    def newer_cursor = "newer"
+  end
+
   def view_template
     heading
     section("Palette", "component") { palette }
@@ -226,6 +233,7 @@ class Views::Styleguide::Index < Views::Base
     div(class: "flex flex-col gap-4") do
       render Views::Admin::Filters.new(action: styleguide_path, facets: sample_facets)
       render Views::Admin::Table.new(rows: samples, fields: record_fields, href: ->(_row) { styleguide_path })
+      render Views::Admin::Pager.new(page: SCREEN.new(older: true, newer: true), action: styleguide_path)
       render Views::Admin::FieldList.new(record: samples.first, fields: record_fields + [body_field])
       render Views::Admin::Empty.new(
         message: "Nothing recorded yet.",

@@ -27,6 +27,11 @@ Example:
     The trail is written into the templates rather than derived from --namespace,
     so a page emitted elsewhere needs its own.
 
+        The index pages by cursor, newest first (Admin::Page). A list people read by
+        name rather than by date passes its own ordering, which wants a matching
+        compound index. Filters are per-resource and hand-added — see
+        ApiCalls::Listing for the shape.
+
 Options:
     --columns=created_at service_name kind   Index table columns, in order.
     --namespace=settings                     Controller/view/route namespace.

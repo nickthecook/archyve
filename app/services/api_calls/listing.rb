@@ -21,9 +21,12 @@ module ApiCalls
       @params = params
     end
 
-    def rows(limit:)
-      FILTERS.reduce(ApiCall.recent) { |rows, filter| narrow(filter, rows) }.limit(limit)
-    end
+    # Unordered: Admin::Page orders what it pages, and ordering it twice would
+    # only mean the second one winning silently.
+    def page = Admin::Page.of(rows, after: @params["after"], before: @params["before"])
+
+    # What the pager has to carry so that paging doesn't drop the filters.
+    def query = FILTERS.to_h { [it.param, selected(it)] }.compact
 
     def facets
       FILTERS.map do |filter|
@@ -34,9 +37,11 @@ module ApiCalls
       end
     end
 
-    def filtered? = FILTERS.any? { selected(it) }
-
     private
+
+    def rows
+      FILTERS.reduce(ApiCall.all) { |rows, filter| narrow(filter, rows) }
+    end
 
     def narrow(filter, rows)
       value = selected(filter)

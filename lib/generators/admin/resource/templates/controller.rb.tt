@@ -2,12 +2,9 @@ module <%= namespace_module %>
   class <%= controller_class %> < ApplicationController
     require_role :admin
 
-    LIMIT = 100
-
     def index
       render <%= view_module %>::Index.new(
-        <%= plural_name %>: <%= class_name %>.<%= default_order %>.limit(LIMIT),
-        limit: LIMIT
+        page: Admin::Page.of(<%= class_name %>.all, after: params[:after], before: params[:before])
       )
     end
 
