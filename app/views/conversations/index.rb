@@ -54,7 +54,10 @@ class Views::Conversations::Index < Views::Base
       textarea(
         name: "message", rows: "3", autocomplete: "off",
         placeholder: "What do you want to know?",
-        data: { composer_target: "field", action: "input->composer#autogrow" },
+        data: {
+          composer_target: "field",
+          action: "input->composer#autogrow keydown.enter->composer#submit"
+        },
         class: "w-full resize-none overflow-y-auto max-h-72 bg-transparent text-[0.95rem] " \
                "text-fg placeholder:text-faint outline-none"
       )

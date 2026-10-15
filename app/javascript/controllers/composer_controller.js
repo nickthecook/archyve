@@ -1,15 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Sends a composer with Ctrl+Enter (Cmd+Enter on Mac). Plain Enter stays a
-// newline — messages are often multi-line, so sending is the deliberate act.
-//
-// Two things in the action descriptor are load-bearing. The modifiers live in
-// the key filter rather than in here, because Stimulus drops any keydown whose
-// modifier state doesn't match the filter exactly — a bare `keydown.enter`
-// action never sees a Ctrl+Enter to test for. And it listens on @document so
-// the shortcut works wherever the caret is: the box autofocuses on load (on
-// desktop — see #connect), and a click anywhere else would otherwise silently
-// disarm the shortcut.
+// Enter sends; Shift+Enter is a newline. The Enter binding sits on the field
+// rather than @document so a stray Enter elsewhere on the page can't submit,
+// and Stimulus matches modifier state exactly, so it never sees Shift+Enter.
+// Ctrl/Cmd+Enter stays bound at @document, sending from wherever the caret is.
 export default class extends Controller {
   static targets = ["field"]
 
@@ -35,12 +29,15 @@ export default class extends Controller {
   }
 
   submit(event) {
-    // An empty box has nothing to send. The server says the same thing with a
-    // redirect and an alert; from a keystroke, doing nothing is the better
-    // answer — the user hasn't typed the message yet.
-    if (this.fieldTarget.value.trim() === "") return
+    // Mid-composition Enter is the IME committing a candidate, not a send.
+    if (event.isComposing) return
 
     event.preventDefault()
+
+    // An empty box has nothing to send, and a swallowed Enter beats a stray
+    // leading newline. The server says the same thing with a redirect.
+    if (this.fieldTarget.value.trim() === "") return
+
     this.element.requestSubmit()
   }
 }

@@ -108,7 +108,10 @@ class Views::Conversations::Show < Views::Base
       textarea(
         name: "message", rows: "2", autocomplete: "off",
         placeholder: ask_placeholder,
-        data: { composer_target: "field", action: "input->composer#autogrow" },
+        data: {
+          composer_target: "field",
+          action: "input->composer#autogrow keydown.enter->composer#submit"
+        },
         class: "w-full resize-none overflow-y-auto max-h-72 bg-transparent text-[0.95rem] " \
                "text-fg placeholder:text-faint outline-none"
       )
