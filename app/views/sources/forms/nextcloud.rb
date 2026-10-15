@@ -114,8 +114,12 @@ class Views::Sources::Forms::Nextcloud < Views::Sources::Form
     row_shell { tick(here, here) }
   end
 
+  # Indented under the row above, when there is one, so the listing reads as a
+  # folder and its contents rather than as a row of peers. At the root there is
+  # no such row — "All files" is a breadcrumb, not a line — so nothing is nested
+  # under nothing.
   def row(entry)
-    row_shell do
+    row_shell(indent: here.present?) do
       tick(entry.path, entry.name)
       browse_to(entry.path, "open →", css: "shrink-0 text-xs text-muted hover:text-accent transition-colors")
     end
@@ -123,8 +127,13 @@ class Views::Sources::Forms::Nextcloud < Views::Sources::Form
 
   # The checkbox and its name are one label; the browse button is pointedly
   # outside it, or clicking "open" would toggle the tick on the way past.
-  def row_shell(&)
-    div(class: "flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-ink/60 transition-colors", &)
+  #
+  # Both padding classes are written out rather than built, so Tailwind's
+  # scanner can see them — an interpolated class name silently does not exist.
+  def row_shell(indent: false, &)
+    padding = indent ? "pl-10 pr-4" : "px-4"
+
+    div(class: "flex items-center justify-between gap-3 #{padding} py-2.5 hover:bg-ink/60 transition-colors", &)
   end
 
   def tick(path, label_text)

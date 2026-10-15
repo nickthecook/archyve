@@ -463,7 +463,9 @@ RSpec.describe "Sources", type: :request do
     # and DAV root are exercised on the way through. The first response in a
     # listing is the directory asked about, which is why each one repeats itself.
     def stub_cloud
-      allow(Http).to receive(:connection).and_return(Faraday.new { |f| f.adapter(:test, stubs) })
+      allow(Http).to receive(:connection).and_return(
+        Faraday.new(url: "https://cloud.test") { |f| f.adapter(:test, stubs) }
+      )
 
       stub_listing(root, folder("") + folder("Documents") + folder("Policies"))
       stub_listing("#{root}/Documents", folder("Documents") + folder("Documents/Handbook"))
@@ -523,10 +525,12 @@ RSpec.describe "Sources", type: :request do
       context "with a server that refuses the app password" do
         before do
           endpoint
-          allow(Http).to receive(:connection).and_return(Faraday.new do |f|
-            f.response :raise_error
-            f.adapter(:test, stubs)
-          end)
+          allow(Http).to receive(:connection).and_return(
+            Faraday.new(url: "https://cloud.test") do |f|
+              f.response :raise_error
+              f.adapter(:test, stubs)
+            end
+          )
           stubs.send(:new_stub, :propfind, root) { [401, {}, ""] }
 
           get new_source_path(type: "Sources::Nextcloud")

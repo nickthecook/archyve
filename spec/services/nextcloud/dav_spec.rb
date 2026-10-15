@@ -7,8 +7,12 @@ RSpec.describe Nextcloud::Dav do
   let(:stubs) { Faraday::Adapter::Test::Stubs.new }
   let(:root) { "/remote.php/dav/files/archyve" }
 
+  # Built with the endpoint's own base URL, because how a relative request path
+  # joins onto it is exactly what the subpath contexts below are about.
   before do
-    allow(endpoint).to receive(:client).and_return(Faraday.new { |f| f.adapter(:test, stubs) })
+    allow(endpoint).to receive(:client).and_return(
+      Faraday.new(url: endpoint.base_url) { |f| f.adapter(:test, stubs) }
+    )
   end
 
   # One `d:response` as Nextcloud writes them: a 200 propstat for what it has and
@@ -125,6 +129,32 @@ RSpec.describe Nextcloud::Dav do
 
       it "ignores it" do
         expect(result).to be_empty
+      end
+    end
+
+    # Nextcloud is very often installed under a path on a shared host. Faraday
+    # drops the base URL's own path when handed an absolute one, and the hrefs
+    # that come back carry that path — so both directions have to account for it.
+    context "with the server installed under a subpath" do
+      let(:endpoint) do
+        create(:nextcloud_endpoint, base_url: "https://example.com/nextcloud", username: "archyve")
+      end
+      let(:root) { "/nextcloud/remote.php/dav/files/archyve" }
+
+      before do
+        stub_propfind(root + "/Documents", multistatus(
+          response_for("#{root}/Documents/", collection: true),
+          response_for("#{root}/Documents/onboarding.pdf", fileid: "7")
+        ))
+      end
+
+      it "keeps the subpath in the request" do
+        result
+        stubs.verify_stubbed_calls
+      end
+
+      it "strips the subpath back off the href" do
+        expect(result.map(&:path)).to eq(["Documents/onboarding.pdf"])
       end
     end
 

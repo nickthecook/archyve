@@ -32,7 +32,16 @@ module Endpoints
 
     # Every file this endpoint reads hangs off one user's DAV root, so the
     # username is part of the address and not only of the credentials.
-    def dav_root = "/remote.php/dav/files/#{ERB::Util.url_encode(username)}"
+    #
+    # Relative, and that is load-bearing: Faraday discards the base URL's own
+    # path when given an absolute one, which would drop the /nextcloud from a
+    # server installed under a subpath.
+    def dav_root = "remote.php/dav/files/#{ERB::Util.url_encode(username)}"
+
+    # The same root as the server writes it in a `d:href`: absolute, and
+    # carrying whatever path the base URL has. What comes back over the wire and
+    # what we send are spelled differently, so they are two methods.
+    def dav_href_prefix = "#{URI.parse(base_url.to_s).path}/#{dav_root}"
 
     def dav(timeout: DEFAULT_TIMEOUT) = ::Nextcloud::Dav.new(self, timeout: timeout)
 

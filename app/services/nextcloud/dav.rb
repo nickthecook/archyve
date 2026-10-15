@@ -95,21 +95,24 @@ module Nextcloud
       element.at_xpath(".//#{name}", NAMESPACES)&.text
     end
 
-    # `d:href` is percent-encoded and absolute from the server root, so it has to
-    # be unescaped and have the DAV root taken off before it means anything to a
-    # caller that thinks in paths relative to that root.
+    # `d:href` is percent-encoded and absolute from the *server* root — which on
+    # a subpath install includes the path the base URL carries — so it has to be
+    # unescaped and have that whole prefix taken off before it means anything to
+    # a caller thinking in paths relative to the DAV root.
     def path_of(element)
       href = element.at_xpath("./d:href", NAMESPACES)&.text
       return if href.blank?
 
       absolute = URI::DEFAULT_PARSER.unescape(URI.parse(href).path)
-      return unless absolute.start_with?(endpoint.dav_root)
+      prefix = endpoint.dav_href_prefix
+      return unless absolute.start_with?(prefix)
 
-      absolute.delete_prefix(endpoint.dav_root).delete_prefix("/").delete_suffix("/")
+      absolute.delete_prefix(prefix).delete_prefix("/").delete_suffix("/")
     end
 
     # Escaped per segment: a `/` separates, and only the rest is data. Escaping
-    # the whole path would turn one directory into a file with slashes in its name.
+    # the whole path would turn one directory into a file with slashes in its
+    # name. Stays relative, so Faraday keeps the base URL's own path.
     def url_for(path)
       segments = path.to_s.split("/").reject(&:blank?).map { |segment| ERB::Util.url_encode(segment) }
 

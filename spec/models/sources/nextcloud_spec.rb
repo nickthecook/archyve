@@ -8,7 +8,9 @@ RSpec.describe Sources::Nextcloud do
   let(:root) { "/remote.php/dav/files/archyve" }
 
   before do
-    allow(endpoint).to receive(:client).and_return(Faraday.new { |f| f.adapter(:test, stubs) })
+    allow(endpoint).to receive(:client).and_return(
+      Faraday.new(url: endpoint.base_url) { |f| f.adapter(:test, stubs) }
+    )
   end
 
   # One entry in a stubbed listing. `path` is relative to the DAV root, the way
@@ -207,7 +209,7 @@ RSpec.describe Sources::Nextcloud do
     context "when the server can't be reached" do
       before do
         allow(endpoint).to receive(:client).and_return(
-          Faraday.new do |f|
+          Faraday.new(url: endpoint.base_url) do |f|
             f.response :raise_error
             f.adapter(:test, stubs)
           end
@@ -272,7 +274,7 @@ RSpec.describe Sources::Nextcloud do
 
       before do
         allow(endpoint).to receive(:client).and_return(
-          Faraday.new do |f|
+          Faraday.new(url: endpoint.base_url) do |f|
             f.response :raise_error
             f.adapter(:test, stubs)
           end

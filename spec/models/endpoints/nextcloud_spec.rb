@@ -15,8 +15,10 @@ RSpec.describe Endpoints::Nextcloud do
   end
 
   describe "#dav_root" do
+    # Relative, so Faraday appends it to the base URL rather than replacing that
+    # URL's own path — see #dav_href_prefix.
     context "with an ordinary username" do
-      it { expect(endpoint.dav_root).to eq("/remote.php/dav/files/archyve") }
+      it { expect(endpoint.dav_root).to eq("remote.php/dav/files/archyve") }
     end
 
     # Nextcloud user ids may hold spaces and @ signs, and the root is a URL path
@@ -24,7 +26,25 @@ RSpec.describe Endpoints::Nextcloud do
     context "with a username needing escaping" do
       subject(:endpoint) { build(:nextcloud_endpoint, username: "ada lovelace@example.com") }
 
-      it { expect(endpoint.dav_root).to eq("/remote.php/dav/files/ada%20lovelace%40example.com") }
+      it { expect(endpoint.dav_root).to eq("remote.php/dav/files/ada%20lovelace%40example.com") }
+    end
+  end
+
+  describe "#dav_href_prefix" do
+    context "with the server at an origin" do
+      subject(:endpoint) { build(:nextcloud_endpoint, base_url: "https://cloud.test", username: "archyve") }
+
+      it { expect(endpoint.dav_href_prefix).to eq("/remote.php/dav/files/archyve") }
+    end
+
+    # What the server writes in a `d:href` carries whatever path the base URL
+    # has, so matching against the bare DAV root would reject every entry.
+    context "with the server under a subpath" do
+      subject(:endpoint) do
+        build(:nextcloud_endpoint, base_url: "https://example.com/nextcloud", username: "archyve")
+      end
+
+      it { expect(endpoint.dav_href_prefix).to eq("/nextcloud/remote.php/dav/files/archyve") }
     end
   end
 
@@ -66,7 +86,7 @@ RSpec.describe Endpoints::Nextcloud do
     # so a test connection without it would prove nothing about the failure path.
     before do
       allow(Http).to receive(:connection).and_return(
-        Faraday.new do |f|
+        Faraday.new(url: endpoint.base_url) do |f|
           f.response :raise_error
           f.adapter(:test, stubs)
         end
