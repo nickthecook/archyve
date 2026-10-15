@@ -12,6 +12,23 @@ RSpec.describe InferenceServer do
     end
   end
 
+  # What a streamed delta is worth when the server sent no count of its own.
+  # Ollama is the only one that flushes a token at a time; assuming it of
+  # anything else reported a third of the real rate. See Chat::Pace.
+  describe "#one_token_per_delta?" do
+    context "with Ollama" do
+      it "counts a delta as a token" do
+        expect(create(:ollama_server)).to be_one_token_per_delta
+      end
+    end
+
+    context "with anything speaking the OpenAI API" do
+      it "assumes nothing, whatever flavour it is" do
+        expect(create(:openai_server, config: { flavour: "vllm" })).not_to be_one_token_per_delta
+      end
+    end
+  end
+
   describe InferenceServers::Ollama do
     describe "the address" do
       context "when it carries the /v1 suffix RubyLLM wants" do

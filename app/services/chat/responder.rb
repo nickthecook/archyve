@@ -4,16 +4,6 @@ module Chat
   # Answers one user message: replays the conversation, hands the model its
   # tools, and streams what comes back into a Turn.
   #
-  # ## Why a tool-capable model is required
-  #
-  # There is no fallback that stuffs the user's message into a prompt as
-  # context. That approach answers the wrong question: retrieval isn't only
-  # *finding* passages, it's deciding whether this message calls for a search at
-  # all and what to search for, and a user's message is frequently neither a
-  # good query nor a request to search anything. A model that can't call tools
-  # can't make either decision, so chat declines rather than degrading into
-  # something that looks like it works.
-  #
   # ## Nothing here raises at the user
   #
   # Every failure ends as a recorded error on the turn. A chat that 500s loses
@@ -56,11 +46,12 @@ module Chat
       Current.api_call_traceable = @answer
 
       chat = build_chat(model, turn)
+      assumed = assumed_token_count(model)
       chat.ask(@user_message.text) do |chunk|
         # One count for both channels, because a chunk carries text on one of
-        # them: whichever it is, the other call returns before it ticks. One
-        # token per delta for a server that doesn't count them — see Chat::Pace.
-        tokens = chunk.streamed_token_count || 1
+        # them: whichever it is, the other call returns before it ticks. Nil
+        # where neither the server nor the assumption can say — see Chat::Pace.
+        tokens = chunk.streamed_token_count || assumed
         # Two channels, one stream. Providers that reason put the analysis in
         # `thinking` and only the reply in `content`; the turn keeps them apart
         # so the transcript can too. A provider that doesn't reason simply never
@@ -80,6 +71,13 @@ module Chat
       Rails.logger.error("chat turn failed for conversation #{@conversation.id}: #{e.class}: #{e.message}")
       note_unreachable(model, e)
       turn.fail!(failure_message(model, e))
+    end
+
+    # What a delta is worth where the server didn't say — one token on Ollama,
+    # and nothing anywhere else. Resolved once per turn: it is a fact about the
+    # server, and asking per chunk would ask thousands of times.
+    def assumed_token_count(model)
+      1 if model.inference_server.one_token_per_delta?
     end
 
     # Only a genuine no-answer marks the server down. This rescue is deliberately

@@ -38,6 +38,25 @@ RSpec.describe Chat::Pace do
       end
     end
 
+    # The server sent no count and Archyve has no basis for assuming one. The
+    # tokens behind that delta are still in the text, so counting the rest
+    # would report a confidently low rate.
+    context "when a delta arrives uncounted" do
+      before do
+        allow(Time).to receive(:current).and_return(Time.zone.at(0), Time.zone.at(1))
+        pace.tick(4)
+        pace.tick(nil)
+      end
+
+      it "reports no token count" do
+        expect(pace.attributes[:token_count]).to be_nil
+      end
+
+      it "still reports the span" do
+        expect(pace.attributes[:generation_ms]).to eq(1000)
+      end
+    end
+
     context "when a single delta arrives" do
       before { pace.tick }
 

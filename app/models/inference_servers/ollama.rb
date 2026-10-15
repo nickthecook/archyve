@@ -50,6 +50,10 @@ module InferenceServers
 
     def ruby_llm_provider = :ollama
 
+    # Ollama flushes its stream a token at a time, so counting deltas is
+    # counting tokens here — the one server where that holds.
+    def one_token_per_delta? = true
+
     # RubyLLM talks to the OpenAI-compatible endpoint, which lives under /v1.
     def apply_config(config)
       config.ollama_api_base = "#{base_url}/v1"

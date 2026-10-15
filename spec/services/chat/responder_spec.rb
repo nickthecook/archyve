@@ -44,7 +44,8 @@ RSpec.describe Chat::Responder do
     let(:thinking) { nil }
 
     # What a server that batches tokens into one event reports for the chunk;
-    # nil is the ordinary case, and means one token per delta.
+    # nil is the ordinary case, and leaves the count to the server's own
+    # streaming habits — see InferenceServer#one_token_per_delta?.
     let(:streamed_token_count) { nil }
 
     # What the server says the prompt cost it, on the usage chunk that ends a
@@ -70,10 +71,29 @@ RSpec.describe Chat::Responder do
       end
     end
 
-    context "when the server counts nothing" do
+    context "when Ollama counts nothing" do
       it "falls back to a token per delta" do
         respond
         expect(turn.segments.sole.token_count).to eq(1)
+      end
+    end
+
+    # Any other server might be batching or not, and the stream doesn't say.
+    # A rate is withheld rather than guessed — Views::Conversations::Rate
+    # renders nothing for a segment with no count.
+    context "when an OpenAI-compatible server counts nothing" do
+      let(:chat_model) do
+        create(:inference_model, kind: "chat", supports_tools: true, inference_server: create(:openai_server))
+      end
+
+      it "records no token count" do
+        respond
+        expect(turn.segments.sole.token_count).to be_nil
+      end
+
+      it "still records the span" do
+        respond
+        expect(turn.segments.sole.generation_ms).not_to be_nil
       end
     end
 

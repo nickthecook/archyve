@@ -35,5 +35,19 @@ RSpec.describe Message do
         expect(message.tokens_per_second).to be_nil
       end
     end
+
+    # vLLM counts the tokens on its reasoning channel and not on its answer, so
+    # a turn can hold one segment of each. Reporting the pair as a rate would
+    # divide the answer's seconds by the reasoning's tokens alone.
+    context "when one segment streamed uncounted" do
+      before do
+        create(:thinking_segment, message:, position: 1, token_count: 78, generation_ms: 1000)
+        create(:segment, message:, position: 2, token_count: nil, generation_ms: 4000)
+      end
+
+      it "has no rate" do
+        expect(message.tokens_per_second).to be_nil
+      end
+    end
   end
 end

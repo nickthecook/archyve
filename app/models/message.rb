@@ -65,7 +65,13 @@ class Message < ApplicationRecord
   # Summing the spans rather than measuring end to end is the point: a turn that
   # searched spent seconds waiting on the archive and on its own prompt, and
   # those are not the model generating slowly. What is left is generation.
+  # One uncounted segment withholds the whole turn's rate. Its span is in the
+  # denominator whatever happens to its tokens, so a turn that reasoned with
+  # counts and then answered without them would report the two together as a
+  # fraction of the real speed.
   def tokens_per_second
+    return if segments.any?(&:uncounted?)
+
     tokens = segments.sum { it.token_count.to_i }
     elapsed = segments.sum { it.generation_ms.to_i }
     return if tokens.zero? || elapsed.zero?

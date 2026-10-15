@@ -112,6 +112,12 @@ class InferenceServer < ApplicationRecord
   # InferenceServers::OpenAI#stream_params for the one that doesn't.
   def stream_params = {}
 
+  # Whether a streamed delta that carries no count of its own is worth exactly
+  # one token. False here, and overridden only by Ollama: assuming it of a
+  # server that batches reports a third of the real rate, and a wrong rate is
+  # worse than none. See Chat::Pace.
+  def one_token_per_delta? = false
+
   # The per-call RubyLLM config for this server.
   #
   # RubyLLM's provider settings are global and single-slot — there is one

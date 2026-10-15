@@ -50,6 +50,12 @@ class Segment < ApplicationRecord
     token_count * 1000.0 / generation_ms
   end
 
+  # Streamed for a measurable span, but with no count to show for it — the
+  # server sent none and Archyve had no basis to assume one. The span is real,
+  # which is what makes this worth naming: a turn that folded it in would
+  # divide real seconds by missing tokens. See Message#tokens_per_second.
+  def uncounted? = token_count.nil? && generation_ms.to_i.positive?
+
   # The two kinds that are words in `content`. Kept as a predicate rather than
   # `text? || thinking?` at each call site so a fourth kind has one place to
   # declare itself as prose.

@@ -287,6 +287,21 @@ RSpec.describe Chat::Turn do
       end
     end
 
+    # A delta nobody could count takes the whole segment's count with it: the
+    # tokens behind it are in the text either way, so counting the rest would
+    # report a confidently low rate. Chat::Responder decides when that happens.
+    context "when a delta arrives uncounted" do
+      before do
+        turn.append("Every ", tokens: 3)
+        turn.append("90 days. ", tokens: nil)
+        turn.finish
+      end
+
+      it "leaves the segment unmeasured" do
+        expect(segments.map(&:token_count)).to eq([nil])
+      end
+    end
+
     # Nothing was generated, so there is no rate to claim — not a rate of zero.
     context "when the turn only searched" do
       before do

@@ -854,6 +854,17 @@ differ in ways the app cannot ignore — so `InferenceServers::OpenAI` carries a
   `return_token_ids`, and `Chat::Pace` ticks by the count in each chunk — see
   that class for why the response's own total can't stand in for it, and
   `config/initializers/ruby_llm_token_count.rb` for the field RubyLLM drops.
+- **A flavour is a claim, so no rate is shown unless the counts arrive.**
+  Detection reads `/v1/models`, and a proxy answers that endpoint as itself —
+  a LiteLLM in front of vLLM reports `owned_by: "openai"`, detects as nothing,
+  and is counted a token per delta at a third of its real speed. The fix for
+  the figure is the hand-picked flavour; the fix for the *trust* is
+  `InferenceServer#one_token_per_delta?`, true only for Ollama. Everything
+  else counts what the server counted or reports no rate at all —
+  `Chat::Responder` passes nil where it has no basis to assume, and one
+  uncounted delta leaves its whole segment unmeasured. Context usage is
+  unaffected throughout: it is the server's own `prompt_tokens` off the usage
+  chunk, which is also why it only appears once a turn completes.
 - **Why not send the parameter to everyone.** `return_token_ids` is vLLM's, and
   an unknown argument is a rejected call rather than a quietly ignored field.
   The flavour is what keeps a provider-specific request off every other

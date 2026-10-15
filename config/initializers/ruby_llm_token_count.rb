@@ -8,8 +8,9 @@
 # and RubyLLM's chunk builder drops the field, so this carries it through to
 # Chat::Pace.
 #
-# Nil for a provider that doesn't send it, which Pace reads as one token per
-# delta — right for Ollama, which streams exactly that.
+# Nil for a provider that doesn't send it. Chat::Responder decides what a
+# delta is worth then: one token on Ollama, which streams exactly that, and
+# nothing anywhere else — see InferenceServer#one_token_per_delta?.
 RubyLLM::Chunk.class_eval { attr_accessor :streamed_token_count }
 
 module RubyLLM

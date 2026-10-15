@@ -49,8 +49,8 @@ class Views::Settings::InferenceServers::Form < Components::Base
   end
 
   def software_hint
-    "Which server is behind the address. Archyve works it out the first time it talks to one — " \
-      "set it by hand if something in between hides what it is."
+    "Which inference server is at this endpoint. Archyve will try to detect it, but if you use a proxy like LiteLLM" \
+      " Archyve will not be able detect it. In that case, set this by hand."
   end
 
   def flavour_select

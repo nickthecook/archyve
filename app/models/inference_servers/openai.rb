@@ -1,40 +1,13 @@
 module InferenceServers
-  # OpenAI, or anything that speaks its API — vLLM, LiteLLM, LM Studio, a
-  # gateway. Leave the address blank for OpenAI itself; set it to reach one of
-  # the others.
-  #
-  # Discovery here goes through RubyLLM rather than direct HTTP, the opposite of
-  # Ollama. /v1/models is all this API offers, so there is nothing to gain by
-  # bypassing the gem — and RubyLLM's own model registry fills in context
-  # windows for the models it recognises, which is more than the endpoint says.
-  #
-  # What it cannot report is which models are embedders: an OpenAI-compatible
-  # /v1/models is a list of ids and nothing more. Discovered#kind comes back nil
-  # and the import screen asks. That isn't a shortcoming worth coding around —
-  # the endpoint genuinely doesn't know.
-  #
-  # vLLM and LiteLLM say more than the standard requires: every entry carries the
-  # context length it is serving that model at, under a field name each picked
-  # for itself. See #context_window_for and the initializer it points to.
+  # use RubyLLM and not Ollama directly via HTTP, since OpenAI doesn't return all the info we need and RubyLLM fills
+  # in some blanks
   class OpenAI < InferenceServer
-    # What RubyLLM calls tool support in a Model::Info's capabilities, and the
-    # family it reports for an id it has no pattern for.
+    # the RubyLLM name for tool calling capability
     FUNCTION_CALLING = "function_calling".freeze
+    # the RubyLLM family string when it doesn't know what family a model is
     UNKNOWN_FAMILY = "other".freeze
 
-    # Families that are a different *call*, not a different input — so Archyve
-    # has no `kind` to file them under and won't offer them for import.
-    #
-    # The distinction matters and is easy to get backwards. `gpt-4o-audio` is a
-    # **chat** model that happens to accept audio, so it is absent from this
-    # table and imports as chat with audio as a capability; `whisper` and `tts`
-    # are transcription and synthesis, driven by RubyLLM.transcribe and a
-    # different endpoint entirely. Ollama draws the same line for us —
-    # gemma4 reports `["completion", "vision", "audio", "tools", "thinking"]`,
-    # where `completion` is the kind and the rest are capabilities of it.
-    #
-    # These entries retire themselves: the day Archyve paints or transcribes,
-    # the matching line comes out and becomes a kind instead.
+    # these "families" aren't usable, since they don't handle text
     UNUSABLE_FAMILIES = {
       /image/ => "an image model",
       /tts/ => "a speech-synthesis model",
@@ -44,18 +17,12 @@ module InferenceServers
       /\A(?:babbage|davinci)\z/ => "a legacy completion model"
     }.freeze
 
-    # Which server is behind the API, as stored value => label. It decides how a
-    # streamed chat is counted — see #stream_params — and is detected rather
-    # than asked for, so nobody has to know that any of this is a question.
+    # which server implementation is behind the OpenAI API; we try to detect these
     FLAVOURS = { "openai" => "OpenAI", "vllm" => "vLLM" }.freeze
 
-    # What vLLM puts in `owned_by` on every model it lists. OpenAI itself says
-    # "openai" or "system"; a gateway says whatever it is proxying.
+    # vLLM puts this string in `owned_by`; more may be added here
     VLLM_OWNER = "vllm".freeze
 
-    # Embedding models are recognisable, but unusable without a dimension count
-    # this API never reports — and Archyve's column is a fixed 768. Pointed at
-    # the manual form, which has a dimensions field and validates it.
     EMBEDDING_SKIP =
       "Dimensions aren't discoverable from this API — add it by hand if it's #{Embedding::DIMENSIONS}-dimension.".freeze
 
@@ -64,9 +31,7 @@ module InferenceServers
     validates :api_key, presence: true
     validates :flavour, inclusion: { in: FLAVOURS.keys }, allow_blank: true
 
-    # `flavour` is a person overruling the detection; `detected_flavour` is what
-    # the endpoint last said about itself, rewritten on every check so a host
-    # that becomes something else stops being read as what it was.
+    # `flavour` is where we store a user-override; `detected_flavour` is what we detected
     store_accessor :config, :flavour, :detected_flavour
 
     def self.type_label = "OpenAI"
