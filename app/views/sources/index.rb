@@ -69,7 +69,7 @@ class Views::Sources::Index < Views::Base
             span(class: "truncate text-sm font-medium text-fg") { source.name }
             span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { source.type_label }
           end
-          p(class: "mt-1 truncate font-mono text-xs text-faint") { subtitle(source) }
+          p(class: "mt-1 truncate font-mono text-xs text-faint") { source.location } if source.location.present?
         end
         state(source)
       end
@@ -78,10 +78,6 @@ class Views::Sources::Index < Views::Base
         span(class: "text-faint") { last_scan(source) }
       end
     end
-  end
-
-  def subtitle(source)
-    source.try(:path) || "Documents uploaded by hand"
   end
 
   def document_count(source)
