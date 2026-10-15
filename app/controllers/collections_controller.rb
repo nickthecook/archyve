@@ -4,7 +4,7 @@ class CollectionsController < ApplicationController
   # One row per collection for the index. `documents_count` and `status_counts`
   # cover only *active* memberships (the derived "current contents"); a removed
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].
-  Row = Data.define(:collection, :documents_count, :status_counts, :source_fed, :last_activity_at)
+  Row = Data.define(:collection, :documents_count, :status_counts, :last_activity_at)
   # A document as it sits in one collection: the document plus how it got here
   # (its membership origin), which decides whether the user may remove it, and
   # whether they may delete it outright — a different question with a different
@@ -41,7 +41,6 @@ class CollectionsController < ApplicationController
       collection:,
       document_rows:,
       status_counts:,
-      source_fed: collection.sources.exists?,
       candidates: addable_documents(collection),
       sources: collection.sources.order(:name),
       manageable_source_ids: manageable_source_ids(collection),
@@ -123,13 +122,12 @@ class CollectionsController < ApplicationController
   end
 
   # Assemble every row from a fixed set of aggregate queries (no per-collection
-  # N+1): status breakdown, source-fed set, and last activity.
+  # N+1): status breakdown and last activity.
   def build_rows(collections)
     status_by_collection = CollectionMembership.active
       .joins(:document)
       .group(:collection_id, "documents.status")
       .count # => { [collection_id, status] => n }
-    fed = SourceCollection.distinct.pluck(:collection_id).to_set
     last_activity = CollectionMembership.active.group(:collection_id).maximum(:created_at)
 
     collections.map do |collection|
@@ -140,7 +138,6 @@ class CollectionsController < ApplicationController
         collection:,
         documents_count: status_counts.values.sum,
         status_counts:,
-        source_fed: fed.include?(collection.id),
         last_activity_at: last_activity[collection.id] || collection.updated_at
       )
     end

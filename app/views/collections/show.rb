@@ -9,11 +9,10 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, source_fed:, candidates:, sources:, manageable_source_ids:, attachable_sources:)
+  def initialize(collection:, document_rows:, status_counts:, candidates:, sources:, manageable_source_ids:, attachable_sources:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
-    @source_fed = source_fed
     @candidates = candidates
     @sources = sources
     @manageable_source_ids = manageable_source_ids
@@ -215,18 +214,16 @@ class Views::Collections::Show < Views::Base
 
     a(
       href: collection_people_path(@collection),
-      class: "text-xs text-muted hover:text-fg transition-colors"
+      class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg " \
+             "hover:border-line-2 transition-colors"
     ) { "People" }
   end
 
   def header_block
     header(class: "mb-7") do
-      div(class: "mb-2 flex items-center justify-between gap-3") do
-        h1(class: "text-2xl font-semibold tracking-tight") { @collection.name }
-        div(class: "flex shrink-0 items-center gap-4") do
-          source_marker if @source_fed
-          people_link
-        end
+      div(class: "mb-2 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
+        h1(class: "min-w-0 truncate text-2xl font-semibold tracking-tight") { @collection.name }
+        people_link
       end
       description
       # Swapped by the document list's poll, not its own — see #documents_region.
@@ -298,13 +295,6 @@ class Views::Collections::Show < Views::Base
 
     processed = @status_counts["processed"].to_i
     "#{total} #{'document'.pluralize(total)} · #{processed} processed"
-  end
-
-  def source_marker
-    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a source") do
-      span(class: "h-1.5 w-1.5 rounded-full bg-accent/70")
-      plain "Source"
-    end
   end
 
   # Search preset to this collection: ?c=<slug>. The chip names the active scope.

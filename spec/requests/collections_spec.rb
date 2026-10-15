@@ -50,6 +50,11 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
+    it "offers the People button to whoever administers the collection" do
+      request
+      expect(response.body).to include(collection_people_path(collection))
+    end
+
     # Deleting is work on the source that produced the document, so the button
     # follows a grant there — not the one that lets you file things here.
     describe "the per-document Delete button" do
@@ -231,6 +236,26 @@ RSpec.describe "Collections", type: :request do
     end
   end
 
+  describe "GET /collections/:slug as an operator" do
+    subject(:request) { get collection_path(collection) }
+
+    let(:collection) { create(:collection, name: "House") }
+
+    before { create(:collection_user, :operator, collection:, user: current_user) }
+
+    it "renders" do
+      request
+      expect(response).to have_http_status(:ok)
+    end
+
+    # Filing documents into a collection is not the same right as deciding who
+    # may see it.
+    it "offers no way to hand out access" do
+      request
+      expect(response.body).not_to include(collection_people_path(collection))
+    end
+  end
+
   describe "GET /collections/:slug as a reader" do
     subject(:request) { get collection_path(collection) }
 
@@ -252,6 +277,11 @@ RSpec.describe "Collections", type: :request do
     it "offers no way to delete the collection" do
       request
       expect(response.body).not_to include("Delete this collection")
+    end
+
+    it "offers no way to hand out access" do
+      request
+      expect(response.body).not_to include(collection_people_path(collection))
     end
   end
 

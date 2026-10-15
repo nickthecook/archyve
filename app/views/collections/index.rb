@@ -143,10 +143,7 @@ class Views::Collections::Index < Views::Base
       class: "flex h-full flex-col rounded-lg border border-line bg-ink/40 p-4 hover:border-line-2 transition-colors",
       data: { list_filter_target: "item", name: collection.name.downcase }
     ) do
-      div(class: "mb-3 flex items-start justify-between gap-3") do
-        span(class: "truncate text-sm font-medium text-fg") { collection.name }
-        source_marker if row.source_fed
-      end
+      div(class: "mb-3 truncate text-sm font-medium text-fg") { collection.name }
       # Clamped rather than truncated: a description is a sentence or two, and
       # one line of it says less than nothing about what a collection holds.
       p(class: "mb-3 line-clamp-2 text-xs leading-relaxed text-faint") { collection.description } if collection.description.present?
@@ -157,13 +154,6 @@ class Views::Collections::Index < Views::Base
           span(class: "text-faint") { updated(row.last_activity_at) }
         end
       end
-    end
-  end
-
-  def source_marker
-    span(class: "shrink-0 inline-flex items-center gap-1 text-xs text-faint", title: "Fed by a source") do
-      span(class: "h-1.5 w-1.5 rounded-full bg-accent/70")
-      plain "Source"
     end
   end
 
