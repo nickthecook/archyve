@@ -99,7 +99,7 @@ class Views::Documents::Detail < Components::Base
     if chunk.markdown.present?
       div(class: "answer text-sm leading-relaxed text-muted") { raw safe(Markdown.to_html(chunk.markdown)) }
     else
-      pre(class: "whitespace-pre-wrap font-sans text-sm leading-relaxed text-muted") { chunk.content }
+      pre(class: "whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-muted") { chunk.content }
     end
   end
 end
