@@ -205,19 +205,17 @@ RSpec.describe "Conversations", type: :request do
       end
 
       context "when the models are spread across servers" do
-        let(:options) { response.body.scan(%r{<option[^>]*>([^<]*)</option>}).flatten }
-
         before do
           create(:inference_model, :tools, name: "qwen3:8b", inference_server: create(:inference_server, name: "Workshop"))
           request
         end
 
-        it "says which server each is on" do
-          expect(options).to all(include("Workshop").or(include(chat_model.inference_server.name)))
+        it "files each under its server" do
+          expect(response.body).to include(%(<optgroup label="Workshop"><option value=))
         end
 
-        it "lines the server names up" do
-          expect(options.map { it.index("|") }.uniq.size).to eq(1)
+        it "leaves the model names to themselves" do
+          expect(response.body).to include(">qwen3:8b<")
         end
       end
 
@@ -227,8 +225,8 @@ RSpec.describe "Conversations", type: :request do
           request
         end
 
-        it "leaves the server unsaid" do
-          expect(response.body).to include(">qwen3:8b<")
+        it "does not group them" do
+          expect(response.body).not_to include("<optgroup")
         end
       end
 

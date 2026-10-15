@@ -13,11 +13,6 @@
 # it degrades to a label: there is nothing to choose, but still something worth
 # saying about which model is about to answer.
 class Views::Conversations::ModelPicker < Components::Base
-  # A browser renders option text as plain text, so the only column rule on
-  # offer is a monospace face and padding the shorter names out to meet it.
-  NBSP = " "
-  GAP = NBSP * 2
-
   # `caption` names the choice, which the composer needs — several controls sit
   # in that row and each has to say what it is. The corridor passes nil: its
   # field says "Ask your archive" one line above, so saying it again is the
@@ -50,22 +45,23 @@ class Views::Conversations::ModelPicker < Components::Base
       class: "rounded border border-line bg-void/70 px-2.5 py-1 font-mono text-xs text-muted " \
              "outline-none focus:border-accent hover:text-fg transition-colors"
     ) do
-      @models.each do |model|
-        option(value: model.id, selected: model.id == @selected&.id) { label_for(model) }
-      end
+      servers.size > 1 ? grouped : @models.each { option_for(it) }
     end
   end
 
-  # Which server a model is on only matters once there is more than one of them
-  # — and then it matters for every option, not just the ones whose names
-  # collide: two servers can be worth choosing between on latency or cost alone.
-  def label_for(model)
-    return model.label if servers.size < 2
-
-    "#{model.label}#{NBSP * (width - model.label.length)}#{GAP}|#{GAP}#{model.inference_server.name}"
+  # Which server a model is on only matters once there is more than one of them,
+  # and then it matters for every model: two servers can be worth choosing
+  # between on latency or cost alone. Grouping says it once per server rather
+  # than repeating it down every option.
+  def grouped
+    @models.group_by(&:inference_server).sort_by { |server, _| server.name }.each do |server, models|
+      optgroup(label: server.name) { models.each { option_for(it) } }
+    end
   end
 
-  def width = @width ||= @models.map { it.label.length }.max
+  def option_for(model)
+    option(value: model.id, selected: model.id == @selected&.id) { model.label }
+  end
 
   def servers = @servers ||= @models.map(&:inference_server_id).uniq
 
