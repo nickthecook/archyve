@@ -74,6 +74,21 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
       end
     end
 
+    context "with the Nextcloud type" do
+      before { get new_settings_endpoint_path(type: "Endpoints::Nextcloud") }
+
+      it "renders its credentials" do
+        expect(response.body).to include("Username")
+        expect(response.body).to include("App password")
+      end
+
+      # An app password rather than the account password, so the form has to say
+      # where one comes from.
+      it "says where to get one" do
+        expect(response.body).to include("Devices &amp; sessions")
+      end
+    end
+
     context "with a type nobody registered" do
       it "refuses rather than constantizing it" do
         get new_settings_endpoint_path(type: "User")

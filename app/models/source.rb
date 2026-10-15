@@ -69,11 +69,27 @@ class Source < ApplicationRecord
     def skipped? = skip_reason.present?
   end
 
+  # Formats Docling can extract. Anything else a source enumerates is passed over
+  # silently — a source is allowed to hold things that aren't documents, and
+  # reporting every .DS_Store as a problem would be noise.
+  #
+  # On the base class because it describes *extraction*, not any one way of
+  # finding files: a folder on disk and a folder in Nextcloud answer this
+  # identically. Narrowing the list needs the same care MAX_FILE_SIZE gets — a
+  # file that drops out of the list is not a file that left the source.
+  EXTRACTABLE_EXTENSIONS = %w[
+    .pdf .docx .pptx .xlsx .html .htm .md .markdown .txt .csv .adoc
+  ].freeze
+
+  def self.max_file_size
+    ENV.fetch("ARCHYVE_MAX_FILE_SIZE_MB", "100").to_i.megabytes
+  end
+
   # Concrete source types, in the order they should be offered in the UI.
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched.
-  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Web Sources::ManualUpload].freeze
+  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Nextcloud Sources::Web Sources::ManualUpload].freeze
 
   # Fallback when a source names no interval of its own. On the base class
   # because Source.due_for_sync inlines it into SQL for every type at once.
@@ -314,6 +330,9 @@ class Source < ApplicationRecord
   # option would be offered for nothing.
   def self.supports_ocr? = true
 
+  # Whether this type applies EXTRACTABLE_EXTENSIONS and the size limit
+  def self.filters_extensions? = false
+
   # The form fields particular to this type, as Endpoint.form_component does.
   # Named through a constant rather than constantized from the type string.
   def self.form_component
@@ -363,6 +382,7 @@ class Source < ApplicationRecord
   def current_reprocess = reprocesses.running.first
   def resumable_scan? = self.class.resumable_scan?
   def supports_ocr? = self.class.supports_ocr?
+  def filters_extensions? = self.class.filters_extensions?
   def endpoint_type = self.class.endpoint_type
   def feeds_collections? = self.class.feeds_collections?
   def user_accessible_links? = self.class.user_accessible_links?
@@ -382,10 +402,13 @@ class Source < ApplicationRecord
   # filename has to answer this itself.
   def filename_for(document) = File.basename(document.external_id)
 
-  # What this source's form needs from the far end to draw its pickers, or nil
+  # What this source's form needs from the endpoint to draw its pickers, or nil
   # for a type whose configuration is entirely local. Loaded by the controller,
   # never the view: it is a network call.
-  def catalogue = nil
+  #
+  # `at` is where in the source the picker is currently looking, for a type whose
+  # catalogue is too big to list in one call. Types that list everything ignore it.
+  def catalogue(at: nil) = nil
 
   # Collections this source feeds — produced documents auto-join these.
   def fed_collections

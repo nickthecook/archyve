@@ -17,7 +17,7 @@ class Views::Settings::Endpoints::Form < Components::Base
       errors if @endpoint.errors.any?
 
       field("Name", "A label for this server — how operators pick it when creating a source.") do
-        text_input(:name, @endpoint.name, placeholder: "Work wiki", autofocus: @endpoint.new_record?)
+        text_input(:name, @endpoint.name, placeholder: "Work server", autofocus: @endpoint.new_record?)
       end
 
       field("Address", address_hint) do

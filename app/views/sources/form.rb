@@ -24,6 +24,7 @@ class Views::Sources::Form < Components::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "patch") if @source.persisted?
       input(type: "hidden", name: "type", value: @source.class.name)
+      default_submit
 
       errors if @source.errors.any?
 
@@ -60,6 +61,13 @@ class Views::Sources::Form < Components::Base
 
   def type_fields
     raise Source::MissingImplementationError, "#{self.class.name} must implement #type_fields"
+  end
+
+  # Pressing Enter in a text field submits the form's *first* submit button, and
+  # the type-specific fields below are full of GET buttons that re-list the
+  # server. Without this, Enter in the Name field browses instead of saving.
+  def default_submit
+    button(type: "submit", class: "hidden", tabindex: "-1", aria_hidden: "true")
   end
 
   # A source that reads something local has no server to name, and gets no

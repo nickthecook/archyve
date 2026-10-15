@@ -365,6 +365,28 @@ invalidate what we already ingested?** Base URL and token move you to a
 different server or identity → endpoint. Selectors, sync interval, OCR change
 what you take and how → source.
 
+**Nextcloud (2026-10-15).** The fourth syncable type, and the first that is
+shaped like `Sources::Folder` while living behind an endpoint: a WebDAV listing
+*is* a directory listing, so the selection is folders and the eligible files are
+whatever Docling reads. Two things in it are worth writing down.
+
+- **Identity is the path, not `oc:fileid`.** Nextcloud does hand out a file id
+  that survives a move — the thing BookStack's page id buys and a filesystem
+  cannot — but `#read` is given only an `external_id`, and Nextcloud's files
+  endpoint has no GET by file id; resolving one needs a version-dependent
+  `SEARCH`. So a moved file reads as a delete plus a create, as with Folder. The
+  id is still captured, for the `/f/<id>` permalink that *does* survive a move.
+- **There is no listing of a tree.** Nextcloud refuses `Depth: infinity` on
+  `PROPFIND`, so a scan costs one request per directory and the folder picker
+  browses one level at a time rather than drawing a flat tick-list the way
+  BookStack's does. `Source#catalogue(at:)` carries where the picker is looking;
+  types that list everything in one call ignore it.
+
+`EXTRACTABLE_EXTENSIONS` and `max_file_size` moved onto `Source` when this
+landed: they describe *extraction*, so a folder on disk and a folder in
+Nextcloud have to answer them identically. `.filters_extensions?` is the flag
+for a type that enumerates arbitrary files and therefore applies them.
+
 **A second axis, added 2026-09-20: who is allowed to change it.** An endpoint is
 administered in Settings and merely *used* by whoever attaches a source, so it
 is the only place a limit on an operator can live. `Endpoints::Web#path_prefix`

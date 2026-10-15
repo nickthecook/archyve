@@ -14,7 +14,7 @@ class SourcesController < ApplicationController
   PERMITTED_PARAMS = [
     :name, :path, :endpoint_id, :sync_interval_minutes, :ocr,
     :path_prefix, :start_path, :content_selector, :max_pages, :max_depth, :crawl_delay_seconds,
-    { collection_ids: [], selectors: [] }
+    { collection_ids: [], selectors: [], folders: [] }
   ].freeze
 
   before_action :set_source,
@@ -60,7 +60,12 @@ class SourcesController < ApplicationController
     end
   end
 
+  # Assigns submitted fields the way #new does, because the folder picker
+  # navigates by GETting this page: without it, browsing elsewhere would discard
+  # every tick made since the last save.
   def edit
+    @source.assign_attributes(source_params.except(:collection_ids, :endpoint_id)) if params[:source].present?
+
     render Views::Sources::Edit.new(**form_context(@source))
   end
 
@@ -161,7 +166,12 @@ class SourcesController < ApplicationController
   # database: the source's catalogue comes off the far end over HTTP, which is
   # the controller's job and never the view's.
   def form_context(source)
-    { source:, collections: all_collections, endpoints: endpoint_options(source), catalogue: source.catalogue }
+    {
+      source:,
+      collections: all_collections,
+      endpoints: endpoint_options(source),
+      catalogue: source.catalogue(at: params[:browse])
+    }
   end
 
   # Servers this type can point at. A source whose endpoint_type is nil reads

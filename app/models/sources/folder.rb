@@ -11,21 +11,6 @@ module Sources
     # Raised when a path escapes the configured root — see #fetch.
     OutsideRootError = Class.new(StandardError)
 
-    # Formats Docling can extract. Anything else in the folder is passed over
-    # silently — a source directory is allowed to contain things that aren't
-    # documents, and reporting every .DS_Store as a problem would be noise.
-    #
-    # If these ever become per-source configuration, narrowing the list will
-    # need the same treatment MAX_FILE_SIZE gets below: a file that drops out of
-    # the list is not a file that left the source.
-    EXTENSIONS = %w[
-      .pdf .docx .pptx .xlsx .html .htm .md .markdown .txt .csv .adoc
-    ].freeze
-
-    def self.max_file_size
-      ENV.fetch("ARCHYVE_MAX_FILE_SIZE_MB", "100").to_i.megabytes
-    end
-
     store_accessor :config, :path
 
     validates :path, presence: true
@@ -33,6 +18,7 @@ module Sources
 
     def self.supports_sync? = true
     def self.user_creatable? = true
+    def self.filters_extensions? = true
     def self.form_component = Views::Sources::Forms::Folder
 
     def location = path
@@ -67,7 +53,7 @@ module Sources
         # reads outside the root the user configured.
         next if File.symlink?(absolute)
         next unless File.file?(absolute)
-        next unless EXTENSIONS.include?(File.extname(relative).downcase)
+        next unless EXTRACTABLE_EXTENSIONS.include?(File.extname(relative).downcase)
 
         stat = File.stat(absolute)
         next if stat.size.zero?

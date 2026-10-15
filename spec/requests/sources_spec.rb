@@ -446,6 +446,162 @@ RSpec.describe "Sources", type: :request do
     end
   end
 
+  describe "the Nextcloud source" do
+    let(:endpoint) do
+      create(:nextcloud_endpoint, name: "Home cloud", base_url: "https://cloud.test", username: "archyve")
+    end
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+    let(:root) { "/remote.php/dav/files/archyve" }
+
+    def folder(path)
+      "<d:response><d:href>#{root}/#{path}/</d:href><d:propstat><d:prop>" \
+        "<d:resourcetype><d:collection/></d:resourcetype><d:getetag>&quot;e1&quot;</d:getetag>" \
+        "<oc:fileid>7</oc:fileid></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>"
+    end
+
+    # Stubbed on Http rather than on the source, so the endpoint's own Basic auth
+    # and DAV root are exercised on the way through. The first response in a
+    # listing is the directory asked about, which is why each one repeats itself.
+    def stub_cloud
+      allow(Http).to receive(:connection).and_return(Faraday.new { |f| f.adapter(:test, stubs) })
+
+      stub_listing(root, folder("") + folder("Documents") + folder("Policies"))
+      stub_listing("#{root}/Documents", folder("Documents") + folder("Documents/Handbook"))
+    end
+
+    def stub_listing(path, body)
+      stubs.send(:new_stub, :propfind, path) do
+        [207, { "Content-Type" => "application/xml" },
+         %(<?xml version="1.0"?><d:multistatus xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">#{body}</d:multistatus>)]
+      end
+    end
+
+    describe "GET /sources/new" do
+      context "with a server that answers" do
+        before do
+          endpoint
+          stub_cloud
+          get new_source_path(type: "Sources::Nextcloud")
+        end
+
+        it "offers the server" do
+          expect(response.body).to include("Home cloud")
+        end
+
+        it "lists the folders at the root" do
+          expect(response.body).to include("Documents", "Policies")
+        end
+      end
+
+      # The picker browses one directory at a time, so `browse` is what says
+      # where to look next.
+      context "browsing into a folder with a tick already made elsewhere" do
+        before do
+          endpoint
+          stub_cloud
+          get new_source_path(type: "Sources::Nextcloud", browse: "Documents",
+            source: { name: "Shared cloud", endpoint_id: endpoint.id, folders: ["", "Policies"] })
+        end
+
+        it "lists that folder's subfolders" do
+          expect(response.body).to include("Handbook")
+        end
+
+        # A checkbox that isn't on the page submits nothing, so a tick made
+        # somewhere else has to be re-rendered or browsing would forget it.
+        it "keeps the folder picked elsewhere" do
+          expect(response.body).to include("Policies")
+        end
+
+        it "keeps what was typed" do
+          expect(response.body).to include("Shared cloud")
+        end
+      end
+
+      # The listing is a live call, so it has to render something when the app
+      # password has been revoked or the server is down.
+      context "with a server that refuses the app password" do
+        before do
+          endpoint
+          allow(Http).to receive(:connection).and_return(Faraday.new do |f|
+            f.response :raise_error
+            f.adapter(:test, stubs)
+          end)
+          stubs.send(:new_stub, :propfind, root) { [401, {}, ""] }
+
+          get new_source_path(type: "Sources::Nextcloud")
+        end
+
+        it "still renders the form" do
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "says it couldn't read the server, and why" do
+          expect(response.body).to include("Couldn&#39;t read Home cloud", "401")
+        end
+      end
+
+      context "with no Nextcloud endpoints configured" do
+        before { get new_source_path(type: "Sources::Nextcloud") }
+
+        it "points at where one is added" do
+          expect(response.body).to include("No Nextcloud endpoints yet")
+        end
+      end
+    end
+
+    describe "POST /sources" do
+      let(:params) do
+        {
+          type: "Sources::Nextcloud",
+          source: { name: "Cloud", endpoint_id: endpoint.id, folders: ["", "/Documents/", "Policies"] }
+        }
+      end
+
+      before { stub_cloud }
+
+      it "creates it" do
+        expect { post sources_path, params: params }.to change(Sources::Nextcloud, :count).by(1)
+      end
+
+      it "stores the picked folders in one spelling" do
+        post sources_path, params: params
+        expect(Sources::Nextcloud.last.folders).to eq(["Documents", "Policies"])
+      end
+
+      it "points it at the endpoint" do
+        post sources_path, params: params
+        expect(Sources::Nextcloud.last.endpoint).to eq(endpoint)
+      end
+
+      context "with nothing picked" do
+        let(:params) do
+          { type: "Sources::Nextcloud", source: { name: "Cloud", endpoint_id: endpoint.id, folders: [""] } }
+        end
+
+        # A source selecting nothing scans nothing, and everything it had already
+        # produced would be tombstoned on the next pass.
+        it "refuses" do
+          expect { post sources_path, params: params }.not_to change(Sources::Nextcloud, :count)
+        end
+      end
+    end
+
+    describe "PATCH /sources/:id" do
+      let(:source) { create(:nextcloud_source, endpoint:, folders: ["Documents"]) }
+
+      before do
+        create(:source_user, :admin, source:, user: current_user)
+        stub_cloud
+      end
+
+      it "changes which folders are synced" do
+        patch source_path(source), params: { source: { name: source.name, folders: ["Policies"] } }
+        expect(source.reload.folders).to eq(["Policies"])
+      end
+    end
+  end
+
   describe "PATCH /sources/:id" do
     let(:source) { create(:folder_source, path: root) }
 

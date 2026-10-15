@@ -3,7 +3,7 @@
 class Endpoint < ApplicationRecord
   MissingImplementationError = Class.new(StandardError)
 
-  TYPES = %w[Endpoints::Bookstack Endpoints::Web].freeze
+  TYPES = %w[Endpoints::Bookstack Endpoints::Nextcloud Endpoints::Web].freeze
 
   ACCESS_ERROR_LIMIT = 500
   DEFAULT_TIMEOUT = 30

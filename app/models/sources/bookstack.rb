@@ -76,7 +76,9 @@ module Sources
 
     # Everything tickable in the selector picker, or the reason the wiki couldn't
     # say. Recorded rather than raised, the same way Endpoint#access records it.
-    def catalogue
+    # `at` is ignored: the whole catalogue is three calls, so there is nowhere to
+    # browse to.
+    def catalogue(at: nil)
       return Catalogue.new(containers: [], error: nil) if endpoint.blank?
 
       Catalogue.new(containers: load_containers, error: nil)

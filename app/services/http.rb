@@ -7,11 +7,14 @@ require "faraday/retry"
 # retries with backoff, multipart uploads, and ActiveSupport::Notifications
 # instrumentation (which the live pipeline stats will subscribe to).
 module Http
+  # `methods` has to be spelled out to include PROPFIND: faraday-retry defaults to
+  # its own idempotent list, which knows nothing of WebDAV. A listing is a read.
   RETRY_OPTIONS = {
     max: 2,
     interval: 0.5,
     backoff_factor: 2,
-    exceptions: [Faraday::TimeoutError, Faraday::ConnectionFailed]
+    exceptions: [Faraday::TimeoutError, Faraday::ConnectionFailed],
+    methods: Faraday::Retry::Middleware::IDEMPOTENT_METHODS + [:propfind]
   }.freeze
 
   # `raise_errors: false` leaves the response to the caller. Only a crawler

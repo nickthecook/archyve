@@ -27,7 +27,7 @@ class Views::Sources::Forms::Folder < Views::Sources::Form
     div(class: "mt-2 rounded border border-line bg-void/40 px-3 py-2.5") do
       p(class: "text-xs text-muted") { "Scanned, recursively:" }
       div(class: "mt-1.5 flex flex-wrap gap-1") do
-        Sources::Folder::EXTENSIONS.each do |extension|
+        Source::EXTRACTABLE_EXTENSIONS.each do |extension|
           span(class: "rounded border border-line px-1.5 py-0.5 font-mono text-[0.7rem] text-faint") { extension }
         end
       end
@@ -36,7 +36,7 @@ class Views::Sources::Forms::Folder < Views::Sources::Form
   end
 
   def skipped_summary
-    limit = ActiveSupport::NumberHelper.number_to_human_size(Sources::Folder.max_file_size)
+    limit = ActiveSupport::NumberHelper.number_to_human_size(Source.max_file_size)
     "Other extensions are ignored. Hidden files, symlinks, empty files, and files over #{limit} are skipped."
   end
 end

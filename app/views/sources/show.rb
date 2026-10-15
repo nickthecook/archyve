@@ -77,11 +77,12 @@ class Views::Sources::Show < Views::Base
       row("Server", @source.endpoint.name) if @source.endpoint
       row("Folder", @source.path, mono: true) if @source.is_a?(Sources::Folder)
       row("Syncs", selector_summary) if @source.is_a?(Sources::Bookstack)
+      row("Folders", @source.selected_folders.join("  "), mono: true) if @source.is_a?(Sources::Nextcloud)
       row("Scan every", interval) if @source.supports_sync?
       row("OCR", @source.ocr? ? "on" : "off") if @source.supports_ocr?
       row("Last scanned", last_scanned)
-      row("File types", Sources::Folder::EXTENSIONS.join(" "), mono: true) if @source.is_a?(Sources::Folder)
-      row("Size limit", size_limit) if @source.is_a?(Sources::Folder)
+      row("File types", Source::EXTRACTABLE_EXTENSIONS.join(" "), mono: true) if @source.filters_extensions?
+      row("Size limit", size_limit) if @source.filters_extensions?
       row("Feeds", fed_collections)
       row("Documents", document_count)
     end
@@ -100,7 +101,7 @@ class Views::Sources::Show < Views::Base
   end
 
   def size_limit
-    ActiveSupport::NumberHelper.number_to_human_size(Sources::Folder.max_file_size)
+    ActiveSupport::NumberHelper.number_to_human_size(Source.max_file_size)
   end
 
   # Counted by kind rather than named: the names live on the wiki, and a page

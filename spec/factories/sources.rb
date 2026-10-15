@@ -17,6 +17,13 @@ FactoryBot.define do
     selectors { [{ "book" => 1 }] }
   end
 
+  # Needs an Endpoints::Nextcloud: the source validates the pairing.
+  factory :nextcloud_source, class: "Sources::Nextcloud" do
+    sequence(:name) { |n| "Cloud #{n}" }
+    endpoint factory: :nextcloud_endpoint
+    folders { ["Documents"] }
+  end
+
   # Needs an Endpoints::Web: the source validates the pairing.
   factory :web_source, class: "Sources::Web" do
     sequence(:name) { |n| "Docs #{n}" }
