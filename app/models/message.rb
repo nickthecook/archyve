@@ -17,6 +17,24 @@ class Message < ApplicationRecord
 
   validates :position, presence: true, uniqueness: { scope: :conversation_id }
 
+  # How long an unfinished turn may go without producing anything before it is
+  # presumed dead. Generous next to the concurrency window in Chat::RespondJob,
+  # which is what a healthy turn is paced by.
+  HANG_AFTER = 30.minutes
+
+  ABANDONED = "The answer stopped partway and nothing is working on it any more. Ask again.".freeze
+
+  # A turn nothing is working on any more: its worker was killed mid-stream, or
+  # its job was discarded before Chat::Responder ran. Judged on the last segment
+  # written rather than on when the turn opened, because a turn that searches
+  # and reads is legitimately long while still advancing.
+  scope :hung, ->(after: HANG_AFTER) {
+    assistant.where(completed_at: nil).where(
+      "COALESCE((SELECT MAX(segments.updated_at) FROM segments WHERE segments.message_id = messages.id), " \
+      "messages.created_at) < ?", after.ago
+    )
+  }
+
   # Everything a person said, which is always one segment's worth.
   def text = segments.filter_map(&:content).join("\n\n")
 
@@ -30,6 +48,13 @@ class Message < ApplicationRecord
   # Whether the model is still working on this turn. A user's turn is complete
   # the moment it exists; only an assistant's is ever in flight.
   def in_progress? = assistant? && completed_at.nil?
+
+  # Stops the page waiting on a turn nothing will ever finish. Recorded as an
+  # error rather than as a quiet completion: the model never answered, and a
+  # transcript that implies it did is one you cannot trust.
+  def abandon!
+    update!(completed_at: Time.current, error: error.presence || ABANDONED)
+  end
 
   # What the page should say it is waiting for. The gap after a search is the
   # long one — the model re-reads everything it was handed before its first

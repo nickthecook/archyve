@@ -19,6 +19,13 @@ default: &default
     queue: ingestion
     schedule: every 10 minutes
 
+  # Closes chat turns whose worker never came back. Chat::Turn completes a turn
+  # on every ending it survives, so what is left spins forever on the page.
+  sweep_hung_chat_turns:
+    class: Chat::SweepHungTurnsJob
+    queue: default
+    schedule: every 10 minutes
+
   # Ticks more often than InferenceServer::CHECK_INTERVAL on purpose: the tick
   # only enqueues what the scope says is stale, so a short heartbeat means a
   # server that has just gone quiet is probed within minutes of falling out of
