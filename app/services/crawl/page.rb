@@ -14,7 +14,7 @@ module Crawl
 
     def self.parse(html, url:, content_selector: nil)
       document = Nokogiri::HTML5(html.to_s)
-      base = document.at_css("base[href]")&.[]("href").presence || url
+      base = link_base_of(document, url)
 
       # Links and directives are read *before* extraction, which mutates the
       # document — navigation is exactly the furniture Readability throws away,
@@ -24,8 +24,35 @@ module Crawl
         hrefs: hrefs_of(document),
         link_base: base,
         robots: robots_of(document),
-        content: Readability.call(document, selector: content_selector)
+        content: absolutize(Readability.call(document, selector: content_selector), base)
       )
+    end
+
+    # A declared <base href> may itself be relative — "/" and "/docs/" are both
+    # commonplace — and everything downstream joins against this, so it is
+    # resolved here rather than at each use.
+    def self.link_base_of(document, url)
+      declared = document.at_css("base[href]")&.[]("href").presence
+      return url.to_s if declared.nil?
+
+      URI.join(url.to_s, declared.strip).to_s
+    rescue URI::Error
+      url.to_s
+    end
+
+    # Links are rewritten absolute before the extracted HTML becomes bytes: a
+    # chunk is read far from the site it came from, where a relative href
+    # resolves against Archyve and 404s.
+    def self.absolutize(content, base)
+      return content if content.nil? || base.to_s.empty?
+
+      content.css("a[href]").each do |anchor|
+        anchor["href"] = URI.join(base, anchor["href"].to_s.strip).to_s
+      rescue URI::Error
+        anchor.remove_attribute("href")
+      end
+
+      content
     end
 
     def self.title_of(document)

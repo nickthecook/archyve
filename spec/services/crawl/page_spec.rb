@@ -60,6 +60,53 @@ RSpec.describe Crawl::Page do
 
         it { expect(page.link_base).to eq("https://docs.test/docs/") }
       end
+
+      context "with a relative base element" do
+        let(:html) { '<html><head><base href="/handbook/"></head><body></body></html>' }
+
+        it { expect(page.link_base).to eq("https://docs.test/handbook/") }
+      end
+    end
+
+    # A chunk is read somewhere else entirely, where a relative href resolves
+    # against Archyve.
+    describe "links in the article" do
+      let(:html) do
+        <<~HTML
+          <html><head><title>Install</title></head><body><main>
+            <h1>Installing</h1>
+            <p>#{prose} <a href="/docs/config">Rooted</a> <a href="config">Relative</a>
+            <a href="#afterwards">Fragment</a> <a href="https://other.test/x">Absolute</a>
+            <a href="mailto:help@docs.test">Mail</a> <a href="a b">Malformed</a></p>
+          </main></body></html>
+        HTML
+      end
+
+      it "rewrites the relative ones against the page" do
+        expect(page.to_html)
+          .to include('href="https://docs.test/docs/config"')
+          .and include('href="https://docs.test/docs/install#afterwards"')
+      end
+
+      it { expect(page.to_html).to include('href="https://other.test/x"') }
+      it { expect(page.to_html).to include('href="mailto:help@docs.test"') }
+
+      it "drops an href it cannot resolve, keeping the text" do
+        expect(page.to_html).to include("Malformed")
+        expect(page.to_html).not_to include("a b")
+      end
+
+      context "with a base element the links are meant to resolve against" do
+        let(:html) do
+          <<~HTML
+            <html><head><base href="https://docs.test/handbook/"></head><body><main>
+              <p>#{prose} <a href="config">Relative</a></p>
+            </main></body></html>
+          HTML
+        end
+
+        it { expect(page.to_html).to include('href="https://docs.test/handbook/config"') }
+      end
     end
 
     context "with no <main> to believe" do
