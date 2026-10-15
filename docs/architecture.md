@@ -869,6 +869,12 @@ differ in ways the app cannot ignore — so `InferenceServers::OpenAI` carries a
   an unknown argument is a rejected call rather than a quietly ignored field.
   The flavour is what keeps a provider-specific request off every other
   provider.
+- **An empty tool call is a brace vLLM never closes.** Asked for a tool that
+  declares no parameters, vLLM 1.5.1 streams `{` as the whole argument list,
+  and RubyLLM parses that into a `JSON::ParserError` that fails the turn —
+  `config/initializers/ruby_llm_tool_arguments.rb` reads it as no arguments.
+  A *truncated* argument list still raises: the model didn't finish choosing
+  them, so there is nothing to call the tool with.
 
 ## Open items (to settle during implementation)
 
