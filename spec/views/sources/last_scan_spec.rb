@@ -29,6 +29,43 @@ RSpec.describe Views::Sources::LastScan do
     end
   end
 
+  describe "how long the scan took" do
+    context "with a scan measured in days" do
+      before do
+        source.syncs.create!(started_at: 101_638.seconds.ago, finished_at: Time.current, status: "completed")
+      end
+
+      it "rounds the headline off" do
+        expect(result).to include("completed in")
+        expect(result).to include("1 day")
+      end
+
+      it "puts the exact figure on hover" do
+        expect(result).to include("1 day, 4 hours, 13 minutes, and 58 seconds")
+      end
+    end
+  end
+
+  # The bar is full and the scan is over; calling that "Processing" reads as a
+  # pipeline that never finished.
+  describe "the processing heading" do
+    let(:sync) do
+      source.syncs.create!(started_at: 1.minute.ago, finished_at: Time.current, status: "completed")
+    end
+
+    context "with documents still in the pipeline" do
+      before { create(:document, source: source, source_sync: sync, status: "pending") }
+
+      it { expect(result).to include(">Processing<") }
+    end
+
+    context "with every document done" do
+      before { create(:document, source: source, source_sync: sync, status: "processed") }
+
+      it { expect(result).to include(">Processed<") }
+    end
+  end
+
   # Whether the region keeps polling. A finished scan is the end of the story
   # unless another has just been asked for, in which case the run it is waiting
   # for doesn't exist yet and no broadcast will reach this page announcing it.
@@ -78,12 +115,14 @@ RSpec.describe Views::Sources::LastScan do
         sync.items.create!(external_id: "https://site/slow", disposition: "timeout")
       end
 
-      # Matched either side of the apostrophe, which Phlex escapes to &#39;.
-      it { expect(result).to include("12 documents this scan") }
-      it { expect(result).to include("reach were left alone") }
+      it { expect(result).to include("12 documents left alone") }
 
       it "says what caused it" do
         expect(result).to include("1 URL gave no answer")
+      end
+
+      it "keeps the explanation to hover text" do
+        expect(result).to include(described_class::WITHHELD_HINT)
       end
     end
   end
@@ -107,7 +146,7 @@ RSpec.describe Views::Sources::LastScan do
       it { expect(result).to include("200 12") }
 
       it "explains what never reached HTTP at all" do
-        expect(result).to include("No answer in time")
+        expect(result).to include("Pages that gave no answer in time")
       end
     end
   end

@@ -42,16 +42,19 @@ class Views::Sources::LastScan < Components::Base
   # named buckets are the things that never reached HTTP at all, or that we
   # declined before asking.
   DISPOSITIONS = Hash.new { |_hash, key| "HTTP #{key}" }.merge(
-    "timeout" => "No answer in time, after retries.",
-    "connection_failed" => "The host could not be reached.",
-    "robots_excluded" => "robots.txt asked us not to fetch this.",
-    "nothing_readable" => "Fetched, but nothing to index: a client-rendered page, a noindex, or not HTML.",
-    "redirected" => "Pointed somewhere else. The target was crawled on its own if it was in scope.",
-    "not_found" => "The site says this is gone. Any document from it is removed.",
-    "server_error" => "The site answered with an error of its own.",
-    "failed" => "The scan errored on this item and left it alone.",
-    "out_of_scope" => "Read for the links on it, but outside the path — so no document was made from it."
+    "timeout" => "Pages that gave no answer in time, after retries.",
+    "connection_failed" => "Pages whose host could not be reached.",
+    "robots_excluded" => "Pages robots.txt asked us not to fetch.",
+    "nothing_readable" => "Pages fetched with nothing to index: client-rendered, noindex, or not HTML.",
+    "redirected" => "Pages pointing elsewhere. The target was crawled on its own if it was in scope.",
+    "not_found" => "Pages the site says are gone. Any document from them is removed.",
+    "server_error" => "Pages the site answered with an error of its own.",
+    "failed" => "Pages the scan errored on and left alone.",
+    "out_of_scope" => "Pages read for their links, but outside the path — so no document was made."
   ).freeze
+
+  WITHHELD_HINT = "A URL that gave no answer may be hiding documents behind it, so nothing was removed " \
+                  "on that basis. The next clean scan decides."
 
   # Keyed on the source, not the run: a new scan replaces this region with a
   # different run, so the target has to outlive any one of them.
@@ -94,6 +97,10 @@ class Views::Sources::LastScan < Components::Base
     return true if @sync.nil?
     return true if stalled?
 
+    processing_done?
+  end
+
+  def processing_done?
     @sync.finished? && @sync.processing_finished?
   end
 
@@ -113,7 +120,7 @@ class Views::Sources::LastScan < Components::Base
       header_row
       error_row if @sync.error.present?
       stale_warning if @sync.stale_count.positive?
-      withheld_warning if @sync.withheld_count.positive?
+      withheld_note if @sync.withheld_count.positive?
       counts_row
       crawl_row
       processing_row
@@ -160,21 +167,31 @@ class Views::Sources::LastScan < Components::Base
     div(class: "mb-4 flex items-center justify-between gap-3") do
       span(class: "inline-flex items-center gap-2 text-sm text-fg") do
         span(class: "h-1.5 w-1.5 rounded-full #{status_dot}")
-        plain status_label
+        status_label
       end
       span(class: "font-mono text-xs text-faint") { "started #{time_ago_in_words(@sync.started_at)} ago" }
     end
   end
 
   def status_label
-    return "stalled — no worker reported back" if stalled?
+    return plain("stalled — no worker reported back") if stalled?
 
     case @sync.status
-    when "completed" then "completed in #{duration}"
-    when "failed" then "failed after #{duration}"
-    when "paused" then "scanning — paused between passes"
-    else "scanning…"
+    when "completed" then timed_label("completed in")
+    when "failed" then timed_label("failed after")
+    when "paused" then plain("scanning — paused between passes")
+    else plain("scanning…")
     end
+  end
+
+  # Rounded off, because "1 day" is the part worth reading at a glance — but it
+  # hides whether a scan took 25 hours or 47, so the exact figure is on hover.
+  def timed_label(prefix)
+    plain "#{prefix} "
+    span(
+      title: exact_duration,
+      class: "cursor-help underline decoration-dotted decoration-line-2 underline-offset-4"
+    ) { duration }
   end
 
   def status_dot
@@ -193,9 +210,13 @@ class Views::Sources::LastScan < Components::Base
 
   def duration
     seconds = @sync.duration
-    return "—" if seconds.nil?
+    seconds.nil? ? "—" : distance_of_time_in_words(seconds)
+  end
 
-    seconds < 1 ? "under a second" : "#{seconds.round}s"
+  # Duration#inspect is Rails' own long-form phrasing: "1 day, 4 hours, and 13 minutes".
+  def exact_duration
+    seconds = @sync.duration
+    ActiveSupport::Duration.build(seconds.round).inspect if seconds
   end
 
   def error_row
@@ -218,19 +239,19 @@ class Views::Sources::LastScan < Components::Base
     end
   end
 
-  # A scan that quietly stopped pruning has to say so. The blunt version of the
-  # rule is that one unanswered URL makes the whole run unable to tell "nothing
-  # links here any more" from "something hid it", so this can be a large number
-  # for one timeout — which is the point of showing the cause next to the count.
-  def withheld_warning
+  # A scan that quietly stopped pruning has to say so. One unanswered URL makes
+  # the whole run unable to tell "nothing links here any more" from "something
+  # hid it", so the count can be large for one timeout — hence the cause beside it.
+  def withheld_note
     count = @sync.withheld_count
     unanswered = @sync.items.inconclusive.count
 
-    div(class: "mb-4 rounded border border-line-2 bg-void/40 px-3 py-2") do
-      p(class: "text-xs text-muted") do
-        plain "#{count} #{'document'.pluralize(count)} this scan didn't reach #{count == 1 ? 'was' : 'were'} left alone. "
-        plain "#{unanswered} #{'URL'.pluralize(unanswered)} gave no answer, so anything behind #{unanswered == 1 ? 'it' : 'them'} "
-        plain "may have been hidden rather than gone. Nothing was removed on that basis; the next clean scan will decide."
+    div(class: "mb-4") do
+      span(title: WITHHELD_HINT, class: "cursor-help text-xs text-muted") do
+        span(class: "underline decoration-dotted decoration-line-2 underline-offset-4") do
+          "#{count} #{'document'.pluralize(count)} left alone · " \
+            "#{unanswered} #{'URL'.pluralize(unanswered)} gave no answer"
+        end
       end
     end
   end
@@ -282,7 +303,7 @@ class Views::Sources::LastScan < Components::Base
 
     div(class: "mt-5 border-t border-line pt-4") do
       div(class: "mb-2 flex items-center justify-between gap-3") do
-        span(class: "shrink-0 text-xs text-muted") { "Processing" }
+        span(class: "shrink-0 text-xs text-muted") { processing_done? ? "Processed" : "Processing" }
         span(class: "font-mono text-xs text-faint") { processing_label(counts, total) }
       end
       meter(counts, total)
