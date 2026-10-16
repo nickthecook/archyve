@@ -97,8 +97,7 @@ class Views::Sources::Reprocess < Components::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "whitespace-nowrap rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg " \
-               "hover:border-line-2 transition-colors",
+        class: button_class(:quiet, "whitespace-nowrap"),
         data: { turbo_confirm: confirmation }
       ) { "Reprocess all" }
     end
@@ -116,8 +115,7 @@ class Views::Sources::Reprocess < Components::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "whitespace-nowrap rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg " \
-               "hover:border-line-2 transition-colors"
+        class: button_class(:quiet, "whitespace-nowrap")
       ) { "Stop" }
     end
   end

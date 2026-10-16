@@ -31,7 +31,7 @@ class Views::Sources::Index < Views::Base
       end
       a(
         href: new_source_path,
-        class: "shrink-0 rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: button_class(:solid, "shrink-0")
       ) { "Add source" }
     end
   end

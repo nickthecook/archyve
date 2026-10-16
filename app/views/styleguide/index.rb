@@ -24,15 +24,13 @@ class Views::Styleguide::Index < Views::Base
     ["accent-dim", "bg-accent-dim", "Accent, pressed"]
   ].freeze
 
+  # Labelled by weight, and rendered from Components::Base::BUTTON — so this
+  # section shows what the app renders rather than a copy that can drift.
   BUTTONS = [
-    ["Solid", "Commits something — form submits only",
-     "rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"],
-    ["Outlined", "Primary, but only opens something",
-     "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm font-medium text-accent hover:bg-accent/20 hover:border-accent transition-colors"],
-    ["Quiet", "Secondary actions",
-     "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"],
-    ["Danger", "Destroys something — always confirmed",
-     "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 transition-colors"]
+    [:solid, "Commits something — form submits only"],
+    [:outlined, "Primary, but only opens something"],
+    [:quiet, "Secondary actions"],
+    [:danger, "Destroys something — always confirmed"]
   ].freeze
 
   SAMPLE = Struct.new(:recorded, :service, :took, :body)
@@ -124,9 +122,9 @@ class Views::Styleguide::Index < Views::Base
 
   def buttons
     div(class: "flex flex-wrap items-center gap-3") do
-      BUTTONS.each do |label, role, classes|
+      BUTTONS.each do |weight, role|
         div(class: "flex flex-col gap-1.5") do
-          button(type: "button", class: classes) { label }
+          button(type: "button", class: button_class(weight)) { weight.to_s.capitalize }
           span(class: "text-[0.7rem] text-faint") { role }
         end
       end

@@ -21,8 +21,7 @@ class Views::Admin::Filters < Components::Base
       @facets.each { |facet| picker(facet) }
       button(
         type: "submit",
-        class: "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm font-medium text-accent " \
-               "hover:bg-accent/20 hover:border-accent transition-colors"
+        class: button_class(:outlined)
       ) { "Filter" }
       clear_link if @facets.any?(&:selected)
     end
@@ -40,7 +39,7 @@ class Views::Admin::Filters < Components::Base
   def clear_link
     a(
       href: @action,
-      class: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+      class: button_class(:quiet)
     ) { "Clear" }
   end
 

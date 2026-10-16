@@ -16,7 +16,7 @@ class Views::Settings::InferenceServers::Index < Views::Base
       end
       a(
         href: new_settings_inference_server_path,
-        class: "shrink-0 rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: button_class(:solid, "shrink-0")
       ) { "Add server" }
     end
 

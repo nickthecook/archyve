@@ -166,8 +166,7 @@ class Views::Collections::Show < Views::Base
     button(
       type: "submit", disabled: true,
       data: { source_picker_target: "submit" },
-      class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
-             "disabled:opacity-40 disabled:pointer-events-none transition-colors"
+      class: button_class(:quiet, "shrink-0 disabled:opacity-40 disabled:pointer-events-none")
     ) { "Attach" }
   end
 
@@ -201,7 +200,7 @@ class Views::Collections::Show < Views::Base
         input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
         button(
           type: "submit",
-          class: "rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors"
+          class: button_class(:danger)
         ) { "Delete" }
       end
     end
@@ -214,8 +213,7 @@ class Views::Collections::Show < Views::Base
 
     a(
       href: collection_people_path(@collection),
-      class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg " \
-             "hover:border-line-2 transition-colors"
+      class: button_class(:quiet, "shrink-0")
     ) { "People" }
   end
 
@@ -270,7 +268,7 @@ class Views::Collections::Show < Views::Base
         placeholder: "What this collection is for, and what someone would come here to find.",
         class: "w-full resize-y rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
       ) { @collection.description }
-      button(type: "submit", class: "self-start rounded bg-accent px-3 py-1.5 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Save" }
+      button(type: "submit", class: button_class(:solid, "self-start")) { "Save" }
     end
   end
 

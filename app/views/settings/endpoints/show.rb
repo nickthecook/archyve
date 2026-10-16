@@ -35,7 +35,7 @@ class Views::Settings::Endpoints::Show < Views::Base
       end
       div(class: "flex shrink-0 items-center gap-2") do
         access_button
-        a(href: edit_settings_endpoint_path(@endpoint), class: quiet_button) { "Edit" }
+        a(href: edit_settings_endpoint_path(@endpoint), class: button_class(:quiet)) { "Edit" }
       end
     end
   end
@@ -44,7 +44,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   def access_button
     form(action: access_settings_endpoint_path(@endpoint), method: "post", class: "inline") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: outlined_button) { "Test connection" }
+      button(type: "submit", class: button_class(:outlined)) { "Test connection" }
     end
   end
 
@@ -130,7 +130,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   # Disabled rather than hidden: restrict_with_error would refuse anyway, and
   # saying why up front beats a click that lands on a flash message.
   def blocked_remove_button
-    span(class: "#{danger_button} opacity-40", aria_disabled: "true") { "Remove endpoint" }
+    span(class: button_class(:danger, "opacity-40"), aria_disabled: "true") { "Remove endpoint" }
   end
 
   def remove_button
@@ -142,21 +142,7 @@ class Views::Settings::Endpoints::Show < Views::Base
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "delete")
-      button(type: "submit", class: danger_button) { "Remove endpoint" }
+      button(type: "submit", class: button_class(:danger)) { "Remove endpoint" }
     end
-  end
-
-  def danger_button
-    "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 transition-colors"
-  end
-
-  def outlined_button
-    "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm text-accent hover:bg-accent/20 " \
-      "hover:border-accent transition-colors"
-  end
-
-  def quiet_button
-    "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
-      "transition-colors"
   end
 end

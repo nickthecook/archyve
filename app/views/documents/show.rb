@@ -8,11 +8,6 @@ class Views::Documents::Show < Views::Base
     @back = back
   end
 
-  # Outlined rather than solid: getting a copy *opens* something, it doesn't
-  # commit anything — see the accent ladder in docs/design.md.
-  ACCESS = "rounded border border-accent/60 bg-accent/10 px-3 py-1.5 text-sm font-medium " \
-           "text-accent hover:border-accent hover:bg-accent/20 transition-colors".freeze
-
   def view_template
     # One level, and it is where you came *from* rather than a fixed place in
     # the app: a document belongs to no one collection. See
@@ -56,7 +51,9 @@ class Views::Documents::Show < Views::Base
   end
 
   def download_button
-    render Views::Documents::Access.new(document: @document, class_name: ACCESS)
+    # Outlined rather than solid: getting a copy *opens* something, it doesn't
+    # commit anything.
+    render Views::Documents::Access.new(document: @document, class_name: button_class(:outlined))
   end
 
   # Rendered here rather than inside the broadcast region because it needs a
@@ -70,15 +67,9 @@ class Views::Documents::Show < Views::Base
     end
   end
 
-  def reprocess_class
-    weight = if @document.failed?
-      "bg-accent text-void hover:bg-accent-dim"
-    else
-      "border border-line text-muted hover:text-fg hover:border-line-2"
-    end
-
-    "rounded px-3 py-1.5 text-sm font-medium transition-colors #{weight}"
-  end
+  # Solid only once there is something to fix: on a healthy document this is
+  # a button you are not meant to reach for.
+  def reprocess_class = button_class(@document.failed? ? :solid : :quiet)
 
   def page_title = @document.title
 end

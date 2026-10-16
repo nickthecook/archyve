@@ -46,7 +46,7 @@ class Views::Sources::Show < Views::Base
         people_link if may_on?(@source, :admin)
         a(
           href: edit_source_path(@source),
-          class: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+          class: button_class(:quiet)
         ) { "Edit" }
         sync_button if @source.supports_sync?
       end
@@ -58,7 +58,7 @@ class Views::Sources::Show < Views::Base
   def people_link
     a(
       href: source_people_path(@source),
-      class: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+      class: button_class(:quiet)
     ) { "People" }
   end
 
@@ -67,7 +67,7 @@ class Views::Sources::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: button_class(:solid)
       ) { "Sync now" }
     end
   end
@@ -187,7 +187,7 @@ class Views::Sources::Show < Views::Base
           input(type: "hidden", name: "_method", value: "delete")
           button(
             type: "submit",
-            class: "shrink-0 rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors",
+            class: button_class(:danger, "shrink-0"),
             data: { turbo_confirm: "Delete “#{@source.name}” and all #{@source.documents.count} of its documents?" }
           ) { "Delete" }
         end

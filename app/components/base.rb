@@ -28,6 +28,25 @@ class Components::Base < Phlex::HTML
     Current.user&.may_on?(record, minimum)
   end
 
+  # The accent ladder from docs/design.md, in one place so /styleguide renders
+  # the strings the app actually uses. Before reaching for a weight, read the
+  # ladder: the question is whether clicking *commits* anything.
+  BUTTON = {
+    solid: "rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors",
+    outlined: "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm font-medium text-accent " \
+              "hover:bg-accent/20 hover:border-accent transition-colors",
+    quiet: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors",
+    danger: "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 " \
+            "transition-colors"
+  }.freeze
+
+  # `extra` is for how the button sits — shrink-0 in a flex row, a disabled
+  # state — not for restyling it. A button that needs different colours or
+  # padding wants a different weight, or a change to the ladder.
+  def button_class(weight, extra = nil)
+    [BUTTON.fetch(weight), extra].compact.join(" ")
+  end
+
   # Attributes for a live region: one that goes stale while a background job is
   # still moving, and polls itself fresh until nothing is. `terminal` says
   # whether it has already settled; `also` names other regions on the page that

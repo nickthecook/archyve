@@ -89,7 +89,7 @@ class Views::Collections::Index < Views::Base
       new_collection
       a(
         href: documents_path,
-        class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+        class: button_class(:quiet, "shrink-0")
       ) { "Upload" }
     end
   end
@@ -99,9 +99,7 @@ class Views::Collections::Index < Views::Base
       # Outlined, not solid: this only opens the disclosure. Solid brass is
       # reserved for the Create submit below — the action that commits.
       summary(
-        class: "cursor-pointer list-none rounded border border-accent/60 bg-accent/10 px-3 py-2 " \
-               "text-sm font-medium text-accent hover:bg-accent/20 hover:border-accent " \
-               "group-open:bg-accent/20 group-open:border-accent transition-colors"
+        class: button_class(:outlined, "cursor-pointer list-none group-open:bg-accent/20 group-open:border-accent")
       ) { "New collection" }
       div(class: "absolute right-0 z-10 mt-2 w-72 rounded-lg border border-line-2 bg-ink p-3 shadow-lg") do
         form(action: collections_path, method: "post", class: "flex flex-col gap-2") do
@@ -116,7 +114,7 @@ class Views::Collections::Index < Views::Base
             name: "collection[description]", rows: "2", placeholder: "What it is for (optional)",
             class: "w-full resize-y rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
           )
-          button(type: "submit", class: "self-end rounded bg-accent px-3 py-1.5 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Create" }
+          button(type: "submit", class: button_class(:solid, "self-end")) { "Create" }
         end
       end
     end

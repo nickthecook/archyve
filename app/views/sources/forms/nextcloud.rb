@@ -35,7 +35,7 @@ class Views::Sources::Forms::Nextcloud < Views::Sources::Form
   def server_extras = browse_button
 
   def browse_button
-    browse_to(nil, "Browse", css: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors")
+    browse_to(nil, "Browse", css: button_class(:quiet, "shrink-0"))
   end
 
   def folder_picker

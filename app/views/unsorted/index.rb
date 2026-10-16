@@ -72,7 +72,7 @@ class Views::Unsorted::Index < Views::Base
       type: "submit",
       formaction: purge_unsorted_path,
       data: { turbo_confirm: "Permanently delete the selected documents? They leave the archive — text, embeddings and file — and this can't be undone." },
-      class: "shrink-0 rounded border border-red-400/40 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition-colors"
+      class: button_class(:danger, "shrink-0")
     ) { "Delete" }
   end
 

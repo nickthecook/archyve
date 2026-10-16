@@ -32,7 +32,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
       end
       div(class: "flex shrink-0 items-center gap-2") do
         check_button
-        a(href: edit_settings_inference_server_path(@server), class: quiet_button) { "Edit" }
+        a(href: edit_settings_inference_server_path(@server), class: button_class(:quiet)) { "Edit" }
         remove_button
       end
     end
@@ -43,7 +43,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
   def check_button
     form(action: check_settings_inference_server_path(@server), method: "post", class: "inline") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: outlined_button) { "Check" }
+      button(type: "submit", class: button_class(:outlined)) { "Check" }
     end
   end
 
@@ -61,7 +61,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
     ) do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "delete")
-      button(type: "submit", class: danger_button) { "Remove" }
+      button(type: "submit", class: button_class(:danger)) { "Remove" }
     end
   end
 
@@ -74,7 +74,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
   # The reason is spelled out in the embedding panel below, which is where the
   # archive's dependency on this server is already explained.
   def blocked_remove_button
-    span(class: "#{danger_button} opacity-40", aria_disabled: "true", title: @server.removal_refusal) { "Remove" }
+    span(class: button_class(:danger, "opacity-40"), aria_disabled: "true", title: @server.removal_refusal) { "Remove" }
   end
 
   def check_panel
@@ -97,8 +97,8 @@ class Views::Settings::InferenceServers::Show < Views::Base
       div(class: "mb-3 flex flex-wrap items-center justify-between gap-3") do
         h2(class: "text-sm font-medium text-fg") { "Chat models" }
         div(class: "flex items-center gap-2") do
-          a(href: discover_settings_inference_server_path(@server), class: outlined_button) { "Fetch models" }
-          a(href: new_settings_inference_server_model_path(@server), class: quiet_button) { "Add manually" }
+          a(href: discover_settings_inference_server_path(@server), class: button_class(:outlined)) { "Fetch models" }
+          a(href: new_settings_inference_server_model_path(@server), class: button_class(:quiet)) { "Add manually" }
         end
       end
 
@@ -252,20 +252,5 @@ class Views::Settings::InferenceServers::Show < Views::Base
         class: "shrink-0 text-xs text-faint hover:text-red-300 transition-colors"
       ) { "Remove" }
     end
-  end
-
-  def outlined_button
-    "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm text-accent hover:bg-accent/20 " \
-      "hover:border-accent transition-colors"
-  end
-
-  def quiet_button
-    "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 " \
-      "transition-colors"
-  end
-
-  def danger_button
-    "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 " \
-      "transition-colors"
   end
 end

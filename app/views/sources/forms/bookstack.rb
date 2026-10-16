@@ -40,7 +40,7 @@ class Views::Sources::Forms::Bookstack < Views::Sources::Form
       type: "submit",
       formmethod: "get",
       formaction: new_source_path(type: @source.class.name),
-      class: "shrink-0 rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors"
+      class: button_class(:quiet, "shrink-0")
     ) { "Browse" }
   end
 
