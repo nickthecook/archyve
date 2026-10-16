@@ -4,10 +4,6 @@ FactoryBot.define do
     sequence(:name) { |n| "llama3.1:#{n}b" }
     kind { :chat }
 
-    trait :preferred do
-      preferred { true }
-    end
-
     trait :tools do
       supports_tools { true }
     end

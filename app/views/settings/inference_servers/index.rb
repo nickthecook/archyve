@@ -2,30 +2,43 @@
 
 # Every configured inference server, and whether Archyve can reach it.
 class Views::Settings::InferenceServers::Index < Views::Base
-  def initialize(servers:)
+  def initialize(servers:, chat_models:, default_model_id:)
     @servers = servers
+    @chat_models = chat_models
+    @default_model_id = default_model_id
   end
 
   def view_template
     breadcrumb(["Settings", settings_path], "Inference")
 
-    header(class: "mb-7 flex flex-wrap items-start justify-between gap-x-4 gap-y-3") do
-      div do
-        h1(class: "text-2xl font-semibold tracking-tight") { "Inference" }
-        p(class: "mt-1 text-sm text-muted") { "Where Archyve sends prompts, and which models it may use." }
-      end
-      a(
-        href: new_settings_inference_server_path,
-        class: button_class(:solid, "shrink-0")
-      ) { "Add server" }
+    header(class: "mb-10") do
+      h1(class: "text-2xl font-semibold tracking-tight") { "Inference" }
+      p(class: "mt-1 text-sm text-muted") { "Where Archyve sends prompts, and which models it may use." }
     end
 
-    @servers.any? ? list : empty_state
+    render Views::Settings::DefaultModel.new(models: @chat_models, selected_id: @default_model_id)
+
+    servers_section
   end
 
   private
 
   def page_title = "Inference"
+
+  # The servers are one part of this page now rather than the whole of it, so
+  # they get a heading, and "Add server" belongs to it rather than to the page.
+  def servers_section
+    section do
+      div(class: "mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2") do
+        h2(class: "text-xs font-medium uppercase tracking-wider text-faint") { "Inference servers" }
+        a(
+          href: new_settings_inference_server_path,
+          class: button_class(:solid, "shrink-0 py-1")
+        ) { "Add server" }
+      end
+      @servers.any? ? list : empty_state
+    end
+  end
 
   def list
     div(class: "flex flex-col gap-3") do

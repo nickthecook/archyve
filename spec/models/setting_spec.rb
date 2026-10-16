@@ -107,6 +107,34 @@ RSpec.describe Setting do
     end
   end
 
+  describe ".clear" do
+    context "with a setting that has been changed" do
+      before { Setting["chat.default_model_id"] = 42 }
+
+      it "returns it to its default" do
+        described_class.clear("chat.default_model_id")
+        expect(described_class.chat_default_model_id).to be_nil
+      end
+
+      it "removes the row, so nothing records a change that was undone" do
+        expect { described_class.clear("chat.default_model_id") }
+          .to change { described_class.where(key: "chat.default_model_id").count }.from(1).to(0)
+      end
+    end
+
+    context "with a setting nobody has touched" do
+      it "is a no-op" do
+        expect { described_class.clear("chat.default_model_id") }.not_to raise_error
+      end
+    end
+
+    context "with a key that isn't declared" do
+      it "raises, like every other way in" do
+        expect { described_class.clear("nope.not.a.setting") }.to raise_error(Setting::UnknownSetting)
+      end
+    end
+  end
+
   describe ".[]=" do
     context "when setting the same key twice" do
       before do

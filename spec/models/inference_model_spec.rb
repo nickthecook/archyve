@@ -47,37 +47,58 @@ RSpec.describe InferenceModel do
     end
   end
 
-  describe "the preferred chat model" do
-    it "can't be an embedding model" do
-      expect(build(:embedding_model, preferred: true)).not_to be_valid
+  # The setting names a model; this resolves it. Anything that can't be the
+  # answer — deleted, disabled, toolless — has to fall back rather than leave
+  # chat with no model, which is why every case here ends in a model or nil.
+  describe ".default_chat" do
+    let!(:first) { create(:inference_model, :tools, name: "a-first") }
+    let!(:other) { create(:inference_model, :tools, name: "z-other") }
+
+    context "with nothing set" do
+      it "falls back to the first usable chat model" do
+        expect(described_class.default_chat).to eq(first)
+      end
     end
 
-    it "is allowed for a chat model" do
-      expect(build(:inference_model, :preferred)).to be_valid
+    context "with a model set" do
+      before { Setting["chat.default_model_id"] = other.id }
+
+      it { expect(described_class.default_chat).to eq(other) }
     end
 
-    context "when another chat model is already preferred" do
-      let!(:incumbent) { create(:inference_model, :preferred) }
-
-      it "demotes it on create" do
-        create(:inference_model, :preferred, inference_server: create(:ollama_server))
-        expect(incumbent.reload).not_to be_preferred
+    context "with a model set that has since been deleted" do
+      before do
+        Setting["chat.default_model_id"] = other.id
+        other.destroy!
       end
 
-      it "demotes it on update" do
-        create(:inference_model).update!(preferred: true)
-        expect(incumbent.reload).not_to be_preferred
+      it "falls back rather than leaving chat with nothing" do
+        expect(described_class.default_chat).to eq(first)
+      end
+    end
+
+    context "with a model set that has since been disabled" do
+      before do
+        Setting["chat.default_model_id"] = other.id
+        other.update!(enabled: false)
       end
 
-      it "leaves it alone when another model is saved without preferring it" do
-        create(:inference_model).update!(display_name: "Qwen 3.8")
-        expect(incumbent.reload).to be_preferred
+      it { expect(described_class.default_chat).to eq(first) }
+    end
+
+    context "with a model set that can't call tools" do
+      before do
+        Setting["chat.default_model_id"] = other.id
+        other.update!(supports_tools: false)
       end
 
-      it "leaves it alone when it is saved again" do
-        incumbent.update!(display_name: "Qwen 3.8")
-        expect(incumbent.reload).to be_preferred
-      end
+      it { expect(described_class.default_chat).to eq(first) }
+    end
+
+    context "with no usable chat model at all" do
+      before { InferenceModel.delete_all }
+
+      it { expect(described_class.default_chat).to be_nil }
     end
   end
 

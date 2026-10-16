@@ -2,11 +2,14 @@
 
 # One server: whether Archyve can reach it, and what it may use it for.
 class Views::Settings::InferenceServers::Show < Views::Base
-  def initialize(server:, embedded_chunk_count:, active_embedding:, corpus_model:)
+  def initialize(server:, embedded_chunk_count:, active_embedding:, corpus_model:, default_chat:)
     @server = server
     @embedded_chunk_count = embedded_chunk_count
     @active_embedding = active_embedding
     @corpus_model = corpus_model
+    # Resolved once by the controller rather than asked per row: the default is
+    # a Setting lookup now, not a column on the loaded model.
+    @default_chat = default_chat
   end
 
   def view_template
@@ -123,7 +126,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
           # content width, and a registry name like hf.co/…-GGUF:Q4_K_M is long
           # enough to push the page sideways on a phone.
           span(class: "min-w-0 truncate font-mono text-sm text-fg") { model.name }
-          tag("preferred") if model.preferred?
+          tag("default") if model.id == @default_chat&.id
           tag("tools") if model.supports_tools?
           tag("disabled") unless model.enabled?
         end

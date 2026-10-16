@@ -8,7 +8,7 @@ RSpec.describe "The corridor", type: :request do
 
   # Chat needs both, or the bar falls back to searching.
   let!(:embedding) { create(:embedding_model) }
-  let!(:chat_model) { create(:inference_model, :tools, :preferred, name: "gpt-oss:20b") }
+  let!(:chat_model) { create(:inference_model, :tools, name: "gpt-oss:20b") }
 
   it "renders" do
     request

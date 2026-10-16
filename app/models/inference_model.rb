@@ -24,11 +24,8 @@ class InferenceModel < ApplicationRecord
   validates :context_window, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   validate :dimensions_must_match_the_column, if: -> { embedding? && dimensions.present? }
-  validate :only_chat_models_are_preferred
   validate :only_one_embedding_model
   validate :corpus_must_be_empty, on: :create, if: :embedding?
-
-  before_save :demote_the_incumbent, if: -> { chat? && preferred? && will_save_change_to_preferred? }
 
   before_destroy :corpus_must_not_depend_on_this
 
@@ -55,10 +52,15 @@ class InferenceModel < ApplicationRecord
     usable.embedding.first
   end
 
-  # The chat model a new conversation gets, or nil. `preferred` wins; failing
-  # that, any tool-capable chat model, so a fresh install with one imported
+  # The chat model a new conversation gets, or nil.
+  #
+  # Resolved through `for_chat` rather than read straight off the setting, so
+  # the id of a model since deleted, disabled, or found not to call tools falls
+  # back the same way an unset one does — a fresh install with one imported
   # model works without anyone visiting Settings to anoint it.
-  def self.default_chat = for_chat.order(preferred: :desc, id: :asc).first
+  def self.default_chat
+    for_chat.find_by(id: Setting.chat_default_model_id) || for_chat.order(:id).first
+  end
 
   def label = display_name.presence || name
 
@@ -103,14 +105,6 @@ class InferenceModel < ApplicationRecord
       "must be #{Embedding::DIMENSIONS} — the embeddings column is a vector(#{Embedding::DIMENSIONS}), " \
       "so a #{dimensions}-dimension model can't be stored in it"
     )
-  end
-
-  def demote_the_incumbent
-    self.class.chat.where(preferred: true).where.not(id:).update_all(preferred: false)
-  end
-
-  def only_chat_models_are_preferred
-    errors.add(:preferred, "only applies to chat models") if preferred? && !chat?
   end
 
   def only_one_embedding_model

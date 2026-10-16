@@ -9,7 +9,9 @@ module Settings
 
     def index
       render Views::Settings::InferenceServers::Index.new(
-        servers: InferenceServer.order(:name).includes(:inference_models)
+        servers: InferenceServer.order(:name).includes(:inference_models),
+        chat_models: InferenceModel.choosable_for_chat,
+        default_model_id: Setting.chat_default_model_id
       )
     end
 
@@ -18,7 +20,8 @@ module Settings
         server: @server,
         embedded_chunk_count: Embedding.count,
         active_embedding: InferenceModel.active_embedding,
-        corpus_model: Embedding.corpus_model
+        corpus_model: Embedding.corpus_model,
+        default_chat: InferenceModel.default_chat
       )
     end
 

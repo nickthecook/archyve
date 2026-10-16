@@ -85,6 +85,10 @@ Rails.application.routes.draw do
     # too small each to be worth a page. Update-only: there is nothing to show
     # that the index doesn't already.
     resource :preferences, only: [:update]
+    # Which chat model a new conversation starts on, chosen at the top of the
+    # Inference page. Update-only, like preferences: the page it posts from is
+    # the only thing there is to show.
+    resource :default_model, only: [:update]
     # What was recorded while debug.record_api_calls was on. Read-only: rows
     # expire on their own, so there is nothing here to edit or tidy up.
     resources :api_calls, only: [:index, :show]

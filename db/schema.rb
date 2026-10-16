@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_08_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -201,13 +201,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_08_120000) do
     t.bigint "inference_server_id", null: false
     t.integer "kind", default: 0, null: false
     t.string "name", null: false
-    t.boolean "preferred", default: false, null: false
     t.boolean "supports_tools", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["inference_server_id", "name"], name: "index_inference_models_on_inference_server_id_and_name", unique: true
     t.index ["inference_server_id"], name: "index_inference_models_on_inference_server_id"
     t.index ["kind"], name: "index_inference_models_on_single_embedding", unique: true, where: "(kind = 1)"
-    t.index ["preferred"], name: "index_inference_models_on_preferred_chat", unique: true, where: "(preferred AND (kind = 0))"
   end
 
   create_table "inference_servers", force: :cascade do |t|

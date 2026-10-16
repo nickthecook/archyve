@@ -38,10 +38,6 @@ class Views::Settings::InferenceModels::Form < Components::Base
 
       checkbox_field(:enabled, "Available for use", "Uncheck to keep the model without offering it.")
 
-      if @model.chat?
-        checkbox_field(:preferred, "Offer this one first", "The chat model used unless another is picked.")
-      end
-
       actions
     end
   end

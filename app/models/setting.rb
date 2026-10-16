@@ -61,6 +61,17 @@ class Setting < ApplicationRecord
         "— it should say who's using this instance and what they need from it, not how to cite " \
         "sources or search the archive, which the base prompt already covers."
     ),
+    # Which chat model a new conversation starts on. An id rather than a flag on
+    # inference_models: exactly one model is the default, and a column true on
+    # one row needed a partial unique index, a demote-the-incumbent callback and
+    # a validation to say so. Nil means "whatever InferenceModel.default_chat
+    # falls back to", which is also what a stale id resolves to.
+    "chat.default_model_id" => Definition.new(
+      default: nil,
+      type: :integer,
+      description: "The chat model a new conversation starts on, by id. Unset means the first " \
+        "usable one."
+    ),
     # Recording every outbound inference call to api_calls — see ApiCall.
     # ARCHYVE_RECORD_API_CALLS sets the default, so a deployment can boot with
     # recording already on; a row overrides it, which is what lets it be
@@ -95,7 +106,16 @@ class Setting < ApplicationRecord
     def chat_max_read_rounds = self["chat.max_read_rounds"]
     def chat_max_listing_rounds = self["chat.max_listing_rounds"]
     def chat_instance_purpose = self["chat.instance_purpose"]
+    def chat_default_model_id = self["chat.default_model_id"]
     def record_api_calls? = self["debug.record_api_calls"]
+
+    # Back to the declared default. `[]=` only ever writes, so without this a
+    # setting that has been set has no way back to "unset" — and "" would cast
+    # to 0, which for an id is a row that doesn't exist.
+    def clear(key)
+      definition!(key)
+      where(key:).delete_all
+    end
 
     # The settings that are a single on/off, and so can be flipped in place
     # from the settings index rather than needing a page and a Save button.
