@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Admin::Page do
+RSpec.describe Page do
   subject(:page) { described_class.of(ApiCall.all, per: 2) }
 
   # Created oldest-first so the newest is unambiguous.

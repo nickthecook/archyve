@@ -27,7 +27,7 @@ class <%= view_module %>::Index < Views::Base
       fields:,
       href: ->(record) { <%= show_path_helper("record") %> }
     )
-    render Views::Admin::Pager.new(page: @page, action: <%= index_path_helper %>)
+    render Views::Pager.new(page: @page, action: <%= index_path_helper %>)
   end
 
   def fields

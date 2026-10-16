@@ -40,7 +40,7 @@ class Views::Settings::ApiCalls::Index < Views::Base
       fields:,
       href: ->(call) { settings_api_call_path(call) }
     )
-    render Views::Admin::Pager.new(page: @page, action: settings_api_calls_path, params: @query)
+    render Views::Pager.new(page: @page, action: settings_api_calls_path, params: @query)
     sweep_note
   end
 

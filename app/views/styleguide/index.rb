@@ -52,6 +52,7 @@ class Views::Styleguide::Index < Views::Base
     section("Status", "component") { statuses }
     section("Cards", "pattern") { cards }
     section("Menu rows", "component") { menu_rows }
+    section("Paging", "component") { paging }
     section("Admin pages", "component") { admin_pages }
     section("Derived & empty", "pattern") { derived }
     section("Numerals", "pattern") { numerals }
@@ -224,6 +225,11 @@ class Views::Styleguide::Index < Views::Base
     end
   end
 
+  # Both ends available, which a real page only has in the middle of a list.
+  def paging
+    render Views::Pager.new(page: SCREEN.new(older: true, newer: true), action: styleguide_path)
+  end
+
   # The kit generated admin pages are built from — a table of records, one
   # record as a field list, and what either shows with nothing in it. Rendered
   # from stand-in rows, since this page has no records of its own.
@@ -231,7 +237,6 @@ class Views::Styleguide::Index < Views::Base
     div(class: "flex flex-col gap-4") do
       render Views::Admin::Filters.new(action: styleguide_path, facets: sample_facets)
       render Views::Admin::Table.new(rows: samples, fields: record_fields, href: ->(_row) { styleguide_path })
-      render Views::Admin::Pager.new(page: SCREEN.new(older: true, newer: true), action: styleguide_path)
       render Views::Admin::FieldList.new(record: samples.first, fields: record_fields + [body_field])
       render Views::Admin::Empty.new(
         message: "Nothing recorded yet.",

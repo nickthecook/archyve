@@ -2,7 +2,7 @@
 
 # Newer and Older, either side of one screen of records. Both carry whatever
 # else is in the URL — the filters, so paging doesn't drop them.
-class Views::Admin::Pager < Components::Base
+class Views::Pager < Components::Base
   def initialize(page:, action:, params: {})
     @page = page
     @action = action

@@ -88,7 +88,7 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
     end
 
     describe "paging" do
-      before { stub_const("Admin::Page::PER_PAGE", 1) }
+      before { stub_const("Page::PER_PAGE", 1) }
 
       let!(:older) { create(:api_call, created_at: 2.hours.ago, url: "http://tensor:11434/v1/chat/completions") }
       let!(:newer) { create(:api_call, created_at: 1.hour.ago, url: "https://i.rmtly.com/v1/chat/completions") }

@@ -178,6 +178,20 @@ phone already. The rules that keep it there:
 5. Derived/empty states dashed and quiet.
 6. At most one solid brass button, and only if it commits.
 
+## Long lists page by cursor
+
+Any list long enough to page uses `Page`, over `activerecord_cursor_paginate`,
+with `Views::Pager` for the buttons below it. These lists are written to while
+they are read, and an offset window shifts under the reader: a row arrives, and
+the next screen shows one it has already shown. A cursor names a row instead, so
+the screen after it is the same screen whatever happened meanwhile. The cost is
+that there are no page numbers and no total, which a log doesn't miss.
+
+`Page` defaults to newest first; a list people read by name passes
+`order: { title: :asc }` and wants a `(title, id)` index to match. The gem was
+chosen over Pagy and Kaminari because it renders nothing — pagination markup
+from a gem is ERB, and this app has none.
+
 ## Admin pages come from a generator
 
 A model's admin screens are generated rather than written:
@@ -204,19 +218,6 @@ reads (`ago`, `yes_no`, `count`, `text`, and `—` for nothing).
 Which filters a list offers is the resource's own business, not the kit's: see
 `ApiCalls::Listing`, where a facet is one line naming the param, what it offers
 and how it narrows. Filtering is a GET form, so a filtered list stays a URL.
-
-Lists page by cursor, not by offset — `Admin::Page`, over
-`activerecord_cursor_paginate`, with `Views::Admin::Pager` for the Newer/Older
-buttons. These lists are written to while they are read, and an offset window
-shifts under the reader: a row arrives, and the next screen shows one it has
-already shown. A cursor names a row instead, so the screen after it is the same
-screen whatever happened meanwhile. The cost is that there are no page numbers
-and no total, which a log doesn't miss.
-
-`Admin::Page` defaults to newest first; a list people read by name passes
-`order: { title: :asc }` and wants a `(title, id)` index to match. The gem was
-chosen over Pagy and Kaminari because it renders nothing — pagination markup
-from a gem is ERB, and this app has none.
 
 Fields are guessed from the table's columns, which is a starting point rather
 than an answer: labels and the index blurb are written for a reader, and the

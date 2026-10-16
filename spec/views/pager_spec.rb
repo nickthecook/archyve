@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Views::Admin::Pager do
+RSpec.describe Views::Pager do
   subject(:component) { described_class.new(page:, action: "/settings/api_calls", params:) }
 
   let(:result) { component.call }

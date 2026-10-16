@@ -4,7 +4,7 @@ module <%= namespace_module %>
 
     def index
       render <%= view_module %>::Index.new(
-        page: Admin::Page.of(<%= class_name %>.all, after: params[:after], before: params[:before])
+        page: Page.of(<%= class_name %>.all, after: params[:after], before: params[:before])
       )
     end
 

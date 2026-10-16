@@ -21,9 +21,9 @@ module ApiCalls
       @params = params
     end
 
-    # Unordered: Admin::Page orders what it pages, and ordering it twice would
+    # Unordered: Page orders what it pages, and ordering it twice would
     # only mean the second one winning silently.
-    def page = Admin::Page.of(rows, after: @params["after"], before: @params["before"])
+    def page = Page.of(rows, after: @params["after"], before: @params["before"])
 
     # What the pager has to carry so that paging doesn't drop the filters.
     def query = FILTERS.to_h { [it.param, selected(it)] }.compact
