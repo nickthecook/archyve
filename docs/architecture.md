@@ -135,6 +135,26 @@ counted as having said something, either: unlike a search or a read, a listing
 leaves no passages on the page to make up for the silence, so it reports that it
 finished without answering instead of ending quietly.
 
+**Passages are text blocks, in relevance order (2026-10-15).** RubyLLM passes a
+Hash tool result through `Hash#to_s` — `inspect` — so a passage reached the
+model as one line of Ruby syntax with its markdown flattened into `\n` escapes.
+Headings and list markers are most of what a model reads a sequence of steps
+from, so `Tools::Reply` renders every tool result instead: facts as lines, each
+passage as a `--- [handle]` block with its newlines intact. Tools still return
+plain hashes and none of them formats; the render happens at the
+`Tools::Base#call` seam, which is also why their specs still assert on data.
+
+Results stay **best-match-first** rather than being regrouped into document
+order. Issue #41 proposed that sort, filed before `read_document` existed, and
+the read tool is the better answer: three non-adjacent chunks sorted by position
+read as one continuous passage, so the visible "wrong order" defect is traded
+for an invisible one — invented adjacency, where the model infers that nothing
+lies between chunk 8 and chunk 11. Sorting also destroys the only relevance
+signal a result carries, since order is it; and it cannot fix the case that
+matters most, two searches in a turn each sorted within themselves. So the
+ordering is *stated* in the system prompt instead, alongside the instruction to
+read the document when the answer is a sequence.
+
 **Naming is not access.** The original rule was that the model got no
 identifier of any kind, only positional handles. That was right for one search
 tool and wrong for a navigable archive: a handle only means anything inside the

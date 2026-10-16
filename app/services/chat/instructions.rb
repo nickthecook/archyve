@@ -90,6 +90,12 @@ module Chat
         documents rarely use the same words a question does. Not every message needs
         a search: a greeting or a question about the conversation itself does not.
 
+        Passages come back best-match-first, never in the order they run in the
+        document: a search returning chunks 8, 3 and 11 is telling you which passages
+        matched, not how they follow one another. So when the answer is a sequence —
+        steps, phases, an ordered argument — read the document rather than reading the
+        results in the order they arrived.
+
         When a result is clearly the right passage but stops short of answering, read
         around it with read_document. Every result tells you the id of its document,
         which chunk it was, and how many chunks that document has — so a result that

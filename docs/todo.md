@@ -935,21 +935,12 @@ see the tolerance rejected under "The web source", phase 4.
     compressed, non-linear scale where 61 and 65 look adjacent and aren't.
     Rank, or a normalised score, would mislead less.
 
-- **Chunks reach the model out of document order.** Observed 2026-09-20: asked
-  what phase 4 contains, the answer led with SPA detection, which is step 8. The
-  content was right and the sequence was lost — bad for any document whose order
-  carries meaning, and this plan says outright that its steps are *"in this
-  order, because the first three are pure functions"*.
-
-  The fix is a sort at prompt assembly, not in retrieval. `Fuse` returns hits
-  best-first and assigns citation handles 1..n in that order, which is correct
-  for the results list and must stay; the chunks handed to the model want
-  grouping by document and ordering by `chunks.position`, which already exists
-  and is unique per document. The model then sees handles out of sequence, which
-  is fine — they identify, they don't order.
-
-  Overlap between chunks partly masks this by letting the model stitch on
-  duplicated text, which is a worse mechanism than simply sending them in order.
+- **Chunks reach the model out of document order — settled 2026-10-15.** The
+  answer is *not* a sort: relevance order stays, and `read_document` is what a
+  question about a sequence is answered with. The real defect behind the
+  observation was the serialization — passages arrived as `Hash#inspect`, markdown
+  and all, in `\n` escapes. See "Passages are text blocks, in relevance order" in
+  `docs/architecture.md`.
 
 - **Ollama reports the window the weights allow, not the one it loaded.**
   `/api/show` gives `{family}.context_length`, which is the model's maximum;

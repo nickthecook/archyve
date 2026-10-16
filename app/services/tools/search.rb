@@ -89,15 +89,15 @@ module Tools
       return unavailable(outcome.failure) if outcome.failed?
       return no_matches if outcome.found_nothing?
 
-      { status: "ok", scope: scope_label, results: results_for(outcome.hits) }
+      { status: "ok", scope: scope_label, passages: passages_for(outcome.hits) }
     end
 
-    def results_for(hits)
+    def passages_for(hits)
       totals = chunk_totals(hits)
-      hits.map { result_for(it, totals) }
+      hits.map { passage_for(it, totals) }
     end
 
-    def result_for(hit, totals)
+    def passage_for(hit, totals)
       {
         handle: hit.handle,
         id: hit.document.id,

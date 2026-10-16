@@ -29,33 +29,33 @@ RSpec.describe Tools::Search do
       end
 
       it "gives the model a handle to cite" do
-        expect(result[:results].first[:handle]).to eq(1)
+        expect(result[:passages].first[:handle]).to eq(1)
       end
 
       # The handle cites the passage; the id addresses the document. Without
       # the id, a model that found nearly enough in chunk 12 has no way to ask
       # for chunk 13 — see Tools::Read.
       it "gives it the document's id, so it can read further" do
-        expect(result[:results].first[:id]).to eq(document.id)
+        expect(result[:passages].first[:id]).to eq(document.id)
       end
 
       it "says where in the document the passage sits, counting from 1" do
-        expect(result[:results].first[:chunk]).to eq(chunk.position + 1)
+        expect(result[:passages].first[:chunk]).to eq(chunk.position + 1)
       end
 
       it "says how much document there is to read" do
-        expect(result[:results].first[:chunks]).to eq(1)
+        expect(result[:passages].first[:chunks]).to eq(1)
       end
 
       it "gives it the passage to read" do
-        expect(result[:results].first[:text]).to eq("Credentials rotate every 90 days.")
+        expect(result[:passages].first[:text]).to eq("Credentials rotate every 90 days.")
       end
 
       # A document id is the one identifier the model gets. It is not a link and
       # not a chunk: it addresses a document, and resolving it goes back through
       # the corpus — see Tools::Read for why that is enough.
       it "gives it no identifier it could follow or forge" do
-        expect(result[:results].first.keys).not_to include(:chunk_id, :url, :href)
+        expect(result[:passages].first.keys).not_to include(:chunk_id, :url, :href)
       end
     end
 
@@ -162,7 +162,7 @@ RSpec.describe Tools::Search do
 
     it "carries on numbering rather than starting over" do
       tool.execute(queries: ["first"])
-      expect(tool.execute(queries: ["second"])[:results].first[:handle]).to eq(2)
+      expect(tool.execute(queries: ["second"])[:passages].first[:handle]).to eq(2)
     end
   end
 

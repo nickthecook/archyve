@@ -40,6 +40,10 @@ module Tools
     NOT_CITABLE = "Tell the user what this shows, in your own words. There are no passages here, " \
                   "so write no citation handles for these rows."
 
+    # Every tool renders through here, so each one builds a plain hash and none
+    # of them formats. See Tools::Reply for why the hash itself won't do.
+    def call(args) = Reply.call(super)
+
     private
 
     attr_reader :corpus, :handles, :observer
