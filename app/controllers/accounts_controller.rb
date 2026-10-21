@@ -3,7 +3,9 @@
 # people unable to.
 class AccountsController < ApplicationController
   def show
-    render Views::Accounts::Show.new(user: Current.user)
+    render Views::Accounts::Show.new(
+      user: Current.user, api_keys: Current.user.api_keys.recent, new_token: flash[:api_key_token]
+    )
   end
 
   def update

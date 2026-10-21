@@ -33,11 +33,13 @@ class Sso::Identity
 
   # Revoking the group in Keycloak has to reach a browser that is already signed
   # in, and sessions here outlive any single request — so the refusal takes their
-  # existing ones with it rather than only blocking the next sign-in.
+  # existing ones, and their API keys, with it rather than only blocking the next
+  # sign-in.
   def refuse_unless_entitled
     return if entitled?
 
     by_subject&.sessions&.destroy_all
+    by_subject&.api_keys&.destroy_all
     raise Refused, "Your account doesn't have access to Archyve."
   end
 

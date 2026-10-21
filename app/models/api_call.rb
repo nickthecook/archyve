@@ -5,10 +5,13 @@
 # Written by ApiCalls::Recorder, which sits in the Faraday stack of both RubyLLM
 # and Http.connection but stays inert unless recording is switched on. See
 # Setting's "debug.record_api_calls" for how that happens.
+#
+# Calls *into* Archyve's API are rows too, marked `incoming` and written by
+# ApiCalls::Inbound under their own switch.
 class ApiCall < ApplicationRecord
   # What a call was for. An allowlist rather than a label on everything — see
   # ApiCalls::Kind for what is deliberately not recorded.
-  KINDS = %w[chat discovery].freeze
+  KINDS = %w[chat discovery tool].freeze
 
   # Rows are debugging exhaust carrying request and response bodies, so they
   # expire on a timer. ApiCalls::SweepExpiredJob does the deleting.
@@ -39,11 +42,18 @@ class ApiCall < ApplicationRecord
   # a list of calls and being able to ask what one conversation did.
   belongs_to :traceable, polymorphic: true, optional: true
 
+  # Who made an incoming call. Kept when the key is deleted, as nil, so the row
+  # still says a call was made.
+  belongs_to :user, optional: true
+  belongs_to :api_key, optional: true
+
   validates :kind, inclusion: { in: KINDS }
 
   scope :expired, -> { where(created_at: ...RETENTION.ago) }
   scope :recent, -> { order(created_at: :desc) }
   scope :of_kind, ->(kind) { where(kind:) }
+  scope :incoming, -> { where(incoming: true) }
+  scope :outgoing, -> { where(incoming: false) }
 
   # The host is inside the URL rather than a column of its own, so both of these
   # go through the URLs themselves: one parser decides what a host is, and the
@@ -85,6 +95,14 @@ class ApiCall < ApplicationRecord
     rescue StandardError
       false
     end
+
+    def recording_incoming?
+      Setting.record_incoming_api_calls?
+    rescue StandardError
+      false
+    end
+
+    def recording_any? = recording? || recording_incoming?
 
     def no_response_code_for(error)
       NO_RESPONSE.fetch(no_response_kind(error), NO_RESPONSE[:unknown])

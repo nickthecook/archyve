@@ -7,7 +7,7 @@ module Settings
 
       render Views::Settings::ApiCalls::Index.new(
         page: listing.page,
-        recording: ApiCall.recording?,
+        recording: ApiCall.recording_any?,
         facets: listing.facets,
         query: listing.query
       )

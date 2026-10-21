@@ -10,7 +10,8 @@ module Tools
   #
   # Nothing it returns is citable — see Tools::Base::NOT_CITABLE.
   class ListCollections < Base
-    def name = "list_collections"
+    NAME = "list_collections"
+    def name = NAME
 
     def description
       <<~TEXT.strip

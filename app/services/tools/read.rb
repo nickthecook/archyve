@@ -17,7 +17,8 @@ module Tools
   # oracle — a way to count what exists behind grants the reader doesn't hold.
   # Retrieval::Scope drops an unreadable collection slug for the same reason.
   class Read < Base
-    def name = "read_document"
+    NAME = "read_document"
+    def name = NAME
 
     params do
       integer :document,

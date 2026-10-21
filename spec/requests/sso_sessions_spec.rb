@@ -119,6 +119,15 @@ RSpec.describe "SSO sign-in", :unauthenticated, type: :request do
       expect(Session.where(id: session.id)).to be_empty
     end
 
+    it "loses their API keys, which never check back with Keycloak" do
+      user = create(:user, :sso, sso_subject: "revoked-uuid")
+      create(:api_key, user:)
+
+      sign_in_with_sso(sub: "revoked-uuid", groups: [])
+
+      expect(user.api_keys.reload).to be_empty
+    end
+
     it "has no claim on a group it wasn't given" do
       expect { sign_in_with_sso(groups: nil) }.not_to change(User, :count)
     end

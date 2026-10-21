@@ -11,9 +11,6 @@ module ApiCalls
   # Nothing here may break the call it is observing. Every failure in this class
   # ends as a log line and an unrecorded call.
   class Recorder < Faraday::Middleware
-    REDACTED = "[REDACTED]".freeze
-    SECRET_HEADERS = /\A(?:authorization|cookie|set-cookie|x-api-key|api-key)\z/i
-
     def initialize(app, service_name: nil)
       super(app)
       @service_name = service_name
@@ -73,7 +70,7 @@ module ApiCalls
         kind: kind,
         http_method: env.method.to_s,
         url: env.url.to_s,
-        request_headers: redact(env.request_headers),
+        request_headers: Headers.redact(env.request_headers),
         request_body: Body.summarize(env.body),
         request_length: length_of(env.body),
         traceable: Current.api_call_traceable
@@ -85,15 +82,11 @@ module ApiCalls
 
       {
         response_code: env.status,
-        response_headers: redact(env.response_headers),
+        response_headers: Headers.redact(env.response_headers),
         response_body: Body.summarize(body),
         response_length: length_of(body),
         streamed: !stream.nil?
       }
-    end
-
-    def redact(headers)
-      headers.to_h.to_h { |name, value| [name, name.to_s.match?(SECRET_HEADERS) ? REDACTED : value] }
     end
 
     def length_of(body) = body.respond_to?(:length) ? body.length : nil

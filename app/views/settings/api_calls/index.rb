@@ -14,7 +14,8 @@ class Views::Settings::ApiCalls::Index < Views::Base
     breadcrumb(["Settings", settings_path], ["Admin", settings_admin_path], "API calls")
     render Views::Admin::Heading.new(
       title: "API calls",
-      blurb: "What Archyve sent an inference server and what came back, while recording was on."
+      blurb: "What Archyve sent inference servers, and what was sent to its API, with what came " \
+             "back, while recording was on."
     )
 
     filters
@@ -47,7 +48,8 @@ class Views::Settings::ApiCalls::Index < Views::Base
   def fields
     [
       Views::Admin::Field.new("When", mono: true) { |call| ago(call.created_at) },
-      Views::Admin::Field.new("Host") { |call| text(call.host) },
+      Views::Admin::Field.new("Direction") { |call| call.incoming? ? "in" : "out" },
+      Views::Admin::Field.new("With") { |call| text(call.incoming? ? call.service_name : call.host) },
       Views::Admin::Field.new("Kind") { |call| text(call.kind) },
       Views::Admin::Field.new("Outcome") { |call| render Views::Settings::ApiCalls::Outcome.new(api_call: call) },
       Views::Admin::Field.new("Took", numeric: true) { |call| took(call) }
@@ -72,8 +74,9 @@ class Views::Settings::ApiCalls::Index < Views::Base
 
   def empty_hint
     return "Clear the filters to see everything that was recorded." if filtered?
-    return "Calls appear here as they go out." if @recording
+    return "Calls appear here as they're made." if @recording
 
-    "Turn on “Record API calls” below the settings menu to start keeping them."
+    "Turn on “Record outgoing API calls” or “Record incoming API calls” below the settings menu " \
+      "to start keeping them."
   end
 end

@@ -39,6 +39,7 @@ module Authentication
     end
 
     def start_new_session_for(user, sso_id_token: nil)
+      user.touch(:last_signed_in_at)
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, sso_id_token:).tap do |session|
         Current.session = session
         # Not `.permanent`: PermanentCookieJar#commit overwrites any expires:

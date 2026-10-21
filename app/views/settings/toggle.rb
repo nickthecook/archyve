@@ -10,10 +10,16 @@ class Views::Settings::Toggle < Components::Base
   # notes for whoever reads that file, and are written as such.
   COPY = {
     "debug.record_api_calls" => {
-      label: "Record API calls",
+      label: "Record outgoing API calls",
       description: "Keep what Archyve sends inference servers and what they send back, for working " \
         "out why one is misbehaving. Recorded rows include prompt and answer text, and are deleted " \
         "after #{ApiCall::RETENTION.inspect}."
+    },
+    "debug.record_incoming_api_calls" => {
+      label: "Record incoming API calls",
+      description: "Keep what scripts and integrations send Archyve's API and what it answers, for " \
+        "working out why an integration is misbehaving. Recorded rows include search queries and " \
+        "archive text, and are deleted after #{ApiCall::RETENTION.inspect}."
     }
   }.freeze
 

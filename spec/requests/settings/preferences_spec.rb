@@ -17,9 +17,9 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
   describe "GET /settings" do
     subject(:request) { get settings_path }
 
-    it "offers the toggle" do
+    it "offers the toggles" do
       request
-      expect(response.body).to include("Record API calls")
+      expect(response.body).to include("Record outgoing API calls", "Record incoming API calls")
     end
 
     it "offers every round budget" do

@@ -64,6 +64,37 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
         end
       end
 
+      context "by direction" do
+        let!(:incoming) { create(:api_call, :incoming) }
+
+        it "keeps that direction and drops the other" do
+          filter(direction: "incoming")
+          expect(lists?(incoming)).to be(true)
+          expect(lists?(chat)).to be(false)
+        end
+      end
+
+      context "by key" do
+        let!(:incoming) { create(:api_call, :incoming) }
+        let!(:other) { create(:api_call, :incoming) }
+
+        it "keeps that key's calls and drops the others" do
+          filter(key: incoming.api_key.token_prefix)
+          expect(lists?(incoming)).to be(true)
+          expect(lists?(other)).to be(false)
+        end
+      end
+
+      context "by user" do
+        let!(:incoming) { create(:api_call, :incoming) }
+
+        it "keeps that user's calls and drops the others" do
+          filter(user: incoming.user.email_address)
+          expect(lists?(incoming)).to be(true)
+          expect(lists?(chat)).to be(false)
+        end
+      end
+
       context "by both at once" do
         it "narrows to what matches neither" do
           filter(kind: "chat", host: "i.rmtly.com")

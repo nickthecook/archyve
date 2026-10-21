@@ -82,6 +82,13 @@ class Setting < ApplicationRecord
       description: "Record outbound inference requests and responses, with their bodies, to the " \
         "api_calls table. For debugging a provider that isn't behaving — it writes a row per chat " \
         "and per model discovery call, and those rows are swept once they are a few days old."
+    ),
+    # Apart from the outbound switch so a provider can be debugged in production
+    # without recording what people do through the API.
+    "debug.record_incoming_api_calls" => Definition.new(
+      default: -> { ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_INCOMING_API_CALLS", nil)) || false },
+      type: :boolean,
+      description: "Record requests to Archyve's own API, and its responses, to the api_calls table."
     )
   }.freeze
 
@@ -108,6 +115,7 @@ class Setting < ApplicationRecord
     def chat_instance_purpose = self["chat.instance_purpose"]
     def chat_default_model_id = self["chat.default_model_id"]
     def record_api_calls? = self["debug.record_api_calls"]
+    def record_incoming_api_calls? = self["debug.record_incoming_api_calls"]
 
     # Back to the declared default. `[]=` only ever writes, so without this a
     # setting that has been set has no way back to "unset" — and "" would cast

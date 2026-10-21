@@ -874,6 +874,41 @@ tell from inside the app whether it had been sent, dropped, or mis-parsed.
   uploaded document. `ARCHYVE_RECORD_API_CALLS` sets the default and a `Setting`
   row overrides it, so recording can be turned on against a server that is
   already misbehaving. Rows carry bodies, so they expire — `ApiCall::RETENTION`.
+- **Calls into Archyve's own API are rows too** (`incoming`, filed under the
+  caller's user and key), written by `ApiCalls::Inbound` around the API action.
+  They have **their own switch**, `debug.record_incoming_api_calls`, so a
+  provider can be debugged in production without recording what people do
+  through the API. #81 replaces that switch with a per-user opt-in.
+
+## Archyve's own API (built 2026-10-17)
+
+Key-authenticated JSON under `/api`; `/v1` is kept for a future
+OpenAI-compatible API. Decided in #80.
+
+- **`/api/tools` exposes the chat tools to scripts.** `GET /api/tools` lists
+  each tool's name, description and JSON Schema; `POST /api/tools/:name` runs one
+  with a JSON body. Each `Api::Tools::*` class *mirrors* a `Tools::*` chat tool,
+  taking its name and argument schema from it, but calls `Retrieval::*` directly:
+  round budgets, citation handles and model-facing instructions are chat
+  concerns. Arguments are validated against the schema (`json_schemer`), so a
+  string where an id belongs is a 422 rather than a guess.
+- **Same access control as chat.** Results go through `Retrieval::Corpus`, and
+  a document or collection the caller can't read is the same 404 as one that
+  doesn't exist.
+- **MCP is meant to wrap the same definitions** at `/api/mcp`, not replace
+  `/api/tools`: an MCP call is a JSON-RPC envelope nobody wants to write in curl.
+- **An `ApiKey` acts as its owner** (`#principal`, so service accounts can slot
+  in later). Tokens are `archyve_` plus 256 random bits in URL-safe base64, shown
+  once; only a SHA-256 digest is stored, since a token that random needs no slow
+  hash. People manage their own keys on `/account`.
+- **A key never checks back with Keycloak**, so it outlives a revoked SSO group
+  in a way a session (`Session::LIFETIME`) can't. Two mitigations: an SSO
+  refusal deletes the user's keys along with their sessions, and the admin list
+  at `/settings/api_keys` flags keys whose owner hasn't signed in for
+  `ApiKey::DORMANT_AFTER`. Requiring periodic web sign-ins to keep a key alive
+  was rejected as a burden on people who only use the API.
+- **Rate-limited per key** (`Api::ToolsController::CALLS_PER_MINUTE`), since a
+  search is an embedding call and a vector scan.
 
 ## Which OpenAI-compatible server it is (built 2026-10-07)
 

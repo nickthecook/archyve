@@ -17,6 +17,15 @@ actions:
     command: bin/rails
     load_secrets: true
   rake: bin/rake
+  api:
+    # ops api /api/tools
+    # ops api /api/tools/list_collections ""
+    # ops api /api/tools/search_archive '{"queries": ["refrigerator model number"]}'
+    command: bin/api.sh
+    load_secrets: true
+  search:
+    command: "ops api /api/tools/search_archive '{\"queries\": [\"'\"$1\"'\"]}'"
+    param_expansion: true
   test:
     command: RAILS_ENV=test bundle exec rspec
     alias: t

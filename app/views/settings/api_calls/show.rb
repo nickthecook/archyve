@@ -33,6 +33,8 @@ class Views::Settings::ApiCalls::Show < Views::Base
   def call_fields
     [
       Views::Admin::Field.new("When", mono: true) { |call| ago(call.created_at) },
+      Views::Admin::Field.new("Direction") { |call| call.incoming? ? "incoming" : "outgoing" },
+      Views::Admin::Field.new("Caller") { |call| text(caller_of(call)) },
       Views::Admin::Field.new("Method") { |call| text(call.http_method) },
       Views::Admin::Field.new("URL", mono: true) { |call| text(call.url) },
       Views::Admin::Field.new("Streamed") { |call| yes_no(call.streamed) },
@@ -57,6 +59,12 @@ class Views::Settings::ApiCalls::Show < Views::Base
       Views::Admin::Field.new("Body") { |call| render Views::Admin::Json.new(value: call.response_body) },
       Views::Admin::Field.new("Size", numeric: true) { |call| bytes(call.response_length) }
     ]
+  end
+
+  def caller_of(call)
+    return unless call.incoming?
+
+    [call.user&.email_address, call.api_key&.name].compact.join(" · ")
   end
 
   def took(call) = call.duration_ms ? "#{count(call.duration_ms)} ms" : BLANK

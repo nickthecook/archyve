@@ -7,7 +7,8 @@ module Settings
     def index
       render Views::Settings::Admin::Index.new(
         api_call_count: ApiCall.count,
-        recording: ApiCall.recording?
+        api_key_count: ApiKey.count,
+        recording: ApiCall.recording_any?
       )
     end
   end

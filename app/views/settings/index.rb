@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
-  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, rounds:, record_api_calls:)
+  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, rounds:,
+    record_api_calls:, record_incoming_api_calls:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
@@ -9,6 +10,7 @@ class Views::Settings::Index < Views::Base
     @prompt = prompt
     @rounds = rounds
     @record_api_calls = record_api_calls
+    @record_incoming_api_calls = record_incoming_api_calls
   end
 
   def view_template
@@ -80,6 +82,7 @@ class Views::Settings::Index < Views::Base
       div(class: "mt-1 divide-y divide-line") do
         @rounds.each { |key, value| render Views::Settings::Number.new(key:, value:) }
         render Views::Settings::Toggle.new(key: "debug.record_api_calls", on: @record_api_calls)
+        render Views::Settings::Toggle.new(key: "debug.record_incoming_api_calls", on: @record_incoming_api_calls)
       end
     end
   end

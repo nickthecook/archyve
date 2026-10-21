@@ -32,7 +32,8 @@ module Tools
 
     # Named for the model, not derived from the class: this string is part of
     # the prompt, and RubyLLM's default would hand it "search".
-    def name = "search_archive"
+    NAME = "search_archive"
+    def name = NAME
 
     # Instance-level, unlike RubyLLM's class-level `description`, so the model
     # is told what it is searching. Without this it will report that the archive

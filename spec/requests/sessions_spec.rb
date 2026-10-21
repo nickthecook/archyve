@@ -34,6 +34,11 @@ RSpec.describe "Sessions", type: :request do
       it "starts a session for the user" do
         expect { request }.to change { user.sessions.count }.by(1)
       end
+
+      it "records when they signed in" do
+        request
+        expect(user.reload.last_signed_in_at).to be_within(1.second).of(Time.current)
+      end
     end
 
     # Normalization has to apply on the way in as well as on the way out, or an

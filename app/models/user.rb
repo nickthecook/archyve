@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
+  has_many :api_keys, dependent: :destroy
 
   # Deliberately :nullify, not :destroy. A source destroys its documents, so
   # cascading here would mean deleting a departing employee silently destroyed

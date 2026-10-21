@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_140200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -44,10 +44,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
   end
 
   create_table "api_calls", force: :cascade do |t|
+    t.bigint "api_key_id"
     t.datetime "created_at", null: false
     t.integer "duration_ms"
     t.string "error"
     t.string "http_method", null: false
+    t.boolean "incoming", default: false, null: false
     t.string "kind", null: false
     t.jsonb "request_body"
     t.jsonb "request_headers"
@@ -62,8 +64,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
     t.string "traceable_type"
     t.datetime "updated_at", null: false
     t.string "url", null: false
+    t.bigint "user_id"
+    t.index ["api_key_id"], name: "index_api_calls_on_api_key_id"
     t.index ["created_at"], name: "index_api_calls_on_created_at"
     t.index ["traceable_type", "traceable_id"], name: "index_api_calls_on_traceable"
+    t.index ["user_id"], name: "index_api_calls_on_user_id"
+  end
+
+  create_table "api_keys", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.string "token_digest", null: false
+    t.string "token_prefix", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["token_digest"], name: "index_api_keys_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_api_keys_on_user_id"
   end
 
   create_table "chunks", force: :cascade do |t|
@@ -362,6 +379,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
+    t.datetime "last_signed_in_at"
     t.string "password_digest"
     t.integer "role", default: 0, null: false
     t.string "sso_issuer"
@@ -374,6 +392,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_090000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "api_calls", "api_keys", on_delete: :nullify
+  add_foreign_key "api_calls", "users", on_delete: :nullify
+  add_foreign_key "api_keys", "users"
   add_foreign_key "chunks", "documents"
   add_foreign_key "collection_memberships", "collections"
   add_foreign_key "collection_memberships", "documents"

@@ -9,7 +9,8 @@ class SettingsController < ApplicationController
       endpoint_count: Endpoint.count,
       prompt: Setting.chat_instance_purpose,
       rounds: rounds,
-      record_api_calls: Setting.record_api_calls?
+      record_api_calls: Setting.record_api_calls?,
+      record_incoming_api_calls: Setting.record_incoming_api_calls?
     )
   end
 

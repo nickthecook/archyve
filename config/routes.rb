@@ -15,7 +15,9 @@ Rails.application.routes.draw do
   # Your own account: the only place a non-admin changes their own password.
   # Reached from the account menu in the top bar, not from Settings — Settings
   # is administration, which most people can't see.
-  resource :account, only: [:show, :update]
+  resource :account, only: [:show, :update] do
+    resources :api_keys, only: [:create, :destroy]
+  end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
@@ -74,6 +76,7 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/jobs"
   # Administration. Admin-only, and distinct from /account above.
   namespace :settings do
+    resources :api_keys, only: [:index, :show, :destroy]
     # The records Archyve keeps, as rows — the way into the generated model
     # pages below. Distinct from the settings that produce them.
     get "admin", to: "admin#index"
@@ -126,6 +129,13 @@ Rails.application.routes.draw do
     # Who may manage this source. Not who may read its documents — that is
     # decided by the collections it feeds.
     resources :people, only: [:index, :create, :update, :destroy], controller: "source_users"
+  end
+
+  # Key-authenticated JSON, for scripts and integrations. /v1 is kept free for an
+  # OpenAI-compatible API.
+  namespace :api do
+    get "tools", to: "tools#index"
+    post "tools/:name", to: "tools#run", as: :tool
   end
 
   # The landing: the archive corridor with search as the way in.

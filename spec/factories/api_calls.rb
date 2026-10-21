@@ -13,6 +13,15 @@ FactoryBot.define do
     response_code { 200 }
     duration_ms { 1234 }
 
+    trait :incoming do
+      incoming { true }
+      kind { "tool" }
+      api_key
+      user { api_key.user }
+      service_name { api_key.name }
+      url { "http://archyve.test/api/tools/search_archive" }
+    end
+
     # Nothing answered, which is most of what goes wrong with a self-hosted
     # server — see ApiCall::NO_RESPONSE.
     trait :refused do

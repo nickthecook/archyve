@@ -16,7 +16,8 @@ module Tools
   #
   # Nothing it returns is citable — see Tools::Base::NOT_CITABLE.
   class ListDocuments < Base
-    def name = "list_documents"
+    NAME = "list_documents"
+    def name = NAME
 
     params do
       string :collection,
