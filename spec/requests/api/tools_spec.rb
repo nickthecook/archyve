@@ -149,6 +149,39 @@ RSpec.describe "API tools", type: :request, unauthenticated: true do
         end
       end
 
+      context "when scoped to one document" do
+        let(:arguments) { { queries: ["reports"], document: readable.id } }
+
+        before do
+          sibling = create(:document, title: "Sibling Report")
+          create(:collection_membership, collection:, document: sibling, origin: "manual")
+          create(:embedding, chunk: create(:chunk, document: sibling))
+        end
+
+        it "returns passages from that document only" do
+          request
+          expect(body["results"].map { it.dig("document", "title") }).to eq(["Inside Report"])
+        end
+      end
+
+      context "when scoped to a document the caller can't read" do
+        let(:arguments) { { queries: ["reports"], document: unreadable.id } }
+
+        it "finds nothing rather than refusing" do
+          request
+          expect(body["results"]).to be_empty
+        end
+      end
+
+      context "when scoped to both collections and a document" do
+        let(:arguments) { { queries: ["reports"], collections: [collection.slug], document: readable.id } }
+
+        it "is unprocessable" do
+          request
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+
       context "without queries" do
         let(:arguments) { { queries: [] } }
 

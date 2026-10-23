@@ -11,14 +11,22 @@ module Api
           type: "array", items: { type: "string" },
           description: "Slugs of the collections to search. Defaults to everything you can read."
         },
+        document: {
+          type: "integer",
+          description: "The id of one document to search within, instead of collections."
+        },
         limit: {
           type: "integer", minimum: 1, maximum: Retrieval::Search::DEFAULT_LIMIT,
           description: "How many passages to return, at most #{Retrieval::Search::DEFAULT_LIMIT}."
         }
       )
 
-      def execute(queries:, collections: nil, limit: Retrieval::Search::DEFAULT_LIMIT)
-        outcome = Retrieval::Search.new(corpus: corpus(scope: scope(collections))).call(queries, limit:)
+      def execute(queries:, collections: nil, document: nil, limit: Retrieval::Search::DEFAULT_LIMIT)
+        if collections && document
+          return error(:unprocessable_content, "invalid_arguments", "Give collections or a document, not both.")
+        end
+
+        outcome = Retrieval::Search.new(corpus: corpus(scope: scope(collections, document))).call(queries, limit:)
         return unavailable(outcome.failure) if outcome.failed?
 
         totals = chunk_totals(outcome.hits)
@@ -27,7 +35,9 @@ module Api
 
       private
 
-      def scope(slugs) = slugs && Retrieval::Scope.new(user:, slugs:)
+      def scope(slugs, document_id)
+        Retrieval::Scope.new(user:, slugs: slugs || [], document_id:) if slugs || document_id
+      end
 
       def result(hit, totals)
         {

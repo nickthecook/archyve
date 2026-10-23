@@ -1,44 +1,26 @@
 # frozen_string_literal: true
 
 module Tools
-  # Search this conversation's archive. The first tool the model reaches for,
-  # and usually the one that finds what it needs.
+  # search this conversation's archive with multiple queries
   #
-  # The scope is bound, not chosen — see Tools::Base. The only thing this tool
-  # decides is what to *ask*, and it gets one call with several queries rather
-  # than several calls with one, because merging is Archyve's job: one embedding
-  # pass, one fused ranking, and no chance for the model to lose track halfway
-  # through stitching results together itself.
-  #
-  # ## What a result names
-  #
-  # Each result carries two different kinds of name, and they are not
-  # interchangeable. `handle` cites the passage; `id` addresses the document, so
-  # the model can read around a chunk that was nearly enough with Tools::Read.
+  # Each result carries two different kinds of name:
+  # - `handle` cites the passage
+  # - `id` addresses the document, so the model can call the read tool on the doc directly in a follow up
   class Search < Base
-    # More than a handful of queries is a model flailing, not a model being
-    # thorough — and each one is an embedding call and a vector scan. Extra
-    # queries are dropped rather than refused: a truncated search is a better
-    # answer than an error the model has to recover from.
-    MAX_QUERIES = 4
-
     params do
       array :queries,
         description: "Two to four differently-worded search phrases for the same question. " \
-                     "Vary the vocabulary — documents rarely use the words a question does." do
+                     "Vary the vocabulary — documents rarely use the words a question does." \
+                     "Only the first four queries are used; any beyond that are discarded." do
         string
       end
     end
 
-    # Named for the model, not derived from the class: this string is part of
-    # the prompt, and RubyLLM's default would hand it "search".
     NAME = "search_archive"
     def name = NAME
 
-    # Instance-level, unlike RubyLLM's class-level `description`, so the model
-    # is told what it is searching. Without this it will report that the archive
-    # lacks something when the truth is the user narrowed the scope to one
-    # document.
+    # tell the model what it's searching, so it knows the difference between "not in the archive" and
+    # "not in the collections the user chose to search"
     def description
       <<~TEXT.strip
         Search #{scope_label} for passages relevant to the question. Use this whenever an
