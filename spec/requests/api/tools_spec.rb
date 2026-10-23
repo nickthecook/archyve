@@ -52,6 +52,15 @@ RSpec.describe "API tools", type: :request, unauthenticated: true do
       end
     end
 
+    context "with the key sent under another scheme" do
+      let(:headers) { { "Authorization" => "Basic #{api_key.token}" } }
+
+      it "is unauthorized" do
+        request
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
     context "with a signed-in browser session instead of a key" do
       let(:headers) { {} }
 
@@ -91,6 +100,22 @@ RSpec.describe "API tools", type: :request, unauthenticated: true do
       it "is a bad request" do
         request
         expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    context "without a key" do
+      let(:name) { "list_collections" }
+      let(:arguments) { {} }
+      let(:headers) { {} }
+
+      it "is unauthorized" do
+        request
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "doesn't run the tool" do
+        request
+        expect(body).not_to have_key("collections")
       end
     end
 
