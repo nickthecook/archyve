@@ -1,6 +1,5 @@
 # Recurring tasks, run by the Solid Queue scheduler. The scheduler only exists
-# inside a running supervisor — in development that is the one Puma forks via
-# the plugin in config/puma.rb (SOLID_QUEUE_IN_PUMA=1, set in Procfile.dev).
+# inside a running supervisor — `bin/jobs`, which Procfile.dev starts in development.
 
 default: &default
   # A fixed heartbeat, not a per-source schedule: the job asks
