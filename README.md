@@ -36,6 +36,7 @@ configuration from the environment it runs in:
 | `ARCHYVE_DATABASE_PASSWORD` | Required. Postgres is created with it. |
 | `ARCHYVE_ADMIN_EMAIL`, `ARCHYVE_ADMIN_PASSWORD` | Required. The break-glass admin. |
 | `ARCHYVE_HOST` | The public hostname. Archyve expects a TLS-terminating proxy in front. |
+| `ARCHYVE_FORCE_TLS` | Set to `false` to serve plain HTTP, e.g. on `localhost` without a proxy. |
 | `OLLAMA_API_BASE` | Seeds an Ollama server, e.g. `http://ollama:11434/v1`. |
 | `ARCHYVE_SSO_*` | Optional; see below. |
 | `ARCHYVE_PORT` | Host port for the web container (default 3000). |

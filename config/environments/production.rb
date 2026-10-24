@@ -33,12 +33,17 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Production is always behind a TLS-terminating reverse proxy. assume_ssl is
+  # Production is behind a TLS-terminating reverse proxy. assume_ssl is
   # what makes request.base_url say https, and therefore what makes
   # sso_callback_url generate a redirect_uri the IdP will accept; force_ssl is
-  # what marks the session cookie secure.
-  config.assume_ssl = true
-  config.force_ssl = true
+  # what marks the session cookie secure. ARCHYVE_FORCE_TLS=false turns both
+  # off, for running the image locally over plain HTTP.
+  force_tls = ENV["ARCHYVE_FORCE_TLS"] != "false"
+  config.assume_ssl = force_tls
+  config.force_ssl = force_tls
+  unless force_tls
+    config.after_initialize { Rails.logger.warn("ARCHYVE_FORCE_TLS=false: serving plain HTTP, with insecure cookies") }
+  end
 
   health_checks = %r{\A/up(/queues)?\z}
 

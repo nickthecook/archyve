@@ -7,6 +7,17 @@ actions:
   stop:
     command: docker compose down
     load_secrets: true
+  restart:
+    command: docker compose restart
+    load_secrets: true
+    alias: r
+  bounce: ops stop && ops start
+  restart-with-logs:
+    command: ops restart && ops logs
+    alias: rl
+  bounce-with-logs:
+    command: ops bounce && ops logs
+    alias: bl
   build:
     command: docker compose build
     alias: b
