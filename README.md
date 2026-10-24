@@ -26,6 +26,30 @@ ops lint
 `ARCHYVE_ADMIN_PASSWORD`. In development both default, so a fresh clone can be
 signed into without setting anything up.
 
+## Running it in containers
+
+`container/compose.yml` runs Archyve, Postgres and Docling. It reads its
+configuration from the environment it runs in:
+
+| Variable | |
+|---|---|
+| `ARCHYVE_DATABASE_PASSWORD` | Required. Postgres is created with it. |
+| `ARCHYVE_ADMIN_EMAIL`, `ARCHYVE_ADMIN_PASSWORD` | Required. The break-glass admin. |
+| `ARCHYVE_HOST` | The public hostname. Archyve expects a TLS-terminating proxy in front. |
+| `OLLAMA_API_BASE` | Seeds an Ollama server, e.g. `http://ollama:11434/v1`. |
+| `ARCHYVE_SSO_*` | Optional; see below. |
+| `ARCHYVE_PORT` | Host port for the web container (default 3000). |
+
+`SECRET_KEY_BASE` and the `ACTIVE_RECORD_ENCRYPTION_*` keys are generated on
+first boot into the `keys` volume. Back that volume up with `postgres`: without
+it, stored credentials can't be decrypted.
+
+```sh
+ops container start   # or `ops c start`; plain `docker compose up -d` works too
+ops c logs
+ops c stop
+```
+
 ## Single sign-on with Keycloak
 
 Archyve can authenticate against any OIDC provider; Keycloak is what it is

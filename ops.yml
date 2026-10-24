@@ -1,5 +1,7 @@
 forwards:
   deps: deps            # `ops deps <action>` runs in deps/ops.yml
+  container: container  # `ops container <action>` runs in container/ops.yml
+  c: container
 
 dependencies:
   # `ops up` runs `docker compose up -d` in deps/; `ops down` runs `docker compose down`.

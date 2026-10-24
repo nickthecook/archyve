@@ -18,6 +18,8 @@ require "action_cable/engine"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require_relative "../lib/archyve/keys"
+
 module Archyve
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -26,7 +28,7 @@ module Archyve
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets generators tasks])
+    config.autoload_lib(ignore: %w[archyve assets generators tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -44,18 +46,15 @@ module Archyve
 
     # Active Record encryption keys come from the environment, not credentials,
     # so every environment can hold its own without anyone managing a master.key
-    # — ops loads them from config/<env>/secrets.ejson. The railtie splats
-    # `config.active_record.encryption` *after* its credentials lookup, so these
-    # win. Guarded, because assigning nil would override the credentials
-    # fallback rather than defer to it.
+    # — ops loads them from config/<env>/secrets.ejson, and production falls
+    # back to a generated key file (config/environments/production.rb). The
+    # railtie splats `config.active_record.encryption` *after* its credentials
+    # lookup, so these win. Guarded, because assigning nil would override the
+    # credentials fallback rather than defer to it.
     #
     # Losing these makes every encrypted column permanently unreadable — they
     # are not derived from SECRET_KEY_BASE, or from anything else.
-    {
-      primary_key: "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY",
-      deterministic_key: "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY",
-      key_derivation_salt: "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"
-    }.each do |setting, variable|
+    Archyve::Keys::ENCRYPTION.each do |setting, variable|
       value = ENV[variable].presence
       config.active_record.encryption.public_send(:"#{setting}=", value) if value
     end

@@ -1,0 +1,97 @@
+name: archyve
+
+# Configuration comes from the environment this runs in. Variables listed
+# without a value are passed through only when set.
+
+x-app: &app
+  image: ${ARCHYVE_IMAGE:-archyve:latest}
+  build: ..
+  restart: unless-stopped
+  environment:
+    - DATABASE_HOST=postgres
+    - DOCLING_URL=http://docling:5001
+    - ARCHYVE_DATABASE_PASSWORD=${ARCHYVE_DATABASE_PASSWORD:?ARCHYVE_DATABASE_PASSWORD must be set}
+    - ARCHYVE_ADMIN_EMAIL=${ARCHYVE_ADMIN_EMAIL:?ARCHYVE_ADMIN_EMAIL must be set}
+    - ARCHYVE_ADMIN_PASSWORD=${ARCHYVE_ADMIN_PASSWORD:?ARCHYVE_ADMIN_PASSWORD must be set}
+    - ARCHYVE_HOST
+    - ARCHYVE_EXTRA_HOSTS
+    - OLLAMA_API_BASE
+    - ARCHYVE_SSO_ISSUER
+    - ARCHYVE_SSO_CLIENT_ID
+    - ARCHYVE_SSO_CLIENT_SECRET
+    - ARCHYVE_SSO_GROUP
+    # Generated into the keys volume on first boot when unset.
+    - SECRET_KEY_BASE
+    - ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY
+    - ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY
+    - ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT
+    - ARCHYVE_MAX_FILE_SIZE_MB
+    - ARCHYVE_RECORD_API_CALLS
+    - ARCHYVE_RECORD_INCOMING_API_CALLS
+    - RAILS_LOG_LEVEL
+    - RAILS_MAX_THREADS
+    - WEB_CONCURRENCY
+    - JOB_THREADS
+    - JOB_CONCURRENCY
+    - DOCLING_JOB_CONCURRENCY
+  volumes:
+    - keys:/rails/keys
+    - storage:/rails/storage
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "${ARCHYVE_PORT:-3000}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 2m
+
+  jobs:
+    <<: *app
+    command: ["./bin/jobs"]
+    # After web, which creates the databases on first boot.
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bin/jobs-healthcheck"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 1m
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: archyve
+      POSTGRES_PASSWORD: ${ARCHYVE_DATABASE_PASSWORD:?ARCHYVE_DATABASE_PASSWORD must be set}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U archyve"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  docling:
+    image: quay.io/docling-project/docling-serve-cpu:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres:
+  storage:
+  # Back this up with postgres: without it, stored credentials can't be decrypted.
+  keys:

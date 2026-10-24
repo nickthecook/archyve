@@ -36,6 +36,9 @@ config/dev
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Generated production keys (Archyve::Keys).
+/keys/
+
 # Postgres container data (bind mount in deps/compose.yaml).
 /deps/pgdata/
 
@@ -46,3 +49,4 @@ config/dev
 /app/assets/builds/*
 !/app/assets/builds/.keep
 scratch.md
+container/config/dev

@@ -1,0 +1,24 @@
+# Every action loads secrets: compose refuses to read compose.yml at all, even
+# for `down`, while a required variable is unset.
+actions:
+  start:
+    command: docker compose up -d
+    load_secrets: true
+  stop:
+    command: docker compose down
+    load_secrets: true
+  build:
+    command: docker compose build
+    alias: b
+    load_secrets: true
+  ps:
+    command: docker compose ps
+    load_secrets: true
+  logs:
+    command: docker compose logs --tail 100 -f
+    alias: l
+    load_secrets: true
+  console:
+    command: docker compose exec web bin/rails console
+    alias: c
+    load_secrets: true

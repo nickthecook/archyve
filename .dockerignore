@@ -14,6 +14,16 @@
 /config/master.key
 /config/credentials/*.key
 
+# Per-environment ops config and secrets; containers get theirs from the environment.
+/config/dev
+/config/staging
+/config/production
+
+# Generated keys and local dependency data.
+/keys
+/deps
+/container
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*

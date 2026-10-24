@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# HEALTHCHECK for the jobs container. Docker never restarts an unhealthy
+# container, so after repeated 503s from /up/queues this stops the supervisor
+# and leaves the restart to the container's restart policy.
+set -u
+
+url=${ARCHYVE_QUEUE_HEALTH_URL:-http://web/up/queues}
+limit=${ARCHYVE_QUEUE_HEALTH_STRIKES:-3}
+strikes_file=/tmp/archyve-queue-health-strikes
+
+# Anything but a 503 — including web being unreachable — isn't this container's fault.
+status=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$url")
+if [ "$status" != 503 ]; then
+  rm -f "$strikes_file"
+  exit 0
+fi
+
+strikes=$(( $(cat "$strikes_file" 2>/dev/null || echo 0) + 1 ))
+echo "$strikes" > "$strikes_file"
+
+if [ "$strikes" -ge "$limit" ]; then
+  echo "Queues unhealthy for $strikes checks; stopping the supervisor" > /proc/1/fd/2
+  rm -f "$strikes_file"
+  kill -TERM 1
+fi
+
+exit 1

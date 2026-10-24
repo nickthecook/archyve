@@ -9,6 +9,15 @@ Rails.application.configure do
   # Eager load code on boot for better performance and memory savings (ignored by Rake tasks).
   config.eager_load = true
 
+  # Skipped for assets:precompile in the image build, which must never write keys.
+  unless ENV["SECRET_KEY_BASE_DUMMY"]
+    keys = Archyve::Keys.new(ENV.fetch("ARCHYVE_KEYS_FILE", Rails.root.join("keys/archyve.yml")))
+    config.secret_key_base = keys["SECRET_KEY_BASE"]
+    Archyve::Keys::ENCRYPTION.each do |setting, variable|
+      config.active_record.encryption.public_send(:"#{setting}=", keys[variable])
+    end
+  end
+
   # Full error reports are disabled.
   config.consider_all_requests_local = false
 

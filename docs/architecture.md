@@ -37,9 +37,50 @@ Status: pre-implementation. Decisions below are settled; open items are marked.
 | LLM client | **RubyLLM** | Multi-provider, tool calling, streaming |
 | Document extraction | **Docling** (`docling-serve` sidecar) | Structure-aware; the one extra container |
 | Testing | **RSpec** | House style applies |
-| Deploy | **Kamal 2** | Ships with Rails 8 |
+| Deploy | **Docker Compose** (`container/`) | One image, run as web and jobs — see Deployment |
 
-Net container count: **app + Postgres + Docling sidecar.**
+Net container count: **app (as web + jobs) + Postgres + Docling sidecar.**
+
+## Deployment (built 2026-10-23)
+
+`container/compose.yml` runs one image twice: `web` (Thruster + Puma) and
+`jobs` (`bin/jobs`, the Solid Queue supervisor), so jobs restart without
+taking the site down. Dev mirrors the split in `Procfile.dev`.
+
+**Configuration is the environment.** The image carries no `config/<env>/`;
+compose passes variables through from wherever it runs, and we use ops on the
+VM to set them.
+
+**Generated keys.** `SECRET_KEY_BASE` and the three Active Record encryption
+keys resolve through `Archyve::Keys`: the environment if set, otherwise
+`keys/archyve.yml` (`ARCHYVE_KEYS_FILE`), generated on first boot into its own
+volume. Rules it keeps:
+
+- One writer. Web and jobs boot together; the file is created by hard-linking
+  a finished draft, so exactly one wins and nobody reads it half-written.
+- No ephemeral keys. A missing or read-only directory stops boot rather than
+  generating keys that vanish on the next restart. The image declares the
+  directory a `VOLUME` for the same reason.
+- Never at build time: skipped under `SECRET_KEY_BASE_DUMMY`.
+
+Losing the keys volume means re-entering every stored credential (endpoint
+credentials, inference server API keys) and signing everyone out; documents
+are unaffected. Back it up alongside Postgres, but not *inside* it — a database
+dump shouldn't carry the keys that decrypt it.
+
+**Queue health.** `GET /up/queues` (`BackgroundJobs::QueueHealth`) returns 503
+when a queue has ready work no live worker covers, or work that has sat past
+five minutes with no progress on that queue while a covering worker has a
+free thread. The jobs container's healthcheck (`bin/jobs-healthcheck`) calls
+it on web; after three consecutive 503s it sends TERM to the supervisor and
+the restart policy brings up a fresh one. Docker itself never restarts an
+unhealthy container, and this needs no Docker socket. Web being unreachable
+doesn't count against jobs. A cause that survives restarts (a queue no worker
+is configured for) restarts jobs every couple of minutes, with a log line each
+time, until it's fixed.
+
+Solid Queue already replaces a worker that was pruned and then catches up; the
+health check is insurance for one that's wedged and never does (issue #77).
 
 ## Why Rails monolith over Rails API + Svelte SPA
 
