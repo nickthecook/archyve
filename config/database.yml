@@ -55,12 +55,17 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: <%= ENV.fetch("TEST_DATABASE_NAME", "archyve_test") %>
-  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
-  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
-  username: <%= ENV.fetch("ARCHYVE_DATABASE_USER", "archyve") %>
-  password: <%= ENV.fetch("ARCHYVE_DATABASE_PASSWORD", "archyve") %>
+  primary: &primary_test
+    <<: *default
+    database: <%= ENV.fetch("TEST_DATABASE_NAME", "archyve_test") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
+    username: <%= ENV.fetch("ARCHYVE_DATABASE_USER", "archyve") %>
+    password: <%= ENV.fetch("ARCHYVE_DATABASE_PASSWORD", "archyve") %>
+  queue:
+    <<: *primary_test
+    database: <%= ENV.fetch("TEST_DATABASE_NAME", "archyve_test") %>_queue
+    migrations_paths: db/queue_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

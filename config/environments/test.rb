@@ -41,11 +41,14 @@ Rails.application.configure do
   config.active_storage.service = :test
 
   # Record enqueued jobs instead of running them. Deliberately not :solid_queue
-  # like development — there is no worker process in a spec run, and specs use
-  # transactional fixtures, which roll back the primary database but could not
-  # roll back a separate queue database. Left at the Rails default (:async),
-  # `perform_later` would spawn a thread that races the test's open transaction.
+  # like development — there is no worker process in a spec run. Left at the
+  # Rails default (:async), `perform_later` would spawn a thread that races the
+  # test's open transaction.
   config.active_job.queue_adapter = :test
+
+  # The queue database exists so specs can read Solid Queue's tables, as
+  # BackgroundJobs::QueueHealth does.
+  config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Tell Action Mailer not to deliver emails to the real world.
   # The :test delivery method accumulates sent emails in the

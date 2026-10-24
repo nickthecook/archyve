@@ -16,6 +16,8 @@ module Tools
       end
     end
 
+    MAX_QUERIES = 4
+
     NAME = "search_archive"
     def name = NAME
 
