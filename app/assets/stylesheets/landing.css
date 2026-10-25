@@ -77,6 +77,15 @@
   position: absolute; left: 0; right: 0; margin-top: 0.75rem;
   display: flex; flex-direction: column; gap: 0.6rem; pointer-events: none;
 }
+/* A shadow the field casts on the floor: it dims whatever backdrop runs under
+   the text without boxing it in. */
+.corridor-stage .ask-below::before {
+  content: ""; position: absolute; inset: -0.75rem 4% -1.75rem; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse closest-side,
+    color-mix(in srgb, var(--color-void) 85%, transparent),
+    color-mix(in srgb, var(--color-void) 60%, transparent) 55%,
+    transparent);
+}
 .corridor-stage .ask-hint {
   margin: 0;
   display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;
@@ -91,7 +100,7 @@
 }
 
 .corridor-stage .ask-disclaimer {
-  margin: 0; text-align: center; font-size: 0.75rem; color: var(--color-faint);
+  margin: 0; text-align: center; font-size: 0.75rem; color: var(--color-muted);
   text-shadow: 0 1px 10px var(--color-void), 0 0 4px var(--color-void);
 }
 

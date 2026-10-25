@@ -964,10 +964,6 @@ see the tolerance rejected under "The web source", phase 4.
   good in the header is unreadable in a tab. Likely a `brand.icon` image that
   falls back to the logo.
 
-- **The landing hint is hard to read over the corridor.** "Draws on everything
-  you can read" sits inside the hall, and on a phone the rings' base lines run
-  through it. Predates branding (#85).
-
 ## The BookStack source
 
 Built 2026-09-18, model and UI both. The source form is now split per type the
