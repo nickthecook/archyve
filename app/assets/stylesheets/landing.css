@@ -35,6 +35,7 @@
 }
 .corridor-stage svg.rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .corridor-stage svg.rings polygon { fill: none; stroke-linejoin: round; }
+.corridor-stage .hall-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 
 /* warm light from the vanishing point — off until the search is focused */
 .corridor-stage .glow {
@@ -72,8 +73,12 @@
   font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-faint);
   border: 1px solid var(--color-line); border-radius: 3px; padding: 0.1rem 0.35rem;
 }
+.corridor-stage .ask-below {
+  position: absolute; left: 0; right: 0; margin-top: 0.75rem;
+  display: flex; flex-direction: column; gap: 0.6rem; pointer-events: none;
+}
 .corridor-stage .ask-hint {
-  position: absolute; left: 0; right: 0; margin: 0.75rem 0 0;
+  margin: 0;
   display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;
   font-size: 0.8rem; color: var(--color-muted); opacity: 0; transform: translateY(-3px);
   transition: opacity 0.35s ease, transform 0.35s ease;
@@ -83,6 +88,11 @@
    once it is visible, or the corridor would hold an invisible control. */
 .corridor-stage .ask:focus-within .ask-hint {
   opacity: 1; transform: translateY(0); pointer-events: auto;
+}
+
+.corridor-stage .ask-disclaimer {
+  margin: 0; text-align: center; font-size: 0.75rem; color: var(--color-faint);
+  text-shadow: 0 1px 10px var(--color-void), 0 0 4px var(--color-void);
 }
 
 /* facet sections ------------------------------------------------------- */

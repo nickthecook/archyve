@@ -6,36 +6,18 @@
 # re-render just this row after a flip — same arrangement as
 # Views::Sources::LastScan.
 class Views::Settings::Toggle < Components::Base
-  # The words belong to the UI, not to Setting: DEFINITIONS descriptions are
-  # notes for whoever reads that file, and are written as such.
-  COPY = {
-    "debug.record_api_calls" => {
-      label: "Record outgoing API calls",
-      description: "Keep what Archyve sends inference servers and what they send back, for working " \
-        "out why one is misbehaving. Recorded rows include prompt and answer text, and are deleted " \
-        "after #{ApiCall::RETENTION.inspect}."
-    },
-    "debug.record_incoming_api_calls" => {
-      label: "Record incoming API calls",
-      description: "Keep what scripts and integrations send Archyve's API and what it answers, for " \
-        "working out why an integration is misbehaving. Recorded rows include search queries and " \
-        "archive text, and are deleted after #{ApiCall::RETENTION.inspect}."
-    }
-  }.freeze
-
   def self.dom_id(key) = "setting-#{key.tr('.', '-')}"
 
   def initialize(key:, on:)
     @key = key
     @on = on
-    @copy = COPY.fetch(key)
   end
 
   def view_template
     div(id: self.class.dom_id(@key), class: "flex items-start justify-between gap-4 py-4") do
       div(class: "min-w-0") do
-        p(class: "text-sm font-medium text-fg") { @copy[:label] }
-        p(class: "mt-0.5 text-xs text-faint") { @copy[:description] }
+        p(class: "text-sm font-medium text-fg") { Setting.label(@key) }
+        p(class: "mt-0.5 text-xs text-faint") { Setting.description(@key) }
       end
       control
     end
@@ -51,7 +33,7 @@ class Views::Settings::Toggle < Components::Base
       # The value being moved to, so a double-click can't land somewhere
       # unintended and a stale page can't flip something it never showed.
       input(type: "hidden", name: "value", value: (!@on).to_s)
-      render Views::Settings::Switch.new(on: @on, label: @copy[:label])
+      render Views::Settings::Switch.new(on: @on, label: Setting.label(@key))
     end
   end
 end

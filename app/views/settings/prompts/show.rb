@@ -18,11 +18,11 @@ class Views::Settings::Prompts::Show < Views::Base
       input(type: "hidden", name: "_method", value: "patch")
 
       div do
-        label(class: "block text-sm font-medium text-fg", for: "purpose") { "Instance purpose" }
-        p(class: "mt-0.5 mb-2 text-xs text-faint") { guidance }
+        label(class: "block text-sm font-medium text-fg", for: "purpose") { Setting.label("chat.instance_purpose") }
+        p(class: "mt-0.5 mb-2 text-xs text-faint") { Setting.description("chat.instance_purpose") }
         textarea(
           id: "purpose", name: "purpose", rows: "5", autofocus: true,
-          placeholder: "e.g. Be concise in your responses. If the context of a question is not clear, search the archive.",
+          placeholder: "e.g. You are Atlas, answering questions for Acme's support team. Be concise.",
           data: { controller: "autogrow", action: "input->autogrow#resize" },
           class: "w-full resize-none overflow-y-hidden rounded border border-line bg-void/60 px-3 py-2 " \
             "text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
@@ -42,11 +42,4 @@ class Views::Settings::Prompts::Show < Views::Base
   private
 
   def page_title = "Prompt"
-
-  def guidance
-    "Appended to the system prompt on every chat, after Archyve's own instructions. Say who's using " \
-      "this instance and what they need from it — a sentence or two, not a policy document. It " \
-      "shapes tone and framing, not behaviour: citation and search rules are already covered and don't " \
-      "need repeating here. Leave it blank to inject nothing."
-  end
 end

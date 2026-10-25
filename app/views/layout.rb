@@ -9,6 +9,7 @@ class Views::Layout < Phlex::HTML
   include Phlex::Rails::Helpers::StyleSheetLinkTag
   include Phlex::Rails::Helpers::JavaScriptImportmapTags
   include Phlex::Rails::Helpers::Flash
+  include Phlex::Rails::Helpers::Routes
 
   # No built-in adapter for cookies; register one so `cookies` works without the
   # deprecated `helpers` proxy. (Layout is a plain Phlex::HTML, not Components::Base.)
@@ -25,7 +26,7 @@ class Views::Layout < Phlex::HTML
       head do
         title { [@title, Brand.current.name.presence].compact.join(" · ") }
         meta(name: "viewport", content: "width=device-width,initial-scale=1")
-        link(rel: "icon", href: "/icon.svg", type: "image/svg+xml")
+        favicon
         csrf_meta_tags
         csp_meta_tag
         stylesheet_link_tag("fonts", "data-turbo-track": "reload")
@@ -41,6 +42,15 @@ class Views::Layout < Phlex::HTML
   end
 
   private
+
+  def favicon
+    logo = Brand.current.logo
+    if logo
+      link(rel: "icon", href: rails_representation_path(logo.variant(:icon), only_path: true), type: "image/png")
+    else
+      link(rel: "icon", href: "/icon.svg", type: "image/svg+xml")
+    end
+  end
 
   # Honour the reduce-motion preference before first paint (no flash): the class
   # lets CSS suppress load animations and signals the JS animation controllers.

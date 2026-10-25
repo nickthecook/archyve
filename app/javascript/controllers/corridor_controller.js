@@ -47,18 +47,22 @@ export default class extends Controller {
     // our appended polygons still in it; without this, a Back navigation restores
     // that snapshot and connect() appends a *second* set — a stale ghost corridor
     // over the live one. Clearing first keeps the build idempotent.
-    this.ringsTarget.replaceChildren()
     this.polys = []
-    for (let i = 0; i < this.RINGS; i++) {
-      const p = document.createElementNS(this.NS, "polygon")
-      this.ringsTarget.appendChild(p)
-      this.polys.push({ el: p, i })
-    }
+    // Branding can turn the corridor off. The controller stays connected
+    // without it: lighting the field and the keyboard lift still apply.
+    if (this.hasRingsTarget) {
+      this.ringsTarget.replaceChildren()
+      for (let i = 0; i < this.RINGS; i++) {
+        const p = document.createElementNS(this.NS, "polygon")
+        this.ringsTarget.appendChild(p)
+        this.polys.push({ el: p, i })
+      }
 
-    // Strip the polygons before Turbo snapshots the page, so the cache matches
-    // the (empty) server-rendered rings and the Back preview never shows a ghost.
-    this._beforeCache = () => this.ringsTarget.replaceChildren()
-    document.addEventListener("turbo:before-cache", this._beforeCache)
+      // Strip the polygons before Turbo snapshots the page, so the cache matches
+      // the (empty) server-rendered rings and the Back preview never shows a ghost.
+      this._beforeCache = () => this.ringsTarget.replaceChildren()
+      document.addEventListener("turbo:before-cache", this._beforeCache)
+    }
 
     this.current = 0
     this.target = 0
@@ -82,7 +86,7 @@ export default class extends Controller {
   disconnect() {
     if (this.raf) cancelAnimationFrame(this.raf)
     document.removeEventListener("turbo:before-cache", this._beforeCache)
-    this.ringsTarget.replaceChildren()
+    if (this.hasRingsTarget) this.ringsTarget.replaceChildren()
     this.unwatchKeyboard()
   }
 
@@ -152,7 +156,7 @@ export default class extends Controller {
   }
 
   peer(event) {
-    if (this.reduce) return
+    if (this.reduce || !this.hasRingsTarget) return
     const r = this.ringsTarget.getBoundingClientRect()
     // Tracked window-wide, so the pointer can range well past the rings; clamp
     // the offset so the parallax stays controlled toward the viewport edges.

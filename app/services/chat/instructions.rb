@@ -64,7 +64,7 @@ module Chat
     # answering the question it was asked.
     def unaided_prompt
       <<~TEXT.strip
-        You are Archyve, a chat assistant for a private document archive.
+        You are a chat assistant for a private document archive.
 
         This conversation is not drawing on the archive: the user chose no collections,
         so you cannot search or read any of their documents and have no sources to cite.
@@ -79,7 +79,7 @@ module Chat
 
     def retrieval_prompt
       <<~TEXT.strip
-        You are Archyve, answering questions from a private document archive.
+        You are a chat assistant, answering questions from a private document archive.
 
         This conversation is drawing on: #{@conversation.scope_label}. That is fixed
         for the whole conversation and neither you nor the user can change it here.

@@ -45,13 +45,25 @@ class Views::Home::Index < Views::Base
   def hall
     div(class: "hall") do
       div(class: "hall-inner") do
-        svg(
-          class: "rings reveal", viewbox: "0 0 600 520", preserveaspectratio: "xMidYMid meet",
-          aria_hidden: "true", style: "animation-delay:.2s", data: { corridor_target: "rings" }
-        )
-        div(class: "glow")
+        backdrop
         threshold
       end
+    end
+  end
+
+  def backdrop
+    brand = Brand.current
+    if brand.corridor?
+      svg(
+        class: "rings reveal", viewbox: "0 0 600 520", preserveaspectratio: "xMidYMid meet",
+        aria_hidden: "true", style: "animation-delay:.2s", data: { corridor_target: "rings" }
+      )
+      div(class: "glow")
+    elsif brand.landing_image
+      img(
+        src: rails_blob_path(brand.landing_image, only_path: true), alt: "",
+        class: "hall-image reveal", style: "animation-delay:.2s"
+      )
     end
   end
 
@@ -64,6 +76,14 @@ class Views::Home::Index < Views::Base
     end
   end
 
+  # One column, so the disclaimer follows the hint however many lines it wraps to.
+  def below_field(&hint)
+    div(class: "ask-below") do
+      p(class: "ask-hint", &hint)
+      render Views::Disclaimer.new(css: "ask-disclaimer")
+    end
+  end
+
   def ask_form
     form(action: conversations_path, method: "post") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
@@ -71,7 +91,7 @@ class Views::Home::Index < Views::Base
       # The hint line is the only furniture the corridor gains, and it gains it
       # on focus rather than at rest: which model answers is worth a choice, but
       # not worth a control sitting in the threshold competing with the question.
-      p(class: "ask-hint") do
+      below_field do
         span { "Draws on everything you can read" }
         if @models.any?
           span { "·" }
@@ -87,7 +107,7 @@ class Views::Home::Index < Views::Base
   def search_form
     form(action: search_path, method: "get") do
       field(name: "q", placeholder: "Search your archive") { search_icon }
-      p(class: "ask-hint") { @unavailable }
+      below_field { @unavailable }
     end
   end
 

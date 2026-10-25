@@ -85,4 +85,42 @@ RSpec.describe "The corridor", type: :request do
       expect(response.body).not_to include(collections_path)
     end
   end
+
+  describe "behind the bar" do
+    let(:image) { Rack::Test::UploadedFile.new(file_fixture("logo.png"), "image/png") }
+
+    context "by default" do
+      it "draws the corridor" do
+        request
+        expect(response.body).to include("rings")
+      end
+    end
+
+    context "when the corridor is turned off" do
+      before { Setting["brand.corridor"] = false }
+
+      it "draws nothing" do
+        request
+        expect(response.body).not_to include("rings", "hall-image")
+      end
+
+      context "with a landing image" do
+        before { Setting["brand.landing_image"] = image }
+
+        it "shows the image" do
+          request
+          expect(response.body).to include("hall-image")
+        end
+      end
+    end
+
+    context "when the corridor is on and there's a landing image too" do
+      before { Setting["brand.landing_image"] = image }
+
+      it "keeps the corridor" do
+        request
+        expect(response.body).not_to include("hall-image")
+      end
+    end
+  end
 end

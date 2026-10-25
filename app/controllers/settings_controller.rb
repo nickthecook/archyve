@@ -17,12 +17,5 @@ class SettingsController < ApplicationController
 
   private
 
-  # In the order a turn spends them, not the order they were added.
-  def rounds
-    {
-      "chat.max_search_rounds" => Setting.chat_max_search_rounds,
-      "chat.max_read_rounds" => Setting.chat_max_read_rounds,
-      "chat.max_listing_rounds" => Setting.chat_max_listing_rounds
-    }
-  end
+  def rounds = Views::Settings::Number::KEYS.index_with { Setting[it] }
 end

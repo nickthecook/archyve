@@ -20,10 +20,8 @@ class Views::Settings::DefaultModel < Components::Base
 
     div(class: "mb-12 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4") do
       div(class: "min-w-0") do
-        p(class: "text-sm font-medium text-fg") { "Default chat model" }
-        p(class: "mt-0.5 text-xs text-faint") do
-          "What a new conversation starts on. Anyone asking can pick a different one for that question."
-        end
+        p(class: "text-sm font-medium text-fg") { Setting.label("chat.default_model_id") }
+        p(class: "mt-0.5 text-xs text-faint") { Setting.description("chat.default_model_id") }
       end
       control
     end

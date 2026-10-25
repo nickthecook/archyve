@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Shows a picked logo before it's saved. The file only uploads with the form,
+// Shows a picked image before it's saved. The file only uploads with the form,
 // so the rest of the site keeps the old one until Save.
 export default class extends Controller {
   static targets = ["input", "frame", "image", "remove"]
@@ -13,7 +13,7 @@ export default class extends Controller {
     this.revoke()
   }
 
-  // Cancelling the picker can empty the input, and then the saved logo is what
+  // Cancelling the picker can empty the input, and then the saved image is what
   // Save would keep.
   show() {
     const [file] = this.inputTarget.files

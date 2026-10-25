@@ -127,5 +127,6 @@ class Views::Conversations::Show < Views::Base
         ) { "Send" }
       end
     end
+    render Views::Disclaimer.new(css: "mt-2 text-center text-xs text-faint")
   end
 end

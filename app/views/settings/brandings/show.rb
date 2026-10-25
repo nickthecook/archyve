@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Views::Settings::Brandings::Show < Views::Base
+  IMAGE_LIMITS = "PNG, JPEG or WebP, under 2 MB."
+
   def initialize(brand:, error: nil)
     @brand = brand
     @error = error
@@ -19,16 +21,27 @@ class Views::Settings::Brandings::Show < Views::Base
       input(type: "hidden", name: "_method", value: "patch")
       error if @error
 
-      field("Logo", "Shown in place of the triangle mark. PNG, JPEG or WebP, under 2 MB.") { logo_field }
+      field("logo", IMAGE_LIMITS) { image_field("logo", @brand.logo) }
 
-      field("Name", "Shown beside the logo, exactly as typed. Leave it blank to show the logo alone.") do
+      field("name") do
         input(type: "text", name: "name", value: @brand.name, autocomplete: "off", class: input_classes)
       end
 
-      placeholder_field("Landing placeholder", "ask_placeholder", @brand.ask_placeholder,
-        "brand.ask_placeholder", "Shown in the box on the landing page before anyone types.")
-      placeholder_field("Chat placeholder", "chat_placeholder", @brand.chat_placeholder,
-        "brand.chat_placeholder", "Shown in the box on Chat before anyone types.")
+      placeholder_field("ask_placeholder", @brand.ask_placeholder)
+      placeholder_field("chat_placeholder", @brand.chat_placeholder)
+
+      field("disclaimer") do
+        input(
+          type: "text", name: "disclaimer", value: @brand.disclaimer, autocomplete: "off",
+          placeholder: "e.g. AI can make mistakes; if something seems off, consult your manager.", class: input_classes
+        )
+      end
+
+      corridor_field
+
+      field("landing_image", IMAGE_LIMITS) do
+        image_field("landing_image", @brand.landing_image)
+      end
 
       actions
     end
@@ -38,43 +51,57 @@ class Views::Settings::Brandings::Show < Views::Base
 
   def page_title = "Branding"
 
-  def logo_field
-    div(data: { controller: "logo-preview" }) do
-      div(class: "mb-3 flex items-center gap-4", hidden: !@brand.logo, data: { logo_preview_target: "frame" }) do
+  def image_field(name, image)
+    div(data: { controller: "image-preview" }) do
+      div(class: "mb-3 flex items-center gap-4", hidden: !image, data: { image_preview_target: "frame" }) do
         div(class: "rounded border border-line bg-void/60 p-3") do
           img(
-            src: (rails_blob_path(@brand.logo, only_path: true) if @brand.logo), alt: "Logo",
-            class: "h-10 w-auto max-w-48 object-contain", data: { logo_preview_target: "image" }
+            src: (rails_blob_path(image, only_path: true) if image), alt: "",
+            class: "#{name == 'logo' ? 'h-10' : 'h-24'} w-auto max-w-48 object-contain",
+            data: { image_preview_target: "image" }
           )
         end
-        remove_logo if @brand.logo
+        remove_image(name) if image
       end
       input(
-        type: "file", name: "logo", accept: Setting::IMAGE_TYPES.join(","),
+        type: "file", name:, accept: Setting::IMAGE_TYPES.join(","),
         class: Views::Documents::UploadFields::FILE_INPUT,
-        data: { logo_preview_target: "input", action: "logo-preview#show" }
+        data: { image_preview_target: "input", action: "image-preview#show" }
       )
     end
   end
 
-  def remove_logo
+  def remove_image(name)
     label(class: "flex cursor-pointer items-center gap-2 text-sm text-muted") do
-      input(type: "checkbox", name: "remove_logo", value: "1", class: "accent-accent", data: { logo_preview_target: "remove" })
-      span { "Remove logo" }
+      input(type: "checkbox", name: "remove_#{name}", value: "1", class: "accent-accent", data: { image_preview_target: "remove" })
+      span { name == "logo" ? "Remove logo" : "Remove image" }
     end
   end
 
-  def placeholder_field(label_text, name, value, key, hint)
-    default = Setting::DEFINITIONS.fetch(key).default
-    field(label_text, "#{hint} Leave it blank for “#{default}”.") do
+  def corridor_field
+    div do
+      input(type: "hidden", name: "corridor", value: "0")
+      label(class: "flex cursor-pointer items-center gap-2 text-sm font-medium text-fg") do
+        input(type: "checkbox", name: "corridor", value: "1", checked: @brand.corridor?, class: "accent-accent")
+        span { Setting.label("brand.corridor") }
+      end
+      p(class: "mt-0.5 text-xs text-faint") { Setting.description("brand.corridor") }
+    end
+  end
+
+  def placeholder_field(name, value)
+    default = Setting.default("brand.#{name}")
+    field(name, "Leave it blank for “#{default}”.") do
       input(type: "text", name:, value:, placeholder: default, autocomplete: "off", class: input_classes)
     end
   end
 
-  def field(label_text, hint)
+  # `name` is the form field, and the setting's key without its "brand." prefix.
+  def field(name, addendum = nil)
+    key = "brand.#{name}"
     div do
-      label(class: "block text-sm font-medium text-fg") { label_text }
-      p(class: "mt-0.5 mb-2 text-xs text-faint") { hint }
+      label(class: "block text-sm font-medium text-fg") { Setting.label(key) }
+      p(class: "mt-0.5 mb-2 text-xs text-faint") { [Setting.description(key), addendum].compact.join(" ") }
       yield
     end
   end

@@ -57,6 +57,42 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
       end
     end
 
+    context "with a blank disclaimer that had been set" do
+      before { Setting["brand.disclaimer"] = "Check with your manager." }
+
+      it "removes it" do
+        request
+        expect(Setting.brand_disclaimer).to eq("")
+      end
+    end
+
+    context "when the corridor is turned off" do
+      let(:params) { { name: "ARCHYVE", corridor: "0" } }
+
+      it "stores it" do
+        request
+        expect(Setting.brand_corridor?).to be(false)
+      end
+    end
+
+    context "when everything is left at its default" do
+      let(:params) { { name: "ARCHYVE", ask_placeholder: "Consult the archive", corridor: "1" } }
+
+      it "stores nothing, so Settings still reads as default" do
+        request
+        expect(Setting.where("key LIKE 'brand.%'")).to be_empty
+      end
+    end
+
+    context "with a landing image that isn't an image" do
+      let(:params) { { name: "Acme", landing_image: fixture_file_upload("sample.md", "text/markdown") } }
+
+      it "names the landing image in the error" do
+        request
+        expect(response.body).to include("The landing image has an invalid content type")
+      end
+    end
+
     context "with a blank name" do
       let(:params) { { name: "" } }
 
@@ -78,6 +114,12 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
         request
         follow_redirect!
         expect(response.body).to include("/rails/active_storage/blobs/")
+      end
+
+      it "makes it the favicon" do
+        request
+        follow_redirect!
+        expect(response.body).to match(%r{<link rel="icon" href="/rails/active_storage/representations/[^"]+" type="image/png">})
       end
     end
 

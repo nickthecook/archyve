@@ -4,41 +4,21 @@
 # shape as Views::Settings::Toggle, but with a Save step, since a half-typed
 # number must not be written.
 class Views::Settings::Number < Components::Base
-  # The words belong to the UI, not to Setting: DEFINITIONS descriptions are
-  # notes for whoever reads that file, and are written as such.
-  COPY = {
-    "chat.max_search_rounds" => {
-      label: "Searches per turn",
-      description: "How many times the chat model may search the archive while answering one " \
-        "question. Two lets it search, read what came back, and search again with better words."
-    },
-    "chat.max_read_rounds" => {
-      label: "Documents read per turn",
-      description: "How many documents the chat model may open while answering one question. " \
-        "Reading is how it checks what a search turned up; a model that runs out part way " \
-        "through reports the documents it couldn't open rather than reading them."
-    },
-    "chat.max_listing_rounds" => {
-      label: "Listings per turn",
-      description: "How many times the chat model may list what a collection holds, rather than " \
-        "search inside it. Listing costs no search of its own, and finding a way around the " \
-        "archive takes more steps than answering from it."
-    }
-  }.freeze
+  # In the order a turn spends them, not the order they were added.
+  KEYS = %w[chat.max_search_rounds chat.max_read_rounds chat.max_listing_rounds].freeze
 
   def self.dom_id(key) = "setting-#{key.tr('.', '-')}"
 
   def initialize(key:, value:)
     @key = key
     @value = value
-    @copy = COPY.fetch(key)
   end
 
   def view_template
     div(id: self.class.dom_id(@key), class: "flex items-start justify-between gap-4 py-4") do
       div(class: "min-w-0") do
-        p(class: "text-sm font-medium text-fg") { @copy[:label] }
-        p(class: "mt-0.5 text-xs text-faint") { @copy[:description] }
+        p(class: "text-sm font-medium text-fg") { Setting.label(@key) }
+        p(class: "mt-0.5 text-xs text-faint") { Setting.description(@key) }
       end
       control
     end
@@ -65,7 +45,7 @@ class Views::Settings::Number < Components::Base
   def field
     input(
       type: "number", name: "value", value: @value.to_s, min: "1", step: "1",
-      aria_label: @copy[:label], inputmode: "numeric",
+      aria_label: Setting.label(@key), inputmode: "numeric",
       class: "w-14 rounded border border-line bg-void/60 px-2 py-1 text-center font-mono tabular-nums " \
         "text-sm text-fg outline-none focus:border-accent transition-colors #{NO_SPINNER}"
     )

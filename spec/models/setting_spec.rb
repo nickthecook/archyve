@@ -174,6 +174,11 @@ RSpec.describe Setting do
         expect(described_class.brand_logo.filename.to_s).to eq("logo.png")
       end
 
+      it "makes a square PNG icon of it" do
+        icon = Vips::Image.new_from_buffer(described_class.brand_logo.variant(:icon).processed.download, "")
+        expect([icon.width, icon.height]).to eq([64, 64])
+      end
+
       it "purges the file when cleared" do
         expect { described_class.clear("brand.logo") }.to change(ActiveStorage::Attachment, :count).by(-1)
       end

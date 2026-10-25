@@ -27,7 +27,7 @@ module Settings
     # rejects a key it doesn't know, but nothing there stops a crafted request
     # writing "true" into an integer setting.
     def permitted_key
-      params[:key].presence_in(Setting.toggles.keys + Views::Settings::Number::COPY.keys)
+      params[:key].presence_in(Setting.toggles.keys + Views::Settings::Number::KEYS)
     end
 
     def value_for(key)

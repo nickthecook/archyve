@@ -10,11 +10,13 @@
 class Setting < ApplicationRecord
   UnknownSetting = Class.new(StandardError)
 
-  Definition = Data.define(:default, :type, :description) do
+  # `label` and `description` are the words the settings pages show.
+  Definition = Data.define(:default, :type, :label, :description) do
     # A callable default is resolved on read rather than when this file loads,
     # which is what lets one come from the environment: DEFINITIONS is built at
     # boot, and a default baked in then is a snapshot nothing can correct.
     def default_value = default.respond_to?(:call) ? default.call : default
+    def description_text = description.respond_to?(:call) ? description.call : description
   end
 
   DEFINITIONS = {
@@ -26,28 +28,32 @@ class Setting < ApplicationRecord
     "chat.result_limit" => Definition.new(
       default: 6,
       type: :integer,
-      description: "How many search results the chat model sees per retrieval."
+      label: "Search results",
+      description: "How many search results the chat model sees per search."
     ),
     # Each of the three below caps one tool, not the turn — a model that has
     # searched to its limit can still read. See Tools::Base#over_budget?.
     "chat.max_search_rounds" => Definition.new(
       default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_SEARCH_ROUNDS", 2) },
       type: :integer,
-      description: "How many times the model may search the archive in one turn."
+      label: "Searches per turn",
+      description: "How many times the chat model may search the archive to answer one question."
     ),
     # Looser than search: how many documents are worth reading is set by what
     # the search found, not by the model going in circles.
     "chat.max_read_rounds" => Definition.new(
       default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_READ_ROUNDS", 4) },
       type: :integer,
-      description: "How many documents the model may read in one turn."
+      label: "Documents read per turn",
+      description: "How many times the chat model may read a document to answer one question."
     ),
     # Looser again: a listing costs no embedding call and no vector scan, and
     # finding one's way around takes more steps than answering.
     "chat.max_listing_rounds" => Definition.new(
       default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_LISTING_ROUNDS", 4) },
       type: :integer,
-      description: "How many times the model may list part of the archive in one turn."
+      label: "Listings per turn",
+      description: "How many times the chat model may list what a collection holds to answer one question."
     ),
     # Appended to the system prompt after Archyve's own instructions — see
     # Chat::Instructions. Free text because "who is this for" doesn't fit a
@@ -56,10 +62,8 @@ class Setting < ApplicationRecord
     "chat.instance_purpose" => Definition.new(
       default: "",
       type: :string,
-      description: "What this instance is for and who it's answering. Appended to the system prompt " \
-        "on every chat, after Archyve's own instructions. A sentence or two, not a policy document " \
-        "— it should say who's using this instance and what they need from it, not how to cite " \
-        "sources or search the archive, which the base prompt already covers."
+      label: "Instance purpose",
+      description: "What this instance is for and who it's answering. Appended to the system prompt on every chat, after Archyve's own instructions."
     ),
     # Which chat model a new conversation starts on. An id rather than a flag on
     # inference_models: exactly one model is the default, and a column true on
@@ -69,8 +73,8 @@ class Setting < ApplicationRecord
     "chat.default_model_id" => Definition.new(
       default: nil,
       type: :integer,
-      description: "The chat model a new conversation starts on, by id. Unset means the first " \
-        "usable one."
+      label: "Default chat model",
+      description: "What a new conversation starts on. Anyone asking can pick a different one for that question."
     ),
     # Recording every outbound inference call to api_calls — see ApiCall.
     # ARCHYVE_RECORD_API_CALLS sets the default, so a deployment can boot with
@@ -79,38 +83,60 @@ class Setting < ApplicationRecord
     "debug.record_api_calls" => Definition.new(
       default: -> { ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_API_CALLS", nil)) || false },
       type: :boolean,
-      description: "Record outbound inference requests and responses, with their bodies, to the " \
-        "api_calls table. For debugging a provider that isn't behaving — it writes a row per chat " \
-        "and per model discovery call, and those rows are swept once they are a few days old."
+      label: "Record outgoing API calls",
+      description: "Record outbound inference requests and responses, with their bodies, to the api_calls table."
     ),
     # Apart from the outbound switch so a provider can be debugged in production
     # without recording what people do through the API.
     "debug.record_incoming_api_calls" => Definition.new(
       default: -> { ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_INCOMING_API_CALLS", nil)) || false },
       type: :boolean,
-      description: "Record requests to Archyve's own API, and its responses, to the api_calls table."
+      label: "Record incoming API calls",
+      description: -> { "Keep what integrations send Archyve's API and what it answers, including archive text. Deleted after #{ApiCall::RETENTION.inspect}." }
     ),
     # Blank is a choice rather than a reset: a logo that already carries the
     # name shouldn't have it printed beside it twice.
     "brand.name" => Definition.new(
       default: "ARCHYVE",
       type: :string,
-      description: "The name shown beside the logo. Blank shows the logo alone."
+      label: "Name",
+      description: "Shown beside the logo, exactly as typed. Leave it blank to show the logo alone."
     ),
     "brand.logo" => Definition.new(
       default: nil,
       type: :image,
+      label: "Logo",
       description: "Shown in place of the triangle mark."
     ),
     "brand.ask_placeholder" => Definition.new(
       default: "Consult the archive",
       type: :string,
+      label: "Landing placeholder",
       description: "Shown in the box on the landing page before anyone types."
     ),
     "brand.chat_placeholder" => Definition.new(
       default: "What do you want to know?",
       type: :string,
+      label: "Chat placeholder",
       description: "Shown in the box on Chat before anyone types."
+    ),
+    "brand.disclaimer" => Definition.new(
+      default: "",
+      type: :string,
+      label: "Disclaimer",
+      description: "Shown beneath the question box on the landing page and on Chat. Leave it blank to show none."
+    ),
+    "brand.corridor" => Definition.new(
+      default: true,
+      type: :boolean,
+      label: "Show the corridor",
+      description: "The animated triangles behind the question box on the landing page."
+    ),
+    "brand.landing_image" => Definition.new(
+      default: nil,
+      type: :image,
+      label: "Landing image",
+      description: "Shown in place of the corridor when it's turned off, without animation."
     )
   }.freeze
 
@@ -118,7 +144,9 @@ class Setting < ApplicationRecord
   # <img> won't render.
   IMAGE_TYPES = %w[image/png image/jpeg image/webp].freeze
 
-  has_one_attached :file
+  has_one_attached :file do |attachable|
+    attachable.variant :icon, resize_and_pad: [64, 64, { alpha: true }], format: :png
+  end
 
   validates :key, presence: true, uniqueness: true, inclusion: { in: DEFINITIONS.keys }
   validates :file, content_type: IMAGE_TYPES, size: { less_than: 2.megabytes }
@@ -149,6 +177,13 @@ class Setting < ApplicationRecord
     def brand_logo = self["brand.logo"]
     def brand_ask_placeholder = self["brand.ask_placeholder"]
     def brand_chat_placeholder = self["brand.chat_placeholder"]
+    def brand_disclaimer = self["brand.disclaimer"]
+    def brand_corridor? = self["brand.corridor"]
+    def brand_landing_image = self["brand.landing_image"]
+
+    def label(key) = definition!(key).label
+    def description(key) = definition!(key).description_text
+    def default(key) = definition!(key).default_value
 
     # Back to the declared default. `[]=` only ever writes, so without this a
     # setting that has been set has no way back to "unset" — and "" would cast

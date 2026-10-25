@@ -70,6 +70,7 @@ class Views::Conversations::Index < Views::Base
         ) { "Start chat" }
       end
     end
+    render Views::Disclaimer.new(css: "mt-2 text-center text-xs text-faint")
   end
 
   # Checkboxes rather than a select: the scope is a set, and the whole point is
