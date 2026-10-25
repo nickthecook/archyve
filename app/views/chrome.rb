@@ -19,8 +19,10 @@ class Views::Chrome < Components::Base
       # once they fit again — without it the bar shrinks to its content.
       div(class: "mx-auto max-w-3xl px-5 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2 sm:gap-x-6") do
         a(href: root_path, class: "flex items-center gap-2.5 group") do
-          mark
-          span(class: "text-xs font-semibold tracking-[0.34em] text-muted group-hover:text-fg transition-colors") { "ARCHYVE" }
+          render Views::BrandMark.new(
+            mark_class: "w-[18px] h-[16px] overflow-visible",
+            name_class: "text-xs font-semibold tracking-[0.34em] text-muted group-hover:text-fg transition-colors"
+          )
         end
         div(class: "flex items-center gap-3 sm:gap-6") do
           nav(class: "flex items-center gap-3 text-sm sm:gap-6") do
@@ -87,12 +89,5 @@ class Views::Chrome < Components::Base
   def nav_link(label, href)
     active = current_page?(href)
     a(href: href, class: "transition-colors #{active ? 'text-accent' : 'text-muted hover:text-fg'}") { label }
-  end
-
-  def mark
-    svg(viewbox: "0 0 24 20", class: "w-[18px] h-[16px] overflow-visible", aria_hidden: "true") do |s|
-      s.polygon(points: "12,1 23,19 1,19", fill: "none", stroke: "#e6b455", stroke_width: "1.4")
-      s.polygon(points: "12,7 17.5,17 6.5,17", fill: "none", stroke: "#e6b455", stroke_width: "0.8", opacity: "0.5")
-    end
   end
 end

@@ -53,7 +53,7 @@ class Views::Conversations::Index < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
         name: "message", rows: "3", autocomplete: "off",
-        placeholder: "What do you want to know?",
+        placeholder: Brand.current.chat_placeholder,
         data: {
           composer_target: "field",
           action: "input->composer#autogrow keydown.enter->composer#submit"

@@ -38,11 +38,7 @@ class Views::Home::Index < Views::Base
 
   def brand
     div(class: "brand reveal", style: "animation-delay:.1s") do
-      svg(viewbox: "0 0 24 20", aria_hidden: "true") do |s|
-        s.polygon(points: "12,1 23,19 1,19", fill: "none", stroke: "#e6b455", stroke_width: "1.4")
-        s.polygon(points: "12,7 17.5,17 6.5,17", fill: "none", stroke: "#e6b455", stroke_width: "0.8", opacity: "0.5")
-      end
-      span(class: "brand-name") { "ARCHYVE" }
+      render Views::BrandMark.new(name_class: "brand-name")
     end
   end
 
@@ -71,7 +67,7 @@ class Views::Home::Index < Views::Base
   def ask_form
     form(action: conversations_path, method: "post") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      field(name: "message", placeholder: "Consult the archive") { ask_icon }
+      field(name: "message", placeholder: Brand.current.ask_placeholder) { ask_icon }
       # The hint line is the only furniture the corridor gains, and it gains it
       # on focus rather than at rest: which model answers is worth a choice, but
       # not worth a control sitting in the threshold competing with the question.

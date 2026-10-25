@@ -30,15 +30,10 @@ class Views::Sessions::New < Views::Base
 
   def masthead
     div(class: "mb-8 flex flex-col items-center gap-3") do
-      mark
-      span(class: "text-xs font-semibold tracking-[0.34em] text-muted") { "ARCHYVE" }
-    end
-  end
-
-  def mark
-    svg(viewbox: "0 0 24 20", class: "w-8 h-[27px] overflow-visible", aria_hidden: "true") do |s|
-      s.polygon(points: "12,1 23,19 1,19", fill: "none", stroke: "#e6b455", stroke_width: "1.4")
-      s.polygon(points: "12,7 17.5,17 6.5,17", fill: "none", stroke: "#e6b455", stroke_width: "0.8", opacity: "0.5")
+      render Views::BrandMark.new(
+        mark_class: "w-8 h-[27px] overflow-visible",
+        name_class: "text-xs font-semibold tracking-[0.34em] text-muted"
+      )
     end
   end
 
