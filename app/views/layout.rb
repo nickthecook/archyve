@@ -23,7 +23,7 @@ class Views::Layout < Phlex::HTML
     doctype
     html(**html_attrs) do
       head do
-        title { [@title, "Archyve"].compact.join(" · ") }
+        title { [@title, Brand.current.name.presence].compact.join(" · ") }
         meta(name: "viewport", content: "width=device-width,initial-scale=1")
         link(rel: "icon", href: "/icon.svg", type: "image/svg+xml")
         csrf_meta_tags

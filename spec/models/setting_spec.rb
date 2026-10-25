@@ -157,4 +157,34 @@ RSpec.describe Setting do
       end
     end
   end
+
+  describe "an image setting" do
+    let(:logo) { Rack::Test::UploadedFile.new(file_fixture("logo.png"), "image/png") }
+
+    context "when nobody has uploaded one" do
+      it "is nil" do
+        expect(described_class.brand_logo).to be_nil
+      end
+    end
+
+    context "when one has been uploaded" do
+      before { described_class["brand.logo"] = logo }
+
+      it "returns the attachment" do
+        expect(described_class.brand_logo.filename.to_s).to eq("logo.png")
+      end
+
+      it "purges the file when cleared" do
+        expect { described_class.clear("brand.logo") }.to change(ActiveStorage::Attachment, :count).by(-1)
+      end
+    end
+
+    context "when the file isn't an image" do
+      let(:logo) { Rack::Test::UploadedFile.new(file_fixture("sample.md"), "text/markdown") }
+
+      it "refuses it" do
+        expect { described_class["brand.logo"] = logo }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+  end
 end

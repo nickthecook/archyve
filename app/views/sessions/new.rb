@@ -32,6 +32,7 @@ class Views::Sessions::New < Views::Base
     div(class: "mb-8 flex flex-col items-center gap-3") do
       render Views::BrandMark.new(
         mark_class: "w-8 h-[27px] overflow-visible",
+        logo_class: "h-12 w-auto max-w-64 object-contain",
         name_class: "text-xs font-semibold tracking-[0.34em] text-muted"
       )
     end

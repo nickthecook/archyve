@@ -10,7 +10,8 @@ class SettingsController < ApplicationController
       prompt: Setting.chat_instance_purpose,
       rounds: rounds,
       record_api_calls: Setting.record_api_calls?,
-      record_incoming_api_calls: Setting.record_incoming_api_calls?
+      record_incoming_api_calls: Setting.record_incoming_api_calls?,
+      branded: Setting.where("key LIKE 'brand.%'").exists?
     )
   end
 

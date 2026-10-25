@@ -99,3 +99,5 @@ end
 gem "pry-rails", "~> 0.3.11"
 
 gem "fuubar", "~> 2.5"
+
+gem "active_storage_validations", "~> 4.1"

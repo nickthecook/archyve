@@ -1,20 +1,27 @@
 # frozen_string_literal: true
 
 # The mark and the name, as siblings: each caller supplies its own wrapper and
-# sizing, and a blank name renders the mark alone.
+# sizing, and a blank name renders the mark alone. The triangle is square-ish
+# and a logo needn't be, so each is sized by its own class.
 class Views::BrandMark < Components::Base
-  def initialize(mark_class: nil, name_class: nil, brand: Brand.current)
+  def initialize(mark_class: nil, logo_class: nil, name_class: nil, brand: Brand.current)
     @mark_class = mark_class
+    @logo_class = logo_class
     @name_class = name_class
     @brand = brand
   end
 
   def view_template
-    mark
+    @brand.logo ? logo : mark
     span(class: @name_class) { @brand.name } if @brand.name.present?
   end
 
   private
+
+  # Alt text only when it's all there is: beside the name, it would say it twice.
+  def logo
+    img(src: rails_blob_path(@brand.logo, only_path: true), class: @logo_class, alt: @brand.name.present? ? "" : "Logo")
+  end
 
   def mark
     svg(viewbox: "0 0 24 20", class: @mark_class, aria_hidden: "true") do |s|

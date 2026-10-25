@@ -13,11 +13,13 @@
 class Views::Documents::UploadFields < Components::Base
   # `min-w-0 flex-1` rather than `w-full`: a full-width flex item takes the whole
   # line to itself and wraps the submit button onto the next one.
-  FILE_INPUT = "block min-w-0 flex-1 text-sm text-muted file:mr-4 file:rounded file:border-0 " \
-               "file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-void " \
-               "hover:file:bg-accent-dim file:cursor-pointer".freeze
+  FILE_INPUT = "block min-w-0 flex-1 text-sm text-muted file:mr-4 file:rounded file:border " \
+               "file:border-accent/60 file:bg-accent/10 file:px-4 file:py-2 file:text-sm file:font-medium " \
+               "file:text-accent hover:file:border-accent hover:file:bg-accent/20 file:transition-colors " \
+               "file:cursor-pointer".freeze
 
-  SUBMIT = "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void " \
+  # The transparent border keeps it level with the outlined file button beside it.
+  SUBMIT = "shrink-0 rounded border border-transparent bg-accent px-4 py-2 text-sm font-medium text-void " \
            "hover:bg-accent-dim transition-colors".freeze
 
   DROPZONE = "mt-4 cursor-pointer rounded-lg border-2 border-dashed px-4 py-8 text-center " \

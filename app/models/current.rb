@@ -8,5 +8,7 @@ class Current < ActiveSupport::CurrentAttributes
   # and has no other way to learn what the call was for.
   attribute :api_call_traceable
 
+  attribute :brand
+
   def user = session ? session.user : api_key&.principal
 end

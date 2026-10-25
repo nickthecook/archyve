@@ -22,6 +22,7 @@
   display: flex; align-items: center; gap: 0.7rem; z-index: 5;
 }
 .corridor-stage .brand svg { width: 20px; height: 18px; overflow: visible; }
+.corridor-stage .brand img { height: 28px; width: auto; max-width: 12rem; object-fit: contain; }
 .corridor-stage .brand-name {
   font-size: 0.78rem; letter-spacing: 0.42em; text-indent: 0.42em;
   font-weight: 600; color: var(--color-muted);

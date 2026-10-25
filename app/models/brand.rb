@@ -1,11 +1,12 @@
-# What the deployment calls itself. Archyve's own brand is the default, and the
-# only one until branding settings exist (issue #85).
-class Brand < Data.define(:name, :ask_placeholder, :chat_placeholder)
-  ARCHYVE = new(
-    name: "ARCHYVE",
-    ask_placeholder: "Consult the archive",
-    chat_placeholder: "What do you want to know?"
-  )
-
-  def self.current = ARCHYVE
+# What the deployment calls itself, read once per request. The defaults are
+# Archyve's own, declared with the brand.* settings.
+class Brand < Data.define(:name, :logo, :ask_placeholder, :chat_placeholder)
+  def self.current
+    Current.brand ||= new(
+      name: Setting.brand_name,
+      logo: Setting.brand_logo,
+      ask_placeholder: Setting.brand_ask_placeholder,
+      chat_placeholder: Setting.brand_chat_placeholder
+    )
+  end
 end

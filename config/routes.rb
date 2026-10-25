@@ -86,6 +86,7 @@ Rails.application.routes.draw do
     # The system prompt every chat uses. A single page for prompt-related
     # settings, not a CRUD resource — see Setting.
     resource :prompt, only: [:show, :update]
+    resource :branding, only: [:show, :update]
     # Instance-wide on/off switches, flipped from the settings index itself —
     # too small each to be worth a page. Update-only: there is nothing to show
     # that the index doesn't already.

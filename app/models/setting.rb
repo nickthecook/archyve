@@ -89,21 +89,50 @@ class Setting < ApplicationRecord
       default: -> { ActiveModel::Type::Boolean.new.cast(ENV.fetch("ARCHYVE_RECORD_INCOMING_API_CALLS", nil)) || false },
       type: :boolean,
       description: "Record requests to Archyve's own API, and its responses, to the api_calls table."
+    ),
+    # Blank is a choice rather than a reset: a logo that already carries the
+    # name shouldn't have it printed beside it twice.
+    "brand.name" => Definition.new(
+      default: "ARCHYVE",
+      type: :string,
+      description: "The name shown beside the logo. Blank shows the logo alone."
+    ),
+    "brand.logo" => Definition.new(
+      default: nil,
+      type: :image,
+      description: "Shown in place of the triangle mark."
+    ),
+    "brand.ask_placeholder" => Definition.new(
+      default: "Consult the archive",
+      type: :string,
+      description: "Shown in the box on the landing page before anyone types."
+    ),
+    "brand.chat_placeholder" => Definition.new(
+      default: "What do you want to know?",
+      type: :string,
+      description: "Shown in the box on Chat before anyone types."
     )
   }.freeze
 
+  # No SVG: Active Storage serves it as application/octet-stream, which an
+  # <img> won't render.
+  IMAGE_TYPES = %w[image/png image/jpeg image/webp].freeze
+
+  has_one_attached :file
+
   validates :key, presence: true, uniqueness: true, inclusion: { in: DEFINITIONS.keys }
+  validates :file, content_type: IMAGE_TYPES, size: { less_than: 2.megabytes }
 
   class << self
     def [](key)
       definition = definition!(key)
       row = find_by(key:)
-      row ? cast(row.value, definition.type) : definition.default_value
+      row ? cast(row, definition.type) : definition.default_value
     end
 
     def []=(key, value)
-      definition!(key)
-      find_or_initialize_by(key:).update!(value: value.to_s)
+      definition = definition!(key)
+      find_or_initialize_by(key:).update!(definition.type == :image ? { file: value } : { value: value.to_s })
     end
 
     # Named readers, so callers don't pass strings around and typos fail at
@@ -116,13 +145,17 @@ class Setting < ApplicationRecord
     def chat_default_model_id = self["chat.default_model_id"]
     def record_api_calls? = self["debug.record_api_calls"]
     def record_incoming_api_calls? = self["debug.record_incoming_api_calls"]
+    def brand_name = self["brand.name"]
+    def brand_logo = self["brand.logo"]
+    def brand_ask_placeholder = self["brand.ask_placeholder"]
+    def brand_chat_placeholder = self["brand.chat_placeholder"]
 
     # Back to the declared default. `[]=` only ever writes, so without this a
     # setting that has been set has no way back to "unset" — and "" would cast
     # to 0, which for an id is a row that doesn't exist.
     def clear(key)
       definition!(key)
-      where(key:).delete_all
+      where(key:).destroy_all
     end
 
     # The settings that are a single on/off, and so can be flipped in place
@@ -143,11 +176,12 @@ class Setting < ApplicationRecord
       DEFINITIONS.fetch(key) { raise UnknownSetting, "no such setting: #{key.inspect}" }
     end
 
-    def cast(value, type)
+    def cast(row, type)
       case type
-      when :integer then value.to_i
-      when :boolean then ActiveModel::Type::Boolean.new.cast(value)
-      else value
+      when :integer then row.value.to_i
+      when :boolean then ActiveModel::Type::Boolean.new.cast(row.value)
+      when :image then row.file if row.file.attached?
+      else row.value
       end
     end
   end

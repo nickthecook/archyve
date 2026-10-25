@@ -21,6 +21,7 @@ class Views::Chrome < Components::Base
         a(href: root_path, class: "flex items-center gap-2.5 group") do
           render Views::BrandMark.new(
             mark_class: "w-[18px] h-[16px] overflow-visible",
+            logo_class: "h-6 w-auto max-w-40 object-contain",
             name_class: "text-xs font-semibold tracking-[0.34em] text-muted group-hover:text-fg transition-colors"
           )
         end
