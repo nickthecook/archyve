@@ -62,11 +62,13 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   # The section is "Chat"; the records are conversations. `path:` keeps the URL
   # reading the way the nav does without naming the model something it isn't.
-  # A conversation is private to its author, so there is no index anyone else
-  # can reach and no per-conversation sharing to grant.
+  # Only its author can reach a conversation here; admins read it through
+  # Settings › Review, which names no one.
   resources :conversations, only: [:index, :show, :create, :destroy], path: "chat" do
     # Asking is creating a message; the answer is a job, not a response body.
-    resources :messages, only: [:create]
+    resources :messages, only: [:create] do
+      resource :feedback, only: [:update]
+    end
   end
   get "settings", to: "settings#index"
   # The living style guide (docs/design.md renders itself here). Admin-only: it
@@ -82,6 +84,9 @@ Rails.application.routes.draw do
     # The records Archyve keeps, as rows — the way into the generated model
     # pages below. Distinct from the settings that produce them.
     get "admin", to: "admin#index"
+    # Every answer and what was said about it, without saying who asked.
+    get "review", to: "reviews#index"
+    get "review/chats/:id", to: "reviews#show", as: :review_chat
     resources :users, except: [:show]
     # The system prompt every chat uses. A single page for prompt-related
     # settings, not a CRUD resource — see Setting.

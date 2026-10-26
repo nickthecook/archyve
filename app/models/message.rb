@@ -12,6 +12,7 @@ class Message < ApplicationRecord
   belongs_to :inference_model, optional: true
 
   has_many :segments, -> { order(:position) }, dependent: :destroy, inverse_of: :message
+  has_one :feedback, dependent: :destroy
 
   enum :role, { user: 0, assistant: 1 }, validate: true
 

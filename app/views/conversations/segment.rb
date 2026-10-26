@@ -19,6 +19,9 @@
 class Views::Conversations::Segment < Components::Base
   def self.dom_id(segment) = ActionView::RecordIdentifier.dom_id(segment)
 
+  # On the prose rather than the wrapper, which has no box to scroll to.
+  def self.prose_dom_id(segment) = ActionView::RecordIdentifier.dom_id(segment, :prose)
+
   # `hits` is the handle → Hit map for resolving citations, and only the
   # streaming path passes one. Left nil, Cited works it out from the segments
   # around this one, which is right for a page render and far too expensive per
@@ -48,7 +51,7 @@ class Views::Conversations::Segment < Components::Base
     # `answer` is the hook for answer.css, which styles the markdown Chat::Prose
     # renders. No whitespace-pre-wrap: the HTML carries its own block layout now,
     # and pre-wrap would render the newlines *between* its tags as blank lines.
-    div(class: "answer text-[0.95rem] leading-relaxed text-muted") do
+    div(id: self.class.prose_dom_id(@segment), class: "answer scroll-mt-6 text-[0.95rem] leading-relaxed text-muted") do
       render Views::Conversations::Cited.new(segment: @segment, hits: @hits)
     end
   end

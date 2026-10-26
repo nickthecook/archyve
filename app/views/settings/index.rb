@@ -2,7 +2,7 @@
 
 class Views::Settings::Index < Views::Base
   def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, rounds:,
-    record_api_calls:, record_incoming_api_calls:, branded:)
+    record_api_calls:, record_incoming_api_calls:, branded:, feedback_count:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
@@ -12,6 +12,7 @@ class Views::Settings::Index < Views::Base
     @record_api_calls = record_api_calls
     @record_incoming_api_calls = record_incoming_api_calls
     @branded = branded
+    @feedback_count = feedback_count
   end
 
   def view_template
@@ -60,6 +61,13 @@ class Views::Settings::Index < Views::Base
         description: "The logo, name and wording people see.",
         meta: @branded ? "custom" : "default"
       ) { branding_icon }
+
+      render Views::MenuCard.new(
+        href: settings_review_path,
+        title: "Review",
+        description: "Answers people were given, and what they thought of them.",
+        meta: "#{@feedback_count} with feedback"
+      ) { review_icon }
     end
 
     preferences
@@ -149,6 +157,13 @@ class Views::Settings::Index < Views::Base
       s.path(d: "M12 4v11")
       s.path(d: "M7 10.5 12 15l5-4.5")
       s.path(d: "M5 19.5h14")
+    end
+  end
+
+  def review_icon
+    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
+      s.path(d: "M4 5h16v11H9l-5 4V5Z")
+      s.path(d: "M8 9.5h8M8 12.5h5")
     end
   end
 

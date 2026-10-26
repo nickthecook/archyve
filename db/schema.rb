@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_140200) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -188,6 +188,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_140200) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_endpoints_on_name", unique: true
     t.index ["type"], name: "index_endpoints_on_type"
+  end
+
+  create_table "feedbacks", force: :cascade do |t|
+    t.text "comment"
+    t.datetime "created_at", null: false
+    t.bigint "message_id", null: false
+    t.integer "rating"
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_feedbacks_on_message_id", unique: true
   end
 
   create_table "hits", force: :cascade do |t|
@@ -406,6 +415,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_140200) do
   add_foreign_key "documents", "source_syncs", on_delete: :nullify
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"
+  add_foreign_key "feedbacks", "messages", on_delete: :cascade
   add_foreign_key "hits", "chunks", on_delete: :nullify
   add_foreign_key "hits", "documents", on_delete: :nullify
   add_foreign_key "hits", "segments"

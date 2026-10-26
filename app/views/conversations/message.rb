@@ -10,14 +10,23 @@
 class Views::Conversations::Message < Components::Base
   def self.dom_id(message) = ActionView::RecordIdentifier.dom_id(message)
 
+  # Where the answer itself starts: its last prose, past any thinking and
+  # searching. The whole turn when it never got that far.
+  def self.answer_dom_id(message)
+    last_prose = message.segments.select(&:text?).last
+    last_prose ? Views::Conversations::Segment.prose_dom_id(last_prose) : dom_id(message)
+  end
+
   # The container the whole transcript lives in. Nothing broadcasts to it —
   # turns are opened by Chat::Ask in the request, so every stream is a replace
   # of a turn already on the page — but it is the region the page re-fetches
   # and swaps when the cable isn't delivering, so it needs a stable id.
   def self.thread_dom_id(conversation) = ActionView::RecordIdentifier.dom_id(conversation, :thread)
 
-  def initialize(message:)
+  # `editable` is whether the reader may give feedback: only the person who asked.
+  def initialize(message:, editable:)
     @message = message
+    @editable = editable
   end
 
   def view_template
@@ -55,6 +64,13 @@ class Views::Conversations::Message < Components::Base
     broken if @message.failed?
     waiting
     attribution
+    feedback
+  end
+
+  def feedback
+    return if @message.in_progress?
+
+    render Views::Conversations::Feedback.new(message: @message, editable: @editable)
   end
 
   # Which model wrote this. Quiet and per-turn rather than stated once at the

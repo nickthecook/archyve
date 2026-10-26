@@ -166,6 +166,29 @@ RSpec.describe "Conversations", type: :request do
         expect(response.body).to include("How do we rotate credentials?")
       end
 
+      describe "feedback on an answer" do
+        let!(:answer) { create(:message, conversation:, role: "assistant", position: 2, completed_at:) }
+        let(:controls) { %(id="#{Views::Conversations::Feedback.dom_id(answer)}") }
+
+        before { request }
+
+        context "when the answer is finished" do
+          let(:completed_at) { 1.minute.ago }
+
+          it "offers it" do
+            expect(response.body).to include(controls, "Good answer", "Comment")
+          end
+        end
+
+        context "when the answer is still being written" do
+          let(:completed_at) { nil }
+
+          it "waits until it is done" do
+            expect(response.body).not_to include(controls)
+          end
+        end
+      end
+
       # The fallback for a transcript the cable isn't reaching — a subscription
       # that never came up, a dropped connection, or a second tab that was never
       # sent the turn because another tab's request recorded it.

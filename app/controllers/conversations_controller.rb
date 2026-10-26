@@ -21,7 +21,7 @@ class ConversationsController < ApplicationController
   def show
     render Views::Conversations::Show.new(
       conversation: @conversation,
-      messages: @conversation.messages.includes(:inference_model, segments: { hits: :document }),
+      messages: @conversation.messages.includes(:inference_model, :feedback, segments: { hits: :document }),
       models: choosable_models,
       unavailable: unavailable_reason
     )

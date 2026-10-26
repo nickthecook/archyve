@@ -23,6 +23,12 @@ FactoryBot.define do
     position { 1 }
   end
 
+  factory :feedback do
+    association :message
+    rating { nil }
+    comment { nil }
+  end
+
   factory :segment do
     association :message
     position { 1 }

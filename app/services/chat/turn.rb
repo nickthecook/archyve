@@ -343,11 +343,12 @@ module Chat
       # query per distinct document, per retrieval segment, per tick. The
       # writes a turn makes clear the query cache as it goes, so little of it is
       # ever served from cache: real round trips, for the length of a turn.
-      @message = Message.includes(:inference_model, segments: { hits: :document }).find(@message.id)
+      @message = Message.includes(:inference_model, :feedback, segments: { hits: :document }).find(@message.id)
       Turbo::StreamsChannel.broadcast_replace_to(
         @conversation,
         target: Views::Conversations::Message.dom_id(@message),
-        html: Views::Conversations::Message.new(message: @message).call
+        # Editable because only the conversation's owner subscribes to its stream.
+        html: Views::Conversations::Message.new(message: @message, editable: true).call
       )
     end
   end

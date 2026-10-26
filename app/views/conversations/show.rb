@@ -14,13 +14,12 @@ class Views::Conversations::Show < Views::Base
 
   def view_template
     back_link
-    scope_banner
     # Assistant turns fill in here as they are produced. The turn itself was
     # rendered above by this very request — Chat::Ask opens it before the
     # redirect — so Chat::Turn only ever replaces it as the model streams,
     # searches, and streams again.
     turbo_stream_from(@conversation)
-    thread
+    render Views::Conversations::Transcript.new(conversation: @conversation, messages: @messages, editable: true)
     composer
   end
 
@@ -32,56 +31,10 @@ class Views::Conversations::Show < Views::Base
     breadcrumb(["Chat", conversations_path], @conversation.title.presence || "Untitled chat")
   end
 
-  # Stated here as well as in the composer chip and the model's instructions.
-  # It belongs to the conversation rather than to any one message, and the only
-  # way to change it is a new chat — so the banner says both.
-  def scope_banner
-    div(class: "mb-8 flex flex-wrap items-center gap-3 rounded-lg border border-line border-l-2 bg-ink/60 px-4 py-3") do
-      span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Drawing on" }
-      span(class: "text-sm text-fg") { drawing_on }
-      span(class: "ml-auto text-xs text-faint") do
-        plain "Fixed for this chat — "
-        a(href: conversations_path, class: "text-muted underline decoration-line-2 underline-offset-4 hover:text-fg") { "start a new one" }
-        plain " to change it"
-      end
-    end
-  end
-
-  # A chat with no collections isn't drawing on anything, and saying "no
-  # collections" in a box labelled "Drawing on" reads as a fault rather than as
-  # the choice it was.
-  def drawing_on
-    @conversation.searches_archive? ? @conversation.scope_label : "nothing — this chat doesn't search your archive"
-  end
-
   def ask_placeholder
     return "Ask about #{@conversation.scope_label}…" if @conversation.searches_archive?
 
     "Ask anything — nothing here is searched"
-  end
-
-  # The transcript, and the fallback for when the cable isn't carrying it.
-  #
-  # Streaming is the mechanism here — this poll exists for the cases it can't
-  # cover: a subscription that never came up, a connection that dropped
-  # mid-answer, or a second tab on the same conversation, which is sent nothing
-  # at all because the question was recorded in another tab's request. `idle`
-  # keeps it out of the way while broadcasts are arriving; see the note on
-  # Components::Base#progress_data.
-  def thread
-    div(
-      id: Views::Conversations::Message.thread_dom_id(@conversation),
-      class: "flex flex-col gap-10",
-      data: progress_data(
-        terminal: @messages.none?(&:in_progress?), idle: 2000,
-        # The meter sits outside this region but goes stale with it, and its own
-        # broadcast is lost to exactly the failures this poll covers — a cable
-        # that never came up, a second tab. Swapped from the same response.
-        also: [Views::Conversations::ContextMeter.dom_id(@conversation)]
-      )
-    ) do
-      @messages.each { render Views::Conversations::Message.new(message: it) }
-    end
   end
 
   # The meter sits in the composer's own block rather than before it, so the

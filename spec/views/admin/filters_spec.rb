@@ -36,6 +36,21 @@ RSpec.describe Views::Admin::Filters do
       end
     end
 
+    context "with a facet that is on unless turned off" do
+      let(:facets) do
+        [Views::Admin::Facet.new(label: "Feedback", param: "feedback", options: ["given"], selected: "given",
+          blank: "All answers", defaulted: true)]
+      end
+
+      it "names the choice that turns it off" do
+        expect(result).to include(">All answers<")
+      end
+
+      it "clears it by sending it blank" do
+        expect(result).to include(%(<a href="/settings/api_calls?feedback="))
+      end
+    end
+
     context "with a facet that has nothing to offer" do
       let(:facets) { [Views::Admin::Facet.new(label: "Host", param: "host", options: [])] }
 

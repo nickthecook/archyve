@@ -11,7 +11,8 @@ class SettingsController < ApplicationController
       rounds: rounds,
       record_api_calls: Setting.record_api_calls?,
       record_incoming_api_calls: Setting.record_incoming_api_calls?,
-      branded: Setting.where("key LIKE 'brand.%'").exists?
+      branded: Setting.where("key LIKE 'brand.%'").exists?,
+      feedback_count: Feedback.count
     )
   end
 

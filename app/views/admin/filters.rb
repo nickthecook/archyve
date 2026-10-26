@@ -31,16 +31,21 @@ class Views::Admin::Filters < Components::Base
 
   def picker(facet)
     select(name: facet.param, class: SELECT, aria_label: facet.label) do
-      option(value: "", selected: facet.selected.nil?) { "Any #{facet.label.downcase}" }
+      option(value: "", selected: facet.selected.nil?) { facet.blank_label }
       facet.options.each { |choice| choose(facet, choice) }
     end
   end
 
   def clear_link
     a(
-      href: @action,
+      href: clear_href,
       class: button_class(:quiet)
     ) { "Clear" }
+  end
+
+  def clear_href
+    blanks = @facets.select(&:defaulted?).to_h { [it.param, ""] }
+    blanks.empty? ? @action : "#{@action}?#{blanks.to_query}"
   end
 
   def choose(facet, choice)

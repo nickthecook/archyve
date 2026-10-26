@@ -841,6 +841,11 @@ That contradicts the whole point of appointing operators.
 - A source-level grant, when it lands, needs only `operator` / `admin` — a
   source `user` role has no meaning, since seeing a source is implied by seeing
   a collection it feeds.
+- **Conversations: the author writes, admins read** (settled 2026-10-25, #87).
+  Only the author reaches a chat at `/chat` and may rate its answers. Admins
+  read every chat, read-only, under Settings › Review, which never shows who
+  asked. People should assume stored chats can be read; an admin who wants to
+  say so puts it in the disclaimer.
 
 ## Streaming & transports
 
