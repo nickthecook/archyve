@@ -46,9 +46,14 @@ RSpec.describe "Settings::Reviews", :unauthenticated, type: :request do
     context "when asking for all answers" do
       let(:params) { { feedback: "" } }
 
+      before { request }
+
       it "includes those without feedback" do
-        request
         expect(response.body).to include("Who owns the bastion?")
+      end
+
+      it "exports what it shows" do
+        expect(response.body).to include(%(href="/settings/review.csv?feedback="))
       end
     end
 
@@ -74,6 +79,66 @@ RSpec.describe "Settings::Reviews", :unauthenticated, type: :request do
       it "refuses" do
         request
         expect(response).to redirect_to(root_path)
+      end
+    end
+  end
+
+  describe "GET /settings/review.csv" do
+    subject(:request) { get settings_review_path(format: :csv), params: }
+
+    let(:params) { {} }
+    let(:csv) { CSV.parse(response.body, headers: true) }
+    let!(:rated) { turn(question: "How often do keys rotate?", answer: "Every 90 days.", position: 1) }
+
+    before do
+      turn(question: "Who owns the bastion?", answer: "Platform team.", position: 3)
+      create(:feedback, message: rated, rating: "down", comment: comment)
+    end
+
+    let(:comment) { "It's 30 days now." }
+
+    context "with no filter chosen" do
+      before { request }
+
+      it "exports the answers with feedback, as the page shows them" do
+        expect(csv.map(&:to_h)).to contain_exactly(
+          a_hash_including("Question" => "How often do keys rotate?", "Answer" => "Every 90 days.",
+            "Rating" => "bad", "Comment" => "It's 30 days now.")
+        )
+      end
+
+      it "doesn't name who asked" do
+        expect(response.body).not_to include("asker@example.com")
+      end
+    end
+
+    context "when asking for all answers" do
+      let(:params) { { feedback: "" } }
+
+      it "exports those without feedback too" do
+        request
+        expect(csv.map { it["Question"] }).to contain_exactly("How often do keys rotate?", "Who owns the bastion?")
+      end
+    end
+
+    context "when the answer drew on documents" do
+      before do
+        search = create(:retrieval_segment, message: rated, position: 2)
+        create(:hit, segment: search, document_title: "Security Handbook")
+        request
+      end
+
+      it "names them" do
+        expect(csv.first["Documents"]).to eq("Security Handbook")
+      end
+    end
+
+    context "when a comment would run as a spreadsheet formula" do
+      let(:comment) { "=HYPERLINK(\"http://evil.example\")" }
+
+      it "keeps it as text" do
+        request
+        expect(csv.first["Comment"]).to eq("'=HYPERLINK(\"http://evil.example\")")
       end
     end
   end

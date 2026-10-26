@@ -15,7 +15,7 @@ class Views::Settings::Reviews::Index < Views::Base
     render Views::Admin::Heading.new(
       title: "Review",
       blurb: "What people asked, what came back, and what they thought of it — without saying who asked."
-    )
+    ) { export_link if @page.any? }
 
     render Views::Admin::Filters.new(action: settings_review_path, facets: @facets)
     @page.any? ? listing : empty
@@ -24,6 +24,11 @@ class Views::Settings::Reviews::Index < Views::Base
   private
 
   def page_title = "Review"
+
+  # Exports what the filters show, every page of it.
+  def export_link
+    a(href: settings_review_path(format: :csv, params: @query), class: button_class(:quiet)) { "Export CSV" }
+  end
 
   def listing
     div(class: "flex flex-col gap-3") { @turns.each { card(it) } }
@@ -49,11 +54,9 @@ class Views::Settings::Reviews::Index < Views::Base
     if answer.failed?
       p(class: "text-sm text-red-300 break-words") { answer.error }
     else
-      p(class: "line-clamp-3 text-sm text-muted break-words") { answer_text(answer).truncate(500) }
+      p(class: "line-clamp-3 text-sm text-muted break-words") { answer.prose.squish.truncate(500) }
     end
   end
-
-  def answer_text(answer) = answer.segments.select(&:text?).map(&:content).join(" ").squish
 
   def feedback(feedback)
     return if feedback.nil?
