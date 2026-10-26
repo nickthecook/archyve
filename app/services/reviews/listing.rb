@@ -3,6 +3,9 @@ module Reviews
   class Listing < FilteredListing
     Turn = Data.define(:question, :answer)
 
+    # Fewer than a table's worth: each one is a card several lines tall.
+    PER_PAGE = 20
+
     FEEDBACK = {
       "given" => ->(rows) { rows.where(id: Feedback.select(:message_id)) },
       "up" => ->(rows) { rows.where(id: Feedback.up.select(:message_id)) },
@@ -33,6 +36,8 @@ module Reviews
     end
 
     private
+
+    def per_page = PER_PAGE
 
     def base
       Message.assistant.where.not(completed_at: nil)

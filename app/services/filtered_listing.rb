@@ -17,7 +17,7 @@ class FilteredListing
 
   # Unordered: Page orders what it pages, and ordering it twice would
   # only mean the second one winning silently.
-  def page = Page.of(rows, after: @params["after"], before: @params["before"])
+  def page = Page.of(rows, after: @params["after"], before: @params["before"], per: per_page)
 
   # What the pager has to carry so that paging doesn't drop the filters. A
   # default the reader turned off is carried as blank, or the next page would
@@ -42,6 +42,7 @@ class FilteredListing
   private
 
   def base = raise(NotImplementedError)
+  def per_page = Page::PER_PAGE
 
   def narrow(filter, rows)
     value = selected(filter)

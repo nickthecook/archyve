@@ -73,6 +73,31 @@ RSpec.describe "Settings::Reviews", :unauthenticated, type: :request do
       end
     end
 
+    context "with more answers than fit on a page" do
+      let(:params) { { feedback: "" } }
+
+      def older_link = response.body[/href="([^"]*after=[^"]*)"/, 1]&.then { CGI.unescapeHTML(it) }
+
+      before do
+        stub_const("Reviews::Listing::PER_PAGE", 1)
+        rated.update!(created_at: 1.hour.ago)
+        request
+      end
+
+      it "shows the newest first" do
+        expect(response.body).to include("Who owns the bastion?").and(include("Older →"))
+      end
+
+      it "follows Older to the next screen" do
+        get older_link
+        expect(response.body).to include("How often do keys rotate?")
+      end
+
+      it "keeps the filter turned off on the next screen" do
+        expect(older_link).to match(/[?&]feedback=(&|\z)/)
+      end
+    end
+
     context "when signed in below admin" do
       before { sign_in(create(:user, :operator)) }
 
