@@ -20,7 +20,6 @@ class HomeController < ApplicationController
     {
       collections: Collection.count,
       documents: Document.count,
-      chunks: Chunk.count,
       embedding_model: embedding_model&.name,
       host: embedding_model&.inference_server&.base_url.presence&.then { |url| URI(url).host },
       last_chat: nil

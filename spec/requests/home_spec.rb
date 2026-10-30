@@ -25,6 +25,17 @@ RSpec.describe "The corridor", type: :request do
     expect(response.body).not_to include(%(action="#{search_path}"))
   end
 
+  # The landing has no top bar, so its footer carries the account menu instead.
+  it "offers the account menu" do
+    request
+    expect(response.body).to include(current_user.email_address, account_path)
+  end
+
+  it "links to help" do
+    request
+    expect(response.body).to include(%(href="#{help_path}"))
+  end
+
   # Starting a chat is a POST, so the corridor needs a token like any other form.
   it "carries a CSRF token" do
     request

@@ -159,22 +159,26 @@ class Views::Home::Index < Views::Base
 
   def status
     div(class: "status reveal", style: "animation-delay:.9s") do
-      span do
-        span(class: "dot") { "●" }
-        plain(@stats[:host] ? " #{@stats[:host]} connected" : " no inference server")
-      end
-      span { @stats[:embedding_model] ? "embedding: #{@stats[:embedding_model]}" : "embedding: not configured" }
-      span { "pgvector · #{@stats[:chunks]} chunks" }
+      render Views::AccountMenu.new(placement: :footer) if Current.user
+      a(href: help_path, class: "status-link") { "Help" }
       motion_toggle
     end
   end
 
   def motion_toggle
-    label(class: "motion-toggle", data: { controller: "motion" }) do
+    # Views::Settings::Switch's look, but over a real checkbox: the state lives in
+    # the browser, so CSS has to follow it rather than the server.
+    label(class: "motion-toggle group", data: { controller: "motion" }) do
       input(
-        type: "checkbox", checked: cookies[:reduce_motion] == "1",
+        type: "checkbox", role: "switch", class: "sr-only", checked: cookies[:reduce_motion] == "1",
         data: { motion_target: "checkbox", action: "motion#toggle" }
       )
+      span(class: "relative inline-flex h-5 w-9 items-center rounded-full border border-line bg-void transition-colors " \
+                  "group-hover:border-line-2 group-has-[:checked]:border-accent group-has-[:checked]:bg-accent " \
+                  "group-has-[:focus-visible]:ring-1 group-has-[:focus-visible]:ring-accent") do
+        span(class: "block h-3.5 w-3.5 translate-x-[3px] rounded-full bg-muted transition-transform " \
+                    "group-has-[:checked]:translate-x-[18px] group-has-[:checked]:bg-void")
+      end
       span { "reduce motion" }
     end
   end
