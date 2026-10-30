@@ -9,15 +9,20 @@ class Views::Chrome < Components::Base
   NAV = [
     ["Collections", :collections_path, :operator],
     ["Chat", :conversations_path, :user],
-    ["Settings", :settings_path, :admin]
+    ["Settings", :settings_path, :admin],
+    ["Help", :help_path, :user]
   ].freeze
+
+  def initialize(wide: false)
+    @wide = wide
+  end
 
   def view_template
     header(class: "border-b border-line/60") do
       # Wraps rather than overflows: on a narrow screen the sections drop to a
       # second line under the wordmark. `min-h-14` keeps the bar its full height
       # once they fit again — without it the bar shrinks to its content.
-      div(class: "mx-auto max-w-3xl px-5 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2 sm:gap-x-6") do
+      div(class: "mx-auto #{@wide ? 'max-w-6xl' : 'max-w-3xl'} px-5 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2 sm:gap-x-6") do
         a(href: root_path, class: "flex items-center gap-2.5 group") do
           render Views::BrandMark.new(
             mark_class: "w-[18px] h-[16px] overflow-visible",

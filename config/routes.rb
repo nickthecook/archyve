@@ -70,6 +70,9 @@ Rails.application.routes.draw do
       resource :feedback, only: [:update]
     end
   end
+  # The manual, rendered from help/ in the repo. `format: false` because an
+  # image's extension is part of its path.
+  get "help(/*path)", to: "help#show", as: :help, format: false
   get "settings", to: "settings#index"
   # The living style guide (docs/design.md renders itself here). Admin-only: it
   # is a maker's tool, but it ships so the deployed app can be checked against

@@ -17,11 +17,12 @@ class Views::Base < Components::Base
   end
 
   def around_template
-    render Views::Layout.new(title: page_title, contained: contained?) do
+    render Views::Layout.new(title: page_title, contained: contained?, wide: wide?) do
       super
     end
   end
 
   def page_title = nil
   def contained? = true
+  def wide? = false
 end

@@ -15,9 +15,10 @@ class Views::Layout < Phlex::HTML
   # deprecated `helpers` proxy. (Layout is a plain Phlex::HTML, not Components::Base.)
   register_value_helper :cookies
 
-  def initialize(title: nil, contained: true)
+  def initialize(title: nil, contained: true, wide: false)
     @title = title
     @contained = contained
+    @wide = wide
   end
 
   def view_template
@@ -33,6 +34,7 @@ class Views::Layout < Phlex::HTML
         stylesheet_link_tag("tailwind", "data-turbo-track": "reload")
         stylesheet_link_tag("landing", "data-turbo-track": "reload")
         stylesheet_link_tag("answer", "data-turbo-track": "reload")
+        stylesheet_link_tag("help", "data-turbo-track": "reload")
         javascript_importmap_tags
       end
       body(class: "min-h-screen bg-base text-fg font-sans antialiased") do
@@ -59,8 +61,8 @@ class Views::Layout < Phlex::HTML
   end
 
   def contained
-    render Views::Chrome.new
-    main(class: "mx-auto max-w-3xl px-5 py-6 sm:py-10") do
+    render Views::Chrome.new(wide: @wide)
+    main(class: "mx-auto #{@wide ? 'max-w-6xl' : 'max-w-3xl'} px-5 py-6 sm:py-10") do
       flash.to_hash.slice("notice", "alert").each do |type, message|
         color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
         div(class: "mb-6 rounded border px-4 py-3 text-sm #{color}") { message }

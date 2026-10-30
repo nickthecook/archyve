@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# GFM → sanitized HTML, for the markdown in this app that nobody wrote by hand:
-# what a model streamed into a transcript, and what Docling reconstructed from a
-# document.
+# GFM → sanitized HTML. By default for the markdown in this app that nobody
+# wrote by hand: what a model streamed into a transcript, and what Docling
+# reconstructed from a document. Help pages are the exception — see AUTHORED.
 #
 # Citation markers are deliberately *not* handled here. Chat::Prose layers that
 # pass on top, because it is only ever right for model output — a document that
@@ -43,24 +43,37 @@ module Markdown
           %w[table thead tbody tfoot tr td th colgroup col]).freeze
   ATTRIBUTES = (Rails::HTML5::SafeListSanitizer.allowed_attributes - ["src"] + ["align"]).freeze
 
-  def self.to_html(text) = fragment(text).to_html
+  GENERATED = { render: RENDER, extension: EXTENSIONS, tags: TAGS, attributes: ATTRIBUTES }.freeze
+
+  # Markdown a person wrote and shipped with the app (help/): its images are
+  # ours, its headings are link targets, and its line breaks are just wrapping.
+  AUTHORED = {
+    render: RENDER.merge(hardbreaks: false),
+    extension: EXTENSIONS.merge(header_ids: ""),
+    tags: TAGS + ["img"],
+    attributes: ATTRIBUTES + %w[src id]
+  }.freeze
+
+  def self.to_html(text, authored: false) = fragment(text, authored:).to_html
 
   # The parsed tree rather than a string, for a caller with another pass of its
   # own to make over it — see Chat::Prose, which would otherwise reparse.
-  def self.fragment(text)
-    Nokogiri::HTML5.fragment(sanitized(text)).tap do |doc|
+  def self.fragment(text, authored: false)
+    dialect = authored ? AUTHORED : GENERATED
+
+    Nokogiri::HTML5.fragment(sanitized(text, dialect)).tap do |doc|
       doc.css("a[href]").each { leash(it) }
     end
   end
 
   # Sanitized before anything else is woven in, so that markup added afterwards
   # is the only markup on the page that wasn't checked by somebody else.
-  def self.sanitized(text)
-    Rails::HTML5::SafeListSanitizer.new.sanitize(render(text), tags: TAGS, attributes: ATTRIBUTES)
+  def self.sanitized(text, dialect)
+    Rails::HTML5::SafeListSanitizer.new.sanitize(render(text, dialect), **dialect.slice(:tags, :attributes))
   end
 
-  def self.render(text)
-    Commonmarker.to_html(text.to_s, options: { render: RENDER, extension: EXTENSIONS }, plugins: PLUGINS)
+  def self.render(text, dialect)
+    Commonmarker.to_html(text.to_s, options: dialect.slice(:render, :extension), plugins: PLUGINS)
   end
 
   # A link we didn't write is a link to somewhere we know nothing about. Only

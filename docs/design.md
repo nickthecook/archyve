@@ -154,7 +154,9 @@ phone already. The rules that keep it there:
   an interpolated class name silently doesn't exist.
 - **Still no sidebar, and no drawer.** The top bar wraps to a second line rather
   than collapsing into a hamburger. A menu you have to open to discover is worse
-  than two lines of links you can see.
+  than two lines of links you can see. The one exception is `/help`: a manual
+  wants its contents beside it, and the different shape says you are in it. On a
+  phone the contents collapse into a `<details>` at the top of the page.
 - **Nothing scrolls sideways except content that should.** A wide comparison
   table is allowed to scroll inside itself; a page is not. If something overflows,
   the fix is wrapping or dropping a part, not a page-wide scroll.

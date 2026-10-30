@@ -1,0 +1,3 @@
+- [Fixture help](index.md)
+- [The guide](guide/index.md)
+  - [Setup](guide/setup.md)
