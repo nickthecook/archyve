@@ -5,7 +5,6 @@ Archyve is an archive you can search and chat with. Documents arrive from
 **collections**. When you ask a question in Chat, Archyve answers from the
 collections you can read and cites the documents it used.
 
-## Where to start
+## Subjects
 
-- [Who can do what](access.md): roles, and how access to a collection or
-  source is granted.
+- [Access and roles](access.md): how access to features and content are configured in Archyve

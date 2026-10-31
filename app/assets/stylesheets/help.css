@@ -4,7 +4,10 @@
 .help h2 {
   margin-top: 2em; padding-bottom: 0.3em; border-bottom: 1px solid var(--color-line); font-size: 1.25rem;
 }
-.help h3 { font-size: 1.05rem; }
+.help h3 { font-size: 1.05rem; margin-top: 1.75em; }
+
+.help :is(p, ul, ol, blockquote) { margin: 1.25em 0; }
+.help :is(pre, table), .help p:has(> img) { margin: 2em 0; }
 
 .help img { max-width: 100%; height: auto; border: 1px solid var(--color-line); border-radius: 6px; }
 
