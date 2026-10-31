@@ -21,16 +21,14 @@ class Views::AccountMenu < Components::Base
   def view_template
     details(class: "relative") do
       summary(class: "cursor-pointer list-none transition-colors #{SUMMARY.fetch(@placement)}") do
-        span(class: "hidden sm:inline") { Current.user.email_address }
-        # The address is the widest thing in the bar and the least load-bearing
-        # — on a phone it alone is the difference between fitting and scrolling.
-        # The initial stands in for it; the menu still says who you are.
-        span(class: "grid h-7 w-7 place-items-center rounded border border-line font-mono text-xs sm:hidden") { initial }
+        header? ? squeezable_address : plain(Current.user.email_address)
       end
       div(class: "absolute z-10 w-56 rounded-lg border border-line-2 bg-ink py-1 font-sans shadow-lg " \
                  "#{PANEL.fetch(@placement)}") do
-        span(class: "block truncate border-b border-line/60 px-4 py-2 text-xs text-faint sm:hidden") do
-          Current.user.email_address
+        if header?
+          span(class: "block truncate border-b border-line/60 px-4 py-2 text-xs text-faint sm:hidden") do
+            Current.user.email_address
+          end
         end
         menu_link("Preferences", account_path)
         menu_link("Jobs", mission_control_jobs_path) if may?(:admin)
@@ -40,6 +38,17 @@ class Views::AccountMenu < Components::Base
   end
 
   private
+
+  def header? = @placement == :header
+
+  # The address is the widest thing in the top bar and the least load-bearing —
+  # on a phone it alone is the difference between fitting and scrolling. The
+  # initial stands in for it; the menu still says who you are. The footer stacks
+  # on a phone instead, so it keeps the address.
+  def squeezable_address
+    span(class: "hidden sm:inline") { Current.user.email_address }
+    span(class: "grid h-7 w-7 place-items-center rounded border border-line font-mono text-xs sm:hidden") { initial }
+  end
 
   def initial
     Current.user.email_address.to_s.strip[0].to_s.upcase
