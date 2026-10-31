@@ -9,10 +9,30 @@ There are three roles in Archyve: User, Operator, and Admin. Privileges are cumu
 | Role | Can |
 |---|---|
 | User | Can access Chat |
-| Operator | Can also manage Collections |
-| Admin | Can also manage settings and people |
+| Operator | Can also manage Sources and Collections |
+| Admin | Can also manage Endpoints, settings, and people |
 
-These map to the three main parts of the app, which are accessible from the landing page:
+For details on Endpoints, Sources, and Collections, see [Processing flow](processing.md).
+
+### User
+
+Users can only access chat. They cannot manage Collections, Sources, Endpoints, or the permissions of other Users. A User is typically someone who uses Archyve but plays no role in defining its behaviour or its configuration.
+
+### Operator
+
+An Operator is someone responsible for curating content on in Archyve. For example, a member of the HR organization might be responsible for ensuring that users get answers from the correct set of HR documents, and that those documents are current.
+
+Operators can also chat, so they can test their users' use cases.
+
+Operators must be granted access to certain Collections or Sources before they can manage them, so an Operator from IT should be able to manage IT's collections, but not HR's.
+
+### Admin
+
+An Admin has full access to Archyve: all the permissions of Operator
+
+## Areas of the app
+
+The three roles map to the three main parts of the app, which are accessible from the landing page:
 
 ![access image](access.png)
 
