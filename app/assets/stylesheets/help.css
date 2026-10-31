@@ -20,3 +20,6 @@
 .help-contents a { display: block; padding: 0.2rem 0; color: var(--color-muted); transition: color 150ms; }
 .help-contents a:hover { color: var(--color-fg); }
 .help-contents a[aria-current="page"] { color: var(--color-accent); }
+
+.help .diagram { margin: 2em 0; text-align: center; }
+.help .diagram svg { height: auto; }
