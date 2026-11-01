@@ -213,7 +213,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
       p(class: "text-sm text-muted") do
         "#{@active_embedding.name} on #{@active_embedding.inference_server.name}."
       end
-      p(class: "mt-1 text-xs text-faint") { "One archive, one embedding model — this server isn't it." }
+      p(class: "mt-1 text-xs text-faint") { "Your embedding model is in another castle." }
     end
   end
 

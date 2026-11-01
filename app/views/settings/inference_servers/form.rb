@@ -22,7 +22,7 @@ class Views::Settings::InferenceServers::Form < Components::Base
         text_input(:base_url, @server.base_url, placeholder: address_placeholder, mono: true)
       end
 
-      field("Software", software_hint) { flavour_select } if @server.flavours.any?
+      field("Server software", software_hint) { flavour_select } if @server.flavours.any?
 
       field("API key", key_hint) { key_input } if shows_key?
 
