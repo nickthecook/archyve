@@ -16,11 +16,11 @@ For details on Endpoints, Sources, and Collections, see [Processing flow](proces
 
 ### User
 
-Users can only access chat. They cannot manage Collections, Sources, Endpoints, or the permissions of other Users. A User is typically someone who uses Archyve but plays no role in defining its behaviour or its configuration.
+Users can only access chat. They cannot manage Collections, Sources, Endpoints, or Settings. A User is typically someone who uses Archyve but plays no role in defining its behaviour or its configuration.
 
 ### Operator
 
-An Operator is someone responsible for curating content on in Archyve. For example, a member of the HR organization might be responsible for ensuring that users get answers from the correct set of HR documents, and that those documents are current.
+An Operator is someone responsible for curating content in Archyve. For example, a member of the HR organization might be responsible for ensuring that users get answers from the correct set of HR documents, and that those documents are current.
 
 Operators can also chat, so they can test their users' use cases.
 
@@ -28,7 +28,7 @@ Operators must be granted access to certain Collections or Sources before they c
 
 ### Admin
 
-An Admin has full access to Archyve: all the permissions of Operator
+An Admin has full access to Archyve: all the permissions of Operator on all Collections, plus the ability to manage Endpoints, settings, and user permissions.
 
 ## Areas of the app
 
@@ -54,24 +54,24 @@ Grants are managed through a "People" button in the top right of a Collection or
 
 ### Grants on Collections
 
-Collections are sets of Sources and Documents that are grouped together so Users can use them in chat. They are generally logically related, like "Human Resources documents", "IT procedures", or "Appliance manuals".
+Collections are sets of Sources and Documents that are grouped together so Users can use them in chat. They tend to be logically related, like "Human Resources documents", "IT procedures", or "Appliance manuals".
 
 | Grant on the collection | A User can | An Operator can | An Admin can |
 |---|---|---|---|
 | none | do nothing; it doesn't appear for them | do nothing; it doesn't appear for them | do everything; no grant needed |
 | User | search it and use it in Chat | search it and use it in Chat | do everything; no grant needed |
 | Operator | search it and use it in Chat | also add and remove documents by hand, and trigger a sync | do everything; no grant needed |
-| Admin | search it and use it in Chat | also decide who else has access, and delete it | do everything; no grant needed |  
+| Admin | search it and use it in Chat | also decide who else has access, and delete it | do everything; no grant needed |
 
 #### Examples
 
-For example, if a user was a member of the HR department, and was responsible for managing the content available to users within the "Human Resources" Collection, that user should have the Operator role, _and_ the Operator grant on Human Resources. This would let them add or remove documents from the Collections.
+For example, if a user was a member of the HR department, and was responsible for managing the content available to users within the "Human Resources" Collection, that user should have the Operator role _and_ the Operator grant on Human Resources. This would let them add to or remove from the Collections.
 
 If they were also responsible for managing who has access to that Collection, they should have the Admin grant on the Collection.
 
 ### Grants on Sources
 
-Sources feed Collections. A Collection can have many Sources, and users with a grant on the Collection can use it in chat. Sources pull documents from external systems (via Endpoints).
+Sources feed Collections. A Collection can have many Sources, and users with a grant on the Collection can access information from that Source in chat. Sources pull documents from external systems (via Endpoints).
 
 | Grant on the source | A User can | An Operator can | An Admin can |
 |---|---|---|---|
@@ -84,4 +84,4 @@ For Sources, Users can do nothing, because one can't use a Source directly in ch
 
 #### Examples
 
-For example, if a user was responsible for selecting which Books in Bookstack were going to go into a "Human Resources" Collection, they should be an Operator, so they can create Sources to pull data from specific Books in Bookstack. Then, an Operator with the Operator grant on the Collection and a User or higher grant on the Source would be able to connect the Source to the Collection.
+For example, if a user was responsible for selecting which Books in Bookstack were going to go into a "Human Resources" Collection, they should be an Operator, so they can create Sources to pull data from specific Books in Bookstack. They should also have the Operator grant on the Collection so they can configure the Collection to draw from the Source.
