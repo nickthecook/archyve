@@ -281,7 +281,7 @@ RSpec.describe "Sources", type: :request do
         }
       end
 
-      before { create(:collection_user, :operator, collection:, user: current_user) }
+      before { create(:collection_user, :curator, collection:, user: current_user) }
 
       it "feeds them" do
         post sources_path, params: params
@@ -624,7 +624,7 @@ RSpec.describe "Sources", type: :request do
       let(:document) { create(:document, source: source, status: "processed") }
 
       before do
-        create(:collection_user, :operator, collection:, user: current_user)
+        create(:collection_user, :curator, collection:, user: current_user)
         source.collections << collection
         CollectionMembership.feed!(document: document, collection: collection)
       end
@@ -644,7 +644,7 @@ RSpec.describe "Sources", type: :request do
     let(:mine) { create(:collection, name: "Mine") }
     let(:theirs) { create(:collection, name: "Theirs") }
 
-    before { create(:collection_user, :operator, collection: mine, user: current_user) }
+    before { create(:collection_user, :curator, collection: mine, user: current_user) }
 
     # Feeding a collection decides what its readers see, so it belongs to the
     # collection rather than to whoever owns the source.

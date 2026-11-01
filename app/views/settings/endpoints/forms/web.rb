@@ -13,7 +13,7 @@ class Views::Settings::Endpoints::Forms::Web < Views::Settings::Endpoints::Form
   def address_placeholder = "https://docs.example.com"
 
   # The admin's half of the boundary. Sources pick a path *within* this one, so
-  # it is the only thing standing between an operator and the rest of the host
+  # it is the only thing standing between a curator and the rest of the host
   # — worth saying on the form rather than leaving to be discovered.
   def scope_fields
     field("Path", scope_hint) do

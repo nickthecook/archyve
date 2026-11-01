@@ -1,8 +1,8 @@
 class UnsortedController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   # Unfiled documents from sources this person manages. Before source grants
-  # existed this listed every unfiled document to every operator, because a
+  # existed this listed every unfiled document to every curator, because a
   # folder source had no owner to scope it by.
   def index
     render Views::Unsorted::Index.new(
@@ -14,7 +14,7 @@ class UnsortedController < ApplicationController
 
   # Assign the selected unsorted documents to a collection (manual membership).
   # Once added they're no longer unsorted, so they drop off this list.
-  # Filing needs operator on the destination, not merely the global role — the
+  # Filing needs curator on the destination, not merely the global role — the
   # same rule as uploading into a collection.
   def assign
     collection = Collection.manageable_by(Current.user).find_by!(slug: params[:collection_slug])

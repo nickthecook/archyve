@@ -29,19 +29,19 @@ class Collection < ApplicationRecord
   }
 
   # Everything they can change. Needs the ceiling *and* the grant to reach
-  # operator: a global `user` granted collection admin is still only a reader.
+  # curator: a global `user` granted collection admin is still only a reader.
   scope :manageable_by, ->(user) {
-    next none unless user.at_least?(:operator)
+    next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:).where(role: [:operator, :admin]).select(:collection_id))
+    where(id: CollectionUser.where(user:).where(role: [:curator, :admin]).select(:collection_id))
   }
 
   # Everything they can hand out access to, or delete. Collection admin is
-  # reachable by a global operator — owning a collection includes deciding who
+  # reachable by a global curator — owning a collection includes deciding who
   # uses it — but never by a global user, whose ceiling is reading.
   scope :administrable_by, ->(user) {
-    next none unless user.at_least?(:operator)
+    next none unless user.at_least?(:curator)
     next all if user.admin?
 
     where(id: CollectionUser.where(user:, role: :admin).select(:collection_id))
@@ -54,7 +54,7 @@ class Collection < ApplicationRecord
   end
 
   # A collection has no grants until it has one, so whoever creates it has to be
-  # given it — otherwise an operator immediately can't manage the thing they
+  # given it — otherwise a curator immediately can't manage the thing they
   # just made, and only an admin could rescue them.
   def grant_admin_to!(user)
     collection_users.create!(user:, role: :admin)

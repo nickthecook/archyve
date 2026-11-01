@@ -111,20 +111,20 @@ RSpec.describe User, type: :model do
     let(:result) { user.role_on(collection) }
 
     context "when they hold no grant on it" do
-      let(:account_role) { :operator }
+      let(:account_role) { :curator }
 
       it "is nil, meaning no access rather than the weakest access" do
         expect(result).to be_nil
       end
     end
 
-    context "when an operator is granted admin of the collection" do
-      let(:account_role) { :operator }
+    context "when a curator is granted admin of the collection" do
+      let(:account_role) { :curator }
 
       before { create(:collection_user, :admin, collection:, user:) }
 
       # Owning a collection includes deciding who uses it. Capping this at
-      # operator would leave every access change waiting on a system admin.
+      # curator would leave every access change waiting on a system admin.
       it "gives them admin of it" do
         expect(result).to eq(:admin)
       end
@@ -152,7 +152,7 @@ RSpec.describe User, type: :model do
   describe "#at_least?" do
     subject(:user) { build(:user, role:) }
 
-    let(:result) { user.at_least?(:operator) }
+    let(:result) { user.at_least?(:curator) }
 
     context "when the user's role is below it" do
       let(:role) { :user }
@@ -163,14 +163,14 @@ RSpec.describe User, type: :model do
     end
 
     context "when the user's role is exactly it" do
-      let(:role) { :operator }
+      let(:role) { :curator }
 
       it "is true" do
         expect(result).to be(true)
       end
     end
 
-    # Ordered roles are the whole point: an admin passes an operator gate
+    # Ordered roles are the whole point: an admin passes a curator gate
     # without being named in it.
     context "when the user's role is above it" do
       let(:role) { :admin }
@@ -188,7 +188,7 @@ RSpec.describe User, type: :model do
     subject(:admin) { create(:user, :admin) }
 
     context "when they are the only admin and are demoted" do
-      let(:result) { admin.update(role: :operator) }
+      let(:result) { admin.update(role: :curator) }
 
       it "is refused" do
         expect(result).to be(false)
@@ -214,7 +214,7 @@ RSpec.describe User, type: :model do
     end
 
     context "when another admin exists" do
-      let(:result) { admin.update(role: :operator) }
+      let(:result) { admin.update(role: :curator) }
 
       before { create(:user, :admin) }
 

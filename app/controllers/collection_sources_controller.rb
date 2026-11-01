@@ -2,7 +2,7 @@
 #
 # This lives on the collection rather than the source because feeding decides
 # what the collection's readers see, and that belongs to whoever owns the
-# collection. Attaching needs operator on the collection *and* any grant on the
+# collection. Attaching needs curator on the collection *and* any grant on the
 # source — including the weakest, which means exactly "you may draw on this".
 # That split is deliberate: in an organisation, IT owns a source's credentials
 # and a team owns what their collection pulls from, and requiring the same
@@ -11,7 +11,7 @@
 # Detaching needs only the collection side. Removing access can't escalate
 # anything, and a collection's owner should always be able to stop pulling.
 class CollectionSourcesController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   before_action :set_collection
 

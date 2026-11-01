@@ -40,7 +40,7 @@ class Views::Documents::Detail < Components::Base
 
   # What a reader is told: one sentence, in terms of what happened to *their*
   # document. The facts behind it — which stage, which service, the raw error —
-  # are the operator's, and live in Views::Documents::Diagnostics.
+  # are the curator's, and live in Views::Documents::Diagnostics.
   #
   # Keyed on outcome_kind rather than composed from it so each sentence can be
   # written rather than assembled; "couldn't be read" and "didn't respond" are

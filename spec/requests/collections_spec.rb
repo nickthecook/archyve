@@ -236,12 +236,12 @@ RSpec.describe "Collections", type: :request do
     end
   end
 
-  describe "GET /collections/:slug as an operator" do
+  describe "GET /collections/:slug as a curator" do
     subject(:request) { get collection_path(collection) }
 
     let(:collection) { create(:collection, name: "House") }
 
-    before { create(:collection_user, :operator, collection:, user: current_user) }
+    before { create(:collection_user, :curator, collection:, user: current_user) }
 
     it "renders" do
       request
@@ -268,7 +268,7 @@ RSpec.describe "Collections", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    # Filing needs operator on the collection, so don't offer it.
+    # Filing needs curator on the collection, so don't offer it.
     it "offers no upload" do
       request
       expect(response.body).not_to include("Upload")
@@ -293,7 +293,7 @@ RSpec.describe "Collections", type: :request do
 
     before { create(:collection_membership, collection:, document:, origin: "manual") }
 
-    context "when the operator administers the collection" do
+    context "when the curator administers the collection" do
       before { collection.grant_admin_to!(current_user) }
 
       it "deletes it" do
@@ -313,8 +313,8 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
-    context "when the operator can only file documents into it" do
-      before { create(:collection_user, :operator, collection:, user: current_user) }
+    context "when the curator can only file documents into it" do
+      before { create(:collection_user, :curator, collection:, user: current_user) }
 
       it "refuses" do
         expect { request }.not_to change(Collection, :count)

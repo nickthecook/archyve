@@ -62,7 +62,7 @@ class Views::Settings::Endpoints::Index < Views::Base
     div(class: "rounded-lg border border-dashed border-line px-4 py-12 text-center") do
       p(class: "text-sm text-muted") { "No endpoints yet." }
       p(class: "mt-1 text-xs text-faint") do
-        "Until one is added, operators can't create sources that pull from a remote system like a wiki."
+        "Until one is added, curators can't create sources that pull from a remote system like a wiki."
       end
     end
   end

@@ -450,9 +450,9 @@ for a type that enumerates arbitrary files and therefore applies them.
 
 **A second axis, added 2026-09-20: who is allowed to change it.** An endpoint is
 administered in Settings and merely *used* by whoever attaches a source, so it
-is the only place a limit on an operator can live. `Endpoints::Web#path_prefix`
-confines every source on that endpoint to one part of a site — without it, an
-operator could crawl the whole host on the admin's credentials, which is the
+is the only place a limit on a curator can live. `Endpoints::Web#path_prefix`
+confines every source on that endpoint to one part of a site — without it, a
+curator could crawl the whole host on the admin's credentials, which is the
 "an endpoint is an identity" problem with no containment. A setting that
 constrains the person configuring the source cannot itself sit on the source.
 
@@ -622,21 +622,21 @@ Query-time:
 
 Two axes, not one.
 
-**Global role (built 2026-09-07)** — `users.role` ∈ `user` / `operator` /
+**Global role (built 2026-09-07)** — `users.role` ∈ `user` / `curator` /
 `admin`, an integer enum so the values are *ordered*. This is a **capability
 ceiling**, and the gate on everything that isn't scoped to a collection:
 
 - `user` — chat and search. No management surfaces at all.
-- `operator` — + sources, collections, documents, filing.
+- `curator` — + sources, collections, documents, filing.
 - `admin` — + settings and people, everywhere, needing no per-object grant.
 
-Enforced by the `Authorization` concern (`require_role :operator`), beside the
-`Authentication` one. Views filter affordances with `may?(:operator)` — the nav
+Enforced by the `Authorization` concern (`require_role :curator`), beside the
+`Authentication` one. Views filter affordances with `may?(:curator)` — the nav
 in `Views::Chrome::NAV` and the landing's facets both do — but hiding a link is
 not access control; the controller gate is.
 
-Because the role is a ceiling, **self-granting is structurally harmless**: an
-operator can create a collection and make themselves its admin and still never
+Because the role is a ceiling, **self-granting is structurally harmless**: a
+curator can create a collection and make themselves its admin and still never
 reach settings.
 
 The last admin can neither be demoted nor deleted. That guard is a validation
@@ -705,9 +705,9 @@ download is a property of the **source**, not of the reader's role
   neither can manual upload. Both are download-only, and nothing returns true
   yet.
 
-So chat and search behave identically for an operator and a plain user. An
-operator's extra reach is *browsing* the archive, a different entry point:
-`/documents` is `operator`, the download is not. The download is nonetheless
+So chat and search behave identically for a curator and a plain user. A
+curator's extra reach is *browsing* the archive, a different entry point:
+`/documents` is `curator`, the download is not. The download is nonetheless
 scoped to what the reader could have been cited (`Document.reachable_by`), so
 holding an id is not enough — what the role additionally prevents is
 enumeration.
@@ -720,7 +720,7 @@ would put the archive one forwarded link away from anybody.
 standing with one source:
 
 - `user` — may feed this source into a collection they administer.
-- `operator` — + change its config, trigger a sync.
+- `curator` — + change its config, trigger a sync.
 - `admin` — + manage its people, and delete it.
 
 The `user` role is not "may read this source". It is "may draw on it", and it
@@ -743,7 +743,7 @@ the source was already attached. This is the grant that attaches it.)
 what the collection's readers see. It can be driven from either end:
 
 - **From the collection** (`CollectionSourcesController`) — attaching needs
-  `operator` on the collection *and any grant on the source*; detaching needs
+  `curator` on the collection *and any grant on the source*; detaching needs
   only the collection side, since you may always stop drawing on something, and
   a revoked source grant must not leave a collection permanently fed by
   something its owner can't detach.
@@ -762,7 +762,7 @@ Both go through `Source#update_fed_collections`, which files existing documents
 into a newly fed collection and retracts the memberships it had asserted in a
 dropped one. It **diffs the full list and tombstones everything absent from
 it**, so both paths derive that list from the *source's* current collections
-rather than from what the person can see. Without that, one operator saving a
+rather than from what the person can see. Without that, one curator saving a
 shared source silently unfiles another team's documents.
 
 **Retrieval scoping (built 2026-09-07).** Two questions about a document, kept
@@ -800,14 +800,14 @@ nothing ticked was claiming the opposite of what it did.
 - **`collection_users`** join: `user ↔ collection` with the same ordered `role`
   vocabulary as the global one (`Roleable`), so the two are comparable.
   - `user` — search it, and draw on it in chat.
-  - `operator` — + add and remove document memberships by hand.
+  - `curator` — + add and remove document memberships by hand.
   - `admin` — + manage its people and delete it. Deleting unfiles documents;
     it never destroys them, since they belong to the source that produced them,
     and anything that was only in that collection becomes Unsorted.
 - **A missing row means no access**, not weak access. `User#role_on` returns
   `nil`, deliberately not `:user`: absence is not the weakest presence, and
-  conflating them would hand every operator read access to every collection.
-- Whoever creates a collection is granted `admin` on it. Otherwise an operator
+  conflating them would hand every curator read access to every collection.
+- Whoever creates a collection is granted `admin` on it. Otherwise a curator
   immediately can't manage what they just made, and only a system admin could
   rescue them.
 
@@ -816,16 +816,16 @@ caps the *kind* of thing you can do (chat / content / system); it is not another
 rung on the same ladder:
 
 - global `admin` — everything, everywhere, no grant needed.
-- global `operator` — the grant exactly as written, up to and including `admin`
+- global `curator` — the grant exactly as written, up to and including `admin`
   **of that collection**. Managing a collection, its people included, is content
-  ownership, which is what an operator is for.
+  ownership, which is what a curator is for.
 - global `user` — reads at most, whatever the grant says. Chat-only means
   chat-only; a grant cannot widen it.
 
-A numeric `min` was the original plan and is wrong: `min(operator, admin)` is
-`operator`, which would mean an HR operator could not grant a colleague access
+A numeric `min` was the original plan and is wrong: `min(curator, admin)` is
+`curator`, which would mean an HR curator could not grant a colleague access
 to the HR collection, leaving every access change waiting on a system admin.
-That contradicts the whole point of appointing operators.
+That contradicts the whole point of appointing curators.
 - **Multi-collection query:** retrieval takes a **set of collection IDs** from
   day one (same query shape as one — `document_id ∈ (active members of ANY of the
   user's readable selected collections)`, **de-duplicated**). This is cheap
@@ -833,12 +833,12 @@ That contradicts the whole point of appointing operators.
   starts single-select**; a multi-select widget is a self-contained later view
   change with no ripple into retrieval/DB. If single-collection turns out to be
   all we want, nothing is lost — just never ship the widget.
-- **Who may create/configure sources: `operator`** (settled 2026-09-07). Sources
+- **Who may create/configure sources: `curator`** (settled 2026-09-07). Sources
   are global producers, so they are gated by the global role rather than by any
   per-collection grant. Changing which collections a source *feeds* is a
   separate question and belongs to the collection: ownership of what readers see
   sits with the collection, not with the source producing it.
-- A source-level grant, when it lands, needs only `operator` / `admin` — a
+- A source-level grant, when it lands, needs only `curator` / `admin` — a
   source `user` role has no meaning, since seeing a source is implied by seeing
   a collection it feeds.
 - **Conversations: the author writes, admins read** (settled 2026-10-25, #87).

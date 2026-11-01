@@ -5,7 +5,7 @@ RSpec.describe CollectionUser, type: :model do
     subject(:grant) { build(:collection_user, collection:, user:) }
 
     let(:collection) { create(:collection) }
-    let(:user) { create(:user, :operator) }
+    let(:user) { create(:user, :curator) }
     let(:result) { grant.valid? }
 
     context "when the person already has a grant on the collection" do

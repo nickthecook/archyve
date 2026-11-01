@@ -137,7 +137,7 @@ module Sources
     def max_pages = (super.presence || Crawl::Frontier::DEFAULT_MAX_PAGES).to_i
     def max_depth = (super.presence || Crawl::Frontier::DEFAULT_MAX_DEPTH).to_i
 
-    # Whichever is slower: what the site asked for, or what the operator set.
+    # Whichever is slower: what the site asked for, or what the curator set.
     def crawl_delay
       [robots.crawl_delay.to_f, crawl_delay_seconds.to_f].max
     end
@@ -331,7 +331,7 @@ module Sources
       locations.flat_map { |location| Crawl::Sitemap.urls(location, fetcher: fetcher, boundary: boundary) }.uniq
     end
 
-    # The endpoint's path is an admin's limit on what an operator may reach with
+    # The endpoint's path is an admin's limit on what a curator may reach with
     # its credentials, so both of the source's paths have to sit inside it —
     # `start_path` included, for the reason given on #start_url.
     def paths_must_be_within_the_endpoint

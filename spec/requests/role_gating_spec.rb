@@ -26,7 +26,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
     end
   end
 
-  describe "an operator-only page" do
+  describe "a curator-only page" do
     let(:path) { sources_path }
 
     context "when signed in as a user" do
@@ -35,8 +35,8 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
       include_examples "refused"
     end
 
-    context "when signed in as an operator" do
-      let(:traits) { [:operator] }
+    context "when signed in as a curator" do
+      let(:traits) { [:curator] }
 
       include_examples "allowed"
     end
@@ -44,7 +44,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
     context "when signed in as an admin" do
       let(:traits) { [:admin] }
 
-      # Ordered roles, so admin needs no separate grant to pass an operator gate.
+      # Ordered roles, so admin needs no separate grant to pass a curator gate.
       include_examples "allowed"
     end
   end
@@ -52,8 +52,8 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "an admin-only page" do
     let(:path) { settings_path }
 
-    context "when signed in as an operator" do
-      let(:traits) { [:operator] }
+    context "when signed in as a curator" do
+      let(:traits) { [:curator] }
 
       include_examples "refused"
     end
@@ -68,10 +68,10 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "the inference settings" do
     let(:path) { settings_inference_servers_path }
 
-    context "when signed in as an operator" do
-      let(:traits) { [:operator] }
+    context "when signed in as a curator" do
+      let(:traits) { [:curator] }
 
-      # An operator manages content. Repointing Archyve at a different LLM host
+      # A curator manages content. Repointing Archyve at a different LLM host
       # is system administration, which is why InferenceServer has no per-object
       # grant to soften this.
       include_examples "refused"

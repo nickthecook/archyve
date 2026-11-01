@@ -24,7 +24,7 @@ class Views::Documents::Show < Views::Base
       end
       div(class: "flex shrink-0 items-center gap-2") do
         download_button
-        reprocess_button if may?(:operator) && @document.reprocessable?
+        reprocess_button if may?(:curator) && @document.reprocessable?
       end
     end
 
@@ -33,7 +33,7 @@ class Views::Documents::Show < Views::Base
     turbo_stream_from(@document)
     render Views::Documents::Detail.new(document: @document)
 
-    diagnostics if may?(:operator)
+    diagnostics if may?(:curator)
   end
 
   private

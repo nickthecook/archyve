@@ -14,8 +14,8 @@ FactoryBot.define do
       sso_issuer { SsoHelpers::ISSUER }
     end
 
-    trait :operator do
-      role { :operator }
+    trait :curator do
+      role { :curator }
     end
 
     trait :admin do

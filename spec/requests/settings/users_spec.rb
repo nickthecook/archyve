@@ -23,7 +23,7 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
 
     context "with an email, password and role" do
       let(:attributes) do
-        { email_address: "new@example.com", password: "a-long-enough-password", role: "operator" }
+        { email_address: "new@example.com", password: "a-long-enough-password", role: "curator" }
       end
 
       it "creates the account" do
@@ -32,7 +32,7 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
 
       it "gives it the chosen role" do
         request
-        expect(User.find_by(email_address: "new@example.com").role).to eq("operator")
+        expect(User.find_by(email_address: "new@example.com").role).to eq("curator")
       end
     end
 
@@ -51,17 +51,17 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
     let(:target) { create(:user, email_address: "someone@example.com") }
 
     context "when the role changes" do
-      let(:attributes) { { role: "operator" } }
+      let(:attributes) { { role: "curator" } }
 
       it "saves the new role" do
         request
-        expect(target.reload.role).to eq("operator")
+        expect(target.reload.role).to eq("curator")
       end
     end
 
     # An admin changing someone's role shouldn't have to reset their password.
     context "when the password field is left blank" do
-      let(:attributes) { { role: "operator", password: "" } }
+      let(:attributes) { { role: "curator", password: "" } }
 
       it "leaves the existing password working" do
         request
@@ -80,7 +80,7 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
 
     context "when the only admin is demoted" do
       let(:target) { admin }
-      let(:attributes) { { role: "operator" } }
+      let(:attributes) { { role: "curator" } }
 
       it "refuses" do
         request
@@ -90,13 +90,13 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
 
     context "when an admin is demoted while another admin remains" do
       let(:target) { admin }
-      let(:attributes) { { role: "operator" } }
+      let(:attributes) { { role: "curator" } }
 
       before { create(:user, :admin) }
 
       it "allows it" do
         request
-        expect(target.reload.role).to eq("operator")
+        expect(target.reload.role).to eq("curator")
       end
     end
   end

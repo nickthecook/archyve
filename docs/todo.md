@@ -799,14 +799,14 @@ somewhere it can be seen and undone.
   that reports `forbidden 412` next to `200 3` is the one to undo.
 
 **What it must not become.** Not an audit log and not version history for
-readers — this is an operator's undo, for the window between a bad scan and
+readers — this is a curator's undo, for the window between a bad scan and
 somebody noticing. Retention should be bounded, and the bound is a decision for
 when it is built.
 
 ## Endpoint-scoped crawling — **built 2026-09-20**
 
 An `Endpoints::Web` was an origin plus credentials, and a `Sources::Web` could
-name any path under it — so an operator who may attach a source to that endpoint
+name any path under it — so a curator who may attach a source to that endpoint
 could crawl the *whole host* with an admin's credentials. That is the concern
 already written down for BookStack ("this row is an identity, not just an
 address"), with none of the containment.
@@ -823,7 +823,7 @@ right field.
 `base_url` and no part of it, so `client` keeps its origin and nothing else
 moved. `Crawl::Boundary` gained a `scope:` alongside its `prefix:`, and the two
 answer to different people — `scope` is the admin's and binds everything,
-`prefix` is the operator's and says which part of that becomes documents.
+`prefix` is the curator's and says which part of that becomes documents.
 
 - `#include?` — ours to keep — requires *both*. Deliberately not assuming the
   source's path nests inside the endpoint's, even though a validation says it
@@ -1133,4 +1133,4 @@ picks its reader off the extension.
 - **Per-collection and per-source grants.** The global role is built; the
   second axis isn't. Needs `collection_users`, `source_users`, retrieval scoped
   to readable collections, and the feed picker moved to the collection page.
-  (The "who may configure sources" question is settled: `operator`.)
+  (The "who may configure sources" question is settled: `curator`.)

@@ -203,10 +203,10 @@ class Source < ApplicationRecord
   # Everything this person may configure, sync or delete. Ownership counts as a
   # grant: your own upload source is yours without anyone having to say so.
   scope :manageable_by, ->(user) {
-    next none unless user.at_least?(:operator)
+    next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: SourceUser.where(user:, role: [:operator, :admin]).select(:source_id))
+    where(id: SourceUser.where(user:, role: [:curator, :admin]).select(:source_id))
       .or(where(user_id: user.id))
   }
 
@@ -216,7 +216,7 @@ class Source < ApplicationRecord
   # manageable_by — attaching a source is not configuring it, and the person who
   # owns a collection is rarely the person who owns the credentials.
   scope :attachable_by, ->(user) {
-    next none unless user.at_least?(:operator)
+    next none unless user.at_least?(:curator)
 
     grants = if user.admin?
       all
@@ -230,7 +230,7 @@ class Source < ApplicationRecord
   # Everything they may hand out authority over. Same shape, narrowed to admin
   # grants — and ownership again, since you administer what you own.
   scope :administrable_by, ->(user) {
-    next none unless user.at_least?(:operator)
+    next none unless user.at_least?(:curator)
     next all if user.admin?
 
     where(id: SourceUser.where(user:, role: :admin).select(:source_id)).or(where(user_id: user.id))
@@ -249,7 +249,7 @@ class Source < ApplicationRecord
   end
 
   # A source has no grants until it has one, so whoever adds it gets it —
-  # otherwise an operator can't manage the source they just created.
+  # otherwise a curator can't manage the source they just created.
   def grant_admin_to!(user)
     source_users.create!(user:, role: :admin)
   end

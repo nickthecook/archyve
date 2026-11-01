@@ -49,7 +49,7 @@ render Views::Collections::Index.new(rows: @rows, …)
 ## Access control
 
 Two concerns: `Authentication` ("is anyone there?") and `Authorization` ("are
-they allowed?"). Controllers gate with `require_role :operator` (a *minimum* —
+they allowed?"). Controllers gate with `require_role :curator` (a *minimum* —
 roles are ordered). Per-collection and per-source grants combine with the global
 role as a ceiling, never above it.
 
@@ -69,7 +69,7 @@ control**. The controller must enforce the same rule; both are required.
 ## Specs
 
 RSpec, mostly request specs — they exercise real sign-in via
-`spec/support/authentication.rb`, which signs in an operator before each example
+`spec/support/authentication.rb`, which signs in a curator before each example
 (`unauthenticated: true` opts out). Prefer contexts for input variation over flat
 examples.
 

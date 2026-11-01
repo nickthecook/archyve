@@ -8,13 +8,13 @@ Data arrives at Archyve from Endpoints, Archyve's internal representation of an 
 
 ## Sources
 
-Once Endpoints are defined, Operators choose which data to pull from those external systems using Sources.
+Once Endpoints are defined, Curators choose which data to pull from those external systems using Sources.
 
-A Source selects a subset of the data in an Endpoint. For example, a Source might pull only two specific folders from a Nextcloud server, or a three Books from a Bookstack server. Operators would typically be the people in charge of a certain data set, like HR or Finance, and would control which information from their department was accessible in chat.
+A Source selects a subset of the data in an Endpoint. For example, a Source might pull only two specific folders from a Nextcloud server, or a three Books from a Bookstack server. Curators would typically be the people in charge of a certain data set, like HR or Finance, and would control which information from their department was accessible in chat.
 
 ## Collections
 
-Once Sources are defined, Operators create Collections and choose which Sources to include. A Source may feed multiple Collections.
+Once Sources are defined, Curators create Collections and choose which Sources to include. A Source may feed multiple Collections.
 
 Collections are what Users use in chat. If information exists in a Collection, and that Collection is accessible to that User, the user can ask questions of Archyve about the information in that Collection, and Archyve's chatbot will draw on that data to answer the User's questions.
 
@@ -31,7 +31,7 @@ flowchart
         e2(Endpoint)
     end
 
-    subgraph three [Operator-managed]
+    subgraph three [Curator-managed]
         s1(Source)
         s2(Source)
         s3(Source)
@@ -61,9 +61,9 @@ c2 -->|chat| users
 ### Summary
 
 - Endpoints make it possible for Archyve to pull documents from external systems
-- Sources allow Operators to select which information Archyve should pull
-- Collections allow Operators to assemble information into logical groups
+- Sources allow Curators to select which information Archyve should pull
+- Collections allow Curators to assemble information into logical groups
 
 ## Permissions
 
-Access controls, including which Operators can control which Collections pull from which Sources, are details in [Access and roles](access.md).
+Access controls, including which Curators can control which Collections pull from which Sources, are details in [Access and roles](access.md).

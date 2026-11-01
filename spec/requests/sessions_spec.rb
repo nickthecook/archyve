@@ -234,7 +234,7 @@ RSpec.describe "Sessions and SSO", :unauthenticated, type: :request do
 
   describe "an expired session" do
     it "stops being accepted" do
-      user = create(:user, :operator)
+      user = create(:user, :curator)
       post session_path, params: { email_address: user.email_address, password: AuthenticationHelpers::PASSWORD }
 
       user.sessions.sole.update!(created_at: (Session::LIFETIME + 1.minute).ago)

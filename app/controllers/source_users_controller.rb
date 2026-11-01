@@ -2,7 +2,7 @@
 # gated the same way: on administering *this* source, not on being a system
 # admin, so whoever set a source up can delegate it.
 class SourceUsersController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   before_action :set_source
 
@@ -59,7 +59,7 @@ class SourceUsersController < ApplicationController
   # collection, so it has nothing to feed this source into; system admins reach
   # every source already.
   def candidates
-    User.where(role: :operator)
+    User.where(role: :curator)
       .where.not(id: @source.source_users.select(:user_id))
       .order(:email_address)
   end

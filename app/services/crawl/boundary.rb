@@ -16,8 +16,8 @@ module Crawl
   #
   # There are two prefixes, because they answer to different people. `scope` is
   # the endpoint's, set by an admin, and binds everything — it is the limit on
-  # what an operator may reach with that endpoint's credentials. `prefix` is the
-  # source's, set by an operator, and says which part of that becomes documents.
+  # what a curator may reach with that endpoint's credentials. `prefix` is the
+  # source's, set by a curator, and says which part of that becomes documents.
   class Boundary
     SCHEMES = %w[http https].freeze
 

@@ -10,11 +10,11 @@ module Authorization
   class_methods do
     # Gate a controller, or some of its actions, on a minimum role:
     #
-    #   require_role :operator
+    #   require_role :curator
     #   require_role :admin, only: :destroy
     #
     # Takes a minimum rather than a list because roles are ordered, so an admin
-    # never has to be named alongside an operator to be let through.
+    # never has to be named alongside a curator to be let through.
     def require_role(minimum, **options)
       before_action(**options) { require_at_least(minimum) }
     end

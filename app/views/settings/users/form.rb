@@ -50,11 +50,9 @@ class Views::Settings::Users::Form < Components::Base
       "outline-none focus:border-accent transition-colors"
   end
 
-  # Described rather than just named — "operator" means nothing on its own, and
-  # this is the screen where the choice is actually made.
   ROLE_DESCRIPTIONS = {
     "user" => "Chat and search only",
-    "operator" => "…and manage sources, collections and documents",
+    "curator" => "…and manage sources, collections and documents",
     "admin" => "…and manage settings and people"
   }.freeze
 

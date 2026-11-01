@@ -1,6 +1,6 @@
 module Settings
-  # The servers sources pull from. Admin-only like the rest of Settings: an
-  # operator curates collections, an admin holds the credentials that reach a
+  # The servers sources pull from. Admin-only like the rest of Settings: a
+  # curator curates collections, an admin holds the credentials that reach a
   # remote system.
   class EndpointsController < ApplicationController
     require_role :admin

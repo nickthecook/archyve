@@ -7,7 +7,7 @@ class Views::Chrome < Components::Base
   # than shown-and-refused: a link that bounces you is worse than no link. The
   # landing's facets are filtered the same way.
   NAV = [
-    ["Collections", :collections_path, :operator],
+    ["Collections", :collections_path, :curator],
     ["Chat", :conversations_path, :user],
     ["Settings", :settings_path, :admin],
     ["Help", :help_path, :user]

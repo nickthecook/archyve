@@ -1,11 +1,11 @@
 # Who may use one collection. Reached from the collection page as "People".
 #
 # Gated on administering *this* collection rather than on the global admin
-# role: an operator who owns a collection decides who sees it. The lookup goes
+# role: a curator who owns a collection decides who sees it. The lookup goes
 # through Collection.administrable_by so the grant is a condition of finding the
 # collection at all, not a check that could be forgotten in one action.
 class CollectionUsersController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   before_action :set_collection
 

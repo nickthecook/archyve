@@ -32,7 +32,7 @@ puts "Break-glass admin: #{admin.email_address}"
 # be seen from both sides without editing anything.
 if Rails.env.development?
   {
-    "operator@archyve.local" => :operator,
+    "curator@archyve.local" => :curator,
     "user@archyve.local" => :user
   }.each do |email_address, role|
     user = User.find_or_initialize_by(email_address:)

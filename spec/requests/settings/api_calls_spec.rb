@@ -147,8 +147,8 @@ RSpec.describe "Settings::ApiCalls", :unauthenticated, type: :request do
       end
     end
 
-    context "when an operator asks" do
-      before { sign_in(create(:user, :operator)) }
+    context "when a curator asks" do
+      before { sign_in(create(:user, :curator)) }
 
       it "is refused — recorded bodies carry prompt and answer text" do
         request

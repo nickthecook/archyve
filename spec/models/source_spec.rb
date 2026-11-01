@@ -46,7 +46,7 @@ RSpec.describe Source do
   describe "#granted_role_for" do
     subject(:source) { create(:source, user: owner) }
 
-    let(:owner) { create(:user, :operator) }
+    let(:owner) { create(:user, :curator) }
     let(:result) { source.granted_role_for(person) }
 
     context "when asked about the owner" do
@@ -58,17 +58,17 @@ RSpec.describe Source do
     end
 
     context "when asked about someone with an explicit grant" do
-      let(:person) { create(:user, :operator) }
+      let(:person) { create(:user, :curator) }
 
       before { create(:source_user, source:, user: person) }
 
       it "is that grant" do
-        expect(result).to eq("operator")
+        expect(result).to eq("curator")
       end
     end
 
     context "when asked about someone with neither" do
-      let(:person) { create(:user, :operator) }
+      let(:person) { create(:user, :curator) }
 
       it "is nil, meaning no access" do
         expect(result).to be_nil

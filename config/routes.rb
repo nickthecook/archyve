@@ -121,7 +121,7 @@ Rails.application.routes.draw do
         controller: "inference_models"
     end
     # The servers sources pull from, and the credentials for them. Here rather
-    # than beside Sources because it is IT's job: an operator curates what a
+    # than beside Sources because it is IT's job: a curator curates what a
     # collection contains, an admin holds the token that reaches the wiki.
     resources :endpoints do
       # A POST because it does something — one call to the server, recorded.

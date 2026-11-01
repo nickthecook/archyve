@@ -36,8 +36,8 @@ RSpec.describe "Settings::ApiKeys", :unauthenticated, type: :request do
       end
     end
 
-    context "when an operator asks" do
-      before { sign_in(create(:user, :operator)) }
+    context "when a curator asks" do
+      before { sign_in(create(:user, :curator)) }
 
       it "is refused" do
         request

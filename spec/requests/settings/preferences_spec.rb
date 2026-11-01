@@ -179,10 +179,10 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
     end
   end
 
-  context "when signed in as an operator" do
-    let(:operator) { create(:user, :operator) }
+  context "when signed in as a curator" do
+    let(:curator) { create(:user, :curator) }
 
-    before { sign_in(operator) }
+    before { sign_in(curator) }
 
     it "refuses" do
       patch settings_preferences_path, params: { key: "debug.record_api_calls", value: "true" }

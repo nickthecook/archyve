@@ -4,7 +4,7 @@ RSpec.describe SourceUser, type: :model do
   subject(:grant) { build(:source_user, source:, user:, role:) }
 
   let(:source) { create(:source) }
-  let(:user) { create(:user, :operator) }
+  let(:user) { create(:user, :curator) }
   let(:result) { grant.valid? }
 
   describe "role" do
@@ -20,8 +20,8 @@ RSpec.describe SourceUser, type: :model do
       end
     end
 
-    context "when it is `operator`" do
-      let(:role) { "operator" }
+    context "when it is `curator`" do
+      let(:role) { "curator" }
 
       it "is valid" do
         expect(result).to be(true)

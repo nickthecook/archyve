@@ -3,12 +3,9 @@
 # Who may use one collection. The panel itself is shared with the source
 # equivalent — see Views::People::Panel.
 class Views::Collections::People::Index < Views::Base
-  # What a grant means *here*. Spelled out because "operator" tells you nothing
-  # on its own, and this is the screen where the choice is made. Kept honest
-  # against what the app can actually do.
   ROLES = {
     "user" => "Chat and search against it",
-    "operator" => "…and file documents by hand",
+    "curator" => "…and file documents by hand",
     "admin" => "…and manage its people"
   }.freeze
 

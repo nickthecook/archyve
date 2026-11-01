@@ -1,7 +1,7 @@
 # One person's access to one collection. See docs/architecture.md.
 #
 #   user     — search it, and draw on it in chat
-#   operator — + add and remove documents by hand, trigger a sync
+#   curator  —+ add and remove documents by hand, trigger a sync
 #   admin    — + change the collection, manage who else may use it, delete it
 #
 # What someone can actually do is the lower of this and their global role, so a

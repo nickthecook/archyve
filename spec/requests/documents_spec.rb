@@ -17,7 +17,7 @@ RSpec.describe "Documents", type: :request do
     context "when uploading into a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
 
-      before { create(:collection_user, :operator, collection:, user: current_user) }
+      before { create(:collection_user, :curator, collection:, user: current_user) }
       let(:params) { { file:, collection_slug: collection.slug } }
 
       it "ingests the file and files it into the collection" do
@@ -32,7 +32,7 @@ RSpec.describe "Documents", type: :request do
     end
 
     # The global role says they may upload; the grant says where. Without the
-    # second check an operator could file documents into any collection they
+    # second check a curator could file documents into any collection they
     # could merely see.
     context "when uploading into a collection they can only read" do
       let(:collection) { create(:collection, name: "Handbook") }
@@ -125,7 +125,7 @@ RSpec.describe "Documents", type: :request do
     context "when no file is chosen for a collection upload" do
       let(:collection) { create(:collection) }
 
-      before { create(:collection_user, :operator, collection:, user: current_user) }
+      before { create(:collection_user, :curator, collection:, user: current_user) }
       let(:params) { { collection_slug: collection.slug } }
 
       it "returns to the collection with an alert" do
@@ -235,7 +235,7 @@ RSpec.describe "Documents", type: :request do
   end
 
   # The whole point of a citation: a reader follows it to the passage. Browsing
-  # the archive is still an operator job, so this is the one document surface a
+  # the archive is still a curator job, so this is the one document surface a
   # plain user reaches, and collection access is what decides it — not the role.
   describe "GET /documents/:id as a reader" do
     subject(:request) { get document_path(document) }
@@ -262,7 +262,7 @@ RSpec.describe "Documents", type: :request do
         expect(response.body).to include("Blueprint")
       end
 
-      # Collections is operator-only, so offering it would be a door that
+      # Collections is curator-only, so offering it would be a door that
       # bounces them — see Views::Chrome.
       # Downloading was already open to readers; the point of the citation
       # landing here is that they can read the cited passage *and* still leave
@@ -292,7 +292,7 @@ RSpec.describe "Documents", type: :request do
       end
     end
 
-    # Unfiled documents are in nobody's corpus. An operator reaches them through
+    # Unfiled documents are in nobody's corpus. A curator reaches them through
     # the source they manage; a reader has no such route.
     context "when the document is in no collection at all" do
       it "is not found" do
@@ -311,7 +311,7 @@ RSpec.describe "Documents", type: :request do
     end
   end
 
-  # The raw error is the operator's. A reader is told what happened to their
+  # The raw error is the curator's. A reader is told what happened to their
   # document in words; they are not handed the hostname of an embedding server.
   describe "GET /documents/:id when processing failed" do
     subject(:request) { get document_path(document) }
@@ -324,7 +324,7 @@ RSpec.describe "Documents", type: :request do
       )
     end
 
-    context "as an operator who manages the source" do
+    context "as a curator who manages the source" do
       before { create(:source_user, :admin, source: document.source, user: current_user) }
 
       it "names the stage and kind" do
@@ -374,7 +374,7 @@ RSpec.describe "Documents", type: :request do
 
       # Hiding the panel is not what keeps it private — never subscribing to
       # the stream it arrives on is, since a broadcast reaches every subscriber
-      # and the page can't filter what it's already been sent. The operator's
+      # and the page can't filter what it's already been sent. The curator's
       # page carries a second subscription; theirs must not.
       it "subscribes only to the document's own stream" do
         request
@@ -410,7 +410,7 @@ RSpec.describe "Documents", type: :request do
       expect(response.body).to include("Part of this document couldn&#39;t be read")
     end
 
-    it "keeps docling's account to the operator" do
+    it "keeps docling's account to the curator" do
       request
       expect(response.body).not_to include("docling reported page 2")
     end
@@ -456,7 +456,7 @@ RSpec.describe "Documents", type: :request do
       let(:collection) { create(:collection) }
 
       before do
-        create(:collection_user, :operator, collection:, user: current_user)
+        create(:collection_user, :curator, collection:, user: current_user)
         create(:collection_membership, collection:, document:)
       end
 

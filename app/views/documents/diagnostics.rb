@@ -3,7 +3,7 @@
 # What the pipeline said when it gave up on one document, for the person whose
 # job it is to do something about it.
 #
-# Operator-only, and a region of its own with a Turbo stream of its own — see
+# Curator-only, and a region of its own with a Turbo stream of its own — see
 # the note on Document#broadcast_diagnostics_change for why it can't be a
 # branch inside Views::Documents::Detail. Like Detail it is rendered from the
 # model during a broadcast, so it stays helper-free: no routes, no tokens, no

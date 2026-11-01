@@ -12,7 +12,7 @@ module Ingestion
   #
   # And like Retrieval::Failure, it carries the *facts*, not the sentence. A
   # reader is told what happened to their document in words that mean something
-  # to them; an operator is told which service to go and look at. Neither
+  # to them; a curator is told which service to go and look at. Neither
   # wording lives here.
   #
   # Two axes rather than one, because a single column can't answer both

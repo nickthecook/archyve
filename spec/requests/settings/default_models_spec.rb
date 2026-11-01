@@ -74,10 +74,10 @@ RSpec.describe "Settings::DefaultModels", :unauthenticated, type: :request do
       end
     end
 
-    context "as an operator" do
-      let(:operator) { create(:user, :operator) }
+    context "as a curator" do
+      let(:curator) { create(:user, :curator) }
 
-      before { sign_in(operator) }
+      before { sign_in(curator) }
 
       it "is refused, like everything else under Settings" do
         patch settings_default_model_path, params: { inference_model_id: model.id }

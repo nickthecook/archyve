@@ -1,5 +1,5 @@
 class DocumentsController < ApplicationController
-  # Browsing the archive is an operator job; opening one document you were
+  # Browsing the archive is a curator job; opening one document you were
   # pointed at is not. A reader arrives at `show` from a chat citation or a
   # search result, and both of those are already filtered to what they may
   # retrieve — gating it on the role as well would mean a citation that renders
@@ -8,7 +8,7 @@ class DocumentsController < ApplicationController
   # What enforces access for `show` is the scope it looks the document up
   # through, not the role: `reachable_by` is the reader's own corpus, and
   # anything outside it raises RecordNotFound. Same asymmetry as `download`.
-  require_role :operator, except: [:show, :download]
+  require_role :curator, except: [:show, :download]
 
   # Where the "back" link on a document points. A document is collection-agnostic
   # (it lives in many collections), so its URL carries no context — the only
@@ -23,7 +23,7 @@ class DocumentsController < ApplicationController
     render Views::Documents::Show.new(document: Document.reachable_by(Current.user).find(params[:id]), back: back_link)
   end
 
-  # Uploading into a collection needs operator *on that collection*, not just
+  # Uploading into a collection needs curator *on that collection*, not just
   # the global role, so the target is looked up through manageable_by. Finding
   # it unscoped and falling back to nil would be worse than refusing: the file
   # would silently land in Unsorted instead of where it was aimed.
@@ -153,7 +153,7 @@ class DocumentsController < ApplicationController
   # nav follows is that a link which bounces you is worse than no link — so they
   # get Chat, which is where they were sent from.
   def unreferred_back_link
-    return BackLink.new(label: "Collections", href: collections_path) if Current.user.at_least?(:operator)
+    return BackLink.new(label: "Collections", href: collections_path) if Current.user.at_least?(:curator)
 
     BackLink.new(label: "Chat", href: conversations_path)
   end

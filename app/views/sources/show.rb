@@ -53,7 +53,7 @@ class Views::Sources::Show < Views::Base
     end
   end
 
-  # Delegating a source is an administrator's job; an operator granted the
+  # Delegating a source is an administrator's job; a curator granted the
   # source can configure and sync it, not hand it to anyone else.
   def people_link
     a(

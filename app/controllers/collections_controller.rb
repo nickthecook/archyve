@@ -1,5 +1,5 @@
 class CollectionsController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   # One row per collection for the index. `documents_count` and `status_counts`
   # cover only *active* memberships (the derived "current contents"); a removed
@@ -74,7 +74,7 @@ class CollectionsController < ApplicationController
   # Deleting a collection unfiles its documents; it never destroys them. They
   # belong to the source that produced them, so what goes is the shelf, not the
   # books — anything that was only here becomes Unsorted. Gated on administering
-  # *this* collection, so an operator can delete their own without a system
+  # *this* collection, so a curator can delete their own without a system
   # admin, and can't touch anybody else's.
   def destroy
     collection = Collection.administrable_by(Current.user).find_by!(slug: params[:slug])

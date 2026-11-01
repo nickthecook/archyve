@@ -30,7 +30,7 @@ RSpec.describe Retrieval::Corpus do
     # on exactly what searching draws on, and a document in no collection is in
     # nobody's corpus even when its source is theirs to manage.
     context "when it is unfiled but produced by a source they manage" do
-      let(:user) { create(:user, role: :operator) }
+      let(:user) { create(:user, role: :curator) }
       let(:document) { create(:document, source: create(:source, user:)) }
 
       before { CollectionMembership.find_by(document:)&.destroy }

@@ -59,7 +59,7 @@ RSpec.describe Sources::Web do
       end
     end
 
-    # The endpoint's path is an admin's limit on what an operator may reach with
+    # The endpoint's path is an admin's limit on what a curator may reach with
     # its credentials, so the source's paths have to sit inside it.
     context "with an endpoint confined to part of the site" do
       let(:endpoint) { create(:web_endpoint, base_url: "https://docs.test", path_prefix: "/wiki") }
@@ -538,7 +538,7 @@ RSpec.describe Sources::Web do
       it { expect(result).to eq(3.0) }
     end
 
-    context "with the operator asking for a slower one than the site did" do
+    context "with the curator asking for a slower one than the site did" do
       subject(:source) { create(:web_source, endpoint: endpoint, crawl_delay_seconds: "5") }
 
       let(:robots_txt) { "User-agent: *\nCrawl-delay: 3\n" }

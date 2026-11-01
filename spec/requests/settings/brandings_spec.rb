@@ -180,10 +180,10 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
     end
   end
 
-  context "when signed in as an operator" do
-    let(:operator) { create(:user, :operator) }
+  context "when signed in as a curator" do
+    let(:curator) { create(:user, :curator) }
 
-    before { sign_in(operator) }
+    before { sign_in(curator) }
 
     it "refuses" do
       get settings_branding_path

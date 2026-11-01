@@ -10,7 +10,7 @@ class Views::Sources::People::Index < Views::Base
   # what their collection pulls from.
   ROLES = {
     "user" => "Feed it into collections they administer",
-    "operator" => "…and change its settings and sync it",
+    "curator" => "…and change its settings and sync it",
     "admin" => "…and manage its people, and delete it"
   }.freeze
 

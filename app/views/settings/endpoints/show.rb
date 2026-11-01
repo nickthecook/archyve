@@ -56,7 +56,7 @@ class Views::Settings::Endpoints::Show < Views::Base
       if @endpoint.accessed_at.blank?
         p(class: "text-sm text-muted") { "Not used yet." }
         p(class: "mt-1 text-xs text-faint") do
-          "Test the connection to confirm the credentials work before operators build sources on it."
+          "Test the connection to confirm the credentials work before curators build sources on it."
         end
       else
         verdict
@@ -74,7 +74,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   end
 
   # The list an admin needs before removing anything: who depends on this
-  # credential. Sources themselves are an operator's business, so these are
+  # credential. Sources themselves are a curator's business, so these are
   # named and linked, not managed here.
   def sources_section
     section(class: "mb-8") do
@@ -106,7 +106,7 @@ class Views::Settings::Endpoints::Show < Views::Base
   def no_sources
     div(class: "rounded-lg border border-dashed border-line px-4 py-8 text-center") do
       p(class: "text-sm text-muted") { "No sources yet." }
-      p(class: "mt-1 text-xs text-faint") { "An operator can now point one at this server." }
+      p(class: "mt-1 text-xs text-faint") { "A curator can now point one at this server." }
     end
   end
 

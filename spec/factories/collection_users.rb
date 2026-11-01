@@ -4,8 +4,8 @@ FactoryBot.define do
     association :user
     role { "user" }
 
-    trait :operator do
-      role { "operator" }
+    trait :curator do
+      role { "curator" }
     end
 
     trait :admin do

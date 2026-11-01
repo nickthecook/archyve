@@ -1,5 +1,5 @@
 class SourcesController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   # Where the breadcrumb's middle crumb points. A source is reachable from its
   # own index, but also from any collection it feeds — see #back_link.

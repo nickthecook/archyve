@@ -79,7 +79,7 @@ class Document < ApplicationRecord
   # as administering it.
   scope :reachable_by, ->(user) {
     next all if user.admin?
-    next retrievable_by(user) unless user.at_least?(:operator)
+    next retrievable_by(user) unless user.at_least?(:curator)
 
     retrievable_by(user).or(where(source_id: Source.manageable_by(user).select(:id)))
   }
@@ -161,10 +161,10 @@ class Document < ApplicationRecord
     broadcast_diagnostics_change
   end
 
-  # The operator's panel rides a stream of its own, because the document's
+  # The curator's panel rides a stream of its own, because the document's
   # shared stream reaches every reader who can open the page and what this
   # carries — raw error text naming hosts, models and paths — is not theirs to
-  # read. A non-operator's page never renders the subscription, and Turbo signs
+  # read. A non-curator's page never renders the subscription, and Turbo signs
   # stream names, so it can't be joined by guessing one.
   #
   # Its own region, too, rather than a branch inside Detail: Detail is rendered

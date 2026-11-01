@@ -100,7 +100,7 @@ RSpec.describe "Unsorted", type: :request do
     let(:collection) { create(:collection, name: "Handbook") }
     let(:document) { create(:document) }
 
-    before { create(:collection_user, :operator, collection:, user: current_user) }
+    before { create(:collection_user, :curator, collection:, user: current_user) }
 
     context "when documents are selected" do
       let(:document_ids) { [document.id] }
@@ -116,11 +116,11 @@ RSpec.describe "Unsorted", type: :request do
     end
 
     # Filing is a change to what a collection's readers see, so it needs
-    # operator on the destination and not merely the global role.
+    # curator on the destination and not merely the global role.
     context "when the destination is one they can only read" do
       let(:document_ids) { [document.id] }
 
-      # Replaces the operator grant above with a reader's.
+      # Replaces the curator grant above with a reader's.
       before { CollectionUser.find_by!(collection:, user: current_user).update!(role: :user) }
 
       it "is refused" do

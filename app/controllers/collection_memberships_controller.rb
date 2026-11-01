@@ -1,5 +1,5 @@
 class CollectionMembershipsController < ApplicationController
-  require_role :operator
+  require_role :curator
 
   # The global role is the ceiling; the grant is what says *which* collections.
   # Both are needed, which is why the collection is looked up through

@@ -30,7 +30,7 @@ RSpec.describe "Search", type: :request do
     end
 
     # Reaching the document is the same for everyone; inspecting how retrieval
-    # chunked it is an operator's tool. See Views::Documents::Access.
+    # chunked it is a curator's tool. See Views::Documents::Access.
     context "when a result's source can't hand out a followable link" do
       let(:params) { { q: "anything" } }
       let(:inside) { create(:document, :with_file, title: "Inside Report") }
@@ -54,7 +54,7 @@ RSpec.describe "Search", type: :request do
         end
       end
 
-      context "when signed in as an operator" do
+      context "when signed in as a curator" do
         it "also offers the chunk view" do
           request
           expect(response.body).to include("Inspect chunks")
@@ -116,7 +116,7 @@ RSpec.describe "Search", type: :request do
 
       before { create(:embedding, chunk: create(:chunk, document: unfiled)) }
 
-      it "is not retrievable by an operator" do
+      it "is not retrievable by a curator" do
         request
         expect(response.body).not_to include("Unfiled Draft")
       end

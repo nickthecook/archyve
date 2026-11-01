@@ -72,7 +72,7 @@ class InferenceServer < ApplicationRecord
 
   # There is deliberately no manageable_by/administrable_by scope trio here,
   # though Collection and Source both have one. Inference configuration is
-  # system administration, not content: an operator who manages the HR
+  # system administration, not content: a curator who manages the HR
   # collection has no business pointing Archyve at a different LLM host. The
   # controllers gate on `require_role :admin` and there is nothing finer to
   # grant, so a per-object scope would only be ceremony.

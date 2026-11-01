@@ -10,9 +10,9 @@ module AuthenticationHelpers
   # source without having to create and pass one itself.
   attr_reader :current_user
 
-  # Defaults to an operator: the least privileged role that can reach the
+  # Defaults to a curator: the least privileged role that can reach the
   # surfaces most request specs exercise. Pass a user to test a boundary.
-  def sign_in(user = create(:user, :operator), password: PASSWORD)
+  def sign_in(user = create(:user, :curator), password: PASSWORD)
     post session_path, params: { email_address: user.email_address, password: }
     @current_user = user
   end

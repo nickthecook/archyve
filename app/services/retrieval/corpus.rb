@@ -53,7 +53,7 @@ module Retrieval
 
     # Deliberately retrievable_by, not reachable_by: reading has to match
     # searching. A document in no collection is in nobody's corpus, even though
-    # an operator can open it from /unsorted to file it.
+    # a curator can open it from /unsorted to file it.
     def retrievable_document_ids
       return nil if @user.admin?
 

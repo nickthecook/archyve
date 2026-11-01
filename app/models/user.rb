@@ -22,7 +22,7 @@ class User < ApplicationRecord
   # A capability *ceiling*, not a grant:
   #
   #   user     — chat and search, nothing to manage
-  #   operator — + sources, collections, documents, filing
+  #   curator  —+ sources, collections, documents, filing
   #   admin    — + settings and user management, everywhere, no grant needed
   #
   # A per-object grant can raise you no higher than this, which is what makes
@@ -56,17 +56,17 @@ class User < ApplicationRecord
   # a two-band rule, not `min`:
   #
   #   admin    — everything, everywhere, no grant needed
-  #   operator — the grant exactly as written, up to and including admin *of
+  #   curator  —the grant exactly as written, up to and including admin *of
   #              that collection*. Managing a collection, its people included,
-  #              is content ownership, which is precisely what an operator is
-  #              for; a numeric min would cap them at operator and leave every
+  #              is content ownership, which is precisely what a curator is
+  #              for; a numeric min would cap them at curator and leave every
   #              access change waiting on a system admin.
   #   user     — read at most, whatever the grant says. Chat-only means
   #              chat-only, and a grant can't widen it.
   #
   # nil means no access at all. Deliberately not :user — a missing grant is
   # absence, not the weakest presence, and returning :user here would silently
-  # hand every operator read access to every collection.
+  # hand every curator read access to every collection.
   def role_on(record)
     return :admin if admin?
 

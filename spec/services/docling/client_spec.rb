@@ -59,7 +59,7 @@ RSpec.describe Docling::Client do
     end
 
     # The distinction the document page turns into two different sentences, so
-    # each of these is about which one the operator ends up reading.
+    # each of these is about which one the curator ends up reading.
     context "when nothing answers" do
       before { stubs.post(described_class::CONVERT_PATH) { raise Faraday::ConnectionFailed, "refused" } }
 

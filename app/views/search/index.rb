@@ -109,12 +109,12 @@ class Views::Search::Index < Views::Base
   end
 
   # Getting the document is the same for everyone — download it, or follow it to
-  # its source. Inspecting how retrieval chunked it is an operator's tool, so it
+  # its source. Inspecting how retrieval chunked it is a curator's tool, so it
   # sits behind the role rather than being the card's primary action.
   def actions(document, chunk)
     div(class: "mt-3 flex items-center gap-4 border-t border-line/60 pt-3") do
       render Views::Documents::Access.new(document:)
-      if may?(:operator)
+      if may?(:curator)
         a(
           href: document_path(document, anchor: chunk.anchor),
           class: "text-xs text-faint hover:text-fg transition-colors"

@@ -41,8 +41,8 @@ RSpec.describe "Styleguide", :unauthenticated, type: :request do
       end
     end
 
-    context "when signed in as an operator" do
-      let(:traits) { [:operator] }
+    context "when signed in as a curator" do
+      let(:traits) { [:curator] }
 
       it "refuses" do
         request

@@ -99,7 +99,7 @@ RSpec.describe "Settings::Reviews", :unauthenticated, type: :request do
     end
 
     context "when signed in below admin" do
-      before { sign_in(create(:user, :operator)) }
+      before { sign_in(create(:user, :curator)) }
 
       it "refuses" do
         request

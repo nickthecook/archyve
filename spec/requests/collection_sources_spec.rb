@@ -2,15 +2,15 @@ require "rails_helper"
 
 RSpec.describe "Collection sources", :unauthenticated, type: :request do
   let(:root) { Dir.mktmpdir("archyve-collection-sources-spec") }
-  let(:operator) { create(:user, :operator) }
+  let(:curator) { create(:user, :curator) }
   let(:collection) { create(:collection, name: "House manuals") }
   let(:source) { create(:folder_source, name: "House", path: root) }
 
   after { FileUtils.remove_entry(root) if File.exist?(root) }
 
   before do
-    sign_in(operator)
-    create(:collection_user, :operator, collection:, user: operator)
+    sign_in(curator)
+    create(:collection_user, :curator, collection:, user: curator)
   end
 
   describe "POST /collections/:slug/sources" do
@@ -19,7 +19,7 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
     # The whole point of the source `user` role: IT keeps the credentials, and
     # the team that owns the collection decides what it draws on.
     context "when they hold only a `user` grant on the source" do
-      before { create(:source_user, source:, user: operator, role: "user") }
+      before { create(:source_user, source:, user: curator, role: "user") }
 
       it "attaches it" do
         request
@@ -46,7 +46,7 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
     context "when the source already has documents" do
       let!(:document) { create(:document, source:, status: "processed") }
 
-      before { create(:source_user, source:, user: operator, role: "user") }
+      before { create(:source_user, source:, user: curator, role: "user") }
 
       # Attaching has to file what is already there; sync only files what it
       # re-imports, so the collection would otherwise stay empty until every
@@ -60,7 +60,7 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
     # Filed per document at upload time; a standing feed would sweep in
     # everything that person uploads from then on.
     context "when the source is someone's manual upload source" do
-      let(:source) { create(:manual_upload_source, user: operator) }
+      let(:source) { create(:manual_upload_source, user: curator) }
 
       it "is refused" do
         request
@@ -75,8 +75,8 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
 
     context "when they only read the collection" do
       before do
-        CollectionUser.find_by!(collection:, user: operator).update!(role: :user)
-        create(:source_user, source:, user: operator, role: "user")
+        CollectionUser.find_by!(collection:, user: curator).update!(role: :user)
+        create(:source_user, source:, user: curator, role: "user")
       end
 
       it "is refused" do

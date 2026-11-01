@@ -20,7 +20,7 @@ class Views::Home::Index < Views::Base
       hall
       # Each facet is absolutely positioned by its own class, so a role that
       # can't reach one simply leaves that corner of the corridor empty.
-      if may?(:operator)
+      if may?(:curator)
         facet("documents", "Collections", collections_path, "#{@stats[:collections]} collections · #{@stats[:documents]} documents")
       end
       facet("chat", "Chat", conversations_path, @stats[:last_chat] || "see past chats")

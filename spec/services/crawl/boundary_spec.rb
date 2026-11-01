@@ -157,7 +157,7 @@ RSpec.describe Crawl::Boundary do
       it { expect(result).to be_nil }
     end
   end
-  # The endpoint's half of the boundary: an admin's limit on what an operator
+  # The endpoint's half of the boundary: an admin's limit on what a curator
   # may reach with that endpoint's credentials.
   describe "with a scope narrower than the whole site" do
     let(:scope) { "/wiki" }

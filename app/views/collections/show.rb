@@ -23,9 +23,9 @@ class Views::Collections::Show < Views::Base
     breadcrumb(["Collections", collections_path], @collection.name)
     header_block
     search
-    # Don't offer what will be refused: filing needs operator on this
+    # Don't offer what will be refused: filing needs curator on this
     # collection, and a reader granted `user` has only search and chat here.
-    if may_on?(@collection, :operator)
+    if may_on?(@collection, :curator)
       sources_panel
       upload
       add_documents
@@ -206,7 +206,7 @@ class Views::Collections::Show < Views::Base
     end
   end
 
-  # Only for whoever administers this collection — an operator granted filing
+  # Only for whoever administers this collection — a curator granted filing
   # rights here has no business handing out access.
   def people_link
     return unless may_on?(@collection, :admin)
@@ -237,7 +237,7 @@ class Views::Collections::Show < Views::Base
   # a model choosing where to look has only this and the name to go on.
   def description
     p(class: "mb-3 text-sm leading-relaxed text-muted") { @collection.description } if @collection.description.present?
-    description_editor if may_on?(@collection, :operator)
+    description_editor if may_on?(@collection, :curator)
   end
 
   def description_editor
@@ -422,7 +422,7 @@ class Views::Collections::Show < Views::Base
         render Views::Documents::StatusBadge.new(status: document.status)
         # Only a manual membership is user-removable; a fed row is retracted at
         # the source, which the provenance line above names.
-        remove_button(document) if row.origin == "manual" && may_on?(@collection, :operator)
+        remove_button(document) if row.origin == "manual" && may_on?(@collection, :curator)
         delete_button(document) if row.purgeable
       end
     end
@@ -478,7 +478,7 @@ class Views::Collections::Show < Views::Base
       p(class: "text-sm text-muted") { "No documents in this collection yet." }
       # Don't tell a reader to upload something they have no way to upload.
       p(class: "mt-1 text-xs text-faint") do
-        if may_on?(@collection, :operator)
+        if may_on?(@collection, :curator)
           "Upload a file or add one from your archive."
         else
           "Whoever manages this collection hasn't added anything yet."

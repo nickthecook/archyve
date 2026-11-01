@@ -51,8 +51,8 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
     end
   end
 
-  context "when signed in as an operator" do
-    before { sign_in(create(:user, :operator)) }
+  context "when signed in as a curator" do
+    before { sign_in(create(:user, :curator)) }
 
     # /unsorted is the queue for filing exactly these, and you can't file what
     # you can't open — but only for sources they manage.

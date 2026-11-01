@@ -30,10 +30,10 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
       end
     end
 
-    context "when an operator asks" do
-      let(:operator) { create(:user, :operator) }
+    context "when a curator asks" do
+      let(:curator) { create(:user, :curator) }
 
-      before { sign_in(operator) }
+      before { sign_in(curator) }
 
       it "is refused — credentials are IT's" do
         request
