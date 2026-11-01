@@ -55,7 +55,7 @@ class Document < ApplicationRecord
     where.not(status: "removed").where.not(id: CollectionMembership.active.select(:document_id))
   }
 
-  # Two different questions, deliberately kept apart.
+  # Separate questions, deliberately kept apart.
   #
   # **Retrievable** — what a query may draw on. Strictly through collections,
   # which is what the access model says: a document in no collection is in
@@ -82,6 +82,18 @@ class Document < ApplicationRecord
     next retrievable_by(user) unless user.at_least?(:curator)
 
     retrievable_by(user).or(where(source_id: Source.manageable_by(user).select(:id)))
+  }
+
+  # **Browsable** — what the management pages list: documents in collections
+  # they edit, plus everything from sources they manage. A grant to use a
+  # collection in chat doesn't put its documents here.
+  scope :browsable_by, ->(user) {
+    next all if user.admin?
+
+    where(id: CollectionMembership.active
+      .where(collection_id: Collection.manageable_by(user).select(:id))
+      .select(:document_id))
+      .or(where(source_id: Source.manageable_by(user).select(:id)))
   }
 
   # --- pipeline outcome ------------------------------------------------------

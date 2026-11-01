@@ -5,8 +5,8 @@
 # Same shell as the search and read panels beside it — collapsed, tally in the
 # summary row — because it is the same kind of event: the model stopped talking
 # and went to the archive. What differs is that nothing in here is a passage, so
-# there are no cards to expand into and nothing carries a citation handle. The
-# rows open what they name instead.
+# there are no cards to expand into and nothing carries a citation handle.
+# Document rows open the document instead.
 #
 # Three states, and they must not look alike: running, listed, and refused.
 class Views::Conversations::Listing < Components::Base
@@ -103,10 +103,12 @@ class Views::Conversations::Listing < Components::Base
     end
   end
 
+  # Not a link: a collection's page is for whoever edits it, and most people
+  # reading a chat can't open it.
   def collection_row(entry)
-    a(href: routes.collection_path(entry["slug"]), class: "#{ROW} #{OPENS}") do
+    div(class: ROW) do
       div(class: "flex items-baseline gap-3") do
-        span(class: "truncate text-[0.8125rem] font-medium text-fg transition-colors group-hover/row:text-accent") { entry["name"] }
+        span(class: "truncate text-[0.8125rem] font-medium text-fg") { entry["name"] }
         span(class: "ml-auto shrink-0 font-mono text-[0.7rem] text-faint tabular-nums") { count_of(entry["documents"], "document") }
       end
       div(class: "mt-1 text-[0.75rem] text-faint") { fed_by(entry) }

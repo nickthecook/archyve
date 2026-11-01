@@ -176,7 +176,7 @@ RSpec.describe "Documents", type: :request do
       let(:collection) { create(:collection, name: "Handbook") }
       let(:referer) { "http://www.example.com#{collection_path(collection)}" }
 
-      before { create(:collection_user, collection:, user: current_user) }
+      before { create(:collection_user, :editor, collection:, user: current_user) }
 
       it "links back to that collection" do
         request

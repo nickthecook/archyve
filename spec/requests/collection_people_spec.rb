@@ -158,8 +158,8 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
       end
     end
 
-    context "when the curator holds a grant" do
-      before { create(:collection_user, collection:, user: curator) }
+    context "when the curator holds an editor grant" do
+      before { create(:collection_user, :editor, collection:, user: curator) }
 
       it "shows the collection" do
         request

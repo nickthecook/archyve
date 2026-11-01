@@ -11,8 +11,10 @@ class CollectionsController < ApplicationController
   # answer, resolved once per page rather than per row.
   DocumentRow = Data.define(:document, :origin, :purgeable)
 
+  # Only collections they can edit. An accessor grant is for chat; it puts
+  # nothing in front of a curator here.
   def index
-    collections = Collection.readable_by(Current.user).order(:name).to_a
+    collections = Collection.manageable_by(Current.user).order(:name).to_a
     @rows = build_rows(collections)
     @unsorted_count = unsorted_count
     render Views::Collections::Index.new(
@@ -23,7 +25,7 @@ class CollectionsController < ApplicationController
   end
 
   def show
-    collection = Collection.readable_by(Current.user).find_by!(slug: params[:slug])
+    collection = Collection.manageable_by(Current.user).find_by!(slug: params[:slug])
     memberships = collection.collection_memberships.active.includes(document: :source).to_a
     purgeable = purgeable_document_ids(memberships.map(&:document))
     document_rows = memberships

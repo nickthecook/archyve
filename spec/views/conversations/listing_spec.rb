@@ -24,8 +24,13 @@ RSpec.describe Views::Conversations::Listing do
         expect(result).to include("No source feeds this collection")
       end
 
-      it "makes each row a way into the collection" do
-        expect(result).to include(%(href="/collections/security-handbook"))
+      it "names each collection" do
+        expect(result).to include("Security Handbook")
+      end
+
+      # The collection page is for editors; most chat readers would be refused.
+      it "doesn't link to the collection" do
+        expect(result).not_to include(%(href="/collections/))
       end
     end
 

@@ -142,7 +142,7 @@ class SourcesController < ApplicationController
     slug = path&.match(%r{\A/collections/([^/]+)\z})&.captures&.first
     return unless slug
 
-    collection = Collection.readable_by(Current.user).find_by(slug:)
+    collection = Collection.manageable_by(Current.user).find_by(slug:)
     BackLink.new(label: collection.name, href: collection_path(collection)) if collection
   end
 

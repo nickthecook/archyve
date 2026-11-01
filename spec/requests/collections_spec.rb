@@ -254,34 +254,46 @@ RSpec.describe "Collections", type: :request do
       request
       expect(response.body).not_to include(collection_people_path(collection))
     end
-  end
-
-  describe "GET /collections/:slug as a reader" do
-    subject(:request) { get collection_path(collection) }
-
-    let(:collection) { create(:collection, name: "House") }
-
-    before { create(:collection_user, collection:, user: current_user) }
-
-    it "renders" do
-      request
-      expect(response).to have_http_status(:ok)
-    end
-
-    # Filing needs curator on the collection, so don't offer it.
-    it "offers no upload" do
-      request
-      expect(response.body).not_to include("Upload")
-    end
 
     it "offers no way to delete the collection" do
       request
       expect(response.body).not_to include("Delete this collection")
     end
+  end
 
-    it "offers no way to hand out access" do
-      request
-      expect(response.body).not_to include(collection_people_path(collection))
+  # An accessor grant is for chat. It gives a curator nothing here, the same as
+  # it gives a visitor.
+  describe "a curator with only an accessor grant" do
+    let(:collection) { create(:collection, name: "House") }
+
+    before { create(:collection_user, collection:, user: current_user, access: :accessor) }
+
+    it "doesn't see the collection listed" do
+      get collections_path
+      expect(response.body).not_to include("House")
+    end
+
+    it "can't open the collection" do
+      get collection_path(collection)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "doesn't see its documents listed" do
+      create(:collection_membership, collection:, document: create(:document, title: "Floor plan"))
+      get documents_path
+      expect(response.body).not_to include("Floor plan")
+    end
+
+    it "can still draw on it in chat" do
+      expect(Collection.readable_by(current_user)).to include(collection)
+    end
+
+    # Where a citation or a listed document leads, so it has to keep working.
+    it "can still open a document in it" do
+      document = create(:document, title: "Floor plan")
+      create(:collection_membership, collection:, document:)
+      get document_path(document)
+      expect(response).to have_http_status(:ok)
     end
   end
 

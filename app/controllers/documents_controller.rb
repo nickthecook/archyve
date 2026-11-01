@@ -16,7 +16,7 @@ class DocumentsController < ApplicationController
   BackLink = Data.define(:label, :href)
 
   def index
-    render Views::Documents::Index.new(documents: Document.reachable_by(Current.user).order(created_at: :desc))
+    render Views::Documents::Index.new(documents: Document.browsable_by(Current.user).order(created_at: :desc))
   end
 
   def show
@@ -133,7 +133,7 @@ class DocumentsController < ApplicationController
     slug = path&.match(%r{\A/collections/([^/]+)\z})&.captures&.first
     chat_id = path&.match(%r{\A/chat/([^/]+)\z})&.captures&.first
 
-    if slug && (collection = Collection.readable_by(Current.user).find_by(slug:))
+    if slug && (collection = Collection.manageable_by(Current.user).find_by(slug:))
       BackLink.new(label: collection.name, href: collection_path(collection))
     elsif chat_id && (conversation = Current.user.conversations.find_by(id: chat_id))
       # Scoped to their own conversations, since a conversation is private to

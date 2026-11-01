@@ -765,8 +765,9 @@ it**, so both paths derive that list from the *source's* current collections
 rather than from what the person can see. Without that, one curator saving a
 shared source silently unfiles another team's documents.
 
-**Retrieval scoping (built 2026-09-07).** Two questions about a document, kept
-deliberately apart as `Document.retrievable_by` and `Document.reachable_by`:
+**Retrieval scoping (built 2026-09-07).** Separate questions about a document,
+kept deliberately apart as `Document.retrievable_by`, `Document.reachable_by`
+and `Document.browsable_by`:
 
 - **Retrievable** — what a query may draw on. Strictly through collections: a
   document in no collection is in nobody's corpus. Governs search, and chat when
@@ -777,8 +778,14 @@ deliberately apart as `Document.retrievable_by` and `Document.reachable_by`:
   collection, so nothing retrieves it, but whoever manages the source that
   produced it can open it — and filing it is what they are there to do. It
   covers your own uploads too, since owning a source counts as administering it.
+- **Browsable** (`Document.browsable_by`, added 2026-11-01) — what the
+  management pages list. Documents in collections they can edit, plus
+  everything from sources they manage. The Collections pages follow the same
+  rule through `Collection.manageable_by`. An `accessor` grant reaches chat and
+  search only, for a curator exactly as for a visitor; it puts nothing in the
+  management area.
 
-Admins are unrestricted on both. Scoping the download matters as much as scoping
+Admins are unrestricted on all three. Scoping the download matters as much as scoping
 the query: without it, retrieval scoping is bypassable by guessing an id.
 
 Scope parameters resolve through the same filter. A `c[]` slug naming a
