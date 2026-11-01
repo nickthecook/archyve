@@ -10,16 +10,16 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
 
   before do
     sign_in(curator)
-    create(:collection_user, :curator, collection:, user: curator)
+    create(:collection_user, :editor, collection:, user: curator)
   end
 
   describe "POST /collections/:slug/sources" do
     subject(:request) { post collection_sources_path(collection), params: { source_id: source.id } }
 
-    # The whole point of the source `visitor` role: IT keeps the credentials, and
-    # the team that owns the collection decides what it draws on.
-    context "when they hold only a `visitor` grant on the source" do
-      before { create(:source_user, source:, user: curator, role: "visitor") }
+    # The whole point of the source `accessor` grant: IT keeps the credentials,
+    # and the team that owns the collection decides what it draws on.
+    context "when they hold only an `accessor` grant on the source" do
+      before { create(:source_user, source:, user: curator, access: "accessor") }
 
       it "attaches it" do
         request
@@ -46,7 +46,7 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
     context "when the source already has documents" do
       let!(:document) { create(:document, source:, status: "processed") }
 
-      before { create(:source_user, source:, user: curator, role: "visitor") }
+      before { create(:source_user, source:, user: curator, access: "accessor") }
 
       # Attaching has to file what is already there; sync only files what it
       # re-imports, so the collection would otherwise stay empty until every
@@ -75,8 +75,8 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
 
     context "when they only read the collection" do
       before do
-        CollectionUser.find_by!(collection:, user: curator).update!(role: :visitor)
-        create(:source_user, source:, user: curator, role: "visitor")
+        CollectionUser.find_by!(collection:, user: curator).update!(access: :accessor)
+        create(:source_user, source:, user: curator, access: "accessor")
       end
 
       it "is refused" do

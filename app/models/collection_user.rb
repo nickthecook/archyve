@@ -1,13 +1,12 @@
 # One person's access to one collection. See docs/architecture.md.
 #
-#   visitor  —search it, and draw on it in chat
-#   curator  —+ add and remove documents by hand, trigger a sync
-#   admin    — + change the collection, manage who else may use it, delete it
+#   accessor — search it, and draw on it in chat
+#   editor   — + add and remove documents by hand, trigger a sync
+#   manager  — + change the collection, manage who else may use it, delete it
 #
-# What someone can actually do is the lower of this and their global role, so a
-# grant never raises anyone above their ceiling — see User#role_on.
+# A grant never raises anyone above their global role — see User#grant_on.
 class CollectionUser < ApplicationRecord
-  include Roleable
+  include Grantable
 
   belongs_to :collection
   belongs_to :user

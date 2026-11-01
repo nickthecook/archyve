@@ -7,7 +7,7 @@ RSpec.describe "Unsorted", type: :request do
     context "when a document is in no collection" do
       let!(:document) { create(:document, title: "Loose Note") }
 
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "lists it" do
         request
@@ -65,7 +65,7 @@ RSpec.describe "Unsorted", type: :request do
     describe "the live status region" do
       let!(:document) { create(:document, status:) }
 
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       context "when a document is still being processed" do
         let(:status) { "pending" }
@@ -100,7 +100,7 @@ RSpec.describe "Unsorted", type: :request do
     let(:collection) { create(:collection, name: "Handbook") }
     let(:document) { create(:document) }
 
-    before { create(:collection_user, :curator, collection:, user: current_user) }
+    before { create(:collection_user, :editor, collection:, user: current_user) }
 
     context "when documents are selected" do
       let(:document_ids) { [document.id] }
@@ -121,7 +121,7 @@ RSpec.describe "Unsorted", type: :request do
       let(:document_ids) { [document.id] }
 
       # Replaces the curator grant above with a reader's.
-      before { CollectionUser.find_by!(collection:, user: current_user).update!(role: :visitor) }
+      before { CollectionUser.find_by!(collection:, user: current_user).update!(access: :accessor) }
 
       it "is refused" do
         request

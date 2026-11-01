@@ -52,7 +52,7 @@ class SourcesController < ApplicationController
     source.assign_attributes(source_params.except(:collection_ids))
 
     if source.save
-      source.grant_admin_to!(Current.user)
+      source.grant_manager_to!(Current.user)
       source.update_fed_collections(selected_collections) if source.feeds_collections?
       redirect_to source_path(source), notice: "Created “#{source.name}”."
     else

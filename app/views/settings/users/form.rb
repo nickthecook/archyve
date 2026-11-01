@@ -51,7 +51,7 @@ class Views::Settings::Users::Form < Components::Base
   end
 
   ROLE_DESCRIPTIONS = {
-    "visitor" =>"Chat and search only",
+    "visitor" => "Chat and search only",
     "curator" => "…and manage sources, collections and documents",
     "admin" => "…and manage settings and people"
   }.freeze

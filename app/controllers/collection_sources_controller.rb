@@ -2,7 +2,7 @@
 #
 # This lives on the collection rather than the source because feeding decides
 # what the collection's readers see, and that belongs to whoever owns the
-# collection. Attaching needs curator on the collection *and* any grant on the
+# collection. Attaching needs editor on the collection *and* any grant on the
 # source — including the weakest, which means exactly "you may draw on this".
 # That split is deliberate: in an organisation, IT owns a source's credentials
 # and a team owns what their collection pulls from, and requiring the same

@@ -15,7 +15,7 @@ class SourceUsersController < ApplicationController
   end
 
   def create
-    grant = @source.source_users.new(user_id: params[:user_id], role: params[:role])
+    grant = @source.source_users.new(user_id: params[:user_id], access: params[:access])
 
     if grant.save
       redirect_to source_people_path(@source), notice: "#{grant.user.email_address} can now manage #{@source.name}."
@@ -27,7 +27,7 @@ class SourceUsersController < ApplicationController
   def update
     grant = @source.source_users.find(params[:id])
 
-    if grant.update(role: params[:role])
+    if grant.update(access: params[:access])
       redirect_to source_people_path(@source), notice: "Updated #{grant.user.email_address}."
     else
       redirect_to source_people_path(@source), alert: grant.errors.full_messages.to_sentence

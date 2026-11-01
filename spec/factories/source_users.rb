@@ -2,10 +2,10 @@ FactoryBot.define do
   factory :source_user do
     association :source
     association :user
-    role { "curator" }
+    access { "editor" }
 
-    trait :admin do
-      role { "admin" }
+    trait :manager do
+      access { "manager" }
     end
   end
 end

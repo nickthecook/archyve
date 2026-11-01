@@ -719,31 +719,31 @@ would put the archive one forwarded link away from anybody.
 **Per-source grants (built 2026-09-07).** `source_users` grants one person
 standing with one source:
 
-- `visitor` — may feed this source into a collection they administer.
-- `curator` — + change its config, trigger a sync.
-- `admin` — + manage its people, and delete it.
+- `accessor` — may feed this source into a collection they manage.
+- `editor` — + change its config, trigger a sync.
+- `manager` — + manage its people, and delete it.
 
-The `visitor` role is not "may read this source". It is "may draw on it", and it
-exists because **configuring a source and drawing on it are different mandates
-held by different people**. In an organisation IT owns the credentials and the
-team owning a collection decides what feeds it. Without this role, letting a
-collection's owner attach a source would mean handing them the credentials —
-or routing every attachment through a system admin, which is a ticket per
-collection rather than a grant per team.
+The `accessor` grant is not "may read this source". It is "may draw on it", and
+it exists because **configuring a source and drawing on it are different
+mandates held by different people**. In an organisation IT owns the credentials
+and the team owning a collection decides what feeds it. Without this grant,
+letting a collection's owner attach a source would mean handing them the
+credentials — or routing every attachment through a system admin, which is a
+ticket per collection rather than a grant per team.
 
-(An earlier iteration had no `visitor` role here, reasoning that seeing a source
-exists is implied by seeing a collection it feeds. That was circular: it assumed
-the source was already attached. This is the grant that attaches it.)
-- **Owning a source implies administering it.** A per-user upload source carries
-  a `user_id` and no grant row; `Source#granted_role_for` returns `admin` for
+(An earlier iteration had no `accessor` grant here, reasoning that seeing a
+source exists is implied by seeing a collection it feeds. That was circular: it
+assumed the source was already attached. This is the grant that attaches it.)
+- **Owning a source implies managing it.** A per-user upload source carries a
+  `user_id` and no grant row; `Source#granted_access_for` returns `manager` for
   its owner, which is what keeps those working without a redundant row.
-- Whoever adds a source is granted `admin` on it, as with collections.
+- Whoever adds a source is granted `manager` on it, as with collections.
 
 **Feeding is governed by the collection, not the source**, because it decides
 what the collection's readers see. It can be driven from either end:
 
 - **From the collection** (`CollectionSourcesController`) — attaching needs
-  `curator` on the collection *and any grant on the source*; detaching needs
+  `editor` on the collection *and any grant on the source*; detaching needs
   only the collection side, since you may always stop drawing on something, and
   a revoked source grant must not leave a collection permanently fed by
   something its owner can't detach.
@@ -797,17 +797,20 @@ nothing ticked was claiming the opposite of what it did.
 **Per-collection grants (built 2026-09-07).** Access to documents is granted
 **through collections**.
 
-- **`collection_users`** join: `user ↔ collection` with the same ordered `role`
-  vocabulary as the global one (`Roleable`), so the two are comparable.
-  - `visitor` — search it, and draw on it in chat.
-  - `curator` — + add and remove document memberships by hand.
-  - `admin` — + manage its people and delete it. Deleting unfiles documents;
+- **`collection_users`** join: `user ↔ collection` with an ordered `access`
+  grant (`Grantable`, shared with `source_users`).
+  - `accessor` — search it, and draw on it in chat.
+  - `editor` — + add and remove document memberships by hand.
+  - `manager` — + manage its people and delete it. Deleting unfiles documents;
     it never destroys them, since they belong to the source that produced them,
     and anything that was only in that collection becomes Unsorted.
-- **A missing row means no access**, not weak access. `User#role_on` returns
-  `nil`, deliberately not `:visitor`: absence is not the weakest presence, and
+- **Grants are named for what they permit, not after the roles** (renamed
+  2026-11-01). Sharing the role names read as nonsense once the roles had
+  descriptive names: a curator "visiting" a source.
+- **A missing row means no access**, not weak access. `User#grant_on` returns
+  `nil`, deliberately not `:accessor`: absence is not the weakest presence, and
   conflating them would hand every curator read access to every collection.
-- Whoever creates a collection is granted `admin` on it. Otherwise a curator
+- Whoever creates a collection is granted `manager` on it. Otherwise a curator
   immediately can't manage what they just made, and only a system admin could
   rescue them.
 
@@ -815,15 +818,15 @@ nothing ticked was claiming the opposite of what it did.
 caps the *kind* of thing you can do (chat / content / system); it is not another
 rung on the same ladder:
 
-- global `admin` — everything, everywhere, no grant needed.
-- global `curator` — the grant exactly as written, up to and including `admin`
-  **of that collection**. Managing a collection, its people included, is content
-  ownership, which is what a curator is for.
-- global `visitor` — reads at most, whatever the grant says. Chat-only means
-  chat-only; a grant cannot widen it.
+- global `admin` — `manager`, everywhere, no grant needed.
+- global `curator` — the grant exactly as written, up to and including
+  `manager`. Managing a collection, its people included, is content ownership,
+  which is what a curator is for.
+- global `visitor` — `accessor` at most, whatever the grant says. Chat-only
+  means chat-only; a grant cannot widen it.
 
-A numeric `min` was the original plan and is wrong: `min(curator, admin)` is
-`curator`, which would mean an HR curator could not grant a colleague access
+A numeric `min` was the original plan and is wrong: it would cap a curator at
+`editor`, which would mean an HR curator could not grant a colleague access
 to the HR collection, leaving every access change waiting on a system admin.
 That contradicts the whole point of appointing curators.
 - **Multi-collection query:** retrieval takes a **set of collection IDs** from
@@ -838,8 +841,8 @@ That contradicts the whole point of appointing curators.
   per-collection grant. Changing which collections a source *feeds* is a
   separate question and belongs to the collection: ownership of what readers see
   sits with the collection, not with the source producing it.
-- A source-level grant, when it lands, needs only `curator` / `admin` — a
-  source `visitor` role has no meaning, since seeing a source is implied by seeing
+- A source-level grant, when it lands, needs only `editor` / `manager` — a
+  source `accessor` grant has no meaning, since seeing a source is implied by seeing
   a collection it feeds.
 - **Conversations: the author writes, admins read** (settled 2026-10-25, #87).
   Only the author reaches a chat at `/chat` and may rate its answers. Admins

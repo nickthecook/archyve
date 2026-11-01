@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
 # Who may use one collection or one source, and how much. Shared by both,
-# because the two screens are the same screen: the vocabulary differs (a source
-# has no reader role) and so do the paths, but the rules being expressed — a
-# grant per person, capped by their account role — are identical, and drifting
-# apart is exactly what you don't want on a page that hands out access.
+# because the two screens are the same screen: what each grant means differs
+# and so do the paths, but the rules being expressed — a grant per person,
+# capped by their account role — are identical, and drifting apart is exactly
+# what you don't want on a page that hands out access.
 #
 # `member_path` is a lambda rather than a derived route helper because the
 # member routes are named `person` under two different parents.
 class Views::People::Panel < Components::Base
-  def initialize(subject:, grants:, candidates:, roles:, create_path:, member_path:)
+  def initialize(subject:, grants:, candidates:, access:, create_path:, member_path:)
     @subject = subject
     @grants = grants
     @candidates = candidates
-    @roles = roles
+    @access = access
     @create_path = create_path
     @member_path = member_path
   end
@@ -38,7 +38,7 @@ class Views::People::Panel < Components::Base
         p(class: "mt-0.5 text-xs text-faint") { capped_note(grant) }
       end
       div(class: "flex shrink-0 items-center gap-3") do
-        role_form(grant)
+        access_form(grant)
         revoke(grant)
       end
     end
@@ -47,21 +47,21 @@ class Views::People::Panel < Components::Base
   # The ceiling is invisible otherwise: a grant to someone whose account can't
   # use it reads as a mistake until you know it simply doesn't apply.
   def capped_note(grant)
-    effective = grant.user.role_on(@subject)
+    effective = grant.user.grant_on(@subject)
 
-    if effective.to_s == grant.role
-      "#{grant.role.capitalize} here"
+    if effective.to_s == grant.access
+      "#{grant.access.capitalize} here"
     else
-      "#{grant.role.capitalize} here, but their account is #{grant.user.role} — so: #{effective || 'no access'}"
+      "#{grant.access.capitalize} here, but their account is #{grant.user.role} — so: #{effective || 'no access'}"
     end
   end
 
-  def role_form(grant)
+  def access_form(grant)
     form(action: @member_path.call(grant), method: "post", class: "flex items-center gap-2") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "patch")
-      select(name: "role", class: select_classes) do
-        @roles.each_key { |role| option(value: role, selected: grant.role == role) { role.capitalize } }
+      select(name: "access", class: select_classes) do
+        @access.each_key { |level| option(value: level, selected: grant.access == level) { level.capitalize } }
       end
       button(type: "submit", class: "text-xs text-muted hover:text-fg transition-colors") { "Save" }
     end
@@ -99,9 +99,9 @@ class Views::People::Panel < Components::Base
       end
 
       div(class: "flex-1 basis-56 min-w-0") do
-        label(class: "block mb-2 text-sm font-medium text-fg", for: "person_role") { "Access" }
-        select(id: "person_role", name: "role", class: "w-full #{select_classes}") do
-          @roles.each { |role, description| option(value: role) { "#{role.capitalize} — #{description}" } }
+        label(class: "block mb-2 text-sm font-medium text-fg", for: "person_access") { "Access" }
+        select(id: "person_access", name: "access", class: "w-full #{select_classes}") do
+          @access.each { |level, description| option(value: level) { "#{level.capitalize} — #{description}" } }
         end
       end
 

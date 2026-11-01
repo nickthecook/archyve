@@ -2,14 +2,14 @@ FactoryBot.define do
   factory :collection_user do
     association :collection
     association :user
-    role { "visitor" }
+    access { "accessor" }
 
-    trait :curator do
-      role { "curator" }
+    trait :editor do
+      access { "editor" }
     end
 
-    trait :admin do
-      role { "admin" }
+    trait :manager do
+      access { "manager" }
     end
   end
 end

@@ -57,7 +57,7 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
     # /unsorted is the queue for filing exactly these, and you can't file what
     # you can't open — but only for sources they manage.
     context "when the document is unfiled and from a source they manage" do
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "hands over the file" do
         request

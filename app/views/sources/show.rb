@@ -43,7 +43,7 @@ class Views::Sources::Show < Views::Base
         end
       end
       div(class: "flex shrink-0 items-center gap-2") do
-        people_link if may_on?(@source, :admin)
+        people_link if may_on?(@source, :manager)
         a(
           href: edit_source_path(@source),
           class: button_class(:quiet)
@@ -53,8 +53,8 @@ class Views::Sources::Show < Views::Base
     end
   end
 
-  # Delegating a source is an administrator's job; a curator granted the
-  # source can configure and sync it, not hand it to anyone else.
+  # Delegating a source is a manager's job; an editor can configure and sync
+  # it, not hand it to anyone else.
   def people_link
     a(
       href: source_people_path(@source),

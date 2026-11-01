@@ -22,11 +22,11 @@ class User < ApplicationRecord
   # A capability *ceiling*, not a grant:
   #
   #   visitor  — chat and search, nothing to manage
-  #   curator  —+ sources, collections, documents, filing
+  #   curator  — + sources, collections, documents, filing
   #   admin    — + settings and user management, everywhere, no grant needed
   #
   # A per-object grant can raise you no higher than this, which is what makes
-  # self-granting harmless — see #role_on.
+  # self-granting harmless — see #grant_on.
   include Roleable
 
   validates :email_address, presence: true, uniqueness: true
@@ -49,39 +49,32 @@ class User < ApplicationRecord
     super.tap { |errors| errors.delete(:password, :blank) if sso? }
   end
 
-  # Effective role on one collection or source.
+  # Effective grant on one collection or source, with the global role as a
+  # ceiling on the *kind* of thing you can do — chat, content, the system:
   #
-  # The global role is a ceiling on the *kind* of thing you can do — chat,
-  # content, the system — not a rung on the same ladder as the grant. So this is
-  # a two-band rule, not `min`:
-  #
-  #   admin    — everything, everywhere, no grant needed
-  #   curator  —the grant exactly as written, up to and including admin *of
-  #              that collection*. Managing a collection, its people included,
-  #              is content ownership, which is precisely what a curator is
-  #              for; a numeric min would cap them at curator and leave every
-  #              access change waiting on a system admin.
-  #   visitor  — read at most, whatever the grant says. Chat-only means
+  #   admin    — manager, everywhere, no grant needed
+  #   curator  — the grant exactly as written, up to and including manager
+  #   visitor  — accessor at most, whatever the grant says. Chat-only means
   #              chat-only, and a grant can't widen it.
   #
-  # nil means no access at all. Deliberately not :visitor — a missing grant is
-  # absence, not the weakest presence, and returning :visitor here would silently
-  # hand every curator read access to every collection.
-  def role_on(record)
-    return :admin if admin?
+  # nil means no access at all. Deliberately not :accessor — a missing grant is
+  # absence, not the weakest presence, and returning :accessor here would
+  # silently hand every curator read access to every collection.
+  def grant_on(record)
+    return :manager if admin?
 
-    granted = record.granted_role_for(self)
+    granted = record.granted_access_for(self)
     return nil if granted.nil?
-    return :visitor if visitor?
+    return :accessor if visitor?
 
     granted.to_sym
   end
 
   def may_on?(record, minimum)
-    effective = role_on(record)
+    effective = grant_on(record)
     return false if effective.nil?
 
-    Roleable::ROLES.fetch(effective) >= Roleable::ROLES.fetch(minimum.to_sym)
+    Grantable::ACCESS.fetch(effective) >= Grantable::ACCESS.fetch(minimum.to_sym)
   end
 
   private

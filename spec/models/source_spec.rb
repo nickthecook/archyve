@@ -42,18 +42,18 @@ RSpec.describe Source do
   end
 
   # Ownership is a grant. A per-user upload source has a user_id and no
-  # source_users row, and its owner still administers it.
-  describe "#granted_role_for" do
+  # source_users row, and its owner still manages it.
+  describe "#granted_access_for" do
     subject(:source) { create(:source, user: owner) }
 
     let(:owner) { create(:user, :curator) }
-    let(:result) { source.granted_role_for(person) }
+    let(:result) { source.granted_access_for(person) }
 
     context "when asked about the owner" do
       let(:person) { owner }
 
-      it "is admin, with no grant row needed" do
-        expect(result).to eq("admin")
+      it "is manager, with no grant row needed" do
+        expect(result).to eq("manager")
       end
     end
 
@@ -63,7 +63,7 @@ RSpec.describe Source do
       before { create(:source_user, source:, user: person) }
 
       it "is that grant" do
-        expect(result).to eq("curator")
+        expect(result).to eq("editor")
       end
     end
 

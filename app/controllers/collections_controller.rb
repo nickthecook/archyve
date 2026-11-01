@@ -51,7 +51,7 @@ class CollectionsController < ApplicationController
   def create
     collection = Collection.new(collection_params)
     if collection.save
-      collection.grant_admin_to!(Current.user)
+      collection.grant_manager_to!(Current.user)
       redirect_to collections_path, notice: "Created “#{collection.name}”."
     else
       redirect_to collections_path, alert: collection.errors.full_messages.to_sentence

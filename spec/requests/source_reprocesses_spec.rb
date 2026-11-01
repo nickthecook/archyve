@@ -5,7 +5,7 @@ RSpec.describe "Source reprocessing", type: :request do
 
   # Reaching a source at all is a grant; reprocessing it is work on the source,
   # so the examples below start from someone who manages this one.
-  before { create(:source_user, :admin, source:, user: current_user) }
+  before { create(:source_user, :manager, source:, user: current_user) }
 
   def document_with_file
     create(:document, source:, status: "processed").tap do |doc|

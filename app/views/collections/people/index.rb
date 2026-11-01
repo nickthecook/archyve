@@ -3,10 +3,10 @@
 # Who may use one collection. The panel itself is shared with the source
 # equivalent — see Views::People::Panel.
 class Views::Collections::People::Index < Views::Base
-  ROLES = {
-    "visitor" =>"Chat and search against it",
-    "curator" => "…and file documents by hand",
-    "admin" => "…and manage its people"
+  ACCESS = {
+    "accessor" => "Chat and search against it",
+    "editor" => "…and file documents by hand",
+    "manager" => "…and manage its people"
   }.freeze
 
   def initialize(collection:, grants:, candidates:)
@@ -32,7 +32,7 @@ class Views::Collections::People::Index < Views::Base
       subject: @collection,
       grants: @grants,
       candidates: @candidates,
-      roles: ROLES,
+      access: ACCESS,
       create_path: collection_people_path(@collection),
       member_path: ->(grant) { collection_person_path(@collection, grant) }
     )

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -109,9 +109,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_120000) do
   end
 
   create_table "collection_users", force: :cascade do |t|
+    t.integer "access", default: 0, null: false
     t.bigint "collection_id", null: false
     t.datetime "created_at", null: false
-    t.integer "role", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["collection_id", "user_id"], name: "index_collection_users_on_collection_id_and_user_id", unique: true
@@ -359,8 +359,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_25_120000) do
   end
 
   create_table "source_users", force: :cascade do |t|
+    t.integer "access", default: 1, null: false
     t.datetime "created_at", null: false
-    t.integer "role", default: 1, null: false
     t.bigint "source_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false

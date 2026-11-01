@@ -18,7 +18,7 @@ class CollectionUsersController < ApplicationController
   end
 
   def create
-    grant = @collection.collection_users.new(user_id: params[:user_id], role: params[:role])
+    grant = @collection.collection_users.new(user_id: params[:user_id], access: params[:access])
 
     if grant.save
       redirect_to collection_people_path(@collection), notice: "#{grant.user.email_address} can now use #{@collection.name}."
@@ -30,7 +30,7 @@ class CollectionUsersController < ApplicationController
   def update
     grant = @collection.collection_users.find(params[:id])
 
-    if grant.update(role: params[:role])
+    if grant.update(access: params[:access])
       redirect_to collection_people_path(@collection), notice: "Updated #{grant.user.email_address}."
     else
       redirect_to collection_people_path(@collection), alert: grant.errors.full_messages.to_sentence

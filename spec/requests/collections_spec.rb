@@ -7,7 +7,7 @@ RSpec.describe "Collections", type: :request do
     context "when collections exist" do
       let!(:collection) { create(:collection, name: "Handbook") }
 
-      before { collection.grant_admin_to!(current_user) }
+      before { collection.grant_manager_to!(current_user) }
 
       it "renders them" do
         request
@@ -30,7 +30,7 @@ RSpec.describe "Collections", type: :request do
 
     let(:collection) { create(:collection, name: "House") }
 
-    before { collection.grant_admin_to!(current_user) }
+    before { collection.grant_manager_to!(current_user) }
 
     context "when the collection has an active document" do
       let(:document) { create(:document) }
@@ -174,7 +174,7 @@ RSpec.describe "Collections", type: :request do
 
     let(:collection) { create(:collection, name: "House") }
 
-    before { collection.grant_admin_to!(current_user) }
+    before { collection.grant_manager_to!(current_user) }
     let(:document) { create(:document) }
 
     context "when adding a document not yet in the collection" do
@@ -213,7 +213,7 @@ RSpec.describe "Collections", type: :request do
   describe "DELETE /collections/:slug/documents/:id" do
     subject(:request) { delete collection_document_path(collection, document) }
 
-    before { collection.grant_admin_to!(current_user) }
+    before { collection.grant_manager_to!(current_user) }
 
     let(:collection) { create(:collection) }
     let(:document) { create(:document) }
@@ -241,7 +241,7 @@ RSpec.describe "Collections", type: :request do
 
     let(:collection) { create(:collection, name: "House") }
 
-    before { create(:collection_user, :curator, collection:, user: current_user) }
+    before { create(:collection_user, :editor, collection:, user: current_user) }
 
     it "renders" do
       request
@@ -294,7 +294,7 @@ RSpec.describe "Collections", type: :request do
     before { create(:collection_membership, collection:, document:, origin: "manual") }
 
     context "when the curator administers the collection" do
-      before { collection.grant_admin_to!(current_user) }
+      before { collection.grant_manager_to!(current_user) }
 
       it "deletes it" do
         expect { request }.to change(Collection, :count).by(-1)
@@ -314,7 +314,7 @@ RSpec.describe "Collections", type: :request do
     end
 
     context "when the curator can only file documents into it" do
-      before { create(:collection_user, :curator, collection:, user: current_user) }
+      before { create(:collection_user, :editor, collection:, user: current_user) }
 
       it "refuses" do
         expect { request }.not_to change(Collection, :count)
@@ -337,7 +337,7 @@ RSpec.describe "Collections", type: :request do
     let(:description) { "Security policy, on-call and incident review." }
 
     context "when they manage the collection" do
-      before { collection.grant_admin_to!(current_user) }
+      before { collection.grant_manager_to!(current_user) }
 
       it "saves the description" do
         request
@@ -372,7 +372,7 @@ RSpec.describe "Collections", type: :request do
     # Hiding the form is not access control: describing a collection is
     # curation, and it takes a grant on this collection to do it.
     context "when they only read the collection" do
-      before { create(:collection_user, collection:, user: current_user, role: :visitor) }
+      before { create(:collection_user, collection:, user: current_user, access: :accessor) }
 
       it "refuses" do
         request

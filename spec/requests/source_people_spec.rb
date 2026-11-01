@@ -13,7 +13,7 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
     context "when the curator administers the source" do
       before do
         sign_in(curator)
-        create(:source_user, :admin, source:, user: curator)
+        create(:source_user, :manager, source:, user: curator)
       end
 
       it "renders" do
@@ -63,14 +63,14 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
   end
 
   describe "POST /sources/:id/people" do
-    subject(:request) { post source_people_path(source), params: { user_id: target.id, role: } }
+    subject(:request) { post source_people_path(source), params: { user_id: target.id, access: } }
 
     let(:target) { create(:user, :curator) }
-    let(:role) { "curator" }
+    let(:access) { "editor" }
 
     before do
       sign_in(curator)
-      create(:source_user, :admin, source:, user: curator)
+      create(:source_user, :manager, source:, user: curator)
     end
 
     it "grants access" do
@@ -79,8 +79,8 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
 
     # The grant that lets someone attach this source to their own collection
     # without touching its settings.
-    context "when the role is `visitor`" do
-      let(:role) { "visitor" }
+    context "when the grant is `accessor`" do
+      let(:access) { "accessor" }
 
       it "grants it" do
         expect { request }.to change { source.source_users.count }.by(1)
@@ -95,6 +95,22 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
         request
         expect(Source.attachable_by(target)).to include(source)
       end
+    end
+  end
+
+  describe "PATCH /sources/:id/people/:id" do
+    subject(:request) { patch source_person_path(source, grant), params: { access: "accessor" } }
+
+    let(:grant) { create(:source_user, source:, user: create(:user, :curator)) }
+
+    before do
+      sign_in(curator)
+      create(:source_user, :manager, source:, user: curator)
+    end
+
+    it "changes the grant" do
+      request
+      expect(grant.reload.access).to eq("accessor")
     end
   end
 
@@ -130,9 +146,9 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
     before { sign_in(curator) }
 
     # Otherwise a curator can't manage the source they just added.
-    it "makes the creator its admin" do
+    it "makes the creator its manager" do
       request
-      expect(curator.role_on(Source.find_by(name: "New Shelf"))).to eq(:admin)
+      expect(curator.grant_on(Source.find_by(name: "New Shelf"))).to eq(:manager)
     end
   end
 end

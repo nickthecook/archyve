@@ -10,7 +10,7 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
     context "when the signed-in curator administers the collection" do
       before do
         sign_in(curator)
-        create(:collection_user, :admin, collection:, user: curator)
+        create(:collection_user, :manager, collection:, user: curator)
       end
 
       it "renders" do
@@ -28,7 +28,7 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
     context "when the signed-in curator only files documents into it" do
       before do
         sign_in(curator)
-        create(:collection_user, :curator, collection:, user: curator)
+        create(:collection_user, :editor, collection:, user: curator)
       end
 
       it "is not found" do
@@ -48,13 +48,13 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
   end
 
   describe "POST /collections/:slug/people" do
-    subject(:request) { post collection_people_path(collection), params: { user_id: target.id, role: "visitor" } }
+    subject(:request) { post collection_people_path(collection), params: { user_id: target.id, access: "accessor" } }
 
     let(:target) { create(:user) }
 
     before do
       sign_in(curator)
-      create(:collection_user, :admin, collection:, user: curator)
+      create(:collection_user, :manager, collection:, user: curator)
     end
 
     it "grants access" do
@@ -84,12 +84,28 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
     end
   end
 
+  describe "PATCH /collections/:slug/people/:id" do
+    subject(:request) { patch collection_person_path(collection, grant), params: { access: "editor" } }
+
+    let(:grant) { create(:collection_user, collection:, user: create(:user, :curator)) }
+
+    before do
+      sign_in(curator)
+      create(:collection_user, :manager, collection:, user: curator)
+    end
+
+    it "changes the grant" do
+      request
+      expect(grant.reload.access).to eq("editor")
+    end
+  end
+
   describe "DELETE /collections/:slug/people/:id" do
     subject(:request) { delete collection_person_path(collection, grant) }
 
     before do
       sign_in(curator)
-      create(:collection_user, :admin, collection:, user: curator)
+      create(:collection_user, :manager, collection:, user: curator)
     end
 
     context "with someone else's grant" do
@@ -158,9 +174,9 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
     before { sign_in(curator) }
 
     # Otherwise a curator immediately can't manage the thing they just made.
-    it "makes the creator its admin" do
+    it "makes the creator its manager" do
       request
-      expect(curator.role_on(Collection.find_by(name: "New Shelf"))).to eq(:admin)
+      expect(curator.grant_on(Collection.find_by(name: "New Shelf"))).to eq(:manager)
     end
   end
 end

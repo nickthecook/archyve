@@ -14,7 +14,7 @@ class UnsortedController < ApplicationController
 
   # Assign the selected unsorted documents to a collection (manual membership).
   # Once added they're no longer unsorted, so they drop off this list.
-  # Filing needs curator on the destination, not merely the global role — the
+  # Filing needs editor on the destination, not merely the global role — the
   # same rule as uploading into a collection.
   def assign
     collection = Collection.manageable_by(Current.user).find_by!(slug: params[:collection_slug])

@@ -28,36 +28,36 @@ class Collection < ApplicationRecord
     where(id: CollectionUser.where(user:).select(:collection_id))
   }
 
-  # Everything they can change. Needs the ceiling *and* the grant to reach
-  # curator: a global `visitor` granted collection admin is still only a reader.
+  # Everything they can change. Needs the ceiling *and* the grant: a visitor
+  # granted manager is still only an accessor.
   scope :manageable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:).where(role: [:curator, :admin]).select(:collection_id))
+    where(id: CollectionUser.where(user:, access: [:editor, :manager]).select(:collection_id))
   }
 
-  # Everything they can hand out access to, or delete. Collection admin is
-  # reachable by a global curator — owning a collection includes deciding who
-  # uses it — but never by a global visitor, whose ceiling is reading.
+  # Everything they can hand out access to, or delete. Manager is reachable by a
+  # curator — owning a collection includes deciding who uses it — but never by a
+  # visitor, whose ceiling is reading.
   scope :administrable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:, role: :admin).select(:collection_id))
+    where(id: CollectionUser.where(user:, access: :manager).select(:collection_id))
   }
 
-  # The grant itself, or nil. User#role_on combines it with the global role;
+  # The grant itself, or nil. User#grant_on combines it with the global role;
   # Source answers the same question, so the two are interchangeable there.
-  def granted_role_for(user)
-    collection_users.find_by(user:)&.role
+  def granted_access_for(user)
+    collection_users.find_by(user:)&.access
   end
 
   # A collection has no grants until it has one, so whoever creates it has to be
   # given it — otherwise a curator immediately can't manage the thing they
   # just made, and only an admin could rescue them.
-  def grant_admin_to!(user)
-    collection_users.create!(user:, role: :admin)
+  def grant_manager_to!(user)
+    collection_users.create!(user:, access: :manager)
   end
 
   # Collections are addressed by slug (routes use `param: :slug`), so URL

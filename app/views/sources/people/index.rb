@@ -4,14 +4,14 @@
 # source feeds. That belongs to the collection, because it decides what the
 # collection's readers see — see SourcesController#selected_collections.
 class Views::Sources::People::Index < Views::Base
-  # `visitor` is not "may read this source" — it is "may draw on it": enough to
-  # feed it into a collection you administer, without touching its settings or
-  # its credentials. That split is what lets IT own the source and a team own
-  # what their collection pulls from.
-  ROLES = {
-    "visitor" => "Feed it into collections they administer",
-    "curator" => "…and change its settings and sync it",
-    "admin" => "…and manage its people, and delete it"
+  # `accessor` is not "may read this source" — it is "may draw on it": enough to
+  # feed it into a collection you manage, without touching its settings or its
+  # credentials. That split is what lets IT own the source and a team own what
+  # their collection pulls from.
+  ACCESS = {
+    "accessor" => "Feed it into collections they administer",
+    "editor" => "…and change its settings and sync it",
+    "manager" => "…and manage its people, and delete it"
   }.freeze
 
   def initialize(source:, grants:, candidates:)
@@ -42,7 +42,7 @@ class Views::Sources::People::Index < Views::Base
       subject: @source,
       grants: @grants,
       candidates: @candidates,
-      roles: ROLES,
+      access: ACCESS,
       create_path: source_people_path(@source),
       member_path: ->(grant) { source_person_path(@source, grant) }
     )

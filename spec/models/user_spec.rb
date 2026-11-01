@@ -103,12 +103,12 @@ RSpec.describe User, type: :model do
   end
 
   # The two axes combined. The global role caps the *kind* of thing you can do;
-  # the grant says where. It is not a numeric minimum of the two — see #role_on.
-  describe "#role_on" do
+  # the grant says where. It is not a numeric minimum of the two — see #grant_on.
+  describe "#grant_on" do
     subject(:user) { create(:user, role: account_role) }
 
     let(:collection) { create(:collection) }
-    let(:result) { user.role_on(collection) }
+    let(:result) { user.grant_on(collection) }
 
     context "when they hold no grant on it" do
       let(:account_role) { :curator }
@@ -118,33 +118,33 @@ RSpec.describe User, type: :model do
       end
     end
 
-    context "when a curator is granted admin of the collection" do
+    context "when a curator is granted manager of the collection" do
       let(:account_role) { :curator }
 
-      before { create(:collection_user, :admin, collection:, user:) }
+      before { create(:collection_user, :manager, collection:, user:) }
 
       # Owning a collection includes deciding who uses it. Capping this at
-      # curator would leave every access change waiting on a system admin.
-      it "gives them admin of it" do
-        expect(result).to eq(:admin)
+      # editor would leave every access change waiting on a system admin.
+      it "makes them its manager" do
+        expect(result).to eq(:manager)
       end
     end
 
-    context "when a chat-only account is granted admin of the collection" do
+    context "when a visitor is granted manager of the collection" do
       let(:account_role) { :visitor }
 
-      before { create(:collection_user, :admin, collection:, user:) }
+      before { create(:collection_user, :manager, collection:, user:) }
 
       it "still only reads, because the account role is the ceiling" do
-        expect(result).to eq(:visitor)
+        expect(result).to eq(:accessor)
       end
     end
 
     context "when an admin holds no grant at all" do
       let(:account_role) { :admin }
 
-      it "reaches it anyway" do
-        expect(result).to eq(:admin)
+      it "manages it anyway" do
+        expect(result).to eq(:manager)
       end
     end
   end

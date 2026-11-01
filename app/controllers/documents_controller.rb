@@ -23,7 +23,7 @@ class DocumentsController < ApplicationController
     render Views::Documents::Show.new(document: Document.reachable_by(Current.user).find(params[:id]), back: back_link)
   end
 
-  # Uploading into a collection needs curator *on that collection*, not just
+  # Uploading into a collection needs editor *on that collection*, not just
   # the global role, so the target is looked up through manageable_by. Finding
   # it unscoped and falling back to nil would be worse than refusing: the file
   # would silently land in Unsorted instead of where it was aimed.

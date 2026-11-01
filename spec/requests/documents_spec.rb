@@ -17,7 +17,7 @@ RSpec.describe "Documents", type: :request do
     context "when uploading into a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
 
-      before { create(:collection_user, :curator, collection:, user: current_user) }
+      before { create(:collection_user, :editor, collection:, user: current_user) }
       let(:params) { { file:, collection_slug: collection.slug } }
 
       it "ingests the file and files it into the collection" do
@@ -125,7 +125,7 @@ RSpec.describe "Documents", type: :request do
     context "when no file is chosen for a collection upload" do
       let(:collection) { create(:collection) }
 
-      before { create(:collection_user, :curator, collection:, user: current_user) }
+      before { create(:collection_user, :editor, collection:, user: current_user) }
       let(:params) { { collection_slug: collection.slug } }
 
       it "returns to the collection with an alert" do
@@ -141,7 +141,7 @@ RSpec.describe "Documents", type: :request do
 
     let!(:document) { create(:document, status:) }
 
-    before { create(:source_user, :admin, source: document.source, user: current_user) }
+    before { create(:source_user, :manager, source: document.source, user: current_user) }
 
     context "when a listed document is still being processed" do
       let(:status) { "pending" }
@@ -170,7 +170,7 @@ RSpec.describe "Documents", type: :request do
     # Reaching a document means retrieving it through a collection or managing
     # the source that produced it; these examples are about the back link, so
     # they take the simpler of the two.
-    before { create(:source_user, :admin, source: document.source, user: current_user) }
+    before { create(:source_user, :manager, source: document.source, user: current_user) }
 
     context "when arrived from a collection" do
       let(:collection) { create(:collection, name: "Handbook") }
@@ -325,7 +325,7 @@ RSpec.describe "Documents", type: :request do
     end
 
     context "as a curator who manages the source" do
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "names the stage and kind" do
         request
@@ -424,7 +424,7 @@ RSpec.describe "Documents", type: :request do
     before { allow(ProcessDocumentJob).to receive(:perform_later) }
 
     context "when the document's source is theirs to manage" do
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "re-runs the pipeline" do
         request
@@ -456,7 +456,7 @@ RSpec.describe "Documents", type: :request do
       let(:collection) { create(:collection) }
 
       before do
-        create(:collection_user, :curator, collection:, user: current_user)
+        create(:collection_user, :editor, collection:, user: current_user)
         create(:collection_membership, collection:, document:)
       end
 
@@ -483,7 +483,7 @@ RSpec.describe "Documents", type: :request do
     context "when the document has been removed at its source" do
       let(:document) { create(:document, :with_file, status: "removed") }
 
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "refuses to re-ingest what the archive has let go" do
         request
@@ -495,7 +495,7 @@ RSpec.describe "Documents", type: :request do
     context "when the document has no file behind it" do
       let(:document) { create(:document, status: "failed") }
 
-      before { create(:source_user, :admin, source: document.source, user: current_user) }
+      before { create(:source_user, :manager, source: document.source, user: current_user) }
 
       it "says there is nothing to do" do
         request
@@ -567,7 +567,7 @@ RSpec.describe "Documents", type: :request do
     context "when they can only read the document through a collection" do
       let(:document) { create(:document, :with_file) }
 
-      before { create(:collection_user, :admin, collection:, user: current_user) }
+      before { create(:collection_user, :manager, collection:, user: current_user) }
 
       it "is not found" do
         request
