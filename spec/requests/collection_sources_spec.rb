@@ -16,10 +16,10 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
   describe "POST /collections/:slug/sources" do
     subject(:request) { post collection_sources_path(collection), params: { source_id: source.id } }
 
-    # The whole point of the source `user` role: IT keeps the credentials, and
+    # The whole point of the source `visitor` role: IT keeps the credentials, and
     # the team that owns the collection decides what it draws on.
-    context "when they hold only a `user` grant on the source" do
-      before { create(:source_user, source:, user: curator, role: "user") }
+    context "when they hold only a `visitor` grant on the source" do
+      before { create(:source_user, source:, user: curator, role: "visitor") }
 
       it "attaches it" do
         request
@@ -46,7 +46,7 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
     context "when the source already has documents" do
       let!(:document) { create(:document, source:, status: "processed") }
 
-      before { create(:source_user, source:, user: curator, role: "user") }
+      before { create(:source_user, source:, user: curator, role: "visitor") }
 
       # Attaching has to file what is already there; sync only files what it
       # re-imports, so the collection would otherwise stay empty until every
@@ -75,8 +75,8 @@ RSpec.describe "Collection sources", :unauthenticated, type: :request do
 
     context "when they only read the collection" do
       before do
-        CollectionUser.find_by!(collection:, user: curator).update!(role: :user)
-        create(:source_user, source:, user: curator, role: "user")
+        CollectionUser.find_by!(collection:, user: curator).update!(role: :visitor)
+        create(:source_user, source:, user: curator, role: "visitor")
       end
 
       it "is refused" do

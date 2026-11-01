@@ -1,6 +1,6 @@
 # One person's access to one collection. See docs/architecture.md.
 #
-#   user     — search it, and draw on it in chat
+#   visitor  —search it, and draw on it in chat
 #   curator  —+ add and remove documents by hand, trigger a sync
 #   admin    — + change the collection, manage who else may use it, delete it
 #

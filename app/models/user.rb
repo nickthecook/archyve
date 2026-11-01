@@ -21,7 +21,7 @@ class User < ApplicationRecord
 
   # A capability *ceiling*, not a grant:
   #
-  #   user     — chat and search, nothing to manage
+  #   visitor  — chat and search, nothing to manage
   #   curator  —+ sources, collections, documents, filing
   #   admin    — + settings and user management, everywhere, no grant needed
   #
@@ -61,18 +61,18 @@ class User < ApplicationRecord
   #              is content ownership, which is precisely what a curator is
   #              for; a numeric min would cap them at curator and leave every
   #              access change waiting on a system admin.
-  #   user     — read at most, whatever the grant says. Chat-only means
+  #   visitor  — read at most, whatever the grant says. Chat-only means
   #              chat-only, and a grant can't widen it.
   #
-  # nil means no access at all. Deliberately not :user — a missing grant is
-  # absence, not the weakest presence, and returning :user here would silently
+  # nil means no access at all. Deliberately not :visitor — a missing grant is
+  # absence, not the weakest presence, and returning :visitor here would silently
   # hand every curator read access to every collection.
   def role_on(record)
     return :admin if admin?
 
     granted = record.granted_role_for(self)
     return nil if granted.nil?
-    return :user if user?
+    return :visitor if visitor?
 
     granted.to_sym
   end

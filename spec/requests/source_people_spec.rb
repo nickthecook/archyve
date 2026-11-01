@@ -79,8 +79,8 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
 
     # The grant that lets someone attach this source to their own collection
     # without touching its settings.
-    context "when the role is `user`" do
-      let(:role) { "user" }
+    context "when the role is `visitor`" do
+      let(:role) { "visitor" }
 
       it "grants it" do
         expect { request }.to change { source.source_users.count }.by(1)

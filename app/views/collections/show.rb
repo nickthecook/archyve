@@ -24,7 +24,7 @@ class Views::Collections::Show < Views::Base
     header_block
     search
     # Don't offer what will be refused: filing needs curator on this
-    # collection, and a reader granted `user` has only search and chat here.
+    # collection, and a reader granted `visitor` has only search and chat here.
     if may_on?(@collection, :curator)
       sources_panel
       upload

@@ -2,7 +2,7 @@
 
 # Your own account, as opposed to Views::Settings::Index, which administers
 # everyone else's. Thin for now — a password change and a statement of who you
-# are — but it is the only page a plain user has to themselves, so preferences
+# are — but it is the only page a visitor has to themselves, so preferences
 # land here as they arrive.
 class Views::Accounts::Show < Views::Base
   def initialize(user:, api_keys: [], new_token: nil)

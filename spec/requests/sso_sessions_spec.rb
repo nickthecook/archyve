@@ -35,13 +35,13 @@ RSpec.describe "SSO sign-in", :unauthenticated, type: :request do
 
   describe "a member of the group signing in" do
     context "when they have never signed in before" do
-      it "provisions them as a plain user with no grants" do
+      it "provisions them as a visitor with no grants" do
         expect { sign_in_with_sso(sub: "new-person", email: "new@example.com") }
           .to change(User, :count).by(1)
 
         user = User.find_by(email_address: "new@example.com")
         expect(user).to have_attributes(
-          role: "user", sso_subject: "new-person", sso_issuer: SsoHelpers::ISSUER
+          role: "visitor", sso_subject: "new-person", sso_issuer: SsoHelpers::ISSUER
         )
         expect(CollectionUser.where(user:)).to be_empty
         expect(SourceUser.where(user:)).to be_empty

@@ -33,7 +33,7 @@ puts "Break-glass admin: #{admin.email_address}"
 if Rails.env.development?
   {
     "curator@archyve.local" => :curator,
-    "user@archyve.local" => :user
+    "visitor@archyve.local" => :visitor
   }.each do |email_address, role|
     user = User.find_or_initialize_by(email_address:)
     user.password = "password"

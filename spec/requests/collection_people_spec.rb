@@ -48,7 +48,7 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
   end
 
   describe "POST /collections/:slug/people" do
-    subject(:request) { post collection_people_path(collection), params: { user_id: target.id, role: "user" } }
+    subject(:request) { post collection_people_path(collection), params: { user_id: target.id, role: "visitor" } }
 
     let(:target) { create(:user) }
 

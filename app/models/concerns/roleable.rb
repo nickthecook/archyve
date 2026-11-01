@@ -8,7 +8,7 @@
 module Roleable
   extend ActiveSupport::Concern
 
-  ROLES = { user: 0, curator: 1, admin: 2 }.freeze
+  ROLES = { visitor: 0, curator: 1, admin: 2 }.freeze
 
   included do
     enum :role, ROLES, validate: true

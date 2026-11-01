@@ -29,7 +29,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "a curator-only page" do
     let(:path) { sources_path }
 
-    context "when signed in as a user" do
+    context "when signed in as a visitor" do
       let(:traits) { [] }
 
       include_examples "refused"
@@ -87,7 +87,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "a page open to everyone" do
     let(:path) { conversations_path }
 
-    context "when signed in as a user" do
+    context "when signed in as a visitor" do
       let(:traits) { [] }
 
       include_examples "allowed"
@@ -97,7 +97,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "the account page" do
     let(:path) { account_path }
 
-    context "when signed in as a user" do
+    context "when signed in as a visitor" do
       let(:traits) { [] }
 
       # Gating this would leave most people unable to change their own password.
@@ -108,7 +108,7 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
   describe "the corridor" do
     let(:path) { root_path }
 
-    context "when signed in as a user" do
+    context "when signed in as a visitor" do
       let(:traits) { [] }
 
       include_examples "allowed"

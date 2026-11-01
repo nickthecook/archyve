@@ -1,6 +1,6 @@
 # Turns verified ID token claims into the User they refer to.
 #
-# Authentication only: everyone arrives as a plain :user with no grants, and an
+# Authentication only: everyone arrives as a :visitor with no grants, and an
 # admin raises them from Settings. The group check below is a gate on signing in
 # at all, not a mapping onto Archyve's roles.
 class Sso::Identity
@@ -72,6 +72,6 @@ class Sso::Identity
   end
 
   def build
-    User.new(sso_subject: subject, sso_issuer: Sso.issuer, role: :user)
+    User.new(sso_subject: subject, sso_issuer: Sso.issuer, role: :visitor)
   end
 end

@@ -29,7 +29,7 @@ class Collection < ApplicationRecord
   }
 
   # Everything they can change. Needs the ceiling *and* the grant to reach
-  # curator: a global `user` granted collection admin is still only a reader.
+  # curator: a global `visitor` granted collection admin is still only a reader.
   scope :manageable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
@@ -39,7 +39,7 @@ class Collection < ApplicationRecord
 
   # Everything they can hand out access to, or delete. Collection admin is
   # reachable by a global curator — owning a collection includes deciding who
-  # uses it — but never by a global user, whose ceiling is reading.
+  # uses it — but never by a global visitor, whose ceiling is reading.
   scope :administrable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?

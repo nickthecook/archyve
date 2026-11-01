@@ -211,7 +211,7 @@ class Source < ApplicationRecord
   }
 
   # Everything this person may feed into a collection they administer. Any
-  # grant will do, including the weakest: `user` means exactly "you may draw on
+  # grant will do, including the weakest: `visitor` means exactly "you may draw on
   # this", which is the whole point of that role. Deliberately wider than
   # manageable_by — attaching a source is not configuring it, and the person who
   # owns a collection is rarely the person who owns the credentials.

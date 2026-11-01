@@ -83,7 +83,7 @@ RSpec.describe "The corridor", type: :request do
   end
 
   # The role decides which sections appear, not whether you can ask.
-  context "when signed in as a plain user" do
+  context "when signed in as a visitor" do
     before { sign_in(create(:user)) }
 
     it "still asks" do

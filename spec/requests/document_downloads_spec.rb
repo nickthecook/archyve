@@ -9,7 +9,7 @@ RSpec.describe "Document downloads", :unauthenticated, type: :request do
   # A reader reaches a document through a citation or a search result, so the
   # download has to work for them — but only for documents they could have been
   # cited, or the scoping on retrieval would be bypassable by guessing an id.
-  context "when signed in as a plain user" do
+  context "when signed in as a visitor" do
     before { sign_in(create(:user)) }
 
     context "when the document is in a collection they can read" do

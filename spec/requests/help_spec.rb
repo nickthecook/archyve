@@ -45,7 +45,7 @@ RSpec.describe "Help", type: :request do
       end
     end
 
-    context "when signed in as a user" do
+    context "when signed in as a visitor" do
       before { sign_in(create(:user)) }
 
       it "renders the page" do

@@ -4,7 +4,7 @@
 # equivalent — see Views::People::Panel.
 class Views::Collections::People::Index < Views::Base
   ROLES = {
-    "user" => "Chat and search against it",
+    "visitor" =>"Chat and search against it",
     "curator" => "…and file documents by hand",
     "admin" => "…and manage its people"
   }.freeze

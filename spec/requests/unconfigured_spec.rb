@@ -57,7 +57,7 @@ RSpec.describe "An unconfigured install", :unauthenticated, type: :request do
       expect(response.body).to include("Settings")
     end
 
-    context "when signed in as a plain user" do
+    context "when signed in as a visitor" do
       before { sign_in(create(:user)) }
 
       it "doesn't send them somewhere they can't go" do

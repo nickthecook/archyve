@@ -1,5 +1,5 @@
 class ConversationsController < ApplicationController
-  require_role :user
+  require_role :visitor
 
   # A conversation is private to whoever had it. Every lookup goes through the
   # signed-in user's own association rather than Conversation.find + a check,

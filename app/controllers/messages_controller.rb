@@ -1,5 +1,5 @@
 class MessagesController < ApplicationController
-  require_role :user
+  require_role :visitor
 
   # Asking a follow-up. The answer doesn't come back in this response — it
   # arrives over the cable as the model produces it — so this redirects

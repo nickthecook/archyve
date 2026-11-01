@@ -8,9 +8,9 @@ class Views::Chrome < Components::Base
   # landing's facets are filtered the same way.
   NAV = [
     ["Collections", :collections_path, :curator],
-    ["Chat", :conversations_path, :user],
+    ["Chat", :conversations_path, :visitor],
     ["Settings", :settings_path, :admin],
-    ["Help", :help_path, :user]
+    ["Help", :help_path, :visitor]
   ].freeze
 
   def initialize(wide: false)

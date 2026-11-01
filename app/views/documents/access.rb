@@ -8,7 +8,7 @@
 # Which affordance appears is a property of the *source*, not of the reader's
 # role: a source that can hand out a link the browser can follow gets linked to,
 # and one that can't gets downloaded from Archyve. Chat and search therefore
-# work identically for a curator and a plain user — a curator's extra
+# work identically for a curator and a visitor — a curator's extra
 # access is browsing the archive, which is a different entry point entirely.
 class Views::Documents::Access < Components::Base
   def initialize(document:, class_name: nil)

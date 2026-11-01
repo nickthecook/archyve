@@ -8,12 +8,12 @@ RSpec.describe SourceUser, type: :model do
   let(:result) { grant.valid? }
 
   describe "role" do
-    # `user` means "may draw on this source", not "may read it" — enough to
+    # `visitor` means "may draw on this source", not "may read it" — enough to
     # feed it into a collection you administer, and nothing more. It is what
     # lets IT own a source's credentials while a team decides what their
     # collection pulls from.
-    context "when it is `user`" do
-      let(:role) { "user" }
+    context "when it is `visitor`" do
+      let(:role) { "visitor" }
 
       it "is valid" do
         expect(result).to be(true)

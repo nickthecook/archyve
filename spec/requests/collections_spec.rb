@@ -372,7 +372,7 @@ RSpec.describe "Collections", type: :request do
     # Hiding the form is not access control: describing a collection is
     # curation, and it takes a grant on this collection to do it.
     context "when they only read the collection" do
-      before { create(:collection_user, collection:, user: current_user, role: :user) }
+      before { create(:collection_user, collection:, user: current_user, role: :visitor) }
 
       it "refuses" do
         request

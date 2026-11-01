@@ -1,5 +1,5 @@
 class FeedbacksController < ApplicationController
-  require_role :user
+  require_role :visitor
 
   # Each form posts only its own field — the thumbs a rating, the comment box a
   # comment — so saving one never clears the other.

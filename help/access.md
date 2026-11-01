@@ -4,19 +4,19 @@ Access in Archyve has two parts: a **role** that applies everywhere, and **grant
 
 ## Roles
 
-There are three roles in Archyve: User, Curator, and Admin. Privileges are cumulative: Curator has a superset of the privileges of User, and Admin has a superset of the privileges of Curator.
+There are three roles in Archyve: Visitor, Curator, and Admin. Privileges are cumulative: Curator has a superset of the privileges of Visitor, and Admin has a superset of the privileges of Curator.
 
 | Role | Can |
 |---|---|
-| User | Can access Chat |
+| Visitor | Can access Chat |
 | Curator | Can also manage Sources and Collections |
 | Admin | Can also manage Endpoints, settings, and people |
 
 For details on Endpoints, Sources, and Collections, see [Processing flow](processing.md).
 
-### User
+### Visitor
 
-Users can only access chat. They cannot manage Collections, Sources, Endpoints, or Settings. A User is typically someone who uses Archyve but plays no role in defining its behaviour or its configuration.
+Visitors can only access chat. They cannot manage Collections, Sources, Endpoints, or Settings. A Visitor is typically someone who uses Archyve but plays no role in defining its behaviour or its configuration.
 
 ### Curator
 
@@ -44,9 +44,9 @@ An admin changes someone's role under [Settings › People](/settings/users). Ar
 
 Grants are like having a role on a specific Collection or Source.
 
-A Grant does not allow a user to do something their role does not; for example, a User with a Curator or Admin grant on a Collection is still just a User, and Users cannot manage Collections.
+A Grant does not allow a user to do something their role does not; for example, a Visitor with a Curator or Admin grant on a Collection is still just a Visitor, and Visitors cannot manage Collections.
 
-If a user creates a Collection or a Source, they have the Admin grant on that Collection or Source. Users can create nothing, Curators can create Sources and Collections, and Admins can create anything.
+If a user creates a Collection or a Source, they have the Admin grant on that Collection or Source. Visitors can create nothing, Curators can create Sources and Collections, and Admins can create anything.
 
 Grants are managed through a "People" button in the top right of a Collection or Source page:
 
@@ -54,12 +54,12 @@ Grants are managed through a "People" button in the top right of a Collection or
 
 ### Grants on Collections
 
-Collections are sets of Sources and Documents that are grouped together so Users can use them in chat. They tend to be logically related, like "Human Resources documents", "IT procedures", or "Appliance manuals".
+Collections are sets of Sources and Documents that are grouped together so Visitors can use them in chat. They tend to be logically related, like "Human Resources documents", "IT procedures", or "Appliance manuals".
 
-| Grant on the collection | A User can | A Curator can | An Admin can |
+| Grant on the collection | A Visitor can | A Curator can | An Admin can |
 |---|---|---|---|
 | none | do nothing; it doesn't appear for them | do nothing; it doesn't appear for them | do everything; no grant needed |
-| User | search it and use it in Chat | search it and use it in Chat | do everything; no grant needed |
+| Visitor | search it and use it in Chat | search it and use it in Chat | do everything; no grant needed |
 | Curator | search it and use it in Chat | also add and remove documents by hand, and trigger a sync | do everything; no grant needed |
 | Admin | search it and use it in Chat | also decide who else has access, and delete it | do everything; no grant needed |
 
@@ -73,14 +73,14 @@ If they were also responsible for managing who has access to that Collection, th
 
 Sources feed Collections. A Collection can have many Sources, and users with a grant on the Collection can access information from that Source in chat. Sources pull documents from external systems (via Endpoints).
 
-| Grant on the source | A User can | A Curator can | An Admin can |
+| Grant on the source | A Visitor can | A Curator can | An Admin can |
 |---|---|---|---|
 | none | do nothing | do nothing; it doesn't appear for them | do everything; no grant needed |
-| User | do nothing | attach it to a collection they manage | do everything; no grant needed |
+| Visitor | do nothing | attach it to a collection they manage | do everything; no grant needed |
 | Curator | do nothing | also change its settings and trigger a sync | do everything; no grant needed |
 | Admin | do nothing | also decide who else has access, and delete it | do everything; no grant needed |
 
-For Sources, Users can do nothing, because one can't use a Source directly in chat. Chats reference Collections, and Collections reference Sources.
+For Sources, Visitors can do nothing, because one can't use a Source directly in chat. Chats reference Collections, and Collections reference Sources.
 
 #### Examples
 

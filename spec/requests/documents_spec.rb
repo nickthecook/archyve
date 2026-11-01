@@ -236,7 +236,7 @@ RSpec.describe "Documents", type: :request do
 
   # The whole point of a citation: a reader follows it to the passage. Browsing
   # the archive is still a curator job, so this is the one document surface a
-  # plain user reaches, and collection access is what decides it — not the role.
+  # visitor reaches, and collection access is what decides it — not the role.
   describe "GET /documents/:id as a reader" do
     subject(:request) { get document_path(document) }
 

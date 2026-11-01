@@ -131,12 +131,12 @@ RSpec.describe User, type: :model do
     end
 
     context "when a chat-only account is granted admin of the collection" do
-      let(:account_role) { :user }
+      let(:account_role) { :visitor }
 
       before { create(:collection_user, :admin, collection:, user:) }
 
       it "still only reads, because the account role is the ceiling" do
-        expect(result).to eq(:user)
+        expect(result).to eq(:visitor)
       end
     end
 
@@ -155,7 +155,7 @@ RSpec.describe User, type: :model do
     let(:result) { user.at_least?(:curator) }
 
     context "when the user's role is below it" do
-      let(:role) { :user }
+      let(:role) { :visitor }
 
       it "is false" do
         expect(result).to be(false)

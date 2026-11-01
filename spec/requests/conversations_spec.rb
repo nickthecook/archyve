@@ -485,7 +485,7 @@ RSpec.describe "Conversations", type: :request do
         end
       end
 
-      context "when signed in as a plain user" do
+      context "when signed in as a visitor" do
         before { sign_in(create(:user)) }
 
         it "does not send them somewhere they can't go" do

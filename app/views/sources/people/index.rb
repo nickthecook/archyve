@@ -4,12 +4,12 @@
 # source feeds. That belongs to the collection, because it decides what the
 # collection's readers see — see SourcesController#selected_collections.
 class Views::Sources::People::Index < Views::Base
-  # `user` is not "may read this source" — it is "may draw on it": enough to
+  # `visitor` is not "may read this source" — it is "may draw on it": enough to
   # feed it into a collection you administer, without touching its settings or
   # its credentials. That split is what lets IT own the source and a team own
   # what their collection pulls from.
   ROLES = {
-    "user" => "Feed it into collections they administer",
+    "visitor" => "Feed it into collections they administer",
     "curator" => "…and change its settings and sync it",
     "admin" => "…and manage its people, and delete it"
   }.freeze

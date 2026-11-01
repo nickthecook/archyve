@@ -622,11 +622,11 @@ Query-time:
 
 Two axes, not one.
 
-**Global role (built 2026-09-07)** — `users.role` ∈ `user` / `curator` /
+**Global role (built 2026-09-07)** — `users.role` ∈ `visitor` / `curator` /
 `admin`, an integer enum so the values are *ordered*. This is a **capability
 ceiling**, and the gate on everything that isn't scoped to a collection:
 
-- `user` — chat and search. No management surfaces at all.
+- `visitor` — chat and search. No management surfaces at all.
 - `curator` — + sources, collections, documents, filing.
 - `admin` — + settings and people, everywhere, needing no per-object grant.
 
@@ -661,7 +661,7 @@ attribute set at the IdP could inherit the break-glass admin's account.
 
 **The group check is a login gate, not role mapping.** Keycloak asserts a
 `groups` claim; Archyve refuses anyone without `ARCHYVE_SSO_GROUP`. Everyone it
-provisions arrives as a plain `user` with no grants — the role ladder above
+provisions arrives as a `visitor` with no grants — the role ladder above
 stays Archyve's business. Refusal also destroys that user's existing sessions,
 because revoking a group has to reach a browser that is already signed in.
 
@@ -705,7 +705,7 @@ download is a property of the **source**, not of the reader's role
   neither can manual upload. Both are download-only, and nothing returns true
   yet.
 
-So chat and search behave identically for a curator and a plain user. A
+So chat and search behave identically for a curator and a visitor. A
 curator's extra reach is *browsing* the archive, a different entry point:
 `/documents` is `curator`, the download is not. The download is nonetheless
 scoped to what the reader could have been cited (`Document.reachable_by`), so
@@ -719,11 +719,11 @@ would put the archive one forwarded link away from anybody.
 **Per-source grants (built 2026-09-07).** `source_users` grants one person
 standing with one source:
 
-- `user` — may feed this source into a collection they administer.
+- `visitor` — may feed this source into a collection they administer.
 - `curator` — + change its config, trigger a sync.
 - `admin` — + manage its people, and delete it.
 
-The `user` role is not "may read this source". It is "may draw on it", and it
+The `visitor` role is not "may read this source". It is "may draw on it", and it
 exists because **configuring a source and drawing on it are different mandates
 held by different people**. In an organisation IT owns the credentials and the
 team owning a collection decides what feeds it. Without this role, letting a
@@ -731,7 +731,7 @@ collection's owner attach a source would mean handing them the credentials —
 or routing every attachment through a system admin, which is a ticket per
 collection rather than a grant per team.
 
-(An earlier iteration had no `user` role here, reasoning that seeing a source
+(An earlier iteration had no `visitor` role here, reasoning that seeing a source
 exists is implied by seeing a collection it feeds. That was circular: it assumed
 the source was already attached. This is the grant that attaches it.)
 - **Owning a source implies administering it.** A per-user upload source carries
@@ -799,13 +799,13 @@ nothing ticked was claiming the opposite of what it did.
 
 - **`collection_users`** join: `user ↔ collection` with the same ordered `role`
   vocabulary as the global one (`Roleable`), so the two are comparable.
-  - `user` — search it, and draw on it in chat.
+  - `visitor` — search it, and draw on it in chat.
   - `curator` — + add and remove document memberships by hand.
   - `admin` — + manage its people and delete it. Deleting unfiles documents;
     it never destroys them, since they belong to the source that produced them,
     and anything that was only in that collection becomes Unsorted.
 - **A missing row means no access**, not weak access. `User#role_on` returns
-  `nil`, deliberately not `:user`: absence is not the weakest presence, and
+  `nil`, deliberately not `:visitor`: absence is not the weakest presence, and
   conflating them would hand every curator read access to every collection.
 - Whoever creates a collection is granted `admin` on it. Otherwise a curator
   immediately can't manage what they just made, and only a system admin could
@@ -819,7 +819,7 @@ rung on the same ladder:
 - global `curator` — the grant exactly as written, up to and including `admin`
   **of that collection**. Managing a collection, its people included, is content
   ownership, which is what a curator is for.
-- global `user` — reads at most, whatever the grant says. Chat-only means
+- global `visitor` — reads at most, whatever the grant says. Chat-only means
   chat-only; a grant cannot widen it.
 
 A numeric `min` was the original plan and is wrong: `min(curator, admin)` is
@@ -839,7 +839,7 @@ That contradicts the whole point of appointing curators.
   separate question and belongs to the collection: ownership of what readers see
   sits with the collection, not with the source producing it.
 - A source-level grant, when it lands, needs only `curator` / `admin` — a
-  source `user` role has no meaning, since seeing a source is implied by seeing
+  source `visitor` role has no meaning, since seeing a source is implied by seeing
   a collection it feeds.
 - **Conversations: the author writes, admins read** (settled 2026-10-25, #87).
   Only the author reaches a chat at `/chat` and may rate its answers. Admins

@@ -121,7 +121,7 @@ RSpec.describe "Unsorted", type: :request do
       let(:document_ids) { [document.id] }
 
       # Replaces the curator grant above with a reader's.
-      before { CollectionUser.find_by!(collection:, user: current_user).update!(role: :user) }
+      before { CollectionUser.find_by!(collection:, user: current_user).update!(role: :visitor) }
 
       it "is refused" do
         request

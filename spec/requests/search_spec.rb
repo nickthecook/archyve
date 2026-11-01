@@ -35,7 +35,7 @@ RSpec.describe "Search", type: :request do
       let(:params) { { q: "anything" } }
       let(:inside) { create(:document, :with_file, title: "Inside Report") }
 
-      context "when signed in as a plain user" do
+      context "when signed in as a visitor" do
         # Signing in again replaces current_user, so the grant has to follow —
         # a reader with no grant retrieves nothing at all now.
         before do

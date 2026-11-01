@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :collection_user do
     association :collection
     association :user
-    role { "user" }
+    role { "visitor" }
 
     trait :curator do
       role { "curator" }
