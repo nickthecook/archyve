@@ -17,6 +17,14 @@ RSpec.describe "Role gating", :unauthenticated, type: :request do
       request
       expect(flash[:alert]).to eq("You don't have access to that.")
     end
+
+    # The landing doesn't use the layout's frame, which is where flashes are
+    # usually drawn, so setting the message isn't enough on its own.
+    it "shows the reason on the landing" do
+      request
+      follow_redirect!
+      expect(response.body).to include("have access to that.")
+    end
   end
 
   shared_examples "allowed" do

@@ -16,6 +16,10 @@
   --facet-reveal-duration: 0.4s;
 }
 
+/* flash banner: the stage gives up its height so the page doesn't scroll */
+.landing-banner { height: 2.75rem; }
+.landing-banner + .corridor-stage { height: calc(100vh - 2.75rem); }
+
 /* wordmark ------------------------------------------------------------- */
 .corridor-stage .brand {
   position: absolute; top: 4.2vh; left: 50%; transform: translateX(-50%);

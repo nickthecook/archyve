@@ -4,6 +4,8 @@
 # the three facets are the sections, and the corridor dollies as you type — the
 # motion lives in corridor_controller.js.
 class Views::Home::Index < Views::Base
+  include Phlex::Rails::Helpers::Flash
+
   def initialize(stats:, models: [], model: nil, unavailable: nil)
     @stats = stats
     @models = models
@@ -12,6 +14,7 @@ class Views::Home::Index < Views::Base
   end
 
   def view_template
+    flash_banner
     div(
       class: "corridor-stage",
       data: { controller: "corridor", action: "pointermove@window->corridor#peer pointerleave@window->corridor#rest motion:toggled@window->corridor#motion" }
@@ -35,6 +38,20 @@ class Views::Home::Index < Views::Base
 
   def page_title = nil
   def contained? = false
+
+  # The landing skips the layout's frame, which is where flash messages are
+  # drawn, and a refused role gate redirects here.
+  def flash_banner
+    message = flash[:alert] || flash[:notice]
+    return if message.blank?
+
+    div(
+      role: "status",
+      class: "landing-banner flex items-center justify-center border-b border-accent/30 bg-accent/10 px-4 text-sm text-accent"
+    ) do
+      span(class: "truncate") { message }
+    end
+  end
 
   def brand
     div(class: "brand reveal", style: "animation-delay:.1s") do
