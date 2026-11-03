@@ -75,7 +75,7 @@ class Views::Layout < Phlex::HTML
     end
   end
 
-  # Set by a controller as flash[:undo] = { path:, params: } — a POST that reverses what the notice reports.
+  # See "Undo lives in the notice" in docs/design.md.
   def undo(action)
     form(action: action["path"], method: "post", class: "shrink-0") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)

@@ -120,6 +120,24 @@ scattered utilities get missed, and a button that doesn't change the cursor
 reads as one that doesn't do anything. Things that *aren't* buttons but are
 clickable — `summary`, a `label` wrapping a checkbox — still say it themselves.
 
+## Undo lives in the notice
+
+A small, easily reversed change can skip the `turbo_confirm` and offer Undo
+afterwards instead. The controller sets a POST that reverses it alongside the
+notice, and `Views::Layout` adds the button:
+
+```ruby
+flash[:undo] = { "path" => settings_user_collection_grants_path(user), "params" => { "access" => "editor" } }
+redirect_to …, notice: "…"
+```
+
+- String keys: the flash round-trips through the session, so symbols come back
+  as strings anyway.
+- Params are flat — each becomes one hidden input.
+- Always a POST. Undoing a create needs a `_method` override, which isn't built
+  yet.
+- Notices only, never alerts.
+
 ## Status has a fixed vocabulary
 
 `pending` / `processing` / `processed` / `failed` / `removed` are the ingestion
