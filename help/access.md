@@ -42,7 +42,7 @@ An admin changes someone's role under [Settings › People](/settings/users). Ar
 
 ## Grants
 
-Grants are like having a role on a specific Collection or Source.
+A Grant gives a user some permission on a specific Collection or Source.
 
 A Grant does not allow a user to do something their role does not; for example, a Visitor with an Editor or Manager grant on a Collection is still just a Visitor, and Visitors cannot manage Collections.
 
@@ -51,6 +51,10 @@ If a user creates a Collection or a Source, they have the Manager grant on that 
 Grants are managed through a "People" button in the top right of a Collection or Source page:
 
 ![people button](people_button.png)
+
+A user's grants are also visible through their page in [Settings › People](/settings/users). An admin can view and revoke any of a user's grants from the user's page:
+
+![user page grants](user_page_grants.png)
 
 ### Grants on Collections
 
