@@ -25,14 +25,14 @@ module Settings
     end
 
     def edit
-      render Views::Settings::Users::Edit.new(user: @user)
+      render_edit
     end
 
     def update
       if @user.update(update_params)
         redirect_to settings_users_path, notice: "Saved #{@user.email_address}."
       else
-        render Views::Settings::Users::Edit.new(user: @user), status: :unprocessable_entity
+        render_edit(status: :unprocessable_entity)
       end
     end
 
@@ -50,6 +50,14 @@ module Settings
 
     def set_user
       @user = User.find(params[:id])
+    end
+
+    def render_edit(status: :ok)
+      render Views::Settings::Users::Edit.new(
+        user: @user,
+        collection_grants: @user.collection_users.includes(:collection).joins(:collection).order("collections.name"),
+        source_grants: @user.source_users.includes(:source).joins(:source).order("sources.name")
+      ), status:
     end
 
     def user_params

@@ -12,7 +12,7 @@ class Views::Settings::Users::Form < Components::Base
       input(type: "hidden", name: "_method", value: "patch") if @user.persisted?
       errors if @user.errors.any?
 
-      field("Email", "How they sign in.") do
+      field("Email") do
         input(
           type: "email", name: "user[email_address]", value: @user.email_address,
           autocomplete: "off", required: true, autofocus: @user.new_record?,
@@ -20,7 +20,7 @@ class Views::Settings::Users::Form < Components::Base
         )
       end
 
-      field("Role", role_hint) { role_select }
+      field("Role") { role_select }
 
       field("Password", password_hint) do
         input(
@@ -36,10 +36,6 @@ class Views::Settings::Users::Form < Components::Base
   private
 
   def action = @user.persisted? ? settings_user_path(@user) : settings_users_path
-
-  def role_hint
-    "A ceiling on what they can do anywhere in Archyve."
-  end
 
   def password_hint
     @user.persisted? ? "Leave blank to keep their current password." : "They can change it later under Account."
@@ -64,10 +60,10 @@ class Views::Settings::Users::Form < Components::Base
     end
   end
 
-  def field(label_text, hint)
+  def field(label_text, hint = nil)
     div do
       label(class: "block text-sm font-medium text-fg") { label_text }
-      p(class: "mt-0.5 mb-2 text-xs text-faint") { hint }
+      p(class: "mt-0.5 mb-2 text-xs text-faint") { hint } if hint.present?
       yield
     end
   end

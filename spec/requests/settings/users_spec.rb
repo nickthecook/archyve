@@ -45,6 +45,135 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
     end
   end
 
+  describe "GET /settings/users/:id/edit" do
+    subject(:request) { get edit_settings_user_path(target) }
+
+    let(:target) { create(:user, :curator) }
+
+    context "when they hold grants" do
+      before do
+        create(:collection_user, user: target, collection: create(:collection, name: "HR Policies"))
+        create(:source_user, user: target, source: create(:source, name: "Shared Drive"))
+      end
+
+      it "lists the collections" do
+        request
+        expect(response.body).to include("HR Policies")
+      end
+
+      it "lists the sources" do
+        request
+        expect(response.body).to include("Shared Drive")
+      end
+    end
+
+    context "when a grant is capped by their role" do
+      let(:target) { create(:user) }
+
+      before { create(:collection_user, :manager, user: target) }
+
+      it "says what they actually get" do
+        request
+        expect(response.body).to include("so: accessor")
+      end
+    end
+
+    context "when they are an admin with grants" do
+      let(:target) { create(:user, :admin) }
+
+      before { create(:collection_user, :manager, user: target) }
+
+      it "offers no revoke form" do
+        request
+        expect(response.body).not_to include(settings_user_collection_grant_path(target, target.collection_users.first))
+      end
+    end
+
+    context "when they hold no grants" do
+      it "says so" do
+        request
+        expect(response.body).to include("No grants")
+      end
+    end
+  end
+
+  describe "DELETE /settings/users/:user_id/collection_grants/:id" do
+    subject(:request) { delete settings_user_collection_grant_path(target, grant) }
+
+    let(:target) { create(:user, :curator) }
+    let!(:grant) { create(:collection_user, user: target) }
+
+    it "revokes the grant" do
+      expect { request }.to change(CollectionUser, :count).by(-1)
+    end
+
+    it "returns to their page" do
+      request
+      expect(response).to redirect_to(edit_settings_user_path(target))
+    end
+
+    it "offers to undo it" do
+      request
+      follow_redirect!
+      expect(response.body).to include(%(action="#{settings_user_collection_grants_path(target)}"))
+    end
+
+    context "with someone else's grant" do
+      let(:grant) { create(:collection_user) }
+
+      it "revokes nothing" do
+        expect { request }.not_to change(CollectionUser, :count)
+      end
+    end
+
+    # A revoke that changes nothing today would silently bite after a demotion.
+    context "when they are an admin" do
+      let(:target) { create(:user, :admin) }
+
+      it "revokes nothing" do
+        expect { request }.not_to change(CollectionUser, :count)
+      end
+
+      it "says why" do
+        request
+        expect(flash[:alert]).to include("Change their role first")
+      end
+    end
+  end
+
+  describe "POST /settings/users/:user_id/collection_grants" do
+    subject(:request) do
+      post settings_user_collection_grants_path(target), params: { subject_id: collection.id, access: "editor" }
+    end
+
+    let(:target) { create(:user, :curator) }
+    let(:collection) { create(:collection) }
+
+    it "restores the grant" do
+      request
+      expect(target.collection_users.find_by(collection:).access).to eq("editor")
+    end
+
+    context "when the grant already exists" do
+      before { create(:collection_user, user: target, collection:) }
+
+      it "creates nothing" do
+        expect { request }.not_to change(CollectionUser, :count)
+      end
+    end
+  end
+
+  describe "DELETE /settings/users/:user_id/source_grants/:id" do
+    subject(:request) { delete settings_user_source_grant_path(target, grant) }
+
+    let(:target) { create(:user, :curator) }
+    let!(:grant) { create(:source_user, user: target) }
+
+    it "revokes the grant" do
+      expect { request }.to change(SourceUser, :count).by(-1)
+    end
+  end
+
   describe "PATCH /settings/users/:id" do
     subject(:request) { patch settings_user_path(target), params: { user: attributes } }
 
@@ -109,6 +238,19 @@ RSpec.describe "Settings::Users", :unauthenticated, type: :request do
 
       it "removes it" do
         expect { request }.to change(User, :count).by(-1)
+      end
+    end
+
+    context "with an account that holds grants" do
+      let!(:target) { create(:user, :curator) }
+
+      before do
+        create(:collection_user, user: target)
+        create(:source_user, user: target)
+      end
+
+      it "removes it along with its grants" do
+        expect { request }.to change(CollectionUser, :count).by(-1).and change(User, :count).by(-1)
       end
     end
 

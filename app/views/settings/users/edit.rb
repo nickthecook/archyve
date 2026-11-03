@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 class Views::Settings::Users::Edit < Views::Base
-  def initialize(user:)
+  def initialize(user:, collection_grants:, source_grants:)
     @user = user
+    @collection_grants = collection_grants
+    @source_grants = source_grants
   end
 
   def view_template
@@ -14,6 +16,11 @@ class Views::Settings::Users::Edit < Views::Base
     end
 
     render Views::Settings::Users::Form.new(user: @user)
+    render Views::Settings::Users::Grants.new(
+      user: @user,
+      collection_grants: @collection_grants,
+      source_grants: @source_grants
+    )
   end
 
   private

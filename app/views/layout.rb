@@ -9,6 +9,7 @@ class Views::Layout < Phlex::HTML
   include Phlex::Rails::Helpers::StyleSheetLinkTag
   include Phlex::Rails::Helpers::JavaScriptImportmapTags
   include Phlex::Rails::Helpers::Flash
+  include Phlex::Rails::Helpers::FormAuthenticityToken
   include Phlex::Rails::Helpers::Routes
 
   # No built-in adapter for cookies; register one so `cookies` works without the
@@ -65,9 +66,21 @@ class Views::Layout < Phlex::HTML
     main(class: "mx-auto #{@wide ? 'max-w-6xl' : 'max-w-3xl'} px-5 py-6 sm:py-10") do
       flash.to_hash.slice("notice", "alert").each do |type, message|
         color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
-        div(class: "mb-6 rounded border px-4 py-3 text-sm #{color}") { message }
+        div(class: "mb-6 flex items-center justify-between gap-3 rounded border px-4 py-3 text-sm #{color}") do
+          span { message }
+          undo(flash[:undo]) if type == "notice" && flash[:undo]
+        end
       end
       yield
+    end
+  end
+
+  # Set by a controller as flash[:undo] = { path:, params: } — a POST that reverses what the notice reports.
+  def undo(action)
+    form(action: action["path"], method: "post", class: "shrink-0") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      action["params"].each { |name, value| input(type: "hidden", name:, value:) }
+      button(type: "submit", class: "font-medium underline underline-offset-2 hover:no-underline") { "Undo" }
     end
   end
 end

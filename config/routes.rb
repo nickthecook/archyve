@@ -90,7 +90,10 @@ Rails.application.routes.draw do
     # Every answer and what was said about it, without saying who asked.
     get "review", to: "reviews#index"
     get "review/chats/:id", to: "reviews#show", as: :review_chat
-    resources :users, except: [:show]
+    resources :users, except: [:show] do
+      resources :collection_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "collection" }
+      resources :source_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "source" }
+    end
     # The system prompt every chat uses. A single page for prompt-related
     # settings, not a CRUD resource — see Setting.
     resource :prompt, only: [:show, :update]
