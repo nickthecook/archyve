@@ -231,6 +231,35 @@ third collection" would produce a citation resolving to whatever passage 3
 happened to be — wrong, and invisibly so. Said in the system prompt and again in
 every listing result.
 
+### The system prompt (split 2026-11-03)
+
+`Chat::Instructions` assembles three parts, in order: the conversation's
+**agent prompt** (voice, identity, purpose), the **instructions of each toolset**
+it uses, and the admin's `chat.instance_purpose`. Toolset instructions live in
+code and can't be edited, so a prompt an admin writes for an agent can't drop the
+rules its tools depend on. The purpose goes last so it can never override them.
+Agents are DB rows. The built-in ones (Archivist so far) are locked and rewritten
+from `Agent::BUILT_INS` on every seed. See issue #92.
+
+The archive toolset's instructions do four jobs, roughly in order of how badly
+things go wrong without them:
+
+- **Name the scope.** A model that doesn't know what it can reach reports that
+  the archive lacks something when the user has narrowed the chat to one
+  document.
+- **A listing is not a source**, as above.
+- **Cite by handle, address by id**, as above. Telling the model up front is
+  cheaper than filtering out invented handles afterwards.
+- **Don't fill gaps from memory.** A model told the archive is the authority will
+  still answer what the archive didn't cover unless told not to. Tool results
+  repeat this, because the latest result carries more weight than instructions at
+  the top of a long conversation.
+
+A chat scoped to no collections gets no archive tools and a different set of
+instructions. The model is told plainly that the archive isn't in play, because
+one that thinks it has an archive it can't reach apologises for failing to
+search instead of answering.
+
 ## Multi-provider strategy & pgvector implications
 
 **Separate the two provider roles — pgvector only constrains one of them.**

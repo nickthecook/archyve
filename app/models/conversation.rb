@@ -12,6 +12,7 @@
 # freezing document ids here would be a bug rather than an optimisation.
 class Conversation < ApplicationRecord
   belongs_to :user
+  belongs_to :agent
   # Optional: the row can be nullified out from under a finished conversation
   # when an admin removes a model, and the transcript is still true.
   belongs_to :inference_model, optional: true

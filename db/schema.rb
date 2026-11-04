@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -41,6 +41,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "agents", force: :cascade do |t|
+    t.boolean "built_in", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "prompt", default: "", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_agents_on_slug", unique: true
   end
 
   create_table "api_calls", force: :cascade do |t|
@@ -129,12 +139,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
   end
 
   create_table "conversations", force: :cascade do |t|
+    t.bigint "agent_id", null: false
     t.datetime "created_at", null: false
     t.bigint "inference_model_id"
     t.jsonb "scope", default: {}, null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["agent_id"], name: "index_conversations_on_agent_id"
     t.index ["inference_model_id"], name: "index_conversations_on_inference_model_id"
     t.index ["user_id"], name: "index_conversations_on_user_id"
   end
@@ -409,6 +421,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
   add_foreign_key "collection_memberships", "documents"
   add_foreign_key "collection_users", "collections"
   add_foreign_key "collection_users", "users"
+  add_foreign_key "conversations", "agents"
   add_foreign_key "conversations", "inference_models", on_delete: :nullify
   add_foreign_key "conversations", "users"
   add_foreign_key "documents", "source_syncs", column: "last_seen_sync_id", on_delete: :nullify

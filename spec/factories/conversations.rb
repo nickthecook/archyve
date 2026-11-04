@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :conversation do
     association :user
+    agent { Agent.archivist }
     title { "A chat" }
     scope { {} }
 

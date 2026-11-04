@@ -28,6 +28,9 @@ admin.role = :admin
 admin.save!
 puts "Break-glass admin: #{admin.email_address}"
 
+Agent.seed_built_ins!
+puts "Built-in agents: #{Agent::BUILT_INS.keys.join(', ')}"
+
 # Development-only cast for clicking around: one of each role, so every gate can
 # be seen from both sides without editing anything.
 if Rails.env.development?

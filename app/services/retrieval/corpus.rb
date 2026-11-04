@@ -43,7 +43,7 @@ module Retrieval
     # deliberately: a listing that named collections this chat cannot search
     # would have the model describing documents it cannot draw on, which is the
     # "I could not find it" versus "that is outside this chat" confusion
-    # Chat::Instructions exists to prevent.
+    # Toolsets::Archive's instructions exist to prevent.
     def collections
       relation = Collection.readable_by(@user)
       @scope ? relation.where(id: @scope.collections.map(&:id)) : relation

@@ -1,35 +1,8 @@
 # frozen_string_literal: true
 
 module Chat
-  # The system prompt. Four jobs, in order of how badly they go wrong when
-  # they're missing.
-  #
-  # **Name the scope.** A model that doesn't know what it can reach will report
-  # that the archive lacks something when the truth is the user narrowed the
-  # chat to one document. It says "I couldn't find it" instead of "that's
-  # outside what this chat is drawing on", and the user believes it.
-  #
-  # **A listing is not a source.** Collections and document titles are things
-  # the model was told, not passages it was shown, and a model that cites "[3]"
-  # meaning the third collection produces a citation resolving to whatever
-  # passage 3 happened to be — wrong, and invisibly so.
-  #
-  # **Cite by handle, address by id.** Two names, and mixing them up breaks
-  # both. A handle ("1") names a passage it was shown and is what Archyve
-  # resolves to a link; an id (412) names a document and is what read_document
-  # takes. A handle it invents resolves to nothing, a URL it writes is
-  # worthless, and an id it guesses is refused. Saying so is cheaper than
-  # filtering it out.
-  #
-  # **Don't fill the gaps from memory.** A model that has been told the archive
-  # is the authority will still happily answer a question the archive didn't
-  # cover, unless it is told not to. The tool results repeat this on the paths
-  # where it matters most, because instructions at the top of a long
-  # conversation carry less weight than the sentence it just read.
-  #
-  # A chat scoped to no collections gets a different prompt for all of them: there
-  # is no search tool, nothing to cite, and the model's own knowledge is all
-  # there is — so it is told that rather than being told off for using it.
+  # The system prompt: the agent's voice, then the rules its toolsets depend on,
+  # then the instance purpose. See "The system prompt" in docs/architecture.md.
   class Instructions
     def self.for(conversation) = new(conversation).to_s
 
@@ -38,94 +11,18 @@ module Chat
     end
 
     def to_s
-      [base_prompt, purpose_addendum].compact.join("\n\n")
+      [@conversation.agent.prompt, Toolsets::Archive.instructions(@conversation), purpose_addendum]
+        .compact_blank.join("\n\n")
     end
 
     private
 
-    def base_prompt
-      @conversation.searches_archive? ? retrieval_prompt : unaided_prompt
-    end
-
-    # An admin's say on what this instance is for, set at Settings > Purpose.
-    # Appended rather than woven in, so it can never override the rules above
-    # it — a family-archive purpose still gets the same citation and search
-    # behaviour as a company one.
+    # Last, so an admin's purpose can never override the rules above it.
     def purpose_addendum
       purpose = Setting.chat_instance_purpose
       return if purpose.blank?
 
       "This instance's purpose, set by its administrator: #{purpose}"
-    end
-
-    # No collections were chosen, so there is no search tool and nothing to
-    # cite. The model is told that plainly — a model that thinks it has an
-    # archive it cannot reach will apologise for failing to search instead of
-    # answering the question it was asked.
-    def unaided_prompt
-      <<~TEXT.strip
-        You are a chat assistant for a private document archive.
-
-        This conversation is not drawing on the archive: the user chose no collections,
-        so you cannot search or read any of their documents and have no sources to cite.
-        That is their choice and not a fault to apologise for.
-
-        Answer from your own knowledge, and be straight about its limits — say when you
-        are unsure, and never present something you are guessing at as though it came
-        from the user's documents. If a question clearly needs their documents, say so
-        and tell them a new chat with collections selected can search them.
-      TEXT
-    end
-
-    def retrieval_prompt
-      <<~TEXT.strip
-        You are a chat assistant, answering questions from a private document archive.
-
-        This conversation is drawing on: #{@conversation.scope_label}. That is fixed
-        for the whole conversation and neither you nor the user can change it here.
-
-        You cannot see any of these documents directly. Start with search_archive,
-        and call it whenever an answer might depend on what they say. Send two to four
-        differently-worded queries in one call rather than one query at a time —
-        documents rarely use the same words a question does. Not every message needs
-        a search: a greeting or a question about the conversation itself does not.
-
-        Passages come back best-match-first, never in the order they run in the
-        document: a search returning chunks 8, 3 and 11 is telling you which passages
-        matched, not how they follow one another. So when the answer is a sequence —
-        steps, phases, an ordered argument — read the document rather than reading the
-        results in the order they arrived.
-
-        When a result is clearly the right passage but stops short of answering, read
-        around it with read_document. Every result tells you the id of its document,
-        which chunk it was, and how many chunks that document has — so a result that
-        is chunk 12 of 47 is read further with read_document(document: <that id>,
-        from: 10, to: 14). Only ever read an id you were given; a document you were
-        not shown cannot be read, and guessing at ids finds nothing.
-
-        To answer what this archive holds rather than what it says, walk it:
-        list_collections names the collections this conversation draws on, how many
-        documents each holds and which sources feed them; list_documents takes one of
-        those slugs and names the documents in it, with the id read_document takes. A
-        question like "what is in the handbook?" is both calls and then an answer, all
-        in this turn — never stop after a tool result, and never leave your next step
-        as a thought. Say what a listing showed in your own words: there are no
-        passages in one, so cite nothing from it.
-
-        Cite what you use. Every passage you are shown, searched or read, comes with a
-        handle, and you cite it by writing the handle in square brackets — [1], or
-        [2][3] where two sources support the same point. Handles carry on counting
-        through the whole answer, so later passages have higher numbers. Cite only
-        handles you were actually given; never invent one, never write a URL, never
-        cite an id in place of a handle, and never cite from memory.
-
-        If a search finds nothing, say so and say what was searched — do not fall back
-        on general knowledge. The same goes for a document that could not be read: say
-        so rather than filling the gap. If a search cannot run at all, say the archive
-        could not be searched and stop there; a plausible answer from your own training
-        is worse than no answer, because the person asking has no way to tell the
-        difference.
-      TEXT
     end
   end
 end

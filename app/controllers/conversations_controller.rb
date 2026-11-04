@@ -35,7 +35,7 @@ class ConversationsController < ApplicationController
     return redirect_to conversations_path, alert: "Ask something to start a chat." if question.blank?
 
     conversation = Current.user.conversations.create!(
-      scope: scope_spec, inference_model: chosen_model || InferenceModel.default_chat,
+      scope: scope_spec, agent: Agent.archivist, inference_model: chosen_model || InferenceModel.default_chat,
       title: question.truncate(80)
     )
     Chat::Ask.call(conversation, question)

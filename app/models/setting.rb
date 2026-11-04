@@ -44,7 +44,7 @@ class Setting < ApplicationRecord
     "chat.max_read_rounds" => Definition.new(
       default: -> { positive_integer_env("ARCHYVE_CHAT_MAX_READ_ROUNDS", 4) },
       type: :integer,
-      label: "Mac document reads per turn",
+      label: "Max document reads per turn",
       description: "How many times the chat model may read a document to answer one question."
     ),
     # Looser again: a listing costs no embedding call and no vector scan, and
