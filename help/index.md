@@ -8,5 +8,6 @@ collections you can read and cites the documents it used.
 ## Subjects
 
 - [Processing flow](processing.md): how data flows from other systems into and within Archyve
-- [Access and roles](access.md): how access to features and content are configured in Archyve
+- [Access to Documents](access.md): how access to features and content are configured in Archyve
 - [Inference](inference.md): how Archyve uses language models
+- [Agents](agents.md): how Agents work, and how to access them

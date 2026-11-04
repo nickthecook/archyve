@@ -1,4 +1,5 @@
 - [Archyve help](index.md)
-  - [Access and roles](access.md)
+  - [Access to Documents](access.md)
   - [Processing flow](processing.md)
   - [Inference](inference.md)
+  - [Agents](agents.md)

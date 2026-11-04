@@ -77,7 +77,7 @@ class Views::Settings::Agents::Form < Views::Base
   end
 
   def access_field
-    field("Who can chat with it") do
+    field("Access mode") do
       div(class: "flex flex-col gap-2.5") do
         access_choice("everyone", "Everyone", "Anyone the toolsets allow.")
         access_choice("granted", "People granted access", "Chosen on its People page once it's saved.")

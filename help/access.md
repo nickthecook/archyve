@@ -1,6 +1,8 @@
-# Access and roles
+# Access to Documents
 
-Access in Archyve has two parts: a **role** that applies everywhere, and **grants** on individual collections and sources.
+Access to documents in Archyve has two parts: a **role** that applies everywhere, and **grants** on individual Collections and Sources.
+
+> Access to Agents is covered in the [Agents](agents.md) page.
 
 ## Roles
 
