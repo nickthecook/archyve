@@ -20,7 +20,7 @@ class Views::Settings::Admin::Index < Views::Base
 
     render Views::Conversations::Composer.new(
       agent: @agent, models: @models, model: @model, unavailable: @unavailable,
-      placeholder: "Ask Admin Support what's wrong — failed jobs, queues, servers, documents…"
+      placeholder: "Ask about failed jobs, queues, servers, document processing..."
     )
     render Views::Rule.new
 

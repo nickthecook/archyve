@@ -73,7 +73,7 @@ RSpec.describe Chat::Prose do
   describe "citations" do
     let(:document) { create(:document, title: "Handbook") }
     let(:chunk) { create(:chunk, document:) }
-    let(:hit) { create(:hit, chunk:, document:, handle: 1, document_title: "Handbook") }
+    let(:hit) { create(:hit, :reachable, chunk:, document:, handle: 1, document_title: "Handbook") }
     let(:hits) { { 1 => hit } }
 
     context "with a handle that was retrieved" do
@@ -88,7 +88,7 @@ RSpec.describe Chat::Prose do
     # transcript's hit can outlive the passage it named. The citation still has
     # to lead somewhere.
     context "when the chunk it cited no longer exists" do
-      let(:hit) { create(:hit, chunk: nil, document:, handle: 1, document_title: "Handbook") }
+      let(:hit) { create(:hit, :reachable, chunk: nil, document:, handle: 1, document_title: "Handbook") }
       let(:content) { "Rotate them [1]." }
 
       it "links to the document instead" do
@@ -108,6 +108,21 @@ RSpec.describe Chat::Prose do
 
       it "renders the marker without a link" do
         expect(html).not_to include("href=")
+      end
+    end
+
+    # A fixed-set agent draws on collections its user may not read. The citation
+    # still marks what the answer rests on, but doesn't hand them the document.
+    context "when the conversation's owner can't open the document" do
+      let(:hit) { create(:hit, chunk:, document:, handle: 1, document_title: "Handbook") }
+      let(:content) { "Rotate them [1]." }
+
+      it "renders the marker without a link" do
+        expect(html).not_to include("href=")
+      end
+
+      it "still renders the marker" do
+        expect(html).to include(">1</a>")
       end
     end
 

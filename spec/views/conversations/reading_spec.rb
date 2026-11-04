@@ -5,7 +5,7 @@ RSpec.describe Views::Conversations::Reading do
     subject(:reading) { described_class.new(segment:) }
 
     let(:result) { reading.call }
-    let(:segment) { create(:reading_segment) }
+    let(:segment) { create(:reading_segment, :reachable) }
     let(:document) { create(:document, title: "SHS-2920 manual") }
 
     context "when a document was read" do

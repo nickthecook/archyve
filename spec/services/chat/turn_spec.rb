@@ -564,6 +564,7 @@ RSpec.describe Chat::Turn do
     # The map Chat::Turn keeps from the search is what makes this possible
     # without walking every segment of the message on each tick.
     context "when prose extends a segment written after a search" do
+      let(:conversation) { create(:conversation, :reaching_everything) }
       let(:document) { create(:document, title: "Credential Policy") }
       let(:chunk) { create(:chunk, document: document) }
       let(:outcome) do

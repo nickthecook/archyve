@@ -16,6 +16,11 @@ FactoryBot.define do
     trait :no_collections do
       scope { { "c" => [] } }
     end
+
+    # Owned by someone who can open anything it cites — see Conversation#reaches?.
+    trait :reaching_everything do
+      association :user, :admin
+    end
   end
 
   factory :message do
@@ -35,6 +40,11 @@ FactoryBot.define do
     position { 1 }
     kind { "text" }
     content { "Some prose." }
+
+    # For specs about how a citation renders rather than whether it may link.
+    trait :reachable do
+      message { association :message, conversation: association(:conversation, :reaching_everything) }
+    end
 
     factory :thinking_segment do
       kind { "thinking" }
@@ -110,6 +120,10 @@ FactoryBot.define do
     snippet { "Production datastore credentials rotate every 90 days." }
     document_title { document&.title || "Security Handbook" }
     heading_path { "Secrets › Rotation" }
+
+    trait :reachable do
+      segment { association :retrieval_segment, :reachable }
+    end
 
     # A chunk the model read rather than found: nothing ranked it.
     trait :read do

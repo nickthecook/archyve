@@ -64,9 +64,12 @@ class Document < ApplicationRecord
   scope :retrievable_by, ->(user) {
     next all if user.admin?
 
-    where(id: CollectionMembership.active
-      .where(collection_id: Collection.readable_by(user).select(:id))
-      .select(:document_id))
+    in_collections(Collection.readable_by(user))
+  }
+
+  # Documents actively filed in any of `collections`, a relation.
+  scope :in_collections, ->(collections) {
+    where(id: CollectionMembership.active.where(collection_id: collections.select(:id)).select(:document_id))
   }
 
   # **Reachable** — what a person may open or download directly. Everything

@@ -5,7 +5,7 @@ RSpec.describe Views::Conversations::Retrieval do
     subject(:retrieval) { described_class.new(segment:) }
 
     let(:result) { retrieval.call }
-    let(:segment) { create(:retrieval_segment) }
+    let(:segment) { create(:retrieval_segment, :reachable) }
     let(:document) { create(:document, title: "SHS-2920 manual") }
 
     # Expanding the results is how a reader checks an answer against what

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -43,14 +43,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_140000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "agents", force: :cascade do |t|
-    t.boolean "built_in", default: false, null: false
+  create_table "agent_collections", force: :cascade do |t|
+    t.bigint "agent_id", null: false
+    t.bigint "collection_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_id", "collection_id"], name: "index_agent_collections_on_agent_id_and_collection_id", unique: true
+    t.index ["agent_id"], name: "index_agent_collections_on_agent_id"
+    t.index ["collection_id"], name: "index_agent_collections_on_collection_id"
+  end
+
+  create_table "agent_users", force: :cascade do |t|
+    t.integer "access", default: 0, null: false
+    t.bigint "agent_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["agent_id", "user_id"], name: "index_agent_users_on_agent_id_and_user_id", unique: true
+    t.index ["agent_id"], name: "index_agent_users_on_agent_id"
+    t.index ["user_id"], name: "index_agent_users_on_user_id"
+  end
+
+  create_table "agents", force: :cascade do |t|
+    t.integer "access_mode", default: 0, null: false
+    t.boolean "built_in", default: false, null: false
+    t.integer "collection_mode", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.bigint "creator_id"
     t.string "name", null: false
     t.text "prompt", default: "", null: false
     t.string "slug", null: false
     t.string "toolset_keys", default: [], null: false, array: true
     t.datetime "updated_at", null: false
+    t.index ["creator_id"], name: "index_agents_on_creator_id"
     t.index ["slug"], name: "index_agents_on_slug", unique: true
   end
 
@@ -415,6 +440,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_140000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "agent_collections", "agents", on_delete: :cascade
+  add_foreign_key "agent_collections", "collections", on_delete: :cascade
+  add_foreign_key "agent_users", "agents", on_delete: :cascade
+  add_foreign_key "agent_users", "users", on_delete: :cascade
+  add_foreign_key "agents", "users", column: "creator_id", on_delete: :nullify
   add_foreign_key "api_calls", "api_keys", on_delete: :nullify
   add_foreign_key "api_calls", "users", on_delete: :nullify
   add_foreign_key "api_keys", "users"

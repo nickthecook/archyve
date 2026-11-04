@@ -15,6 +15,8 @@ module Retrieval
   # argument to `documents.find_by` — a filter it cannot widen.
   class Corpus
     def self.for(conversation)
+      return FixedCorpus.new(conversation.agent) if conversation.agent.fixed_collections?
+
       new(user: conversation.user, scope: conversation.retrieval_scope)
     end
 

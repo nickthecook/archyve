@@ -37,7 +37,7 @@ class ConversationsController < ApplicationController
 
     agent = chosen_agent
     conversation = Current.user.conversations.create!(
-      scope: agent.searches_archive? ? scope_spec : { "c" => [] },
+      scope: agent.narrowable? ? scope_spec : { "c" => [] },
       agent:, inference_model: chosen_model || InferenceModel.default_chat,
       title: question.truncate(80)
     )

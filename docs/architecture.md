@@ -258,6 +258,33 @@ are no log tools either, because production logs go to STDOUT and the app can't
 read them back. Tools without a panel of their own record a `tool_call` segment:
 what was checked and the result as the model read it.
 
+**Who can use an agent (built 2026-11-04).** `Agent#usable_by?` combines the
+role floor with one of three access modes:
+
+- *everyone*: anyone who meets the floor;
+- *granted*: `agent_users` grants on the collection ladder (accessor, editor,
+  manager), with the global role as ceiling and admins as manager everywhere;
+- *creator-only*: the creator and nobody else, with no admin exception. Admins
+  can see these agents in Settings but can't chat with them.
+
+When a creator's account is deleted, the agent stays with no creator, because
+it may be in other people's conversations. The check runs when a chat starts (a
+404, like someone else's conversation) and again on every turn.
+
+**What an agent draws on.** In *user* mode (Archivist) it draws on whatever the
+person chatting can read, narrowed by the picker. In *fixed* mode it draws on
+exactly the agent's `agent_collections`, through `Retrieval::FixedCorpus`, with
+no user filter and no picker: giving an agent a collection shares that
+collection with everyone who can use the agent. Both corpora find documents
+through `Document.in_collections`, so they can't disagree about what a
+membership means. A fixed corpus never returns an empty filter list, because
+`Retrieval::Search` reads an empty list as unrestricted.
+
+That sharing is why **citation links follow `Conversation#reaches?`**: a citation
+links only when the conversation's owner could open the document at
+`/documents/:id`, and otherwise renders as a plain marker. It's the owner, not
+whoever is viewing, since `Chat::Turn` renders in a job.
+
 *Prompt injection:* job errors and document outcomes carry text from ingested
 documents and crawled pages. The tools are read-only, there are no outbound
 tools, and chat markdown already strips `<img>`, so the worst a planted

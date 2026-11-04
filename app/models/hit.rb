@@ -34,8 +34,10 @@ class Hit < ApplicationRecord
   # after a reingest renumbered them — same reason the snippet is copied.
   def chunk_number = position && position + 1
 
-  # Whether this citation can still be followed to the live document.
-  def followable? = document.present?
+  # Whether this citation can still be followed to the live document, by the
+  # person whose conversation it is — not whoever is rendering it, since
+  # Chat::Turn renders in a job.
+  def followable? = document.present? && segment.message.conversation.reaches?(document_id)
 
   # Where following it leads: the document, and the exact passage inside it when
   # the chunk survived. Straight to the chunk because a citation exists to
@@ -43,7 +45,7 @@ class Hit < ApplicationRecord
   # in a wall of similar cards is doing the work the handle was supposed to do.
   #
   # Falls back to the document when reingestion has replaced the chunk, and to
-  # nil when the document is gone, which is `followable?` by another name.
+  # nil when the document is gone or out of reach, which is `followable?` by another name.
   #
   # A model reaching for a route helper, because both renderings of a hit need
   # the same link — the inline citation marker and the retrieval panel's card —

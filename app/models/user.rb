@@ -4,6 +4,9 @@ class User < ApplicationRecord
   has_many :api_keys, dependent: :destroy
   has_many :collection_users, dependent: :destroy
   has_many :source_users, dependent: :destroy
+  has_many :agent_users, dependent: :destroy
+  # Kept without a creator: the agent may be in other people's conversations.
+  has_many :created_agents, class_name: "Agent", foreign_key: :creator_id, inverse_of: :creator, dependent: :nullify
 
   # Deliberately :nullify, not :destroy. A source destroys its documents, so
   # cascading here would mean deleting a departing employee silently destroyed

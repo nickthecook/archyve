@@ -146,6 +146,50 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    context "when the agent is granted and they hold no grant" do
+      let(:agent) { create(:agent, access_mode: "granted") }
+      let(:params) { { message: "anything", agent: agent.slug } }
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when the agent is granted to them" do
+      let(:agent) { create(:agent, access_mode: "granted") }
+      let(:params) { { message: "anything", agent: agent.slug } }
+
+      before { create(:agent_user, agent:, user: current_user) }
+
+      it "starts a chat with it" do
+        request
+        expect(Conversation.last.agent).to eq(agent)
+      end
+    end
+
+    context "when an admin names someone else's creator-only agent" do
+      let(:agent) { create(:agent, access_mode: "creator_only", creator: create(:user)) }
+      let(:params) { { message: "anything", agent: agent.slug } }
+
+      before { sign_in(create(:user, :admin)) }
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when the agent has a fixed set of collections" do
+      let(:agent) { create(:agent, collection_mode: "fixed") }
+      let(:params) { { message: "anything", agent: agent.slug, c: ["handbook"] } }
+
+      it "ignores the picker" do
+        request
+        expect(Conversation.last.scope).to eq("c" => [])
+      end
+    end
+
     context "when the agent doesn't exist" do
       let(:params) { { message: "anything", agent: "nobody" } }
 

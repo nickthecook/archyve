@@ -5,6 +5,8 @@ class Collection < ApplicationRecord
   has_many :collection_users, dependent: :destroy
   has_many :users, through: :collection_users
 
+  has_many :agent_collections, dependent: :destroy
+
   has_many :collection_memberships, dependent: :destroy
   has_many :active_memberships,
     -> { where(removed_at: nil) },

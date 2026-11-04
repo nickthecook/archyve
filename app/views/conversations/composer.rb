@@ -35,7 +35,7 @@ class Views::Conversations::Composer < Components::Base
                "text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3 border-t border-line/60 pt-3") do
-        scope_picker if @agent.searches_archive?
+        scope_picker if @agent.narrowable?
         render Views::Conversations::ModelPicker.new(models: @models, selected: @model)
         button(
           type: "submit", disabled: @unavailable.present?,

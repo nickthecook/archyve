@@ -6,7 +6,7 @@ RSpec.describe Views::Conversations::Cited do
 
     let(:result) { cited.call }
 
-    let(:message) { create(:message, conversation: create(:conversation), role: "assistant") }
+    let(:message) { create(:message, conversation: create(:conversation, :reaching_everything), role: "assistant") }
     let(:retrieval) { create(:retrieval_segment, message:, position: 1) }
     let(:prose) { create(:segment, message:, position: 2, content:) }
 

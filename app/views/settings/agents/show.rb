@@ -56,7 +56,27 @@ class Views::Settings::Agents::Show < Views::Base
 
   def access
     section_titled("Who can chat with it") do
-      p(class: "text-sm text-muted") { Views::Settings::Agents::Index::FLOORS.fetch(@agent.role_floor) }
+      p(class: "text-sm text-muted") { who }
+    end
+    draws_on if @agent.searches_archive?
+  end
+
+  def who
+    floor = Views::Settings::Agents::Index::FLOORS.fetch(@agent.role_floor)
+    return floor if @agent.everyone?
+    return "People granted access" + (@agent.role_floor == :visitor ? "" : " — #{floor.downcase}") if @agent.granted?
+    return "Only #{@agent.creator.email_address}" if @agent.creator
+
+    "Nobody: the account that created it was deleted"
+  end
+
+  def draws_on
+    section_titled("Draws on") do
+      p(class: "text-sm text-muted") do
+        next "Whatever the person chatting can read, narrowed when they start the chat" if @agent.user_collections?
+
+        @agent.collections.order(:name).map(&:name).to_sentence.presence || "No collections"
+      end
     end
   end
 

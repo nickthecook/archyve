@@ -223,6 +223,16 @@ RSpec.describe Chat::Responder do
       end
     end
 
+    context "when their grant on the agent was revoked after the chat started" do
+      let(:agent) { create(:agent, name: "Policy bot", access_mode: "granted") }
+      let(:conversation) { create(:conversation, agent:, inference_model: chat_model) }
+
+      it "refuses on the turn" do
+        respond
+        expect(turn.error).to include("no longer have access to Policy bot")
+      end
+    end
+
     context "when no chat model is configured" do
       let(:conversation) { create(:conversation, inference_model: nil) }
 

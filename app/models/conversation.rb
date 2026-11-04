@@ -30,18 +30,35 @@ class Conversation < ApplicationRecord
   def retrieval_scope = Retrieval::Scope.from_spec(scope, user:)
 
   # What to call this scope in the UI and in the model's instructions.
-  def scope_label = retrieval_scope&.label || "your whole archive"
+  def scope_label = Retrieval::Corpus.for(self).label
 
   # Whether this chat has an archive to draw on at all. A scope that names no
   # collection is a deliberate choice — chat with the model, leave the archive
   # out of it — so the model isn't handed a search tool that could only ever
-  # come back empty. nil scope is All, which very much does search.
-  def searches_archive? = agent.searches_archive? && !retrieval_scope&.names_nothing?
+  # come back empty. nil scope is All, which very much does search. A fixed-set
+  # agent has no picker, so its scope is never consulted.
+  def searches_archive?
+    return false unless agent.searches_archive?
+    return true if agent.fixed_collections?
+
+    !retrieval_scope&.names_nothing?
+  end
 
   # What the composer and the chat list call this conversation's subject.
   def subject_label = agent.searches_archive? ? scope_label : agent.name
 
   def toolsets = agent.toolsets.map { it.new(self) }
+
+  # Whether a citation here may link to the document: exactly what /documents/:id
+  # lets this conversation's owner open. A fixed-set agent can cite documents they
+  # can't, and the citation then renders as plain text.
+  def reaches?(document_id)
+    return true if user.admin?
+
+    (@reaches ||= {}).fetch(document_id) do
+      @reaches[document_id] = Document.reachable_by(user).exists?(document_id)
+    end
+  end
 
   def next_message_position = (messages.maximum(:position) || 0) + 1
 

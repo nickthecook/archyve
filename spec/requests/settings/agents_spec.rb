@@ -57,6 +57,26 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       expect(response.body).to include("can&#39;t be changed")
     end
 
+    context "when only its creator may use it" do
+      let(:agent) { create(:agent, access_mode: "creator_only", creator: create(:user, email_address: "pat@example.com")) }
+
+      it "says who" do
+        request
+        expect(response.body).to include("Only pat@example.com")
+      end
+    end
+
+    context "when it has a fixed set of collections" do
+      let(:agent) { create(:agent, collection_mode: "fixed") }
+
+      before { create(:agent_collection, agent:, collection: create(:collection, name: "Shared handbook")) }
+
+      it "names them" do
+        request
+        expect(response.body).to include("Shared handbook")
+      end
+    end
+
     context "when the agent doesn't exist" do
       let(:agent) { "nobody" }
 

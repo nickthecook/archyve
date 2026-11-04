@@ -83,6 +83,57 @@ RSpec.describe Conversation do
     end
   end
 
+  describe "#reaches?" do
+    subject(:conversation) { create(:conversation, user:) }
+
+    let(:result) { conversation.reaches?(document.id) }
+    let(:user) { create(:user) }
+    let(:collection) { create(:collection) }
+    let(:document) { create(:document) }
+
+    before { create(:collection_membership, collection:, document:, origin: "manual") }
+
+    context "when the owner may read a collection it is in" do
+      before { create(:collection_user, collection:, user:) }
+
+      it { expect(result).to be(true) }
+    end
+
+    context "when the owner may not" do
+      it { expect(result).to be(false) }
+    end
+
+    context "when the owner is an admin" do
+      let(:user) { create(:user, :admin) }
+
+      it { expect(result).to be(true) }
+    end
+
+    # The same rule as /documents/:id: a source's manager can open what it produced.
+    context "when the owner manages the source that produced it" do
+      let(:user) { create(:user, :curator) }
+      let(:document) { create(:document, source: create(:source, user:)) }
+
+      it { expect(result).to be(true) }
+    end
+  end
+
+  describe "with a fixed-set agent" do
+    subject(:conversation) { create(:conversation, agent:, scope: { "c" => [] }) }
+
+    let(:agent) { create(:agent, collection_mode: "fixed") }
+
+    before { create(:agent_collection, agent:, collection: create(:collection, name: "Shared handbook")) }
+
+    it "searches, even though its scope names nothing" do
+      expect(conversation).to be_searches_archive
+    end
+
+    it "is about the agent's collections" do
+      expect(conversation.scope_label).to eq("Shared handbook")
+    end
+  end
+
   describe "#next_message_position" do
     subject(:conversation) { create(:conversation) }
 
