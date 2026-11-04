@@ -11,7 +11,7 @@ module Chat
     end
 
     def to_s
-      [@conversation.agent.prompt, Toolsets::Archive.instructions(@conversation), purpose_addendum]
+      [@conversation.agent.prompt, *@conversation.toolsets.map(&:instructions), purpose_addendum]
         .compact_blank.join("\n\n")
     end
 

@@ -3,15 +3,31 @@
 module Toolsets
   # The rules the archive tools depend on. See "The system prompt" in
   # docs/architecture.md for why each one is there.
-  class Archive
-    def self.instructions(conversation) = new(conversation).instructions
-
-    def initialize(conversation)
-      @conversation = conversation
-    end
+  class Archive < Base
+    def self.label = "Archive"
+    def self.description = "Search, read and list the collections a conversation draws on."
+    def self.role_floor = :visitor
 
     def instructions
       @conversation.searches_archive? ? retrieval : unaided
+    end
+
+    # A chat scoped to no collections gets none: tools that could only come back
+    # empty would have the model reporting an empty archive.
+    #
+    # One corpus and one handle counter for the whole turn: the corpus so the
+    # tools can't disagree about what this conversation can see, the counter so
+    # they cite into one namespace.
+    def tools(observer:)
+      return [] unless @conversation.searches_archive?
+
+      shared = { corpus: Retrieval::Corpus.for(@conversation), handles: Retrieval::Handles.new, observer: }
+      [
+        Tools::Search.new(limit: Setting.chat_result_limit, **shared),
+        Tools::Read.new(**shared),
+        Tools::ListCollections.new(**shared),
+        Tools::ListDocuments.new(**shared)
+      ]
     end
 
     private

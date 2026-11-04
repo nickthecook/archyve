@@ -207,6 +207,22 @@ RSpec.describe Chat::Responder do
       end
     end
 
+    context "when the agent's toolsets need a higher role than the person chatting has" do
+      let(:conversation) { create(:conversation, user: create(:user, :curator), inference_model: chat_model) }
+
+      before { allow(Toolsets::Archive).to receive(:role_floor).and_return(:admin) }
+
+      it "refuses on the turn" do
+        respond
+        expect(turn.error).to include("no longer have access to Archivist")
+      end
+
+      it "asks nothing of the model" do
+        respond
+        expect(llm.messages).to be_empty
+      end
+    end
+
     context "when no chat model is configured" do
       let(:conversation) { create(:conversation, inference_model: nil) }
 

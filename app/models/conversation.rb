@@ -38,6 +38,8 @@ class Conversation < ApplicationRecord
   # come back empty. nil scope is All, which very much does search.
   def searches_archive? = !retrieval_scope&.names_nothing?
 
+  def toolsets = agent.toolsets.map { it.new(self) }
+
   def next_message_position = (messages.maximum(:position) || 0) + 1
 
   # The most recent turn a server reported a prompt size for.

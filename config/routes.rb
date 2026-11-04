@@ -94,9 +94,9 @@ Rails.application.routes.draw do
       resources :collection_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "collection" }
       resources :source_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "source" }
     end
-    # The system prompt every chat uses. A single page for prompt-related
-    # settings, not a CRUD resource — see Setting.
-    resource :prompt, only: [:show, :update]
+    resources :agents, only: [:index, :show]
+    # The instance purpose, edited on the Agents page because it goes into every agent's prompt.
+    resource :purpose, only: [:update]
     resource :branding, only: [:show, :update]
     # Instance-wide on/off switches, flipped from the settings index itself —
     # too small each to be worth a page. Update-only: there is nothing to show

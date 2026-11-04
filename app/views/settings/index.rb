@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Views::Settings::Index < Views::Base
-  def initialize(people_count:, server_count:, model_count:, endpoint_count:, prompt:, rounds:,
+  def initialize(people_count:, server_count:, model_count:, endpoint_count:, agent_count:, rounds:,
     record_api_calls:, record_incoming_api_calls:, branded:, feedback_count:)
     @people_count = people_count
     @server_count = server_count
     @model_count = model_count
     @endpoint_count = endpoint_count
-    @prompt = prompt
+    @agent_count = agent_count
     @rounds = rounds
     @record_api_calls = record_api_calls
     @record_incoming_api_calls = record_incoming_api_calls
@@ -49,11 +49,11 @@ class Views::Settings::Index < Views::Base
       ) { endpoint_icon }
 
       render Views::MenuCard.new(
-        href: settings_prompt_path,
-        title: "Prompt",
-        description: "What every chat's system prompt tells the model.",
-        meta: prompt_meta
-      ) { prompt_icon }
+        href: settings_agents_path,
+        title: "Agents",
+        description: "Who people chat with, and what each one can do.",
+        meta: "#{@agent_count} #{'agent'.pluralize(@agent_count)}"
+      ) { render Views::Settings::Agents::Icon.new }
 
       render Views::MenuCard.new(
         href: settings_branding_path,
@@ -117,10 +117,6 @@ class Views::Settings::Index < Views::Base
     "#{@endpoint_count} #{'endpoint'.pluralize(@endpoint_count)}"
   end
 
-  def prompt_meta
-    @prompt.present? ? "set" : "not set"
-  end
-
   def admin_icon
     svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
       s.rect(x: "3", y: "4", width: "18", height: "16", rx: "1.6")
@@ -149,14 +145,6 @@ class Views::Settings::Index < Views::Base
       s.path(d: "M9 3v6M15 3v6")
       s.rect(x: "6", y: "9", width: "12", height: "6", rx: "1.6")
       s.path(d: "M12 15v6")
-    end
-  end
-
-  def prompt_icon
-    svg(width: "18", height: "18", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "1.6", aria_hidden: "true") do |s|
-      s.path(d: "M12 4v11")
-      s.path(d: "M7 10.5 12 15l5-4.5")
-      s.path(d: "M5 19.5h14")
     end
   end
 

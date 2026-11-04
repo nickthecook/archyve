@@ -241,6 +241,13 @@ rules its tools depend on. The purpose goes last so it can never override them.
 Agents are DB rows. The built-in ones (Archivist so far) are locked and rewritten
 from `Agent::BUILT_INS` on every seed. See issue #92.
 
+Toolsets are a registry in code (`Toolsets.all`), and agents name theirs by key.
+Each toolset builds its own tools per turn, with the context they need, and
+declares a role floor. An agent's floor is the highest among its toolsets, and
+`Chat::Responder` checks it on every turn rather than when the chat started, so
+adding an admin-only toolset to an agent cuts off existing lower-role chats
+instead of quietly widening what they can do.
+
 The archive toolset's instructions do four jobs, roughly in order of how badly
 things go wrong without them:
 

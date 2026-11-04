@@ -3,5 +3,6 @@ FactoryBot.define do
     sequence(:slug) { "agent-#{it}" }
     name { "Test agent" }
     prompt { "You are a test agent." }
+    toolset_keys { ["archive"] }
   end
 end

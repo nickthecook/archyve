@@ -7,7 +7,7 @@ class SettingsController < ApplicationController
       server_count: InferenceServer.count,
       model_count: InferenceModel.count,
       endpoint_count: Endpoint.count,
-      prompt: Setting.chat_instance_purpose,
+      agent_count: Agent.count,
       rounds: rounds,
       record_api_calls: Setting.record_api_calls?,
       record_incoming_api_calls: Setting.record_incoming_api_calls?,

@@ -31,6 +31,7 @@ module Chat
       model = @answer.inference_model
       turn = Turn.new(@answer)
 
+      return turn.fail!(agent_refused_message) unless @conversation.agent.usable_by?(@conversation.user)
       return turn.fail!(no_model_message) if model.nil?
       return turn.fail!(no_tools_message(model)) unless model.supports_tools?
 
@@ -97,33 +98,9 @@ module Chat
       chat.with_instructions(Instructions.for(@conversation))
       params = model.inference_server.stream_params
       chat.with_params(**params) if params.any?
-      # A chat scoped to no collections gets no tools at all. Handing it ones
-      # that can only return "nothing found" would have the model reporting an
-      # empty archive when the truth is that nobody pointed it at one.
-      tools(turn).each { chat.with_tool(it) } if @conversation.searches_archive?
+      @conversation.toolsets.flat_map { it.tools(observer: turn) }.each { chat.with_tool(it) }
       replay(chat)
       chat
-    end
-
-    # One corpus and one handle counter for the whole turn, shared by every
-    # tool: the corpus so search and read can't disagree about what this
-    # conversation can see, the counter so they cite into one namespace.
-    #
-    # Each tool spends its own round budget and reads its own setting for it —
-    # see Tools::Base#default_max_rounds.
-    def tools(turn)
-      shared = {
-        corpus: Retrieval::Corpus.for(@conversation),
-        handles: Retrieval::Handles.new,
-        observer: turn
-      }
-
-      [
-        Tools::Search.new(limit: Setting.chat_result_limit, **shared),
-        Tools::Read.new(**shared),
-        Tools::ListCollections.new(**shared),
-        Tools::ListDocuments.new(**shared)
-      ]
     end
 
     # Everything before this question. Past searches come back with it — see
@@ -141,6 +118,12 @@ module Chat
     # error — but it is the user's own conversation, so they hear about it.
     def no_model_message
       "No chat model is configured. Ask an admin to add a tool-capable one under Settings › Inference."
+    end
+
+    # Checked per turn, not when the chat started: an agent can gain a toolset
+    # with a higher floor after the conversation began.
+    def agent_refused_message
+      "You no longer have access to #{@conversation.agent.name}, so it can't answer here."
     end
 
     def no_tools_message(model)
