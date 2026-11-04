@@ -8,9 +8,12 @@ class ConversationsController < ApplicationController
   before_action :load_conversation, only: [:show, :destroy]
 
   def index
+    agents = Agent.choosable_by(Current.user)
+
     render Views::Conversations::Index.new(
       conversations: Current.user.conversations.includes(:agent).recent.limit(30),
-      agent: Agent.archivist,
+      agents:,
+      agent: agents.find { it.slug == params[:agent] } || Agent.default_chat,
       collections: readable_collections,
       models: choosable_models,
       model: InferenceModel.default_chat,
@@ -74,7 +77,7 @@ class ConversationsController < ApplicationController
 
   # An agent this person can't use is a 404, the same as someone else's conversation.
   def chosen_agent
-    return Agent.archivist if params[:agent].blank?
+    return Agent.default_chat if params[:agent].blank?
 
     agent = Agent.find_by!(slug: params[:agent])
     raise ActiveRecord::RecordNotFound unless agent.usable_by?(Current.user)

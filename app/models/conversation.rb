@@ -44,8 +44,8 @@ class Conversation < ApplicationRecord
     !retrieval_scope&.names_nothing?
   end
 
-  # What the composer and the chat list call this conversation's subject.
-  def subject_label = agent.searches_archive? ? scope_label : agent.name
+  # Who it's with, and what it draws on when that's the archive: "Kevin · Handbook".
+  def subject_label = [agent.name, (scope_label if agent.searches_archive?)].compact.join(" · ")
 
   def toolsets = agent.toolsets.map { it.new(self) }
 

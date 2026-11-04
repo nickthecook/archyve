@@ -117,6 +117,17 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    context "when no agent is named and another is the default" do
+      let!(:default) { create(:agent, slug: "policy-bot") }
+
+      before { Setting["chat.default_agent"] = "policy-bot" }
+
+      it "asks the default" do
+        request
+        expect(Conversation.last.agent).to eq(default)
+      end
+    end
+
     context "when an admin starts a chat with Admin Support" do
       let(:params) { { message: "Why are documents stuck?", agent: "admin_support", c: ["handbook"] } }
 
@@ -261,6 +272,11 @@ RSpec.describe "Conversations", type: :request do
       it "leads back to Chat" do
         request
         expect(response.body).to include(crumb("Chat", conversations_path))
+      end
+
+      it "says which agent it is with" do
+        request
+        expect(response.body).to include("Ask Archivist about your whole archive…")
       end
 
       context "with Admin Support" do
@@ -532,6 +548,59 @@ RSpec.describe "Conversations", type: :request do
 
       it "does not delete it" do
         expect { request }.not_to change(Conversation, :count)
+      end
+    end
+  end
+
+  describe "GET /chat, choosing an agent" do
+    subject(:request) { get conversations_path(agent: picked) }
+
+    let(:picked) { nil }
+
+    context "when Archivist is the only agent they can use" do
+      before { create(:agent, name: "Private bot", access_mode: "granted") }
+
+      it "offers no choice" do
+        request
+        expect(response.body).not_to include('aria-label="Agent"')
+      end
+    end
+
+    context "when they have chatted with another agent" do
+      before do
+        create(:conversation, user: current_user, title: "Leave policy",
+          agent: create(:agent, name: "Kevin", collection_mode: "fixed"))
+      end
+
+      it "lists the chat under that agent's name" do
+        request
+        expect(response.body).to include("Kevin · no collections")
+      end
+    end
+
+    context "when they can use another agent" do
+      let!(:policy) do
+        create(:agent, name: "Policy bot", collection_mode: "fixed", access_mode: "granted")
+          .tap { create(:agent_user, agent: it, user: current_user) }
+      end
+
+      it "offers it" do
+        request
+        expect(response.body).to include(conversations_path(agent: policy.slug))
+      end
+
+      context "and they pick it" do
+        let(:picked) { policy.slug }
+
+        it "starts the chat with it" do
+          request
+          expect(response.body).to include(%(name="agent" value="#{policy.slug}"))
+        end
+
+        it "offers no collections to narrow, since its set is fixed" do
+          request
+          expect(response.body).not_to include('name="c[]"')
+        end
       end
     end
   end

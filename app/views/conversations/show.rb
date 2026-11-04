@@ -39,10 +39,11 @@ class Views::Conversations::Show < Views::Base
   end
 
   def ask_placeholder
-    return "Ask #{@conversation.agent.name}…" unless @conversation.agent.searches_archive?
-    return "Ask about #{@conversation.scope_label}…" if @conversation.searches_archive?
+    name = @conversation.agent.name
+    return "Ask #{name}…" unless @conversation.agent.searches_archive?
+    return "Ask #{name} about #{@conversation.scope_label}…" if @conversation.searches_archive?
 
-    "Ask anything — nothing here is searched"
+    "Ask #{name} anything — nothing here is searched"
   end
 
   # The meter sits in the composer's own block rather than before it, so the
@@ -77,9 +78,14 @@ class Views::Conversations::Show < Views::Base
                "text-fg placeholder:text-faint outline-none"
       )
       div(class: "flex flex-wrap items-center gap-3") do
-        span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
-          span(class: "h-1.5 w-1.5 rounded-full #{@conversation.searches_archive? ? 'bg-accent' : 'bg-line-2'}")
-          plain @conversation.subject_label
+        span(class: "inline-flex items-center rounded-full border border-line px-2.5 py-1 text-xs text-fg") do
+          @conversation.agent.name
+        end
+        if @conversation.agent.searches_archive?
+          span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
+            span(class: "h-1.5 w-1.5 rounded-full #{@conversation.searches_archive? ? 'bg-accent' : 'bg-line-2'}")
+            plain @conversation.scope_label
+          end
         end
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
         button(

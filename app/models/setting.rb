@@ -76,6 +76,14 @@ class Setting < ApplicationRecord
       label: "Default chat model",
       description: "What a new conversation starts on. Anyone asking can pick a different one for that question."
     ),
+    # A slug, resolved through Agent.default_chat, which falls back to Archivist
+    # when it names an agent that no longer qualifies.
+    "chat.default_agent" => Definition.new(
+      default: "archivist",
+      type: :string,
+      label: "Default chat agent",
+      description: "The chat agent used by default for new chats. The default agent must be usable by 'Everyone'."
+    ),
     # Recording every outbound inference call to api_calls — see ApiCall.
     # ARCHYVE_RECORD_API_CALLS sets the default, so a deployment can boot with
     # recording already on; a row overrides it, which is what lets it be
@@ -171,6 +179,7 @@ class Setting < ApplicationRecord
     def chat_max_listing_rounds = self["chat.max_listing_rounds"]
     def chat_instance_purpose = self["chat.instance_purpose"]
     def chat_default_model_id = self["chat.default_model_id"]
+    def chat_default_agent = self["chat.default_agent"]
     def record_api_calls? = self["debug.record_api_calls"]
     def record_incoming_api_calls? = self["debug.record_incoming_api_calls"]
     def brand_name = self["brand.name"]

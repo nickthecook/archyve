@@ -7,8 +7,9 @@
 # so there is no setup screen. Past conversations sit below the rule as this
 # page's content.
 class Views::Conversations::Index < Views::Base
-  def initialize(conversations:, agent:, collections:, models: [], model: nil, scope: nil, unavailable: nil)
+  def initialize(conversations:, agent:, collections:, agents: [], models: [], model: nil, scope: nil, unavailable: nil)
     @conversations = conversations
+    @agents = agents
     @agent = agent
     @collections = collections
     @models = models
@@ -43,10 +44,27 @@ class Views::Conversations::Index < Views::Base
   end
 
   def composer
+    agent_picker if @agents.size > 1
     render Views::Conversations::Composer.new(
       agent: @agent, models: @models, model: @model, collections: @collections, scope: @scope,
-      unavailable: @unavailable, placeholder: Brand.current.chat_placeholder
+      unavailable: @unavailable, placeholder: (Brand.current.chat_placeholder if @agent.narrowable?)
     )
+  end
+
+  # Links rather than a select inside the form: the composer below differs by
+  # agent (a fixed set has no collection picker), so choosing one reloads it.
+  def agent_picker
+    nav(aria_label: "Agent", class: "mb-3 flex flex-wrap items-center gap-2") do
+      span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Ask" }
+      @agents.each do |agent|
+        selected = agent == @agent
+        a(
+          href: conversations_path(agent: agent.slug), aria_current: (selected ? "true" : nil),
+          class: "rounded-full border px-2.5 py-1 text-xs transition-colors " \
+                 "#{selected ? 'border-line-2 bg-ink text-fg' : 'border-line text-muted hover:border-line-2 hover:text-fg'}"
+        ) { agent.name }
+      end
+    end
   end
 
   def list

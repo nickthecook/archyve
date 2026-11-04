@@ -280,6 +280,22 @@ through `Document.in_collections`, so they can't disagree about what a
 membership means. A fixed corpus never returns an empty filter list, because
 `Retrieval::Search` reads an empty list as unrestricted.
 
+**Making and changing agents (built 2026-11-04).** Admins make agents in
+Settings › Agents, from scratch or by duplicating one; built-ins can only be
+duplicated. Both kinds of new agent start creator-only. `Agents::Sharing`
+enforces the two rules for sharing a fixed set, checked against whoever is
+saving:
+
+- only a manager of a collection may add it to a shared agent;
+- an agent becoming shared (leaving creator-only, or switching to a fixed set)
+  is checked for every collection it holds.
+
+Admins manage every collection, so these rules only bite once curators can edit
+agents. The default chat agent is a setting, limited to *everyone* agents with a
+visitor floor, and falls back to Archivist if its choice stops qualifying.
+Chat's picker lists the agents a person can use, except Admin Support, which is
+started from Settings › Admin.
+
 That sharing is why **citation links follow `Conversation#reaches?`**: a citation
 links only when the conversation's owner could open the document at
 `/documents/:id`, and otherwise renders as a plain marker. It's the owner, not

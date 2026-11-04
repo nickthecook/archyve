@@ -94,7 +94,11 @@ Rails.application.routes.draw do
       resources :collection_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "collection" }
       resources :source_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "source" }
     end
-    resources :agents, only: [:index, :show]
+    resources :agents do
+      post :duplicate, on: :member
+      resources :people, only: [:index, :create, :update, :destroy], controller: "agent_users"
+    end
+    resource :default_agent, only: [:update]
     # The instance purpose, edited on the Agents page because it goes into every agent's prompt.
     resource :purpose, only: [:update]
     resource :branding, only: [:show, :update]

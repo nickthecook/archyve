@@ -31,13 +31,28 @@ class Agent < ApplicationRecord
   has_many :agent_collections, dependent: :destroy
   has_many :collections, through: :agent_collections
 
-  validates :slug, presence: true, uniqueness: true
+  # Slugs are route segments under /settings/agents.
+  RESERVED_SLUGS = %w[new].freeze
+
+  before_validation :set_slug, on: :create
+
+  validates :slug, presence: true, uniqueness: true, exclusion: { in: RESERVED_SLUGS }
   validates :name, presence: true
   validates :creator, presence: true, if: -> { creator_only? && new_record? }
   validate :toolsets_exist
 
   def self.archivist = find_by!(slug: "archivist")
   def self.admin_support = find_by!(slug: "admin_support")
+
+  # Falls back to Archivist when the setting names an agent that has since
+  # stopped qualifying, so a new chat always has someone to answer it.
+  def self.default_chat
+    chosen = find_by(slug: Setting.chat_default_agent)
+    chosen&.default_eligible? ? chosen : archivist
+  end
+
+  # What Chat's picker offers. Admin Support is started from Settings › Admin instead.
+  def self.choosable_by(user) = where.not(slug: "admin_support").order(:name).select { it.usable_by?(user) }
 
   # Built-ins are locked, so this code is their source of truth: every seed rewrites them.
   def self.seed_built_ins!
@@ -71,7 +86,34 @@ class Agent < ApplicationRecord
   # Whether the person chatting picks what it draws on. A fixed set can't be narrowed.
   def narrowable? = searches_archive? && user_collections?
 
+  # The default answers everyone's new chats, so it has to be usable by everyone.
+  def default_eligible? = everyone? && role_floor == :visitor
+
+  # Private to whoever copied it until they choose to share it.
+  def duplicate(by:)
+    Agent.new(
+      name: "#{name} (copy)", prompt:, toolset_keys:, collection_mode:, collection_ids:,
+      access_mode: "creator_only", creator: by
+    )
+  end
+
+  def removal_refusal
+    return "Built-in agents can't be removed." if built_in?
+    return unless conversations.exists?
+
+    count = conversations.count
+    "It's in #{count} #{'conversation'.pluralize(count)}, which would lose who answered them."
+  end
+
   private
+
+  def set_slug
+    return if slug.present? || name.blank?
+
+    base = name.parameterize.presence || "agent"
+    base = "#{base}-agent" if RESERVED_SLUGS.include?(base)
+    self.slug = (1..).lazy.map { it == 1 ? base : "#{base}-#{it}" }.find { !Agent.exists?(slug: it) }
+  end
 
   def toolsets_exist
     unknown = toolset_keys - Toolsets.keys

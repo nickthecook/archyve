@@ -183,6 +183,121 @@ RSpec.describe Agent do
     end
   end
 
+  describe "its slug" do
+    subject(:agent) { create(:agent, slug: nil, name:) }
+
+    context "with an ordinary name" do
+      let(:name) { "Policy Bot" }
+
+      it { expect(agent.slug).to eq("policy-bot") }
+    end
+
+    context "with a name another agent's slug already has" do
+      let(:name) { "Archivist" }
+
+      it "numbers it" do
+        expect(agent.slug).to eq("archivist-2")
+      end
+    end
+
+    # /settings/agents/new is the form, not an agent.
+    context "with a name that would collide with a route" do
+      let(:name) { "New" }
+
+      it { expect(agent.slug).to eq("new-agent") }
+    end
+  end
+
+  describe ".default_chat" do
+    let(:result) { described_class.default_chat }
+
+    context "when nothing has been chosen" do
+      it { expect(result).to eq(described_class.archivist) }
+    end
+
+    context "when an agent everyone can use has been chosen" do
+      let!(:chosen) { create(:agent, slug: "policy-bot") }
+
+      before { Setting["chat.default_agent"] = "policy-bot" }
+
+      it { expect(result).to eq(chosen) }
+    end
+
+    context "when the chosen agent has since become granted" do
+      before do
+        create(:agent, slug: "policy-bot", access_mode: "granted")
+        Setting["chat.default_agent"] = "policy-bot"
+      end
+
+      it "falls back to Archivist" do
+        expect(result).to eq(described_class.archivist)
+      end
+    end
+
+    context "when the chosen agent no longer exists" do
+      before { Setting["chat.default_agent"] = "gone" }
+
+      it { expect(result).to eq(described_class.archivist) }
+    end
+  end
+
+  describe ".choosable_by" do
+    let(:result) { described_class.choosable_by(user) }
+    let(:user) { create(:user, :admin) }
+
+    before { create(:agent, name: "Someone's private bot", access_mode: "creator_only", creator: create(:user)) }
+
+    it "offers what they can use, but not Admin Support" do
+      expect(result.map(&:name)).to eq(["Archivist"])
+    end
+  end
+
+  describe "#duplicate" do
+    subject(:copy) { original.duplicate(by: user) }
+
+    let(:original) { create(:agent, name: "Policy bot", collection_mode: "fixed", access_mode: "everyone") }
+    let(:user) { create(:user, :admin) }
+    let(:collection) { create(:collection) }
+
+    before { create(:agent_collection, agent: original, collection:) }
+
+    it "names it as a copy" do
+      expect(copy.name).to eq("Policy bot (copy)")
+    end
+
+    it "keeps its collections" do
+      expect(copy.collection_ids).to eq([collection.id])
+    end
+
+    it "starts private to whoever copied it" do
+      expect(copy).to have_attributes(access_mode: "creator_only", creator: user)
+    end
+
+    it "saves" do
+      expect(copy.save).to be(true)
+    end
+  end
+
+  describe "#removal_refusal" do
+    subject(:agent) { create(:agent) }
+
+    context "when nothing uses it" do
+      it { expect(agent.removal_refusal).to be_nil }
+    end
+
+    context "when a conversation used it" do
+      before { create(:conversation, agent:) }
+
+      it { expect(agent.removal_refusal).to include("1 conversation") }
+    end
+
+    context "when it is built in" do
+      subject(:agent) { described_class.archivist }
+
+      it { expect(agent.removal_refusal).to include("Built-in") }
+    end
+  end
+
   describe "validation of a creator-only agent" do
     subject(:agent) { build(:agent, access_mode: "creator_only", creator: nil) }
 

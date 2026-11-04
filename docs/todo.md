@@ -78,24 +78,6 @@ narrowed, or the transcript stops explaining the result.
   association and this does not. Cheap to fix if it ever bites: the ids are in
   the segment, so one lookup per panel would do it.
 
-## Creating and editing agents (#92, phase 5)
-
-Agents can be granted, creator-only or fixed-set (see "Who can use an agent" in
-`architecture.md`), but nothing in the app makes one yet: the two built-ins are
-locked. Still to build:
-
-- Duplicate an agent, and edit its name, prompt, toolsets, access mode, grants
-  and collections in Settings › Agents. Built-ins stay read-only.
-- An agent picker in Chat's composer, listing the agents the person can use.
-- A setting for the default chat agent. Only an *everyone* agent with a visitor
-  floor qualifies.
-- Two checks when collections are shared, both made against the person doing the
-  edit, which is why they wait for the edit form:
-  - only a manager of a collection may add it to an agent that isn't
-    creator-only;
-  - an agent can't move off creator-only unless whoever changes it manages every
-    collection it holds.
-
 ## A collection that summarises itself
 
 `collections.description` is written by hand and says what a collection is *for*.
