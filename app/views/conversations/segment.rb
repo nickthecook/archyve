@@ -38,6 +38,7 @@ class Views::Conversations::Segment < Components::Base
       when :thinking then render Views::Conversations::Thinking.new(segment: @segment)
       when :reading then render Views::Conversations::Reading.new(segment: @segment)
       when :listing then render Views::Conversations::Listing.new(segment: @segment)
+      when :tool_call then render Views::Conversations::ToolCall.new(segment: @segment)
       else render Views::Conversations::Retrieval.new(segment: @segment)
       end
     end

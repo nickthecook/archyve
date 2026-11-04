@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
-# The menu of record pages — one card per model, added as each model gets one.
-# The pages themselves are generated; see docs/design.md.
+# Admin Support's composer, then the menu of record pages — one card per model,
+# added as each model gets one. The pages themselves are generated; see
+# docs/design.md.
 class Views::Settings::Admin::Index < Views::Base
-  def initialize(api_call_count:, api_key_count:, recording:)
+  def initialize(agent:, models:, model:, unavailable:, api_call_count:, api_key_count:, recording:)
+    @agent = agent
+    @models = models
+    @model = model
+    @unavailable = unavailable
     @api_call_count = api_call_count
     @api_key_count = api_key_count
     @recording = recording
@@ -11,10 +16,13 @@ class Views::Settings::Admin::Index < Views::Base
 
   def view_template
     breadcrumb(["Settings", settings_path], "Admin")
-    render Views::Admin::Heading.new(
-      title: "Admin",
-      blurb: "What Archyve has stored, model by model."
+    render Views::Admin::Heading.new(title: "Admin", blurb: "Tools for Archyve Admins.")
+
+    render Views::Conversations::Composer.new(
+      agent: @agent, models: @models, model: @model, unavailable: @unavailable,
+      placeholder: "Ask Admin Support what's wrong — failed jobs, queues, servers, documents…"
     )
+    render Views::Rule.new
 
     div(class: "flex flex-col gap-3") do
       render Views::MenuCard.new(

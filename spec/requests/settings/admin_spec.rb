@@ -11,6 +11,16 @@ RSpec.describe "Settings::Admin", :unauthenticated, type: :request do
       expect(response.body).to include("API calls", settings_api_calls_path)
     end
 
+    it "offers a chat with Admin Support" do
+      request
+      expect(response.body).to include('name="agent" value="admin_support"')
+    end
+
+    it "offers no collections to draw on" do
+      request
+      expect(response.body).not_to include('name="c[]"')
+    end
+
     context "with nothing recorded" do
       before { Setting["debug.record_api_calls"] = false }
 

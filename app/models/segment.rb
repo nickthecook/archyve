@@ -4,13 +4,14 @@
 # — and keeping them ordered is what lets the transcript show the pause where it
 # actually happened rather than tidying the tool call away into a footnote.
 #
-# Five kinds, and they use different columns:
+# Six kinds, and they use different columns:
 #
 #   text       `content` — prose, rendered as paragraphs
 #   thinking   `content` — the model's own reasoning, collapsed in the transcript
 #   retrieval  `queries`, `candidate_count`, `failure_kind`, and its hits
 #   reading    `reading` — which document and range was read, and its hits
 #   listing    `listing` — what walking the archive listed, and no hits at all
+#   tool_call  `tool_call` — any other tool: what it checked and what came back
 #
 # ## Three outcomes, not two
 #
@@ -28,7 +29,12 @@ class Segment < ApplicationRecord
   # `reading` rather than `read`: the predicate Rails generates from it sits
   # beside ActiveRecord's own reading vocabulary without shadowing anything,
   # and "a reading segment" is what this is.
-  enum :kind, { text: 0, retrieval: 1, thinking: 2, reading: 3, listing: 4 }, validate: true
+  enum :kind, { text: 0, retrieval: 1, thinking: 2, reading: 3, listing: 4, tool_call: 5 }, validate: true
+
+  # Enough for an admin to read in the panel; the model got the whole result.
+  TOOL_RESULT_LIMIT = 20_000
+  # Replayed results are trimmed harder: every later turn pays for them again.
+  TOOL_HISTORY_LIMIT = 2_000
 
   validates :position, presence: true, uniqueness: { scope: :message_id }
   validates :content, presence: true, if: :prose?
@@ -86,6 +92,7 @@ class Segment < ApplicationRecord
     return content if text?
     return read_history if reading?
     return listing_history if listing?
+    return tool_call_history if tool_call?
     # Thinking is deliberately *not* replayed. It was never said to the person
     # asking, and handing a model its own previous reasoning invites it to carry
     # on from it rather than answer afresh — the reason providers drop the
@@ -146,6 +153,13 @@ class Segment < ApplicationRecord
   def listed_total = listing&.dig("total")
   def listing_refused? = listing&.dig("refusal").present?
 
+  def record_tool_result!(result)
+    update!(tool_call: tool_call.to_h.merge("result" => result.to_s.truncate(TOOL_RESULT_LIMIT)))
+  end
+
+  def tool_label = tool_call&.dig("label")
+  def tool_result = tool_call&.dig("result")
+
   def read_title = reading&.dig("title")
   def reading_from = reading&.dig("from")
   def reading_to = reading&.dig("to")
@@ -182,6 +196,12 @@ class Segment < ApplicationRecord
     return "[listed the collections in this chat's scope: #{collection_lines}]" if listed_collections?
 
     "[listed documents #{listed_from}–#{listed_to} of #{listed_total} in #{listed_title}: #{document_lines}]"
+  end
+
+  def tool_call_history
+    return "[started checking #{tool_label}; it never finished]" if tool_result.nil?
+
+    "[checked #{tool_label}]\n#{tool_result.truncate(TOOL_HISTORY_LIMIT)}"
   end
 
   def collection_lines

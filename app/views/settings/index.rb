@@ -84,7 +84,7 @@ class Views::Settings::Index < Views::Base
       render Views::Doorway.new(
         href: settings_admin_path,
         title: "Admin",
-        description: "What Archyve has stored, model by model."
+        description: "Tools for Archyve Admins."
       ) { admin_icon }
     end
   end

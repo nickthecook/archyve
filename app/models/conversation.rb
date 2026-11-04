@@ -36,7 +36,10 @@ class Conversation < ApplicationRecord
   # collection is a deliberate choice — chat with the model, leave the archive
   # out of it — so the model isn't handed a search tool that could only ever
   # come back empty. nil scope is All, which very much does search.
-  def searches_archive? = !retrieval_scope&.names_nothing?
+  def searches_archive? = agent.searches_archive? && !retrieval_scope&.names_nothing?
+
+  # What the composer and the chat list call this conversation's subject.
+  def subject_label = agent.searches_archive? ? scope_label : agent.name
 
   def toolsets = agent.toolsets.map { it.new(self) }
 

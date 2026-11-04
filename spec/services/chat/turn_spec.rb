@@ -241,6 +241,49 @@ RSpec.describe Chat::Turn do
     end
   end
 
+  describe "#tool_started" do
+    context "when the model checks something mid-sentence" do
+      before do
+        turn.append("Let me look at the queues.")
+        turn.tool_started("check_queues", "the job queues")
+        turn.tool_finished("status: ok")
+        turn.append("They're healthy.")
+        turn.finish
+      end
+
+      it "leaves prose, tool call, prose" do
+        expect(segments.map(&:kind)).to eq(%w[text tool_call text])
+      end
+
+      it "keeps what was checked and what came back" do
+        expect(segments.second.tool_call).to eq(
+          "name" => "check_queues", "label" => "the job queues", "result" => "status: ok"
+        )
+      end
+    end
+
+    context "while the tool is still running" do
+      before { turn.tool_started("check_queues", "the job queues") }
+
+      it "has no result yet" do
+        expect(segments.first.tool_result).to be_nil
+      end
+    end
+
+    # Like a listing, a tool call puts no passages on the page.
+    context "when the model checks something and then says nothing" do
+      before do
+        turn.tool_started("check_queues", "the job queues")
+        turn.tool_finished("status: ok")
+        turn.finish
+      end
+
+      it "says it finished without answering" do
+        expect(turn.message.error).to eq("The model finished without answering.")
+      end
+    end
+  end
+
   # Each segment is counted and timed against its own stream — see Chat::Pace
   # for why the provider's own token total is deliberately not used.
   describe "counting what was generated" do

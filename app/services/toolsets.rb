@@ -3,7 +3,7 @@
 # Toolsets are code, not rows: tools are Ruby classes, so a table would only
 # mirror this list. See issue #92.
 module Toolsets
-  def self.all = [Archive]
+  def self.all = [Archive, AdminSupport]
 
   def self.keys = all.map(&:key)
 

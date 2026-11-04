@@ -75,6 +75,52 @@ RSpec.describe Segment do
         expect(segment.for_history).to include("isn't in this chat's scope")
       end
     end
+
+    context "with a tool call" do
+      subject(:segment) { create(:tool_call_segment) }
+
+      it "replays what was checked and what came back" do
+        expect(segment.for_history).to eq("[checked failed jobs]\n#{segment.tool_result}")
+      end
+    end
+
+    context "with a tool call whose result is long" do
+      subject(:segment) { create(:tool_call_segment, tool_call: { "label" => "failed jobs", "result" => "x" * 5_000 }) }
+
+      it "replays a trimmed result" do
+        expect(segment.for_history.length).to be < 2_100
+      end
+    end
+
+    context "with a tool call that never finished" do
+      subject(:segment) { create(:tool_call_segment, :running) }
+
+      it "says so" do
+        expect(segment.for_history).to eq("[started checking failed jobs; it never finished]")
+      end
+    end
+  end
+
+  describe "#record_tool_result!" do
+    subject(:segment) { create(:tool_call_segment, :running) }
+
+    before { segment.record_tool_result!(result) }
+
+    context "with an ordinary result" do
+      let(:result) { "status: ok" }
+
+      it "keeps it beside what was checked" do
+        expect(segment.reload.tool_call).to include("label" => "failed jobs", "result" => "status: ok")
+      end
+    end
+
+    context "with an enormous result" do
+      let(:result) { "x" * 50_000 }
+
+      it "keeps only what the panel can show" do
+        expect(segment.reload.tool_result.length).to eq(Segment::TOOL_RESULT_LIMIT)
+      end
+    end
   end
 
   describe "#record_reading!" do

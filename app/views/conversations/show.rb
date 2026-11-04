@@ -28,10 +28,18 @@ class Views::Conversations::Show < Views::Base
   def page_title = @conversation.title.presence || "Chat"
 
   def back_link
-    breadcrumb(["Chat", conversations_path], @conversation.title.presence || "Untitled chat")
+    breadcrumb(*trail, @conversation.title.presence || "Untitled chat")
+  end
+
+  # Where the chat was started from.
+  def trail
+    return [["Settings", settings_path], ["Admin", settings_admin_path]] if @conversation.agent.admin_support?
+
+    [["Chat", conversations_path]]
   end
 
   def ask_placeholder
+    return "Ask #{@conversation.agent.name}…" unless @conversation.agent.searches_archive?
     return "Ask about #{@conversation.scope_label}…" if @conversation.searches_archive?
 
     "Ask anything — nothing here is searched"
@@ -71,7 +79,7 @@ class Views::Conversations::Show < Views::Base
       div(class: "flex flex-wrap items-center gap-3") do
         span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
           span(class: "h-1.5 w-1.5 rounded-full #{@conversation.searches_archive? ? 'bg-accent' : 'bg-line-2'}")
-          plain @conversation.scope_label
+          plain @conversation.subject_label
         end
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
         button(

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -289,6 +289,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_130000) do
     t.jsonb "queries", default: [], null: false
     t.jsonb "reading"
     t.integer "token_count"
+    t.jsonb "tool_call"
     t.datetime "updated_at", null: false
     t.index ["message_id", "position"], name: "index_segments_on_message_id_and_position", unique: true
     t.index ["message_id"], name: "index_segments_on_message_id"

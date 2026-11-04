@@ -68,6 +68,7 @@ class Message < ApplicationRecord
     return "Reading the results…" if segments.last&.retrieval?
     return "Reading the document…" if segments.last&.reading?
     return "Reading the listing…" if segments.last&.listing?
+    return "Reading what it found…" if segments.last&.tool_call?
 
     # Thinking segments don't count: the model reasoning out loud isn't the
     # answer arriving, and the spinner is what says the answer is still coming.

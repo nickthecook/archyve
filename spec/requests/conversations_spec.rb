@@ -110,6 +110,51 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    context "when no agent is named" do
+      it "asks Archivist" do
+        request
+        expect(Conversation.last.agent).to eq(Agent.archivist)
+      end
+    end
+
+    context "when an admin starts a chat with Admin Support" do
+      let(:params) { { message: "Why are documents stuck?", agent: "admin_support", c: ["handbook"] } }
+
+      before { sign_in(create(:user, :admin)) }
+
+      it "asks Admin Support" do
+        request
+        expect(Conversation.last.agent).to eq(Agent.admin_support)
+      end
+
+      it "draws on no collections, whatever was posted" do
+        request
+        expect(Conversation.last.scope).to eq("c" => [])
+      end
+    end
+
+    context "when a curator names Admin Support" do
+      let(:params) { { message: "anything", agent: "admin_support" } }
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "starts nothing" do
+        expect { request }.not_to change(Conversation, :count)
+      end
+    end
+
+    context "when the agent doesn't exist" do
+      let(:params) { { message: "anything", agent: "nobody" } }
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context "when a model is picked" do
       let(:picked) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
       let(:params) { { message: "anything", inference_model_id: picked.id } }
@@ -152,6 +197,9 @@ RSpec.describe "Conversations", type: :request do
   describe "GET /chat/:id" do
     subject(:request) { get conversation_path(conversation) }
 
+    # The top bar links to Chat and Settings too, so match the crumb's own markup.
+    def crumb(label, href) = Views::Breadcrumb.new([label, href], "here").call[/<a [^>]*>#{label}<\/a>/]
+
     context "when it is their own conversation" do
       let(:conversation) { create(:conversation, user: current_user, title: "Rotating credentials") }
 
@@ -164,6 +212,25 @@ RSpec.describe "Conversations", type: :request do
         create(:segment, message: create(:message, conversation:), content: "How do we rotate credentials?")
         request
         expect(response.body).to include("How do we rotate credentials?")
+      end
+
+      it "leads back to Chat" do
+        request
+        expect(response.body).to include(crumb("Chat", conversations_path))
+      end
+
+      context "with Admin Support" do
+        let(:conversation) { create(:conversation, user: current_user, agent: Agent.admin_support, scope: { "c" => [] }) }
+
+        it "leads back through Settings and Admin" do
+          request
+          expect(response.body).to include(crumb("Settings", settings_path), crumb("Admin", settings_admin_path))
+        end
+
+        it "doesn't lead back to Chat" do
+          request
+          expect(response.body).not_to include(crumb("Chat", conversations_path))
+        end
       end
 
       describe "feedback on an answer" do

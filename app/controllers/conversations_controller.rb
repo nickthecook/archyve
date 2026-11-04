@@ -9,7 +9,8 @@ class ConversationsController < ApplicationController
 
   def index
     render Views::Conversations::Index.new(
-      conversations: Current.user.conversations.recent.limit(30),
+      conversations: Current.user.conversations.includes(:agent).recent.limit(30),
+      agent: Agent.archivist,
       collections: readable_collections,
       models: choosable_models,
       model: InferenceModel.default_chat,
@@ -34,8 +35,10 @@ class ConversationsController < ApplicationController
     question = params[:message].to_s.strip
     return redirect_to conversations_path, alert: "Ask something to start a chat." if question.blank?
 
+    agent = chosen_agent
     conversation = Current.user.conversations.create!(
-      scope: scope_spec, agent: Agent.archivist, inference_model: chosen_model || InferenceModel.default_chat,
+      scope: agent.searches_archive? ? scope_spec : { "c" => [] },
+      agent:, inference_model: chosen_model || InferenceModel.default_chat,
       title: question.truncate(80)
     )
     Chat::Ask.call(conversation, question)
@@ -67,6 +70,16 @@ class ConversationsController < ApplicationController
     return {} unless params.key?(:c)
 
     { "c" => Array(params[:c]).reject(&:blank?) }
+  end
+
+  # An agent this person can't use is a 404, the same as someone else's conversation.
+  def chosen_agent
+    return Agent.archivist if params[:agent].blank?
+
+    agent = Agent.find_by!(slug: params[:agent])
+    raise ActiveRecord::RecordNotFound unless agent.usable_by?(Current.user)
+
+    agent
   end
 
   def readable_collections = Collection.readable_by(Current.user).order(:name)

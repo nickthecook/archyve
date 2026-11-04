@@ -224,7 +224,8 @@ That emits a controller, a Phlex index and show view, a request spec, and a
 route inside `namespace :settings` — ordinary pages you own and edit afterwards.
 
 They hang off **the Admin page**, `/settings/admin`: one card per model, and
-the trail every generated page leads back through. Settings reaches it by a
+the trail every generated page leads back through. The Admin Support composer
+sits above them, the same `Views::Conversations::Composer` Chat uses. Settings reaches it by a
 doorway above the rule rather than a row of its menu, because browsing stored
 records is a different job from changing what Archyve does — which is also why
 it is the one accent rail on that page. The menu row itself is

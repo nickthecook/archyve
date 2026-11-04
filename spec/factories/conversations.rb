@@ -57,6 +57,19 @@ FactoryBot.define do
       end
     end
 
+    factory :tool_call_segment do
+      kind { "tool_call" }
+      content { nil }
+      tool_call do
+        { "name" => "list_failed_jobs", "label" => "failed jobs",
+          "result" => "status: ok\ntotal_failed: 1\nfailures:\n  job: Ingestion::ParseJob · error: Docling::Unreachable: refused" }
+      end
+
+      trait :running do
+        tool_call { { "name" => "list_failed_jobs", "label" => "failed jobs" } }
+      end
+    end
+
     factory :listing_segment do
       kind { "listing" }
       content { nil }

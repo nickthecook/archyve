@@ -162,6 +162,19 @@ module Chat
       broadcast!
     end
 
+    # Any tool without a panel of its own. `label` names what it checks.
+    def tool_started(name, label)
+      flush_text
+      flush_thinking
+      @tool_segment = create_segment(:tool_call, tool_call: { "name" => name, "label" => label })
+      broadcast!
+    end
+
+    def tool_finished(result)
+      @tool_segment&.record_tool_result!(result)
+      broadcast!
+    end
+
     # ------------------------------------------------------------------------
 
     def finish

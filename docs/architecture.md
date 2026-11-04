@@ -248,6 +248,22 @@ declares a role floor. An agent's floor is the highest among its toolsets, and
 adding an admin-only toolset to an agent cuts off existing lower-role chats
 instead of quietly widening what they can do.
 
+**Admin Support (built 2026-11-03).** A built-in agent with only the
+`admin_support` toolset (admins only), started from Settings › Admin. Its tools
+read failed jobs, queue health, recorded server checks, failed API calls and
+document processing state. Each tool reads a fixed set of columns. There is no
+general SQL tool, because one would reach other people's conversations,
+`api_calls` bodies, session tokens and the decrypted inference API keys. There
+are no log tools either, because production logs go to STDOUT and the app can't
+read them back. Tools without a panel of their own record a `tool_call` segment:
+what was checked and the result as the model read it.
+
+*Prompt injection:* job errors and document outcomes carry text from ingested
+documents and crawled pages. The tools are read-only, there are no outbound
+tools, and chat markdown already strips `<img>`, so the worst a planted
+instruction can do is mislead the admin reading the answer. The toolset's
+instructions tell the model to treat results as data.
+
 The archive toolset's instructions do four jobs, roughly in order of how badly
 things go wrong without them:
 
