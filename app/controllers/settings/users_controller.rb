@@ -20,7 +20,7 @@ module Settings
       if user.save
         redirect_to settings_users_path, notice: "Added #{user.email_address}."
       else
-        render Views::Settings::Users::New.new(user:), status: :unprocessable_entity
+        render Views::Settings::Users::New.new(user:), status: :unprocessable_content
       end
     end
 
@@ -32,7 +32,7 @@ module Settings
       if @user.update(update_params)
         redirect_to settings_users_path, notice: "Saved #{@user.email_address}."
       else
-        render_edit(status: :unprocessable_entity)
+        render_edit(status: :unprocessable_content)
       end
     end
 

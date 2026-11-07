@@ -56,7 +56,7 @@ class SourcesController < ApplicationController
       source.update_fed_collections(selected_collections) if source.feeds_collections?
       redirect_to source_path(source), notice: "Created “#{source.name}”."
     else
-      render Views::Sources::New.new(**form_context(source)), status: :unprocessable_entity
+      render Views::Sources::New.new(**form_context(source)), status: :unprocessable_content
     end
   end
 
@@ -77,7 +77,7 @@ class SourcesController < ApplicationController
       @source.update_fed_collections(selected_collections) if @source.feeds_collections?
       redirect_to source_path(@source), notice: "Saved."
     else
-      render Views::Sources::Edit.new(**form_context(@source)), status: :unprocessable_entity
+      render Views::Sources::Edit.new(**form_context(@source)), status: :unprocessable_content
     end
   end
 

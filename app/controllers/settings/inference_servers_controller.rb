@@ -43,7 +43,7 @@ module Settings
       if server.save
         redirect_to settings_inference_server_path(server), notice: "Added “#{server.name}”."
       else
-        render Views::Settings::InferenceServers::New.new(server:), status: :unprocessable_entity
+        render Views::Settings::InferenceServers::New.new(server:), status: :unprocessable_content
       end
     end
 
@@ -55,7 +55,7 @@ module Settings
       if @server.update(update_params(@server))
         redirect_to settings_inference_server_path(@server), notice: "Saved."
       else
-        render Views::Settings::InferenceServers::Edit.new(server: @server), status: :unprocessable_entity
+        render Views::Settings::InferenceServers::Edit.new(server: @server), status: :unprocessable_content
       end
     end
 

@@ -24,7 +24,7 @@ module Settings
       else
         render Views::Settings::InferenceModels::New.new(
           server: @server, model:, embedding_locked: embedding_locked?
-        ), status: :unprocessable_entity
+        ), status: :unprocessable_content
       end
     end
 
@@ -37,7 +37,7 @@ module Settings
         redirect_to settings_inference_server_path(@server), notice: "Saved #{@model.name}."
       else
         render Views::Settings::InferenceModels::Edit.new(server: @server, model: @model),
-          status: :unprocessable_entity
+          status: :unprocessable_content
       end
     end
 

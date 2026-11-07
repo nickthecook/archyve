@@ -28,7 +28,7 @@ module Settings
       if endpoint.save
         redirect_to settings_endpoint_path(endpoint), notice: "Added “#{endpoint.name}”."
       else
-        render Views::Settings::Endpoints::New.new(endpoint:), status: :unprocessable_entity
+        render Views::Settings::Endpoints::New.new(endpoint:), status: :unprocessable_content
       end
     end
 
@@ -40,7 +40,7 @@ module Settings
       if @endpoint.update(endpoint_params(@endpoint))
         redirect_to settings_endpoint_path(@endpoint), notice: "Saved."
       else
-        render Views::Settings::Endpoints::Edit.new(endpoint: @endpoint), status: :unprocessable_entity
+        render Views::Settings::Endpoints::Edit.new(endpoint: @endpoint), status: :unprocessable_content
       end
     end
 
