@@ -50,4 +50,45 @@ RSpec.describe Message do
       end
     end
   end
+
+  describe "broadcasting whether its conversation can be deleted" do
+    let(:conversation) { create(:conversation) }
+    let(:stream) { [conversation.user, :conversations] }
+    let(:target) { Views::Conversations::DeleteButton.dom_id(conversation) }
+
+    before { allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to) }
+
+    context "when an answer opens" do
+      before { create(:message, conversation:, role: "assistant", position: 2) }
+
+      it "disables the button" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(*stream, target:, html: include("Still answering"))
+      end
+
+      it "disables the conversation's own button too" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(conversation, target:, html: include("Still answering"))
+      end
+    end
+
+    context "when an answer completes" do
+      let!(:answer) { create(:message, conversation:, role: "assistant", position: 2) }
+
+      before { answer.update!(completed_at: Time.current) }
+
+      it "enables the button" do
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_replace_to)
+          .with(*stream, target:, html: satisfy { !it.include?("Still answering") })
+      end
+    end
+
+    context "when a question is asked" do
+      before { create(:message, conversation:) }
+
+      it "broadcasts nothing" do
+        expect(Turbo::StreamsChannel).not_to have_received(:broadcast_replace_to)
+      end
+    end
+  end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -463,11 +463,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_120000) do
   add_foreign_key "feedbacks", "messages", on_delete: :cascade
   add_foreign_key "hits", "chunks", on_delete: :nullify
   add_foreign_key "hits", "documents", on_delete: :nullify
-  add_foreign_key "hits", "segments"
+  add_foreign_key "hits", "segments", on_delete: :cascade
   add_foreign_key "inference_models", "inference_servers"
-  add_foreign_key "messages", "conversations"
+  add_foreign_key "messages", "conversations", on_delete: :cascade
   add_foreign_key "messages", "inference_models", on_delete: :nullify
-  add_foreign_key "segments", "messages"
+  add_foreign_key "segments", "messages", on_delete: :cascade
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"

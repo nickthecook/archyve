@@ -14,16 +14,26 @@ class Views::Breadcrumb < Components::Base
     @trail = trail
   end
 
-  def view_template
-    nav(class: "mb-5 flex flex-wrap items-center gap-2 text-xs text-faint") do
+  # A block renders as actions on the trail's row, at its right.
+  def view_template(&actions)
+    return trail("mb-5") unless actions
+
+    div(class: "mb-5 flex items-center justify-between gap-4") do
+      trail
+      div(class: "shrink-0", &actions)
+    end
+  end
+
+  private
+
+  def trail(spacing = nil)
+    nav(class: ["flex flex-wrap items-center gap-2 text-xs text-faint", spacing]) do
       @trail.each_with_index do |crumb, index|
         span { "›" } if index.positive?
         step(crumb, last: index == @trail.length - 1)
       end
     end
   end
-
-  private
 
   def step(crumb, last:)
     label, href = crumb

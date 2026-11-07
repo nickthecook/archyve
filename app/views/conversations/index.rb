@@ -7,8 +7,12 @@
 # so there is no setup screen. Past conversations sit below the rule as this
 # page's content.
 class Views::Conversations::Index < Views::Base
-  def initialize(conversations:, agent:, collections:, agents: [], models: [], model: nil, scope: nil, unavailable: nil)
+  include Phlex::Rails::Helpers::TurboStreamFrom
+
+  def initialize(conversations:, agent:, collections:, answering: Set.new, agents: [], models: [], model: nil, scope: nil,
+    unavailable: nil)
     @conversations = conversations
+    @answering = answering
     @agents = agents
     @agent = agent
     @collections = collections
@@ -23,6 +27,7 @@ class Views::Conversations::Index < Views::Base
     unavailable_panel if @unavailable
     composer
     render Views::Rule.new
+    turbo_stream_from(Current.user, :conversations)
     @conversations.any? ? list : empty
   end
 
@@ -88,10 +93,7 @@ class Views::Conversations::Index < Views::Base
     form(action: conversation_path(conversation), method: "post", class: "shrink-0") do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(
-        type: "submit", data: { turbo_confirm: "Delete this conversation?" },
-        class: "rounded border border-line px-2.5 py-1 text-xs text-faint hover:text-red-300 hover:border-red-400/40 transition-colors"
-      ) { "Delete" }
+      render Views::Conversations::DeleteButton.new(conversation:, answering: @answering.include?(conversation.id))
     end
   end
 

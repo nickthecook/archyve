@@ -23,6 +23,9 @@ class Conversation < ApplicationRecord
 
   scope :for, ->(user) { where(user:) }
   scope :recent, -> { order(updated_at: :desc) }
+  scope :answering, -> { where(id: Message.assistant.where(completed_at: nil).select(:conversation_id)) }
+
+  def answering? = messages.assistant.exists?(completed_at: nil)
 
   # nil means All — the same convention the wire format uses when it omits the
   # parameter. Built per call rather than memoized: a conversation object can

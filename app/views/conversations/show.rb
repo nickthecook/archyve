@@ -28,7 +28,17 @@ class Views::Conversations::Show < Views::Base
   def page_title = @conversation.title.presence || "Chat"
 
   def back_link
-    breadcrumb(*trail, @conversation.title.presence || "Untitled chat")
+    render Views::Breadcrumb.new(*trail, @conversation.title.presence || "Untitled chat") { delete_button }
+  end
+
+  def delete_button
+    form(action: conversation_path(@conversation), method: "post") do
+      input(type: "hidden", name: "_method", value: "delete")
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      render Views::Conversations::DeleteButton.new(
+        conversation: @conversation, answering: @messages.any?(&:in_progress?), weight: :page
+      )
+    end
   end
 
   # Where the chat was started from.

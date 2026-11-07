@@ -274,6 +274,20 @@ RSpec.describe "Conversations", type: :request do
         expect(response.body).to include(crumb("Chat", conversations_path))
       end
 
+      it "offers to delete it" do
+        request
+        expect(response.body).to include(%(id="#{Views::Conversations::DeleteButton.dom_id(conversation)}"))
+      end
+
+      context "and a turn is still answering" do
+        before { create(:message, conversation:, role: "assistant", position: 2) }
+
+        it "disables deleting it" do
+          request
+          expect(response.body).to include('title="Still answering"')
+        end
+      end
+
       it "says which agent it is with" do
         request
         expect(response.body).to include("Ask Archivist about your whole archive…")
@@ -548,6 +562,61 @@ RSpec.describe "Conversations", type: :request do
 
       it "does not delete it" do
         expect { request }.not_to change(Conversation, :count)
+      end
+    end
+
+    context "when it is theirs" do
+      let!(:conversation) { create(:conversation, user: current_user) }
+      let!(:answer) { create(:message, conversation:, role: "assistant", position: 2, completed_at: Time.current) }
+
+      before do
+        create(:message, conversation:, position: 1)
+        create(:feedback, message: answer, rating: "up")
+        create(:hit, segment: create(:retrieval_segment, message: answer))
+      end
+
+      it "deletes it" do
+        expect { request }.to change(Conversation, :count).by(-1)
+      end
+
+      it "deletes its transcript with it" do
+        request
+        expect([Message, Segment, Hit, Feedback].map(&:count)).to all(be_zero)
+      end
+
+      context "and a turn is still answering" do
+        before { answer.update!(completed_at: nil) }
+
+        it "does not delete it" do
+          expect { request }.not_to change(Conversation, :count)
+        end
+
+        it "says why" do
+          request
+          expect(flash[:alert]).to include("still answering")
+        end
+      end
+    end
+  end
+
+  describe "GET /chat, deleting" do
+    subject(:request) { get conversations_path }
+
+    let!(:conversation) { create(:conversation, user: current_user) }
+
+    context "when a turn is still answering" do
+      before { create(:message, conversation:, role: "assistant", position: 2) }
+
+      it "disables its delete button" do
+        request
+        expect(response.body).to include('title="Still answering"')
+      end
+    end
+
+    context "when nothing is answering" do
+      it "offers its delete button" do
+        request
+        expect(response.body).not_to include('title="Still answering"')
       end
     end
   end

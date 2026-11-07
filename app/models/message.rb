@@ -18,6 +18,9 @@ class Message < ApplicationRecord
 
   validates :position, presence: true, uniqueness: { scope: :conversation_id }
 
+  after_commit :broadcast_deletability, on: [:create, :update],
+    if: -> { assistant? && (previously_new_record? || saved_change_to_completed_at?) }
+
   # How long an unfinished turn may go without producing anything before it is
   # presumed dead. Generous next to the concurrency window in Chat::RespondJob,
   # which is what a healthy turn is paced by.
@@ -107,5 +110,18 @@ class Message < ApplicationRecord
     return if tokens.zero? || elapsed.zero?
 
     tokens * 1000.0 / elapsed
+  end
+
+  private
+
+  def broadcast_deletability
+    answering = conversation.answering?
+    target = Views::Conversations::DeleteButton.dom_id(conversation)
+
+    { [conversation.user, :conversations] => :row, [conversation] => :page }.each do |stream, weight|
+      Turbo::StreamsChannel.broadcast_replace_to(
+        *stream, target:, html: Views::Conversations::DeleteButton.new(conversation:, answering:, weight:).call
+      )
+    end
   end
 end

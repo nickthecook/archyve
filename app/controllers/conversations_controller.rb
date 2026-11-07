@@ -12,6 +12,7 @@ class ConversationsController < ApplicationController
 
     render Views::Conversations::Index.new(
       conversations: Current.user.conversations.includes(:agent).recent.limit(30),
+      answering: Current.user.conversations.answering.ids.to_set,
       agents:,
       agent: agents.find { it.slug == params[:agent] } || Agent.default_chat,
       collections: readable_collections,
@@ -48,9 +49,15 @@ class ConversationsController < ApplicationController
     redirect_to conversation_path(conversation)
   end
 
+  # A single DELETE: the transcript goes by foreign-key cascade, which is the
+  # only way a delete can't trip over a turn still writing segments.
   def destroy
-    @conversation.destroy!
-    redirect_to conversations_path, notice: "Deleted that conversation."
+    if @conversation.answering?
+      return redirect_to conversations_path, alert: "That conversation is still answering. Delete it once it finishes."
+    end
+
+    @conversation.delete
+    redirect_to conversations_path, notice: "Conversation deleted."
   end
 
   private
