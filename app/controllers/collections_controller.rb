@@ -5,11 +5,10 @@ class CollectionsController < ApplicationController
   # cover only *active* memberships (the derived "current contents"); a removed
   # membership is a tombstone and doesn't count. See [[collection-membership-policy]].
   Row = Data.define(:collection, :documents_count, :status_counts, :last_activity_at)
-  # A document as it sits in one collection: the document plus how it got here
-  # (its membership origin), which decides whether the user may remove it, and
-  # whether they may delete it outright — a different question with a different
-  # answer, resolved once per page rather than per row.
-  DocumentRow = Data.define(:document, :origin, :purgeable)
+  # Whether the user may delete the document outright is resolved once per page
+  # rather than per row.
+  DocumentRow = Data.define(:document, :purgeable)
+  SourceRow = Data.define(:source, :documents_count, :failed_count, :latest_sync)
 
   # Only collections they can edit. An accessor grant is for chat; it puts
   # nothing in front of a curator here.
@@ -26,25 +25,14 @@ class CollectionsController < ApplicationController
 
   def show
     collection = Collection.manageable_by(Current.user).find_by!(slug: params[:slug])
-    memberships = collection.collection_memberships.active.includes(document: :source).to_a
-    purgeable = purgeable_document_ids(memberships.map(&:document))
-    document_rows = memberships
-      .sort_by { |membership| membership.document.title.to_s.downcase }
-      .map do |membership|
-        DocumentRow.new(
-          document: membership.document,
-          origin: membership.origin,
-          purgeable: purgeable.include?(membership.document_id)
-        )
-      end
-    status_counts = memberships.each_with_object(Hash.new(0)) { |m, counts| counts[m.document.status] += 1 }
+    sources = collection.sources.order(:name).to_a
 
     render Views::Collections::Show.new(
       collection:,
-      document_rows:,
-      status_counts:,
+      document_rows: manual_document_rows(collection),
+      status_counts: collection.collection_memberships.active.joins(:document).group("documents.status").count,
       candidates: addable_documents(collection),
-      sources: collection.sources.order(:name),
+      source_rows: source_rows(sources),
       manageable_source_ids: manageable_source_ids(collection),
       attachable_sources: attachable_sources(collection)
     )
@@ -85,6 +73,34 @@ class CollectionsController < ApplicationController
   end
 
   private
+
+  # Fed documents are reached through their source; only what was filed by hand
+  # is listed on the collection itself.
+  def manual_document_rows(collection)
+    memberships = collection.collection_memberships.active.manual.includes(document: :source).to_a
+    purgeable = purgeable_document_ids(memberships.map(&:document))
+    memberships
+      .sort_by { |membership| membership.document.title.to_s.downcase }
+      .map do |membership|
+        DocumentRow.new(document: membership.document, purgeable: purgeable.include?(membership.document_id))
+      end
+  end
+
+  def source_rows(sources)
+    ids = sources.map(&:id)
+    counts = Document.where(source_id: ids).where.not(status: "removed").group(:source_id, :status).count
+    latest_syncs = SourceSync.where(source_id: ids).select("DISTINCT ON (source_id) *").order(:source_id, started_at: :desc).index_by(&:source_id)
+
+    sources.map do |source|
+      by_status = counts.select { |(source_id, _status), _n| source_id == source.id }
+      SourceRow.new(
+        source:,
+        documents_count: by_status.values.sum,
+        failed_count: by_status.fetch([source.id, "failed"], 0),
+        latest_sync: latest_syncs[source.id]
+      )
+    end
+  end
 
   # Which of these the user may delete from the archive. Deliberately not gated
   # on this collection: a purge is work on the source that produced the document,

@@ -3,10 +3,11 @@
 # Newer and Older, either side of one screen of records. Both carry whatever
 # else is in the URL — the filters, so paging doesn't drop them.
 class Views::Pager < Components::Base
-  def initialize(page:, action:, params: {})
+  def initialize(page:, action:, params: {}, frame: nil)
     @page = page
     @action = action
     @params = params
+    @frame = frame
   end
 
   def view_template
@@ -21,6 +22,6 @@ class Views::Pager < Components::Base
   private
 
   def step(label, **cursor)
-    a(href: "#{@action}?#{@params.merge(cursor).to_query}", class: button_class(:quiet)) { label }
+    a(href: "#{@action}?#{@params.merge(cursor).to_query}", class: button_class(:quiet), data: { turbo_frame: @frame }) { label }
   end
 end

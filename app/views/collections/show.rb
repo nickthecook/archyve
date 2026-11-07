@@ -9,12 +9,12 @@ class Views::Collections::Show < Views::Base
   # everywhere.
   METER = Views::Collections::Index::METER
 
-  def initialize(collection:, document_rows:, status_counts:, candidates:, sources:, manageable_source_ids:, attachable_sources:)
+  def initialize(collection:, document_rows:, status_counts:, candidates:, source_rows:, manageable_source_ids:, attachable_sources:)
     @collection = collection
     @document_rows = document_rows
     @status_counts = status_counts
     @candidates = candidates
-    @sources = sources
+    @source_rows = source_rows
     @manageable_source_ids = manageable_source_ids
     @attachable_sources = attachable_sources
   end
@@ -23,14 +23,14 @@ class Views::Collections::Show < Views::Base
     breadcrumb(["Collections", collections_path], @collection.name)
     header_block
     search
+    sources_panel if @source_rows.any? || editor?
+    documents_region
     # Don't offer what will be refused: filing needs editor on this
     # collection, and an accessor has only search and chat here.
-    if may_on?(@collection, :editor)
-      sources_panel
+    if editor?
       upload
       add_documents
     end
-    documents_region
     delete_collection
   end
 
@@ -38,42 +38,58 @@ class Views::Collections::Show < Views::Base
 
   def page_title = @collection.name
 
+  def editor? = may_on?(@collection, :editor)
+
   # What this collection draws on. It lives here rather than on the source
   # because feeding decides what this collection's readers see — that belongs
   # to whoever owns the collection, not to whoever owns the credentials.
   def sources_panel
-    details(class: "mb-6 rounded-lg border border-line bg-ink/40", open: @sources.none?) do
-      summary(class: "cursor-pointer list-none px-5 py-3.5 flex items-center justify-between gap-3") do
-        span(class: "text-sm text-muted") { "Sources" }
+    section(class: "mb-6 rounded-lg border border-line bg-ink/40") do
+      div(class: "px-5 py-3.5 flex items-center justify-between gap-3") do
+        h2(class: "text-sm text-muted") { "Sources" }
         span(class: "font-mono tabular-nums text-xs text-faint") { fed_summary }
       end
       div(class: "border-t border-line/60 px-5 py-4") do
-        @sources.any? ? fed_list : no_sources
-        attach_form if @attachable_sources.any?
+        div(id: "collection_sources") { @source_rows.any? ? fed_list : no_sources }
+        attach_form if editor? && @attachable_sources.any?
       end
     end
   end
 
   def fed_summary
-    return "none" if @sources.none?
+    return "none" if @source_rows.none?
 
-    "#{@sources.size} #{'source'.pluralize(@sources.size)}"
+    "#{@source_rows.size} #{'source'.pluralize(@source_rows.size)}"
   end
 
   def fed_list
     ul(class: "mb-4 divide-y divide-line/60") do
-      @sources.each do |source|
-        li(class: "flex items-start justify-between gap-3 py-2.5") do
-          div(class: "min-w-0") do
-            div(class: "flex items-center gap-2") do
-              source_name(source)
-              span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { source.type_label }
-            end
-            p(class: "mt-0.5 truncate font-mono text-[0.7rem] text-faint") { source.location } if source.location.present?
-          end
-          detach_button(source)
+      @source_rows.each { |row| fed_row(row) }
+    end
+  end
+
+  def fed_row(row)
+    source = row.source
+    li(class: "flex items-start justify-between gap-3 py-2.5") do
+      div(class: "min-w-0 flex-1") do
+        div(class: "flex items-center gap-2") do
+          source_name(source)
+          span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { source.type_label }
         end
+        p(class: "mt-0.5 truncate font-mono text-[0.7rem] text-faint") { source.location } if source.location.present?
       end
+      div(class: "flex shrink-0 flex-col items-end gap-1") do
+        source_counts(row)
+        render Views::Sources::SyncStatus.new(sync: row.latest_sync) if source.supports_sync?
+      end
+      detach_button(source) if editor?
+    end
+  end
+
+  def source_counts(row)
+    span(class: "font-mono tabular-nums text-xs text-muted") do
+      plain "#{row.documents_count} #{'document'.pluralize(row.documents_count)}"
+      span(class: "text-red-300") { " · #{row.failed_count} failed" } if row.failed_count.positive?
     end
   end
 
@@ -237,7 +253,7 @@ class Views::Collections::Show < Views::Base
   # a model choosing where to look has only this and the name to go on.
   def description
     p(class: "mb-3 text-sm leading-relaxed text-muted") { @collection.description } if @collection.description.present?
-    description_editor if may_on?(@collection, :editor)
+    description_editor if editor?
   end
 
   def description_editor
@@ -273,8 +289,9 @@ class Views::Collections::Show < Views::Base
   end
 
   # Segmented health bar for this collection's active documents (see the index).
+  def total = @status_counts.values.sum
+
   def meter
-    total = @document_rows.size
     div(class: "flex h-1.5 w-full overflow-hidden rounded-full bg-line/50") do
       next if total.zero?
 
@@ -288,7 +305,6 @@ class Views::Collections::Show < Views::Base
   end
 
   def count_summary
-    total = @document_rows.size
     return "No documents yet." if total.zero?
 
     processed = @status_counts["processed"].to_i
@@ -389,87 +405,34 @@ class Views::Collections::Show < Views::Base
     p(class: "text-sm text-faint") { "Every document is already in this collection. Upload a new one to add more." }
   end
 
-  # The page you land on after uploading into this collection, where the new file
-  # sits pending while the pipeline works — and nothing broadcasts to a
-  # collection, so this region polls itself fresh. The header's meter and counts
-  # tally the same statuses, so they ride along on the same response instead of
-  # drifting out of step with the badges below them. (The "Add documents" picker
-  # watches a different set of documents and polls itself — see #add_documents.)
+  # Nothing broadcasts to a collection, so this polls while any of its documents
+  # is still moving; the meter and source counts tally the same documents and
+  # ride along on the same response.
   def documents_region
     div(
       id: "collection_documents",
-      data: progress_data(terminal: @document_rows.all? { |row| row.document.settled? }, also: ["collection_meter"])
+      class: "mb-6",
+      data: progress_data(terminal: settled?, also: ["collection_meter", "collection_sources"])
     ) do
-      @document_rows.any? ? document_list : empty_state
+      if @document_rows.any?
+        document_list
+      elsif @source_rows.none?
+        empty_state
+      end
     end
   end
+
+  def settled? = @status_counts.keys.all? { |status| Document::TERMINAL_STATUSES.include?(status) }
 
   def document_list
+    h2(class: "mb-3 text-sm font-medium text-fg") { "Filed by hand" }
     ul(class: "divide-y divide-line rounded-lg border border-line bg-ink/40") do
-      @document_rows.each { |row| document_row(row) }
-    end
-  end
-
-  def document_row(row)
-    document = row.document
-    li(class: "flex items-center justify-between gap-3 px-5 py-4") do
-      div(class: "min-w-0 flex-1") do
-        a(href: document_path(document), class: "block truncate text-sm font-medium text-fg hover:text-accent transition-colors") { document.title }
-        provenance(document)
-      end
-      div(class: "flex shrink-0 items-center gap-3") do
-        render Views::Documents::StatusBadge.new(status: document.status)
-        # Only a manual membership is user-removable; a fed row is retracted at
-        # the source, which the provenance line above names.
-        remove_button(document) if row.origin == "manual" && may_on?(@collection, :editor)
-        delete_button(document) if row.purgeable
+      @document_rows.each do |row|
+        render Views::Documents::Row.new(
+          document: row.document, purgeable: row.purgeable, removable_from: (@collection if editor?)
+        )
       end
     end
-  end
-
-  def remove_button(document)
-    form(action: collection_document_path(@collection, document), method: "post", class: "inline") do
-      input(type: "hidden", name: "_method", value: "delete")
-      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Remove" }
-    end
-  end
-
-  # Remove's heavier neighbour, and a different act: out of the archive rather
-  # than off this shelf. Outlined red rather than another quiet word, because
-  # standing next to "Remove" the difference has to be visible before you read
-  # the confirmation. Who gets it: CollectionsController#purgeable_document_ids.
-  def delete_button(document)
-    form(
-      action: document_path(document),
-      method: "post",
-      class: "inline",
-      data: { turbo_confirm: "Permanently delete “#{document.title}”? It leaves every collection and the archive — text, embeddings and file — and this can't be undone." }
-    ) do
-      input(type: "hidden", name: "_method", value: "delete")
-      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(
-        type: "submit",
-        class: "rounded border border-red-400/40 px-2 py-0.5 text-xs text-red-300 hover:bg-red-400/10 transition-colors"
-      ) { "Delete" }
-    end
-  end
-
-  # Which source produced this, and where it sits inside it. A blank path — a
-  # manual upload, or anything at the top of its source — leaves the name alone.
-  def provenance(document)
-    text = [document.source.name, path_within_source(document)].compact.join(" · ")
-    p(class: "mt-1 truncate text-xs text-faint", title: text) { text }
-  end
-
-  # Sources get named after whatever they point at, so the first segment is
-  # usually the source name again — "Technology · Technology/Services". Drop
-  # the echo. Nothing is left for a manual upload, or for anything sitting at
-  # the top of its source.
-  def path_within_source(document)
-    segments = document.path.to_s.split("/")
-    segments.shift if segments.first == document.source.name
-    segments.join("/").presence
   end
 
   def empty_state

@@ -194,15 +194,7 @@ class Views::Sources::LastScan < Components::Base
     ) { duration }
   end
 
-  def status_dot
-    return "bg-amber-400" if stalled?
-
-    case @sync.status
-    when "completed" then "bg-emerald-400"
-    when "failed" then "bg-red-400"
-    else "bg-accent animate-pulse"
-    end
-  end
+  def status_dot = Views::Sources::SyncStatus.dot_class(@sync)
 
   def stalled?
     @sync.stalled?

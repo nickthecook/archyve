@@ -159,6 +159,69 @@ RSpec.describe "Sources", type: :request do
         expect(response.body).to include("stalled")
       end
     end
+
+    describe "the document list" do
+      subject(:request) { get source_path(source, params) }
+
+      let(:params) { {} }
+      let(:titles) { Nokogiri::HTML(response.body).css("#source_documents li a").map(&:text) }
+
+      before do
+        create(:document, source:, title: "Beta notes", status: "processed")
+        create(:document, source:, title: "alpha notes", status: "processed")
+        create(:document, source:, title: "Zulu notes", status: "failed")
+        create(:document, source:, title: "Gone notes", status: "removed")
+      end
+
+      it "puts failed documents first, then sorts by title" do
+        request
+        expect(titles).to eq(["Zulu notes", "alpha notes", "Beta notes"])
+      end
+
+      context "when filtered by title" do
+        let(:params) { { q: "ALPHA" } }
+
+        it "lists only matching documents" do
+          request
+          expect(titles).to eq(["alpha notes"])
+        end
+      end
+
+      context "when the filter matches nothing" do
+        let(:params) { { q: "nope" } }
+
+        it "says so" do
+          request
+          expect(response.body).to include("No documents match “nope”.")
+        end
+      end
+
+      context "when there is more than a page" do
+        let(:params) { { q: "notes" } }
+
+        before { stub_const("Page::PER_PAGE", 2) }
+
+        it "shows one page" do
+          request
+          expect(titles).to eq(["Zulu notes", "alpha notes"])
+        end
+
+        it "carries the filter to the next page" do
+          request
+          older = Nokogiri::HTML(response.body).at_css("a:contains('Older')")["href"]
+          expect(Rack::Utils.parse_query(URI(older).query)).to include("q" => "notes")
+        end
+      end
+
+      context "when a document is still being processed" do
+        before { create(:document, source:, title: "Pending notes", status: "pending") }
+
+        it "keeps polling" do
+          request
+          expect(Nokogiri::HTML(response.body).at_css("#source_documents")["data-progress-terminal-value"]).to eq("false")
+        end
+      end
+    end
   end
 
   describe "GET /sources/new" do

@@ -50,6 +50,75 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
+    context "when a source feeds the collection" do
+      let(:source) { create(:folder_source, name: "Manuals") }
+      let(:row) { Nokogiri::HTML(response.body).at_css("#collection_sources li").text }
+
+      before do
+        collection.sources << source
+        create(:collection_membership, :feed, collection:, document: create(:document, source:, title: "Fed manual", status: "processed"))
+        create(:collection_membership, :feed, collection:, document: create(:document, source:, title: "Broken manual", status: "failed"))
+        create(:document, source:, status: "removed")
+      end
+
+      it "lists the source rather than its documents" do
+        request
+        expect(response.body).not_to include("Fed manual")
+      end
+
+      it "counts the source's live documents and the failed ones among them" do
+        request
+        expect(row).to include("2 documents · 1 failed")
+      end
+
+      it "doesn't show the empty state" do
+        request
+        expect(response.body).not_to include("No documents in this collection yet.")
+      end
+
+      context "when it has never been scanned" do
+        it "says so" do
+          request
+          expect(row).to include("never scanned")
+        end
+      end
+
+      context "when its last scan completed" do
+        before { create(:source_sync, source:, started_at: 3.hours.ago, finished_at: 2.hours.ago) }
+
+        it "says when" do
+          request
+          expect(row).to include("scanned about 2 hours ago")
+        end
+      end
+
+      context "when its last scan failed" do
+        before do
+          create(:source_sync, source:, started_at: 3.days.ago, status: "completed")
+          create(:source_sync, source:, started_at: 1.hour.ago, status: "failed")
+        end
+
+        it "reports the latest one" do
+          request
+          expect(row).to include("scan failed")
+        end
+      end
+    end
+
+    context "when a document was filed by hand alongside a fed source" do
+      let(:document) { create(:document, title: "Hand-filed note") }
+
+      before do
+        collection.sources << create(:folder_source)
+        create(:collection_membership, collection:, document:, origin: "manual")
+      end
+
+      it "lists it under Filed by hand" do
+        request
+        expect(response.body).to include("Filed by hand", "Hand-filed note")
+      end
+    end
+
     it "offers the People button to whoever administers the collection" do
       request
       expect(response.body).to include(collection_people_path(collection))
@@ -108,10 +177,25 @@ RSpec.describe "Collections", type: :request do
             expect(polling?("collection_documents")).to be(true)
           end
 
-          it "refreshes the header meter from the same response, so counts and badges agree" do
+          it "refreshes the header meter and source counts from the same response, so they agree" do
             request
             region = Nokogiri::HTML(response.body).at_css("#collection_documents")
-            expect(JSON.parse(region["data-progress-also-value"])).to eq(["collection_meter"])
+            expect(JSON.parse(region["data-progress-also-value"])).to eq(["collection_meter", "collection_sources"])
+          end
+        end
+
+        context "when only a fed document is still being processed" do
+          let(:document) { create(:document, status: "processed") }
+
+          before do
+            source = create(:folder_source)
+            collection.sources << source
+            create(:collection_membership, :feed, collection:, document: create(:document, source:, status: "pending"))
+          end
+
+          it "keeps polling, since the source counts are still moving" do
+            request
+            expect(polling?("collection_documents")).to be(true)
           end
         end
 

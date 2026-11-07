@@ -5,10 +5,15 @@
 # LastScan, which lives apart because it updates in place — see the note there.
 class Views::Sources::Show < Views::Base
   include Phlex::Rails::Helpers::TurboStreamFrom
+  include Phlex::Rails::Helpers::TurboFrameTag
 
-  def initialize(source:, syncs:, back: nil)
+  DOCUMENTS_FRAME = "source_documents_frame"
+
+  def initialize(source:, syncs:, documents:, filter: "", back: nil)
     @source = source
     @syncs = syncs
+    @documents = documents
+    @filter = filter
     @back = back
   end
 
@@ -26,6 +31,7 @@ class Views::Sources::Show < Views::Base
     latest_run
 
     history if @syncs.many?
+    documents
     render Views::Sources::Reprocess.new(source: @source)
     danger_zone
   end
@@ -172,6 +178,47 @@ class Views::Sources::Show < Views::Base
       td(class: "px-4 py-2 text-right font-mono tabular-nums text-muted") { sync.created_count.to_s }
       td(class: "px-4 py-2 text-right font-mono tabular-nums text-muted") { sync.updated_count.to_s }
       td(class: "px-4 py-2 text-right font-mono tabular-nums text-muted") { sync.removed_count.to_s }
+    end
+  end
+
+  # Failed first, because they are why someone opens a source. A frame so that
+  # filtering and paging don't throw the reader back to the top of the page;
+  # `_top` keeps the document links themselves as full navigations.
+  def documents
+    section(class: "mb-8") do
+      h2(class: "mb-3 text-sm font-medium text-fg") { "Documents" }
+      turbo_frame_tag(DOCUMENTS_FRAME, target: "_top", data: { turbo_action: "advance" }) do
+        document_filter
+        div(id: "source_documents", data: progress_data(terminal: @documents.records.all?(&:settled?))) do
+          @documents.any? ? document_list : no_documents
+        end
+        render Views::Pager.new(
+          page: @documents, action: source_path(@source), params: { q: @filter }.compact_blank, frame: DOCUMENTS_FRAME
+        )
+      end
+    end
+  end
+
+  def document_filter
+    form(action: source_path(@source), method: "get", class: "mb-3", data: { turbo_frame: DOCUMENTS_FRAME }) do
+      input(
+        type: "search", name: "q", value: @filter, placeholder: "Filter by title", autocomplete: "off",
+        class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint outline-none focus:border-accent transition-colors"
+      )
+    end
+  end
+
+  def document_list
+    ul(class: "divide-y divide-line rounded-lg border border-line bg-ink/40") do
+      @documents.records.each do |document|
+        render Views::Documents::Row.new(document:, purgeable: document.purgeable?, show_source: false)
+      end
+    end
+  end
+
+  def no_documents
+    div(class: "rounded-lg border border-dashed border-line px-4 py-8 text-center") do
+      p(class: "text-sm text-muted") { @filter.present? ? "No documents match “#{@filter}”." : "No documents yet." }
     end
   end
 

@@ -24,10 +24,18 @@ class SourcesController < ApplicationController
     render Views::Sources::Index.new(sources: Source.manageable_by(Current.user).order(:name))
   end
 
+  DOCUMENT_ORDER = {
+    Arel.sql("(documents.status = 'failed')") => :desc,
+    Arel.sql("lower(coalesce(documents.title, ''))") => :asc,
+    id: :asc
+  }.freeze
+
   def show
     render Views::Sources::Show.new(
       source: @source,
       syncs: @source.syncs.recent.limit(10),
+      documents: Page.of(source_documents, after: params[:after], before: params[:before], order: DOCUMENT_ORDER),
+      filter: params[:q].to_s.strip,
       back: back_link
     )
   end
@@ -132,6 +140,14 @@ class SourcesController < ApplicationController
 
   def set_source
     @source = Source.manageable_by(Current.user).find(params[:id])
+  end
+
+  def source_documents
+    documents = @source.documents.where.not(status: "removed").includes(:source)
+    filter = params[:q].to_s.strip
+    return documents if filter.empty?
+
+    documents.where("documents.title ILIKE ?", "%#{Document.sanitize_sql_like(filter)}%")
   end
 
   # A source opened from a collection it feeds returns there; anything else
