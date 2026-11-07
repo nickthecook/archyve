@@ -50,6 +50,7 @@ class Views::Styleguide::Index < Views::Base
     section("Buttons", "pattern") { buttons }
     section("Switches", "component") { switches }
     section("Status", "component") { statuses }
+    section("Scope", "component") { scopes }
     section("Cards", "pattern") { cards }
     section("Menu rows", "component") { menu_rows }
     section("Paging", "component") { paging }
@@ -156,6 +157,14 @@ class Views::Styleguide::Index < Views::Base
       Views::Documents::StatusBadge::COLORS.each_key do |status|
         render Views::Documents::StatusBadge.new(status:)
       end
+    end
+  end
+
+  def scopes
+    div(class: "flex flex-wrap items-center gap-2") do
+      render Views::ScopeChip.new(label: "All collections")
+      render Views::ScopeChip.new(label: "In Handbook")
+      render Views::ScopeChip.new(label: "no collections", searching: false)
     end
   end
 

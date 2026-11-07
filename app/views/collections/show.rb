@@ -306,10 +306,9 @@ class Views::Collections::Show < Views::Base
           autocomplete: "off",
           class: "flex-1 bg-transparent text-fg placeholder:text-faint outline-none text-[0.95rem]"
         )
-        span(class: "shrink-0 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted", title: "Search targets this collection") do
-          span(class: "h-1.5 w-1.5 rounded-full bg-accent")
-          plain "In #{@collection.name}"
-        end
+        render Views::ScopeChip.new(
+          label: "In #{@collection.name}", title: "Search targets this collection", css: "shrink-0"
+        )
       end
     end
   end

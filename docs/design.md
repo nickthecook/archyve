@@ -146,6 +146,16 @@ is the source of truth (tinted background at 15%, matching text). The segmented
 meter in `Views::Collections::Index#METER` uses solid fills of the same
 vocabulary. Add a status in both places or not at all.
 
+## The brass dot means scope
+
+A pill with a brass dot names what a search or chat will run against — "All
+collections", "In Handbook", a chat's collections. It's `Views::ScopeChip`, and
+it earns its brass because it states the consequence of pressing Enter. The dot
+dims to `line-2` when a chat searches nothing.
+
+Don't put it on lists of collections that are just information — a source's
+destinations, a document's memberships. Those are plain text.
+
 ## Type and numerals
 
 - Face is `font-sans` (currently IBM Plex Sans, self-hosted; see

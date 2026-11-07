@@ -68,13 +68,7 @@ class Views::Collections::Index < Views::Base
   end
 
   def scope_chip
-    span(
-      class: "shrink-0 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted",
-      title: "Search targets all collections"
-    ) do
-      span(class: "h-1.5 w-1.5 rounded-full bg-accent")
-      plain "All collections"
-    end
+    render Views::ScopeChip.new(label: "All collections", title: "Search targets all collections", css: "shrink-0")
   end
 
   # Filter (narrows the list as you type) on the left; ways to add on the right.

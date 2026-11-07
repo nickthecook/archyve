@@ -92,10 +92,7 @@ class Views::Conversations::Show < Views::Base
           @conversation.agent.name
         end
         if @conversation.agent.searches_archive?
-          span(class: "inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
-            span(class: "h-1.5 w-1.5 rounded-full #{@conversation.searches_archive? ? 'bg-accent' : 'bg-line-2'}")
-            plain @conversation.scope_label
-          end
+          render Views::ScopeChip.new(label: @conversation.scope_label, searching: @conversation.searches_archive?)
         end
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
         button(

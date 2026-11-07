@@ -47,10 +47,7 @@ class Views::Search::Index < Views::Base
 
   def scope_chip
     label = @scope ? "In #{@scope.label}" : "All collections"
-    span(class: "shrink-0 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-muted") do
-      span(class: "h-1.5 w-1.5 rounded-full bg-accent")
-      plain label
-    end
+    render Views::ScopeChip.new(label:, css: "shrink-0")
   end
 
   def prompt
