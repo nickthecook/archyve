@@ -25,7 +25,7 @@ RSpec.describe "Settings::Preferences", :unauthenticated, type: :request do
     it "offers every round budget" do
       request
       expect(response.body)
-        .to include("Searches per turn").and include("Documents read per turn").and include("Listings per turn")
+        .to include("Max searches per turn").and include("Max document reads per turn").and include("Max listings per turn")
     end
 
     it "shows what it is currently set to" do
