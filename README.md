@@ -191,3 +191,7 @@ identity to an existing account never clears its password.
 | Keycloak rejects the logout | Post-logout redirect URI not registered |
 | Signed in, but nothing is visible | Working as intended: new SSO users get no grants. Raise them in Settings → Users |
 | Every request redirects in a loop | The proxy isn't sending `X-Forwarded-Proto: https` |
+
+## License
+
+[GNU Affero General Public License v3.0](LICENSE) or later.

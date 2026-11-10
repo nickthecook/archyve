@@ -6,6 +6,9 @@
 class Views::Home::Index < Views::Base
   include Phlex::Rails::Helpers::Flash
 
+  # AGPL §13: a modified deployment must offer users its own source, so forks change this.
+  SOURCE_URL = "https://github.com/nickthecook/archyve"
+
   def initialize(stats:, models: [], model: nil, unavailable: nil)
     @stats = stats
     @models = models
@@ -178,6 +181,7 @@ class Views::Home::Index < Views::Base
     div(class: "status reveal", style: "animation-delay:.9s") do
       render Views::AccountMenu.new(placement: :footer) if Current.user
       a(href: help_path, class: "status-link") { "Help" }
+      a(href: SOURCE_URL, class: "status-link") { "Source" }
       motion_toggle
     end
   end
