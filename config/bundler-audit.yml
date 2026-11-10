@@ -2,4 +2,7 @@
 # CVEs that are not relevant to the application can be enumerated on the ignore list below.
 
 ignore:
-  - CVE-THAT-DOES-NOT-APPLY
+  # ruby_llm ReDoS on Ruby 3.1 only; Ruby 3.2+ caches regex matching. Drop on upgrading to ruby_llm 2.x.
+  - CVE-2026-67987
+  - CVE-2026-67989
+  - CVE-2026-67991
