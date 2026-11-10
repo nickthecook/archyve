@@ -1,5 +1,9 @@
 # Archyve
 
+> AI disclosure: generative AI was used in building this application.
+>
+> AI use is at 6 on [Visidata's scale](https://www.visidata.org/blog/2026/ai/#self-assessed-ai-level-for-contributions), except for the UI, where it's at 7.
+
 A RAG archive: documents arrive from **sources**, get processed into chunks and
 embeddings, and are grouped into **collections** people can search and chat over.
 
