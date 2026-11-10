@@ -6,6 +6,7 @@
 
 ### CUSTOM
 config/dev
+config/production
 
 # Ignore bundler config.
 /.bundle
