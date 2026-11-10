@@ -1,0 +1,28 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "1ec389aa5bfce3ae98983b27d6161e05f049d2a546c1121951a6dec1bdbbda38",
+      "check_name": "PermitAttributes",
+      "file": "app/controllers/settings/users_controller.rb",
+      "note": "Admin-only controller; setting roles is its purpose."
+    },
+    {
+      "fingerprint": "2d232798a857382d214b087503fcb4ccd886cd5d79f97888ad822b57c7e3af5a",
+      "check_name": "Send",
+      "file": "app/controllers/settings/user_grants_controller.rb",
+      "note": "kind is a route default, and GRANTS.fetch rejects anything else first."
+    },
+    {
+      "fingerprint": "98004ce8dd09d4594c6e40733c1763d7b8d9a45be5e22cfdaff475f3caf38e0b",
+      "check_name": "Send",
+      "file": "app/controllers/settings/user_grants_controller.rb",
+      "note": "kind is a route default, and GRANTS.fetch rejects anything else first."
+    },
+    {
+      "fingerprint": "5d3a9dbae678f616e1bd7f8ed8e3472140ec680011709cc924f6cbfa0271d35b",
+      "check_name": "SendFile",
+      "file": "app/controllers/help_controller.rb",
+      "note": "HelpPage.image only accepts slug segments, so no traversal."
+    }
+  ]
+}

@@ -162,16 +162,11 @@ class SourcesController < ApplicationController
     BackLink.new(label: collection.name, href: collection_path(collection)) if collection
   end
 
-  # The type comes from the URL. Only types a person may actually add are
-  # allowed — `constantize` on user input would otherwise instantiate any class
-  # in the app, and manual upload isn't something you create by hand.
   def build_source
-    type = params[:type].to_s
-    unless Source.creatable_types.any? { |klass| klass.name == type }
-      raise ActionController::BadRequest, "unknown source type"
-    end
+    klass = Source.creatable_types.find { |type| type.name == params[:type] }
+    raise ActionController::BadRequest, "unknown source type" unless klass
 
-    type.constantize.new
+    klass.new
   end
 
   def source_params

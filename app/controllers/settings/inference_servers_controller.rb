@@ -117,16 +117,11 @@ module Settings
       @server = InferenceServer.find(params[:id])
     end
 
-    # The type comes from the URL, so only types a person may actually add are
-    # allowed — `constantize` on user input would otherwise instantiate any
-    # class in the app. Same guard as SourcesController#build_source.
     def build_server
-      type = params[:type].to_s
-      unless InferenceServer.creatable_types.any? { |klass| klass.name == type }
-        raise ActionController::BadRequest, "unknown inference server type"
-      end
+      klass = InferenceServer.creatable_types.find { |type| type.name == params[:type] }
+      raise ActionController::BadRequest, "unknown inference server type" unless klass
 
-      type.constantize.new
+      klass.new
     end
 
     # Flavour is permitted only for a type that has flavours, so a post naming
