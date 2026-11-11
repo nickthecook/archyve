@@ -4,9 +4,9 @@ require "rails_helper"
 # than the patch — an upgrade that moves the seam fails here instead of in a
 # chat.
 RSpec.describe "RubyLLM tool-call arguments" do
-  subject(:arguments) { accumulator.to_message(nil).tool_calls.values.sole.arguments }
+  subject(:call) { accumulator.to_message(nil).tool_calls.values.sole }
 
-  let(:accumulator) { RubyLLM::StreamAccumulator.new }
+  let(:accumulator) { RubyLLM::Protocol::StreamAccumulator.new }
 
   # How vLLM streams a tool call: the name and id first, then the arguments in
   # fragments keyed by nothing, which the accumulator appends to the call it
@@ -19,13 +19,17 @@ RSpec.describe "RubyLLM tool-call arguments" do
 
   def chunk(tool_calls) = RubyLLM::Chunk.new(role: :assistant, content: nil, tool_calls:)
 
-  # vLLM 1.5.1 for a tool that declares no parameters. Left alone it is a
-  # JSON::ParserError that fails the whole turn.
+  # vLLM 1.5.1 for a tool that declares no parameters. Left alone the call is
+  # malformed, and RubyLLM never runs it.
   context "when the server sends an unclosed brace" do
     before { stream("{") }
 
     it "reads it as no arguments" do
-      expect(arguments).to eq({})
+      expect(call.arguments).to eq({})
+    end
+
+    it "leaves the call runnable" do
+      expect(call).not_to be_malformed_arguments
     end
   end
 
@@ -33,7 +37,7 @@ RSpec.describe "RubyLLM tool-call arguments" do
     before { stream('{"slug": ', '"handbook"}') }
 
     it "parses it" do
-      expect(arguments).to eq("slug" => "handbook")
+      expect(call.arguments).to eq("slug" => "handbook")
     end
   end
 
@@ -43,7 +47,7 @@ RSpec.describe "RubyLLM tool-call arguments" do
     before { stream('{"slug": "hand') }
 
     it "still refuses to guess" do
-      expect { arguments }.to raise_error(JSON::ParserError)
+      expect(call).to be_malformed_arguments
     end
   end
 end

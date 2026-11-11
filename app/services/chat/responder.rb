@@ -62,7 +62,7 @@ module Chat
         # How much of the window this conversation now fills, as the server
         # counted it. Arrives on its own chunk at the end of each round, which
         # carries no text — so it is noted here rather than alongside a delta.
-        turn.note_context(chunk.input_tokens)
+        turn.note_context(chunk.tokens&.input)
       end
       # Once per turn, not once per chunk: `ask` is a single call, however much
       # it streams back through the block above.
@@ -93,12 +93,13 @@ module Chat
       chat = model.inference_server.llm_context.chat(
         model: model.name,
         provider: model.inference_server.ruby_llm_provider,
+        protocol: :chat_completions,
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))
       params = model.inference_server.stream_params
-      chat.with_params(**params) if params.any?
-      @conversation.toolsets.flat_map { it.tools(observer: turn) }.each { chat.with_tool(it) }
+      chat.with_provider_options(params) if params.any?
+      chat.with_tools(*@conversation.toolsets.flat_map { it.tools(observer: turn) })
       replay(chat)
       chat
     end

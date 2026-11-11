@@ -1,23 +1,24 @@
 # Reads a tool call whose arguments are an unclosed brace as no arguments.
 #
 # vLLM 1.5.1 streams `{` and nothing more when the model calls a tool that
-# declares no parameters, and RubyLLM's JSON.parse of that fragment raises —
-# taking down a turn that was about to answer. Only an empty brace is repaired:
-# a truncated argument list still raises, because calling a tool with arguments
-# the model didn't finish sending is worse than not calling it.
+# declares no parameters. RubyLLM keeps unparseable arguments as malformed and
+# never runs the call, so the model asks for a list and gets nothing. Only an
+# empty brace is repaired: a truncated argument list stays malformed, because
+# calling a tool with arguments the model didn't finish sending is worse than
+# not calling it.
 module RubyLLM
-  class StreamAccumulator
-    module EmptyToolArguments
-      def tool_calls_from_stream
-        tool_calls.each_value do |call|
-          arguments = call.arguments
+  class Protocol
+    class StreamAccumulator
+      module EmptyToolArguments
+        def streamed_arguments(tool_call, response)
+          arguments = tool_call.arguments
           arguments.replace("{}") if arguments.is_a?(String) && arguments.strip == "{"
+
+          super
         end
-
-        super
       end
-    end
 
-    prepend EmptyToolArguments
+      prepend EmptyToolArguments
+    end
   end
 end

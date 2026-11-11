@@ -404,16 +404,14 @@ RSpec.describe InferenceServer do
 
       def model_info(id, context_window:, capabilities:, owned_by: "openai", served_context_window: nil)
         instance_double(
-          RubyLLM::Model::Info, id:, context_window:, capabilities:,
+          RubyLLM::Model, id:, context_window:, capabilities:,
           metadata: { owned_by:, served_context_window: }
         )
       end
 
       before do
-        allow(RubyLLM::Provider).to receive(:resolve).with(:openai)
-          .and_return(class_double(RubyLLM::Providers::OpenAI, new: instance_double(
-            RubyLLM::Providers::OpenAI, list_models: listed
-          )))
+        allow(RubyLLM::Providers::OpenAI).to receive(:new)
+          .and_return(instance_double(RubyLLM::Providers::OpenAI, list_models: listed))
       end
 
       it "reports every model the endpoint lists" do
@@ -430,10 +428,9 @@ RSpec.describe InferenceServer do
         expect(discovered.find { |m| m.name == "gpt-4o" }.context_window).to eq(128_000)
       end
 
-      # An OpenAI-compatible /v1/models reports neither figure, so RubyLLM
-      # pattern-matches the id. For an id it has no pattern for it falls back to
-      # 4,096 tokens and no function calling — guesses, which must not be stored
-      # as though the endpoint had said them.
+      # An OpenAI-compatible /v1/models reports neither figure, so both come
+      # from RubyLLM's registry — and an id it doesn't know must not be stored as
+      # though the endpoint had said it can't call tools.
       context "with a model RubyLLM doesn't recognise" do
         subject(:model) { discovered.find { |m| m.name == "some-unreleased-model" } }
 
@@ -447,7 +444,7 @@ RSpec.describe InferenceServer do
       end
 
       # vLLM serves each model at a fixed length and says so. It is the better
-      # number than anything RubyLLM's registry pattern-matched out of the id:
+      # number than anything RubyLLM's registry knows about the weights:
       # a server started with less truncates whatever the weights could manage.
       context "with a model the endpoint reports a served length for" do
         let(:listed) do
@@ -463,7 +460,7 @@ RSpec.describe InferenceServer do
           expect(discovered.find { |m| m.name == "gpt-4o" }.context_window).to eq(24_576)
         end
 
-        # The case the field exists for: an id no registry has a pattern for,
+        # The case the field exists for: an id the registry doesn't know,
         # where the alternative is nil and a person typing it in by hand.
         it "reports it for a model RubyLLM has never heard of" do
           expect(discovered.find { |m| m.name == "qwen3-27b" }.context_window).to eq(32_768)
@@ -475,14 +472,14 @@ RSpec.describe InferenceServer do
       end
 
       context "classifying the real OpenAI catalogue" do
-        subject(:model) { described_class.new.send(:describe, model_info(id, context_window: 128_000, capabilities: [])) }
+        subject(:model) { described_class.new.send(:describe, id) }
 
         # /v1/models says nothing about purpose, so this comes from RubyLLM's
-        # family patterns — a guess at the id, which is why an unmatched id
-        # falls through to "ask" rather than to a default.
+        # registry, and an id it doesn't know falls through to "ask" rather than
+        # to a default.
         {
           "gpt-4o" => :chat,
-          "gpt-4o-search-preview" => :chat,
+          "gpt-5-search-api" => :chat,
           "text-embedding-3-small" => :embedding
         }.each do |id, kind|
           context "with #{id}" do
@@ -496,10 +493,10 @@ RSpec.describe InferenceServer do
 
         # The distinction that is easy to get backwards: a different *input* is
         # a capability of a chat model, a different *call* is not a chat model
-        # at all. Getting this wrong files gpt-4o-audio somewhere the chat
+        # at all. Getting this wrong files gpt-audio somewhere the chat
         # picker can't see it.
-        context "with gpt-4o-audio-preview" do
-          let(:id) { "gpt-4o-audio-preview" }
+        context "with gpt-audio" do
+          let(:id) { "gpt-audio" }
 
           it "is still a chat model, because audio is an input not a call" do
             expect(model.kind).to eq(:chat)
@@ -547,7 +544,7 @@ RSpec.describe InferenceServer do
           end
         end
 
-        context "with an id RubyLLM has no pattern for" do
+        context "with an id RubyLLM doesn't know" do
           let(:id) { "gpt-7-unreleased" }
 
           it "leaves kind for a person to decide" do
@@ -569,9 +566,8 @@ RSpec.describe InferenceServer do
     # that can quietly stop working, and nothing else would notice.
     describe "carrying a served length through RubyLLM" do
       subject(:parsed) do
-        create(:openai_server).send(:provider).send(
-          :parse_list_models_response, response, "openai", RubyLLM::Providers::OpenAI::Capabilities
-        )
+        provider = create(:openai_server).send(:provider)
+        RubyLLM::Protocols::ChatCompletions.new(provider).send(:parse_list_models_response, response, "openai")
       end
 
       let(:response) { instance_double(Faraday::Response, body: { "data" => [entry] }) }
@@ -625,15 +621,13 @@ RSpec.describe InferenceServer do
       before do
         listed = [
           instance_double(
-            RubyLLM::Model::Info,
+            RubyLLM::Model,
             id: "qwen3-27b", context_window: 24_576, capabilities: ["function_calling"],
             metadata: { owned_by: }
           )
         ]
-        allow(RubyLLM::Provider).to receive(:resolve).with(:openai)
-          .and_return(class_double(RubyLLM::Providers::OpenAI, new: instance_double(
-            RubyLLM::Providers::OpenAI, list_models: listed
-          )))
+        allow(RubyLLM::Providers::OpenAI).to receive(:new)
+          .and_return(instance_double(RubyLLM::Providers::OpenAI, list_models: listed))
       end
 
       context "when the models it lists are owned by vllm" do
@@ -764,13 +758,11 @@ RSpec.describe InferenceServer do
       subject(:discovered) { server.available_models }
 
       let(:server) { create(:azure_server) }
-      let(:connection) { instance_double(RubyLLM::Connection, get: nil) }
+      let(:connection) { instance_double(RubyLLM::Transport::Connection, get: nil) }
 
       before do
-        allow(RubyLLM::Provider).to receive(:resolve).with(:azure)
-          .and_return(class_double(RubyLLM::Providers::Azure, new: instance_double(
-            RubyLLM::Providers::Azure, connection:
-          )))
+        allow(RubyLLM::Providers::Azure).to receive(:new)
+          .and_return(instance_double(RubyLLM::Providers::Azure, connection:))
       end
 
       it "reports nothing, since deployments can't be listed" do

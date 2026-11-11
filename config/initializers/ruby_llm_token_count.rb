@@ -14,15 +14,17 @@
 RubyLLM::Chunk.class_eval { attr_accessor :streamed_token_count }
 
 module RubyLLM
-  module Providers
-    class OpenAI
-      module StreamedTokenCount
-        def build_chunk(data)
-          super.tap { it.streamed_token_count = data.dig("choices", 0, "token_ids")&.size }
+  module Protocols
+    class ChatCompletions
+      module Streaming
+        module StreamedTokenCount
+          def build_chunk(data)
+            super.tap { it.streamed_token_count = data.dig("choices", 0, "token_ids")&.size }
+          end
         end
-      end
 
-      prepend StreamedTokenCount
+        prepend StreamedTokenCount
+      end
     end
   end
 end

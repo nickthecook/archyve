@@ -417,12 +417,16 @@ Four consequences worth knowing before touching this:
   still goes through RubyLLM.
 - **OpenAI discovery is inference, not report.** An OpenAI-compatible
   `/v1/models` returns ids and nothing else, so `InferenceServers::OpenAI`
-  classifies with RubyLLM's `Capabilities.model_family` id patterns: chat,
-  embedding, or a `skip_reason` for families Archyve has no kind for (image,
-  transcription, speech, moderation, legacy completion). Those skips retire
-  themselves as kinds are added. An id RubyLLM has no pattern for lands in
-  family `other` and yields `kind: nil` and `supports_tools: nil` — the picker
-  then asks with a kind select, and says *tool support unknown* on the row.
+  classifies in two steps. Its own id patterns pick out embedders and the
+  models Archyve has no kind for (image, transcription, speech, realtime,
+  moderation, legacy completion) and give the latter a `skip_reason`; those
+  skips retire themselves as kinds are added. Everything else is looked up in
+  RubyLLM's model registry — retrying without a `-YYYY-MM-DD` snapshot suffix —
+  for chat, context window and tool support. The registry can't do the first
+  step itself: it files speech, transcription and moderation models as chat.
+  An id it doesn't know yields `kind: nil` and `supports_tools: nil` — the
+  picker then asks with a kind select, and says *tool support unknown* on the
+  row.
   **Import requires tool support**: a chat model the provider says can't call
   tools is listed but disabled, since retrieval reaches the model as a tool and
   one that can't call it can never touch the archive. Embedding models are
@@ -436,14 +440,14 @@ Four consequences worth knowing before touching this:
   earlier version
   blocked `nil` too, to hide dated snapshots like `gpt-4-0613`; that made every
   model on a self-hosted OpenAI-compatible host (vLLM, LM Studio) unimportable,
-  because RubyLLM's patterns cover OpenAI's catalogue and nothing else.
+  because RubyLLM's registry covers OpenAI's catalogue and nothing else.
 - **Azure discovery is one deployment at a time.** `InferenceServers::Azure`
   speaks the v1 API (`<resource>/openai/v1`, `api-key` header) through RubyLLM's
   Azure provider. Requests name a *deployment*, and the data plane can't list
   those — its `/models` is the catalogue the resource could deploy — so a check
   only proves address and key, and models are added by deployment name. Lookup
   sends the deployment a short prompt: the reply names the model behind it
-  (`prod-chat` → `gpt-4o-2024-11-20`), which the OpenAI patterns classify; a 400
+  (`prod-chat` → `gpt-4o-2024-11-20`), which OpenAI discovery classifies; a 400
   means an embedding deployment, and one embed call measures its dimensions.
   Classic `api-version` URLs and Entra ID tokens aren't supported yet; RubyLLM
   handles both, so either is configuration rather than a new client.
@@ -1017,9 +1021,9 @@ it: a vLLM host putting Qwen's reasoning in `reasoning_content`, with no way to
 tell from inside the app whether it had been sent, dropped, or mis-parsed.
 
 - **Wired in as Faraday middleware, by prepending
-  `RubyLLM::Connection#setup_middleware`.** RubyLLM builds its connection in
-  `Provider#initialize` and offers no middleware option — `:instrumenter` carries
-  a URL and a status but no bodies. The same class goes into `Http.connection`,
+  `RubyLLM::Transport::Connection.setup_middleware`.** RubyLLM builds and caches
+  its Faraday connections itself and offers no middleware option —
+  `:instrumenter` carries a URL and a status but no bodies. The same class goes into `Http.connection`,
   which is how Ollama's native discovery (`/api/tags`, `/api/show`) is covered.
 - **Streamed responses have to be teed off `env.request.on_data`.** RubyLLM
   consumes the stream there, so `env.body` is empty by completion — a recorder

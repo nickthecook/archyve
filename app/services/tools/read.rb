@@ -20,7 +20,7 @@ module Tools
     NAME = "read_document"
     def name = NAME
 
-    params do
+    parameters do
       integer :document,
         description: "The id of the document to read, exactly as a search result gave it."
       integer :from,

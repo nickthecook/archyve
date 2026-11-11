@@ -34,7 +34,7 @@ gem "activerecord_cursor_paginate"
 gem "commonmarker"
 
 # Multi-provider LLM client: tool calling + streaming (Ollama first)
-gem "ruby_llm"
+gem "ruby_llm", "~> 2.2"
 
 # HTTP client for outbound service calls (Docling, sources). One Faraday
 # stack shared with RubyLLM; middleware gives us logging, retries, and

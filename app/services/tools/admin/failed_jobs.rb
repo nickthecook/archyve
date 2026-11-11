@@ -6,7 +6,7 @@ module Tools
       ARGUMENTS_LIMIT = 300
       BACKTRACE_LINES = 5
 
-      params do
+      parameters do
         integer :limit, description: "How many of the most recent failures to show, up to #{MAX_LIMIT}. Defaults to 10.",
           required: false
       end

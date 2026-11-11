@@ -105,11 +105,11 @@ RSpec.describe Tools::ListCollections do
     end
   end
 
-  describe "#params_schema" do
+  describe "#parameters_schema" do
     subject(:tool) { described_class.new(corpus: instance_double(Retrieval::Corpus), handles: nil) }
 
     it "offers the model nothing to choose: the scope is bound" do
-      expect(tool.params_schema["properties"]).to be_empty
+      expect(tool.parameters_schema["properties"]).to be_empty
     end
   end
 

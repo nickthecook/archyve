@@ -61,7 +61,7 @@ RSpec.describe Tools::Admin::FailedJobs do
 
   describe "#call" do
     let(:observer) { instance_double(Chat::Turn, tool_started: nil, tool_finished: nil) }
-    let(:result) { tool.call({}) }
+    let(:result) { tool.call }
 
     it "tells the turn what it is checking" do
       result
@@ -74,7 +74,7 @@ RSpec.describe Tools::Admin::FailedJobs do
     end
 
     context "when its budget is spent" do
-      before { Tools::Admin::Base::MAX_ROUNDS.times { tool.call({}) } }
+      before { Tools::Admin::Base::MAX_ROUNDS.times { tool.call } }
 
       it "refuses" do
         expect(result).to include("budget_spent")

@@ -42,7 +42,7 @@ module Tools
 
     # Every tool renders through here, so each one builds a plain hash and none
     # of them formats. See Tools::Reply for why the hash itself won't do.
-    def call(args) = Reply.call(super)
+    def call(**) = Reply.call(super)
 
     private
 

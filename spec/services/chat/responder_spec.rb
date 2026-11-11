@@ -52,7 +52,9 @@ RSpec.describe Chat::Responder do
     # round. nil on every chunk before it.
     let(:input_tokens) { nil }
 
-    let(:chunk) { double(content: reply, thinking: thinking, streamed_token_count:, input_tokens:) }
+    let(:chunk) do
+      double(content: reply, thinking:, streamed_token_count:, tokens: RubyLLM::Tokens.new(input: input_tokens))
+    end
 
     before do
       allow(llm).to receive(:complete) { |&block| block&.call(chunk) }
@@ -121,14 +123,14 @@ RSpec.describe Chat::Responder do
       before { allow_any_instance_of(InferenceServer).to receive(:stream_params).and_return({ return_token_ids: true }) }
 
       it "passes it to the chat" do
-        expect(llm).to receive(:with_params).with(return_token_ids: true).and_call_original
+        expect(llm).to receive(:with_provider_options).with({ return_token_ids: true }).and_call_original
         respond
       end
     end
 
     context "when the server needs none" do
       it "leaves the payload alone" do
-        expect(llm).not_to receive(:with_params)
+        expect(llm).not_to receive(:with_provider_options)
         respond
       end
     end

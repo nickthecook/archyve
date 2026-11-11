@@ -19,7 +19,7 @@ module Tools
     NAME = "list_documents"
     def name = NAME
 
-    params do
+    parameters do
       string :collection,
         description: "The slug of the collection to list, exactly as list_collections gave it."
       integer :from,

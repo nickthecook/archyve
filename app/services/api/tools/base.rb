@@ -22,7 +22,7 @@ module Api
         def tool_name = mirrored::NAME
 
         def input_schema
-          base = mirrored.params_schema_definition&.json_schema ||
+          base = mirrored.parameters_schema_definition&.json_schema ||
             { "type" => "object", "properties" => {}, "additionalProperties" => false }
 
           base.except("strict").deep_merge("properties" => @extra_properties || {})

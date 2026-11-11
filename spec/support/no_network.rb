@@ -18,7 +18,7 @@ module NoNetwork
 
         Specs must not reach the network. Stub the seam instead:
           Ollama discovery  -> Http.connection (Faraday's :test adapter)
-          OpenAI discovery  -> RubyLLM::Provider.resolve
+          OpenAI discovery  -> RubyLLM::Providers::OpenAI.new
           inference         -> InferenceServer#llm_context
           embedding         -> Embeddings::Embed.document / .query
           extraction        -> Docling::Client

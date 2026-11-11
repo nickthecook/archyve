@@ -35,8 +35,14 @@ module InferenceServers
 
     # => Discovered, by asking the deployment to do its job. An embedding
     # deployment refuses a chat request with a 400, which is the cue to embed.
+    #
+    # The reply names the model behind the deployment ("gpt-4o-2024-11-20"
+    # behind "prod-chat"), which is what the registry can recognise.
     def describe_deployment(name)
-      describe_chat(name, llm_context.chat(model: name, provider: :azure, assume_model_exists: true).ask(PROBE_PROMPT))
+      reply = llm_context
+        .chat(model: name, provider: :azure, protocol: :chat_completions, assume_model_exists: true)
+        .ask(PROBE_PROMPT)
+      describe(reply.model_id.to_s).with(name:, kind: :chat)
     rescue RubyLLM::BadRequestError
       vectors = llm_context.embed(PROBE_PROMPT, model: name, provider: :azure, assume_model_exists: true).vectors
       Discovered.new(name:, kind: :embedding, dimensions: vectors.size)
@@ -45,21 +51,6 @@ module InferenceServers
     private
 
     def learned_from_discovery = {}
-
-    # The response names the model behind the deployment ("gpt-4o-2024-11-20"
-    # behind "prod-chat"), which is what RubyLLM's patterns can recognise.
-    def describe_chat(name, response)
-      family = family_for(response.model_id.to_s)
-      return Discovered.new(name:, kind: :chat) if family == UNKNOWN_FAMILY
-
-      capabilities = RubyLLM::Providers::OpenAI::Capabilities
-      Discovered.new(
-        name:,
-        kind: :chat,
-        context_window: capabilities.context_window_for(response.model_id),
-        supports_tools: capabilities.supports_functions?(response.model_id)
-      )
-    end
 
     def normalize_base_url
       return if base_url.blank?

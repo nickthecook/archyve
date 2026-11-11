@@ -2,20 +2,21 @@ module InferenceServers
   # use RubyLLM and not Ollama directly via HTTP, since OpenAI doesn't return all the info we need and RubyLLM fills
   # in some blanks
   class OpenAI < InferenceServer
-    # the RubyLLM name for tool calling capability
-    FUNCTION_CALLING = "function_calling".freeze
-    # the RubyLLM family string when it doesn't know what family a model is
-    UNKNOWN_FAMILY = "other".freeze
-
-    # these "families" aren't usable, since they don't handle text
-    UNUSABLE_FAMILIES = {
-      /image/ => "an image model",
+    # Matched against the id rather than taken from RubyLLM's registry, which
+    # files speech, transcription and moderation models as chat.
+    UNUSABLE_MODELS = {
+      /image|dall-e/ => "an image model",
       /tts/ => "a speech-synthesis model",
       /whisper|transcribe/ => "a transcription model",
       /realtime/ => "a realtime-session model",
-      /\Amoderation\z/ => "a moderation model",
-      /\A(?:babbage|davinci)\z/ => "a legacy completion model"
+      /moderation/ => "a moderation model",
+      /\A(?:babbage|davinci)-/ => "a legacy completion model"
     }.freeze
+    EMBEDDING_MODEL = /embed/
+
+    # A dated snapshot ("gpt-6-luna-2026-09-22") the registry may only know
+    # undated.
+    SNAPSHOT_DATE = /-\d{4}-\d{2}-\d{2}\z/
 
     # which server implementation is behind the OpenAI API; we try to detect these
     FLAVOURS = { "openai" => "OpenAI", "vllm" => "vLLM" }.freeze
@@ -61,21 +62,13 @@ module InferenceServers
       config.openai_api_base = base_url if base_url.present?
     end
 
-    # => Array<Discovered>. No kind — see the class comment.
-    #
-    # Tool support is worth taking from RubyLLM, but only where it actually
-    # recognises the model: for anything else its capability module falls back to
-    # defaults — 4,096 tokens and no function calling — and those are
-    # pattern-matching guesses, not something the endpoint said. Reported as nil
-    # so the import screen asks instead of writing a confident wrong answer into
-    # the row.
-    #
-    # The context window is the exception, because vLLM does say — see
-    # #context_window_for.
+    # => Array<Discovered>. Kind and tool support come from RubyLLM's registry,
+    # so an id it doesn't know is reported with both nil and the import screen
+    # asks. That is where every model released after the gem lands.
     def available_models
       listed = provider.list_models
       @detected_flavour = detect_flavour(listed)
-      listed.map { |info| describe(info) }
+      listed.map { |info| describe(info.id, served_context_window: info.metadata[:served_context_window]) }
     end
 
     private
@@ -88,58 +81,39 @@ module InferenceServers
 
     def learned_from_discovery = { detected_flavour: @detected_flavour }
 
-    # Classification comes from RubyLLM's family patterns, which are a guess at
-    # the id rather than anything the endpoint said — so an id it has no pattern
-    # for yields `kind: nil` and the import screen asks, rather than a confident
-    # default. That fallback is load-bearing: it is what a model released after
-    # the gem lands in.
-    def describe(info)
-      family = family_for(info.id)
+    # A served length is a fact about this host, where the registry's is a fact
+    # about the weights; it is also the denominator the chat page measures
+    # context against.
+    def describe(id, served_context_window: nil)
+      return Discovered.new(name: id, kind: :embedding, skip_reason: EMBEDDING_SKIP) if id.match?(EMBEDDING_MODEL)
 
-      # An id the registry has no pattern for is the case a served length exists
-      # for, so this branch keeps it: the *kind* is genuinely unknowable here and
-      # the import screen asks, but a served context length is the endpoint's own
-      # answer rather than a guess at the id, and there is no reason to discard
-      # it along with the rest.
-      if family == UNKNOWN_FAMILY
-        return Discovered.new(name: info.id, context_window: info.metadata[:served_context_window])
+      if (reason = unusable_reason(id))
+        return Discovered.new(name: id, skip_reason: "Archyve has no use for #{reason}.")
       end
 
-      return Discovered.new(name: info.id, kind: :embedding, skip_reason: EMBEDDING_SKIP) if embedding?(family)
-
-      if (reason = unusable_reason(family))
-        return Discovered.new(name: info.id, skip_reason: "Archyve has no use for #{reason}.")
-      end
+      model = registered(id)
+      return Discovered.new(name: id, context_window: served_context_window) if model.nil?
 
       Discovered.new(
-        name: info.id,
+        name: id,
         kind: :chat,
-        context_window: context_window_for(info),
-        supports_tools: info.capabilities.include?(FUNCTION_CALLING)
+        context_window: served_context_window || model.context_window,
+        supports_tools: model.supports?(:function_calling)
       )
     end
 
-    # What the endpoint said, where it said anything — see
-    # config/initializers/ruby_llm_served_context_window.rb. Preferred over the
-    # registry's figure because a served length is a fact about this host, and
-    # the registry's is a guess at the id; it is also the one the chat page
-    # measures context against, so a wrong denominator shows up there as a bar
-    # that never fills or one that is always full.
-    def context_window_for(info)
-      info.metadata[:served_context_window] || info.context_window
+    def registered(id)
+      [id, id.sub(SNAPSHOT_DATE, "")].uniq.each do |candidate|
+        return RubyLLM.models.find(candidate, provider: :openai)
+      rescue RubyLLM::ModelNotFoundError
+        next
+      end
+
+      nil
     end
 
-    # Reaching into RubyLLM's capability module is a coupling, but the
-    # alternative is inferring recognition from its fallback values (4,096
-    # tokens, no function calling), which breaks silently the day they change.
-    def family_for(model_id)
-      RubyLLM::Providers::OpenAI::Capabilities.model_family(model_id)
-    end
-
-    def embedding?(family) = family.start_with?("embedding")
-
-    def unusable_reason(family)
-      UNUSABLE_FAMILIES.find { |pattern, _| family.match?(pattern) }&.last
+    def unusable_reason(id)
+      UNUSABLE_MODELS.find { |pattern, _| id.match?(pattern) }&.last
     end
 
     def provider

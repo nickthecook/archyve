@@ -18,7 +18,7 @@ module Tools
       # The noun phrase the transcript panel names: "Checked <label>".
       def label = raise(NotImplementedError, "#{self.class} must say what it checks")
 
-      def call(args)
+      def call(**)
         return Reply.call(budget_spent) if @rounds >= MAX_ROUNDS
 
         @rounds += 1

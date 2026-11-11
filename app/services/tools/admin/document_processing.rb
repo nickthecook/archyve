@@ -6,7 +6,7 @@ module Tools
       STUCK_AFTER = 30.minutes
       DETAIL_LIMIT = 300
 
-      params do
+      parameters do
         integer :limit, description: "How many failed and stuck documents to show, up to #{MAX_LIMIT}. Defaults to 10.",
           required: false
       end

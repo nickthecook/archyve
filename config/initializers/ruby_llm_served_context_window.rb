@@ -2,19 +2,21 @@
 # `object` and `owned_by`. Each server names it differently; see
 # InferenceServers::OpenAI#context_window_for for why it beats the registry.
 module RubyLLM
-  module Providers
-    class OpenAI
-      module ServedContextWindow
-        FIELDS = %w[max_model_len max_input_tokens].freeze
+  module Protocols
+    class ChatCompletions
+      module Models
+        module ServedContextWindow
+          FIELDS = %w[max_model_len max_input_tokens].freeze
 
-        def parse_list_models_response(response, slug, capabilities)
-          lengths = Array(response.body["data"]).to_h { [it["id"], it.values_at(*FIELDS).compact.first] }
+          def parse_list_models_response(response, slug)
+            lengths = Array(response.body["data"]).to_h { [it["id"], it.values_at(*FIELDS).compact.first] }
 
-          super.each { it.metadata[:served_context_window] = lengths[it.id] }
+            super.each { it.metadata[:served_context_window] = lengths[it.id] }
+          end
         end
-      end
 
-      prepend ServedContextWindow
+        prepend ServedContextWindow
+      end
     end
   end
 end

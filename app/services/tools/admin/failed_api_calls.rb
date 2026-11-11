@@ -5,7 +5,7 @@ module Tools
     # Status lines only: request and response bodies carry archive text and
     # headers can carry credentials.
     class FailedApiCalls < Base
-      params do
+      parameters do
         integer :limit, description: "How many of the most recent failures to show, up to #{MAX_LIMIT}. Defaults to 10.",
           required: false
       end

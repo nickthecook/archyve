@@ -7,7 +7,7 @@ module Tools
   # - `handle` cites the passage
   # - `id` addresses the document, so the model can call the read tool on the doc directly in a follow up
   class Search < Base
-    params do
+    parameters do
       array :queries,
         description: "Two to four differently-worded search phrases for the same question. " \
                      "Vary the vocabulary — documents rarely use the words a question does." \
