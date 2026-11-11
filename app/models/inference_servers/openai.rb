@@ -44,6 +44,8 @@ module InferenceServers
     def self.requires_base_url? = false
     def self.requires_api_key? = true
     def self.flavours = FLAVOURS
+    def self.base_url_placeholder = "https://api.openai.com/v1"
+    def self.base_url_hint = "Leave blank for OpenAI itself. Set it to reach anything else that speaks the same API."
 
     def flavour_in_effect = flavour.presence || detected_flavour
     def vllm? = flavour_in_effect == VLLM_OWNER

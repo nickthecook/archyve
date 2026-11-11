@@ -703,6 +703,158 @@ RSpec.describe InferenceServer do
     end
   end
 
+  describe InferenceServers::Azure do
+    it "requires an address" do
+      expect(build(:azure_server, base_url: nil)).not_to be_valid
+    end
+
+    it "requires an https address" do
+      expect(build(:azure_server, base_url: "http://archyve.openai.azure.com")).not_to be_valid
+    end
+
+    it "requires an API key" do
+      expect(build(:azure_server, api_key: nil)).not_to be_valid
+    end
+
+    describe "normalizing the address" do
+      subject(:base_url) { create(:azure_server, base_url: pasted).base_url }
+
+      context "with a bare resource endpoint" do
+        let(:pasted) { "https://archyve.openai.azure.com/" }
+
+        it { is_expected.to eq("https://archyve.openai.azure.com") }
+      end
+
+      context "with a classic deployment Target URI" do
+        let(:pasted) do
+          "https://archyve.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-10-21"
+        end
+
+        it { is_expected.to eq("https://archyve.openai.azure.com") }
+      end
+
+      context "with a v1 base" do
+        let(:pasted) { "https://archyve.services.ai.azure.com/openai/v1/" }
+
+        it { is_expected.to eq("https://archyve.services.ai.azure.com") }
+      end
+
+      context "with a Foundry project endpoint" do
+        let(:pasted) { "https://archyve.services.ai.azure.com/api/projects/archyve" }
+
+        it { is_expected.to eq("https://archyve.services.ai.azure.com") }
+      end
+    end
+
+    describe "#llm_context" do
+      subject(:config) { create(:azure_server, api_key: "azure-live").llm_context.config }
+
+      # A bare resource URL would send RubyLLM to the Foundry model-inference
+      # route rather than v1.
+      it "points RubyLLM at the v1 API" do
+        expect(config.azure_api_base).to eq("https://archyve-test.openai.azure.com/openai/v1")
+      end
+
+      it "puts the key on the azure key" do
+        expect(config.azure_api_key).to eq("azure-live")
+      end
+    end
+
+    describe "#available_models" do
+      subject(:discovered) { server.available_models }
+
+      let(:server) { create(:azure_server) }
+      let(:connection) { instance_double(RubyLLM::Connection, get: nil) }
+
+      before do
+        allow(RubyLLM::Provider).to receive(:resolve).with(:azure)
+          .and_return(class_double(RubyLLM::Providers::Azure, new: instance_double(
+            RubyLLM::Providers::Azure, connection:
+          )))
+      end
+
+      it "reports nothing, since deployments can't be listed" do
+        expect(discovered).to eq([])
+      end
+
+      it "still calls the server, so a check proves the address and key" do
+        discovered
+        expect(connection).to have_received(:get).with("models")
+      end
+
+      context "when the key is rejected" do
+        before { allow(connection).to receive(:get).and_raise(RubyLLM::UnauthorizedError, "bad key") }
+
+        it "fails the check" do
+          expect(server.check!).to be(false)
+        end
+      end
+    end
+
+    describe "#describe_deployment" do
+      subject(:discovered) { server.describe_deployment("prod-chat") }
+
+      let(:server) { create(:azure_server) }
+      let(:context) { instance_double(RubyLLM::Context, chat:) }
+      let(:chat) { instance_double(RubyLLM::Chat) }
+
+      before do
+        allow(server).to receive(:llm_context).and_return(context)
+        allow(chat).to receive(:ask).and_return(instance_double(RubyLLM::Message, model_id:))
+      end
+
+      context "with a chat deployment of a model RubyLLM recognises" do
+        let(:model_id) { "gpt-4o-2024-11-20" }
+
+        it "files it as chat" do
+          expect(discovered.kind).to eq(:chat)
+        end
+
+        it "keeps the deployment name, which is what requests are sent to" do
+          expect(discovered.name).to eq("prod-chat")
+        end
+
+        it "reads tool support from the model behind the deployment" do
+          expect(discovered.supports_tools).to be(true)
+        end
+
+        it "reads the context window from the model behind the deployment" do
+          expect(discovered.context_window).to eq(128_000)
+        end
+      end
+
+      context "with a chat deployment of a model RubyLLM doesn't recognise" do
+        let(:model_id) { "some-unreleased-model-2026-09-22" }
+
+        it "files it as chat, since it answered a chat request" do
+          expect(discovered.kind).to eq(:chat)
+        end
+
+        it "reports tool support as unknown rather than false" do
+          expect(discovered.supports_tools).to be_nil
+        end
+      end
+
+      context "with an embedding deployment" do
+        let(:model_id) { nil }
+
+        before do
+          allow(chat).to receive(:ask).and_raise(RubyLLM::BadRequestError, "OperationNotSupported")
+          allow(context).to receive(:embed)
+            .and_return(instance_double(RubyLLM::Embedding, vectors: Array.new(768, 0.0)))
+        end
+
+        it "files it as embedding" do
+          expect(discovered.kind).to eq(:embedding)
+        end
+
+        it "measures its dimensions" do
+          expect(discovered.dimensions).to eq(768)
+        end
+      end
+    end
+  end
+
   # Removing a server takes its models with it, so the rule protecting the
   # archive's embedder has to hold here too — the cascade must not get around
   # what the model itself refuses.

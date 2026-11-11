@@ -55,7 +55,7 @@ class InferenceServer < ApplicationRecord
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched. Source hit this first.
-  TYPES = %w[InferenceServers::Ollama InferenceServers::OpenAI].freeze
+  TYPES = %w[InferenceServers::Ollama InferenceServers::OpenAI InferenceServers::Azure].freeze
 
   has_many :inference_models, dependent: :destroy
 
@@ -91,6 +91,15 @@ class InferenceServer < ApplicationRecord
   # InferenceServers::OpenAI, where one API has several servers behind it.
   def self.flavours = {}
 
+  # False where the provider can't enumerate what it serves, so models are
+  # looked up by name instead — see InferenceServers::Azure.
+  def self.lists_models? = true
+
+  def self.base_url_placeholder = "http://localhost:11434"
+
+  def self.base_url_hint
+    "Where the server is. The /v1 suffix is optional — Archyve stores the host and adds it where needed."
+  end
 
   def self.creatable_types
     TYPES.map(&:constantize).select(&:user_creatable?)
@@ -100,6 +109,7 @@ class InferenceServer < ApplicationRecord
   def requires_api_key? = self.class.requires_api_key?
   def requires_base_url? = self.class.requires_base_url?
   def flavours = self.class.flavours
+  def lists_models? = self.class.lists_models?
 
   # Why this server can't be removed, or nil — the first of its models that
   # refuses. Removing a server takes its models with it, so the rule protecting

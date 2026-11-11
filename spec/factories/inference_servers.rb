@@ -12,4 +12,10 @@ FactoryBot.define do
     sequence(:name) { |n| "OpenAI #{n}" }
     api_key { "sk-test" }
   end
+
+  factory :azure_server, class: "InferenceServers::Azure" do
+    sequence(:name) { |n| "Azure #{n}" }
+    base_url { "https://archyve-test.openai.azure.com" }
+    api_key { "azure-test" }
+  end
 end

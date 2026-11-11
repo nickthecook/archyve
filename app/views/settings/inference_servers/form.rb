@@ -18,8 +18,8 @@ class Views::Settings::InferenceServers::Form < Components::Base
         text_input(:name, @server.name, placeholder: "Ollama", autofocus: @server.new_record?)
       end
 
-      field("Address", address_hint) do
-        text_input(:base_url, @server.base_url, placeholder: address_placeholder, mono: true)
+      field("Address", @server.class.base_url_hint) do
+        text_input(:base_url, @server.base_url, placeholder: @server.class.base_url_placeholder, mono: true)
       end
 
       field("Server software", software_hint) { flavour_select } if @server.flavours.any?
@@ -34,18 +34,6 @@ class Views::Settings::InferenceServers::Form < Components::Base
 
   def action
     @server.persisted? ? settings_inference_server_path(@server) : settings_inference_servers_path
-  end
-
-  def address_hint
-    if @server.requires_base_url?
-      "Where the server is. The /v1 suffix is optional — Archyve stores the host and adds it where needed."
-    else
-      "Leave blank for OpenAI itself. Set it to reach anything else that speaks the same API."
-    end
-  end
-
-  def address_placeholder
-    @server.requires_base_url? ? "http://localhost:11434" : "https://api.openai.com/v1"
   end
 
   def software_hint

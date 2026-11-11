@@ -87,7 +87,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
         p(class: "mt-1 text-xs text-faint") { "Check to confirm Archyve can reach this server before relying on it." }
       elsif @server.reachable?
         p(class: "text-sm text-fg") { "Answered #{time_ago_in_words(@server.last_checked_at)} ago." }
-        p(class: "mt-1 text-xs text-faint") { "Fetch models to see what it can run." }
+        p(class: "mt-1 text-xs text-faint") { @server.lists_models? ? "Fetch models to see what it can run." : "Add a deployment by name to use it." }
       else
         p(class: "text-sm text-red-300") { "Unreachable as of #{time_ago_in_words(@server.last_checked_at)} ago." }
         p(class: "mt-1 break-words font-mono text-xs text-red-300/70") { @server.last_check_error.to_s }
@@ -95,12 +95,14 @@ class Views::Settings::InferenceServers::Show < Views::Base
     end
   end
 
+  def discover_label = @server.lists_models? ? "Fetch models" : "Add deployment"
+
   def chat_models
     section(class: "mb-8") do
       div(class: "mb-3 flex flex-wrap items-center justify-between gap-3") do
         h2(class: "text-sm font-medium text-fg") { "Chat models" }
         div(class: "flex items-center gap-2") do
-          a(href: discover_settings_inference_server_path(@server), class: button_class(:outlined)) { "Fetch models" }
+          a(href: discover_settings_inference_server_path(@server), class: button_class(:outlined)) { discover_label }
           a(href: new_settings_inference_server_model_path(@server), class: button_class(:quiet)) { "Add manually" }
         end
       end

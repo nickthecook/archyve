@@ -484,6 +484,55 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
         expect(flash[:alert]).to include("refused")
       end
     end
+
+    context "with a server that can't list its models" do
+      subject(:request) { get discover_settings_inference_server_path(server, deployment:) }
+
+      let(:server) { create(:azure_server) }
+      let(:deployment) { nil }
+
+      before { allow_any_instance_of(InferenceServers::Azure).to receive(:available_models).and_return([]) }
+
+      context "without a deployment name" do
+        it "asks for one" do
+          request
+          expect(response.body).to include("Deployment name")
+        end
+
+        it "doesn't claim the server has no models" do
+          request
+          expect(response.body).not_to include("The server reported no models")
+        end
+      end
+
+      context "with a deployment that answers" do
+        let(:deployment) { " prod-chat " }
+
+        before do
+          allow_any_instance_of(InferenceServers::Azure).to receive(:describe_deployment).with("prod-chat")
+            .and_return(InferenceServer::Discovered.new(name: "prod-chat", kind: :chat, supports_tools: true))
+        end
+
+        it "offers it for import" do
+          request
+          expect(row_for("prod-chat")).to include(%(name="models[]" value="prod-chat"))
+        end
+      end
+
+      context "with a deployment that doesn't exist" do
+        let(:deployment) { "nope" }
+
+        before do
+          allow_any_instance_of(InferenceServers::Azure).to receive(:describe_deployment)
+            .and_raise(RubyLLM::Error, "Resource not found")
+        end
+
+        it "says why on the page" do
+          request
+          expect(response.body).to include("nope didn&#39;t answer: Resource not found")
+        end
+      end
+    end
   end
 
   describe "POST /settings/inference_servers/:id/import" do

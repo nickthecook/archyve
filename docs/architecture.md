@@ -437,6 +437,16 @@ Four consequences worth knowing before touching this:
   blocked `nil` too, to hide dated snapshots like `gpt-4-0613`; that made every
   model on a self-hosted OpenAI-compatible host (vLLM, LM Studio) unimportable,
   because RubyLLM's patterns cover OpenAI's catalogue and nothing else.
+- **Azure discovery is one deployment at a time.** `InferenceServers::Azure`
+  speaks the v1 API (`<resource>/openai/v1`, `api-key` header) through RubyLLM's
+  Azure provider. Requests name a *deployment*, and the data plane can't list
+  those — its `/models` is the catalogue the resource could deploy — so a check
+  only proves address and key, and models are added by deployment name. Lookup
+  sends the deployment a short prompt: the reply names the model behind it
+  (`prod-chat` → `gpt-4o-2024-11-20`), which the OpenAI patterns classify; a 400
+  means an embedding deployment, and one embed call measures its dimensions.
+  Classic `api-version` URLs and Entra ID tokens aren't supported yet; RubyLLM
+  handles both, so either is configuration rather than a new client.
 - **The embedding model is guarded by the corpus, not by a flag.**
   `InferenceModel` refuses an embedder while vectors produced by a *different*
   model exist, because those are what a switch would strand. With an empty

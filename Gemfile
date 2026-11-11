@@ -42,6 +42,7 @@ gem "ruby_llm"
 gem "faraday"
 gem "faraday-multipart"  # multipart file uploads to docling-serve
 gem "faraday-retry"      # backoff for slow/flaky local services
+gem "json", "~> 2.21"    # json 3 takes parse options as keywords only; Faraday 2.14's JSON middleware passes a hash
 gem "json_schemer", "~> 2.5" # validates API tool arguments
 gem "nokogiri"           # HTML5 parsing for the web source (transitive via loofah, but used directly)
 gem "csv"                # the Review export; a bundled gem rather than a default one since Ruby 3.4

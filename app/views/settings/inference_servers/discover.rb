@@ -18,9 +18,12 @@
 # or LM Studio host unimportable, since RubyLLM has an id pattern for OpenAI's
 # own catalogue and nothing else.
 class Views::Settings::InferenceServers::Discover < Views::Base
-  def initialize(server:, discovered:, existing:, embedding_locked:, has_embedding_model:)
+  def initialize(server:, discovered:, existing:, embedding_locked:, has_embedding_model:, deployment: nil,
+    lookup_error: nil)
     @server = server
     @discovered = discovered
+    @deployment = deployment
+    @lookup_error = lookup_error
     @existing = existing
     @embedding_locked = embedding_locked
     @has_embedding_model = has_embedding_model
@@ -39,7 +42,13 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       p(class: "mt-1 text-sm text-muted") { subtitle }
     end
 
-    @discovered.any? ? picker : empty_state
+    deployment_lookup unless @server.lists_models?
+
+    if @discovered.any?
+      picker
+    elsif @server.lists_models?
+      empty_state
+    end
   end
 
   private
@@ -47,6 +56,8 @@ class Views::Settings::InferenceServers::Discover < Views::Base
   def page_title = "Models on #{@server.name}"
 
   def subtitle
+    return "Azure can't list its deployments, so name one and Archyve will ask it what it is." unless @server.lists_models?
+
     importable = rows.count { |_model, blocked| blocked.nil? }
     skipped = rows.size - importable
     sentence = "#{@discovered.size} #{'model'.pluralize(@discovered.size)} reported, #{importable} importable."
@@ -199,6 +210,28 @@ class Views::Settings::InferenceServers::Discover < Views::Base
     else
       input(type: "hidden", name: "kinds[#{model.name}]", value: model.kind.to_s)
       span(class: "shrink-0 text-xs text-muted") { model.kind.to_s }
+    end
+  end
+
+  def deployment_lookup
+    form(action: discover_settings_inference_server_path(@server), method: "get", class: "mb-6 flex flex-col gap-2") do
+      label(for: "deployment", class: "block text-sm font-medium text-fg") { "Deployment name" }
+      div(class: "flex gap-3") do
+        input(
+          type: "text", id: "deployment", name: "deployment", value: @deployment, placeholder: "gpt-4o",
+          autocomplete: "off", autofocus: @deployment.blank?,
+          class: "w-full rounded border border-line bg-void/60 px-3 py-2 font-mono text-sm text-fg " \
+                 "placeholder:text-faint outline-none focus:border-accent transition-colors"
+        )
+        button(
+          type: "submit",
+          class: "shrink-0 rounded border border-line px-4 py-2 text-sm text-fg hover:border-accent transition-colors"
+        ) { "Look up" }
+      end
+      p(class: "text-xs text-faint") do
+        "As listed under Deployments in the Foundry portal. Looking one up sends it a short test prompt."
+      end
+      p(class: "text-sm text-red-300") { @lookup_error } if @lookup_error
     end
   end
 

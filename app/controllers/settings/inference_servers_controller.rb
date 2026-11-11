@@ -87,9 +87,16 @@ module Settings
       discovered = @server.check!
       return redirect_to settings_inference_server_path(@server), alert: unreachable_message unless discovered
 
+      lookup_error = nil
+      if (deployment = params[:deployment].to_s.strip).present? && !@server.lists_models?
+        discovered, lookup_error = look_up(deployment)
+      end
+
       render Views::Settings::InferenceServers::Discover.new(
         server: @server,
         discovered: discovered,
+        deployment:,
+        lookup_error:,
         existing: @server.inference_models.pluck(:name),
         embedding_locked: Embedding.exists?,
         has_embedding_model: InferenceModel.embedding.exists?
@@ -143,6 +150,12 @@ module Settings
 
     def unreachable_message
       "Couldn't reach #{@server.name}: #{@server.last_check_error}"
+    end
+
+    def look_up(deployment)
+      [[@server.describe_deployment(deployment)], nil]
+    rescue RubyLLM::Error, Faraday::Error => e
+      [[], "#{deployment} didn't answer: #{e.message}"]
     end
 
     def import_selected
