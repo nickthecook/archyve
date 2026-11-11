@@ -42,7 +42,15 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
       end
     end
 
-    context "with an embedding model whose dimensions don't fit the column" do
+    context "with a 1536-dimensional embedding model" do
+      let(:attributes) { { name: "text-embedding-3-small", kind: "embedding", dimensions: "1536" } }
+
+      it "creates it" do
+        expect { request }.to change(InferenceModel, :count).by(1)
+      end
+    end
+
+    context "with an unsupported embedding size" do
       let(:attributes) { { name: "mxbai-embed-large", kind: "embedding", dimensions: "1024" } }
 
       it "doesn't create it" do
@@ -51,7 +59,7 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
 
       it "re-renders with the reason" do
         request
-        expect(response.body).to include("vector(768)")
+        expect(response.body).to include("768 or 1536")
       end
     end
 

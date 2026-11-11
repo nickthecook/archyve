@@ -46,4 +46,4 @@ options:
     load_secrets: true
   environment:
     # Map ops `dev` -> Rails `development`; other envs pass through unchanged.
-    RAILS_ENV: "`test \"$environment\" == dev && echo -n development || echo -n \"$environment\"`"
+    RAILS_ENV: "`test \"$environment\" == dev && echo development || echo -n \"$environment\"`"

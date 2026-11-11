@@ -133,9 +133,10 @@ class ProcessDocumentJob < ApplicationJob
   # key: it is the durable record of what produced this vector, and has to
   # outlive the InferenceModel being renamed or deleted.
   def embed(chunk)
+    model = InferenceModel.active_embedding
     chunk.embeddings.create!(
-      embedding: Embeddings::Embed.document(chunk.content),
-      embedding_model: InferenceModel.active_embedding.name
+      Embedding.column_for(model.dimensions) => Embeddings::Embed.document(chunk.content),
+      embedding_model: model.name
     )
   end
 end

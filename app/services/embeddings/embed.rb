@@ -24,7 +24,7 @@ module Embeddings
     def self.document(text) = new.call(text, task: :search_document)
     def self.query(text) = new.call(text, task: :search_query)
 
-    # => Array<Float> of length Embedding::DIMENSIONS
+    # => Array<Float> of length model.dimensions
     def call(text, task:)
       model = active_model
 

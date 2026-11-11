@@ -1,11 +1,11 @@
 class Embedding < ApplicationRecord
-  # The width of the `embedding` column: a vector(768) with a single cosine
-  # HNSW index. A schema fact rather than a setting, which is why it stayed a
-  # constant when the model id moved to InferenceModel — that row is validated
-  # against this, since a model of any other width could not be stored here.
   DIMENSIONS = 768
+  COLUMNS_BY_DIMENSION = { 768 => :embedding, 1536 => :embedding_1536 }.freeze
 
   has_neighbors :embedding
+  has_neighbors :embedding_1536
+
+  def self.column_for(dimensions) = COLUMNS_BY_DIMENSION.fetch(dimensions)
 
   belongs_to :chunk
 

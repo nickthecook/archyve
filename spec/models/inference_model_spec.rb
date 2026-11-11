@@ -68,18 +68,22 @@ RSpec.describe InferenceModel do
         expect(build(:embedding_model, dimensions: nil)).not_to be_valid
       end
 
-      # The embeddings column is a vector(768) with one cosine HNSW index, so a
-      # model of any other width physically cannot be stored in it.
-      context "when they don't match the column" do
+      context "when they are 1536" do
+        it "accepts the model" do
+          expect(build(:embedding_model, dimensions: 1536)).to be_valid
+        end
+      end
+
+      context "when they aren't supported" do
         subject(:model) { build(:embedding_model, dimensions: 1024) }
 
         it "is invalid" do
           expect(model).not_to be_valid
         end
 
-        it "says why" do
+        it "lists the supported widths" do
           model.valid?
-          expect(model.errors.full_messages.to_sentence).to include("vector(768)")
+          expect(model.errors.full_messages.to_sentence).to include("768 or 1536")
         end
       end
     end

@@ -530,8 +530,7 @@ RSpec.describe InferenceServer do
           end
         end
 
-        # Recognisable, but unusable: this API never reports dimensions and the
-        # column is a fixed 768.
+        # This API never reports dimensions, so a person must supply a supported width.
         context "with an OpenAI embedding model" do
           let(:id) { "text-embedding-3-large" }
 

@@ -35,6 +35,19 @@ RSpec.describe ProcessDocumentJob do
       end
     end
 
+    context "with a 1536-dimensional embedding model" do
+      let!(:embedding_model) { create(:embedding_model, dimensions: 1536, name: "text-embedding-3-small") }
+      let(:vector) { Array.new(1536) { 0.1 } }
+
+      it "stores the vector in the 1536-dimensional column" do
+        job.perform(document)
+        embedding = document.chunks.first.embeddings.first
+        expect(embedding.embedding_1536.to_a.size).to eq(1536)
+        expect(embedding.embedding_1536.to_a.first).to be_within(0.00001).of(0.1)
+        expect(embedding.embedding).to be_nil
+      end
+    end
+
     # The setting is only worth having if it reaches docling, and the document
     # is what decides — it is the thing that remembers what was chosen.
     describe "the OCR choice it converts with" do

@@ -18,7 +18,7 @@ RSpec.describe Retrieval::Search do
     let(:document) { create(:document, title: "Handbook") }
 
     before do
-      create(:embedding, chunk: create(:chunk, document:))
+      create(:embedding, chunk: create(:chunk, document:), embedding_model: embedding_model.name)
       create(:collection_membership, collection:, document:, origin: "manual")
       create(:collection_user, collection:, user:)
       allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 })
@@ -35,6 +35,19 @@ RSpec.describe Retrieval::Search do
 
       it "numbers the hit so the model can cite it" do
         expect(result.hits.first.handle).to eq(1)
+      end
+    end
+
+    context "with a 1536-dimensional embedding model" do
+      let!(:embedding_model) { create(:embedding_model, dimensions: 1536, name: "text-embedding-3-small") }
+
+      before do
+        Embedding.first.update!(embedding: nil, embedding_1536: Array.new(1536) { 0.1 })
+        allow(Embeddings::Embed).to receive(:query).and_return(Array.new(1536) { 0.1 })
+      end
+
+      it "finds the stored passage" do
+        expect(result.hits.map { it.document.title }).to eq(["Handbook"])
       end
     end
 

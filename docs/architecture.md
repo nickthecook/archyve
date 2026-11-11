@@ -340,8 +340,9 @@ even mid-conversation. (Starting all-Ollama avoids this variety for now.)
 ### Embedding provider — the sticky one
 Two hard facts:
 1. **A pgvector column has a fixed dimension** (e.g. `nomic-embed-text` 768,
-   `mxbai-embed-large` 1024, OpenAI `text-embedding-3-small` 1536). One HNSW
-   index per dimension.
+   `mxbai-embed-large` 1024, OpenAI `text-embedding-3-small` 1536). Archyve
+   stores 768 and 1536 in separate indexed columns on `embeddings`; a model's
+   dimension chooses the column at ingestion and search time.
 2. **Embeddings from different models are not comparable** — different vector
    spaces. A query embedded with model B cannot search a corpus embedded with
    model A.
@@ -362,8 +363,9 @@ snowflake-arctic-embed, bge-m3, Qwen3-Embedding) before scaling. Honor nomic's
 task prefixes (`search_document:` / `search_query:`) at index and query time.
 
 Design consequences:
-- Store the **embedding model id + dimension** with every vector; validate query
-  embeddings match the active corpus and fail loudly on mismatch.
+- Store the **embedding model id** with every vector; the populated vector
+  column determines its dimension. Validate query embeddings against the active
+  model and fail loudly on mismatch.
 - **The corpus must always have a model that can read it.** Two halves of one
   rule: `InferenceModel#corpus_must_be_empty` refuses a *different* embedder
   while vectors exist, and `#removal_refusal` refuses removing the one they came
@@ -378,8 +380,8 @@ Design consequences:
 - **Pick the starting embedding model now** to size the column. Starting with
   Ollama: `nomic-embed-text` (768) or `mxbai-embed-large` (1024).
 - To run **two embedding models simultaneously** (A/B or zero-downtime
-  migration), use a **separate table/column per model** — never mix dimensions
-  in one column.
+  migration), keep their vector spaces separate and re-embed the corpus; having
+  columns for two dimensions does not enable concurrent models.
 
 ### As built (2026-09-11): `InferenceServer` + `InferenceModel`
 
@@ -468,8 +470,9 @@ Four consequences worth knowing before touching this:
   corpus it's just a setup step, and re-declaring the model the corpus is
   already full of is not a change at all — which is how an install predating
   these rows describes itself. `dimensions` is validated against
-  `Embedding::DIMENSIONS`, so a model that cannot physically fit the
-  `vector(768)` column can never become the archive's embedder.
+  `Embedding::COLUMNS_BY_DIMENSION` (768 or 1536); ingestion and retrieval use
+  the corresponding indexed column. Changing the configured model still
+  requires an empty corpus, even when both models have the same dimension.
 
 Nothing is seeded unless `OLLAMA_API_BASE` is set: **zero servers is a
 legitimate state**, and the pages say "not configured" rather than reporting an

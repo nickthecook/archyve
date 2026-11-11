@@ -47,6 +47,15 @@ RSpec.describe Embeddings::Embed do
   end
 
   describe "dimension guard" do
+    context "with a 1536-dimensional model" do
+      let!(:model) { create(:embedding_model, inference_server: server, dimensions: 1536) }
+      let(:vector) { Array.new(1536) { 0.1 } }
+
+      it "accepts a vector of the configured width" do
+        expect(described_class.document("x")).to eq(vector)
+      end
+    end
+
     context "when the model returns the wrong number of dimensions" do
       let(:vector) { [1.0, 2.0, 3.0] }
 
