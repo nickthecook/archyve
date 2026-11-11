@@ -73,6 +73,18 @@ RSpec.describe Chat::Responder do
       end
     end
 
+    context "with a model that speaks Responses" do
+      let(:chat_model) { create(:inference_model, kind: "chat", supports_tools: true, protocol: "responses") }
+      let(:context) { double(chat: llm) }
+
+      before { allow_any_instance_of(InferenceServer).to receive(:llm_context).and_return(context) }
+
+      it "asks over Responses" do
+        respond
+        expect(context).to have_received(:chat).with(hash_including(protocol: :responses))
+      end
+    end
+
     context "when Ollama counts nothing" do
       it "falls back to a token per delta" do
         respond

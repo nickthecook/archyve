@@ -130,6 +130,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
           span(class: "min-w-0 truncate font-mono text-sm text-fg") { model.name }
           tag("default") if model.id == @default_chat&.id
           tag("tools") if model.supports_tools?
+          tag("responses") if model.chat? && model.responses?
           tag("disabled") unless model.enabled?
         end
         p(class: "mt-0.5 text-xs text-faint") { model_detail(model) }

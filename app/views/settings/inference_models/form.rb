@@ -30,6 +30,8 @@ class Views::Settings::InferenceModels::Form < Components::Base
         number_input(:context_window, @model.context_window, placeholder: "8192")
       end
 
+      protocol_field unless @model.persisted? && @model.embedding?
+
       checkbox_field(
         :supports_tools, "Can call tools",
         "Archyve gives the model retrieval as a tool rather than stuffing documents into the prompt, " \
@@ -78,6 +80,19 @@ class Views::Settings::InferenceModels::Form < Components::Base
     select(name: "inference_model[kind]", class: input_classes) do
       option(value: "chat", selected: @model.chat?) { "Chat" }
       option(value: "embedding", selected: @model.embedding?, disabled: @embedding_locked) { "Embedding" }
+    end
+  end
+
+  def protocol_field
+    hint = "Chat models only. gpt-5.4 and later, and gpt-6, need Responses to call tools; " \
+           "everything else, including vLLM and Ollama, speaks Chat Completions."
+    field("API", hint) do
+      select(name: "inference_model[protocol]", class: input_classes) do
+        option(value: "", selected: @model.protocol.blank?) { "Decide from the model id" } if @model.new_record?
+        InferenceModel::PROTOCOLS.each do |value, label|
+          option(value:, selected: @model.protocol == value) { label }
+        end
+      end
     end
   end
 

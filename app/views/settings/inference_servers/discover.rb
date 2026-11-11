@@ -194,6 +194,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
     input(type: "hidden", name: "context_windows[#{model.name}]", value: model.context_window) if model.context_window
     input(type: "hidden", name: "dimensions[#{model.name}]", value: model.dimensions) if model.dimensions
     input(type: "hidden", name: "supports_tools[#{model.name}]", value: "1") unless model.supports_tools == false
+    input(type: "hidden", name: "protocols[#{model.name}]", value: model.protocol) if model.protocol
   end
 
   # A select where the provider couldn't say, a fixed value where it could.

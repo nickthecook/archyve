@@ -18,6 +18,50 @@ RSpec.describe InferenceModel do
     end
   end
 
+  describe "protocol" do
+    subject(:model) { create(:inference_model, kind:, name:, **explicit) }
+
+    let(:kind) { "chat" }
+    let(:explicit) { {} }
+
+    context "with a chat model that needs Responses" do
+      let(:name) { "gpt-6-luna" }
+
+      it { is_expected.to have_attributes(protocol: "responses") }
+    end
+
+    context "with a gpt-5.4 snapshot" do
+      let(:name) { "gpt-5.4-mini-2026-03-17" }
+
+      it { is_expected.to have_attributes(protocol: "responses") }
+    end
+
+    context "with an older OpenAI model" do
+      let(:name) { "gpt-5.2" }
+
+      it { is_expected.to have_attributes(protocol: "chat_completions") }
+    end
+
+    context "with a model hosted somewhere else" do
+      let(:name) { "qwen3.8-27b" }
+
+      it { is_expected.to have_attributes(protocol: "chat_completions") }
+    end
+
+    context "with a protocol chosen explicitly" do
+      let(:name) { "gpt-6-luna" }
+      let(:explicit) { { protocol: "chat_completions" } }
+
+      it "keeps it" do
+        expect(model.protocol).to eq("chat_completions")
+      end
+    end
+
+    it "refuses one RubyLLM doesn't speak" do
+      expect(build(:inference_model, protocol: "completions")).not_to be_valid
+    end
+  end
+
   describe "dimensions" do
     context "when the model is an embedder" do
       it "requires them" do

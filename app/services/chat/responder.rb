@@ -93,7 +93,7 @@ module Chat
       chat = model.inference_server.llm_context.chat(
         model: model.name,
         provider: model.inference_server.ruby_llm_provider,
-        protocol: :chat_completions,
+        protocol: model.protocol.to_sym,
         assume_model_exists: true
       )
       chat.with_instructions(Instructions.for(@conversation))

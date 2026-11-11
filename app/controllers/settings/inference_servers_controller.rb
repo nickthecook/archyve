@@ -193,7 +193,8 @@ module Settings
       {
         context_window: params.dig(:context_windows, name).presence,
         dimensions: params.dig(:dimensions, name).presence,
-        supports_tools: params.dig(:supports_tools, name).present?
+        supports_tools: params.dig(:supports_tools, name).present?,
+        protocol: params.dig(:protocols, name).presence
       }
     end
   end

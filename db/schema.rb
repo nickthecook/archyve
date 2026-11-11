@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -54,53 +54,53 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   end
 
   create_table "agent_users", force: :cascade do |t|
-    t.integer "access", default: 0, null: false
     t.bigint "agent_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "access", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["agent_id", "user_id"], name: "index_agent_users_on_agent_id_and_user_id", unique: true
     t.index ["agent_id"], name: "index_agent_users_on_agent_id"
     t.index ["user_id"], name: "index_agent_users_on_user_id"
   end
 
   create_table "agents", force: :cascade do |t|
-    t.integer "access_mode", default: 0, null: false
-    t.boolean "built_in", default: false, null: false
-    t.integer "collection_mode", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.bigint "creator_id"
+    t.string "slug", null: false
     t.string "name", null: false
     t.text "prompt", default: "", null: false
-    t.string "slug", null: false
-    t.string "toolset_keys", default: [], null: false, array: true
+    t.boolean "built_in", default: false, null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "toolset_keys", default: [], null: false, array: true
+    t.integer "access_mode", default: 0, null: false
+    t.integer "collection_mode", default: 0, null: false
+    t.bigint "creator_id"
     t.index ["creator_id"], name: "index_agents_on_creator_id"
     t.index ["slug"], name: "index_agents_on_slug", unique: true
   end
 
   create_table "api_calls", force: :cascade do |t|
-    t.bigint "api_key_id"
-    t.datetime "created_at", null: false
-    t.integer "duration_ms"
-    t.string "error"
-    t.string "http_method", null: false
-    t.boolean "incoming", default: false, null: false
-    t.string "kind", null: false
-    t.jsonb "request_body"
-    t.jsonb "request_headers"
-    t.integer "request_length"
-    t.jsonb "response_body"
-    t.integer "response_code"
-    t.jsonb "response_headers"
-    t.integer "response_length"
     t.string "service_name", null: false
-    t.boolean "streamed", default: false, null: false
-    t.bigint "traceable_id"
-    t.string "traceable_type"
-    t.datetime "updated_at", null: false
+    t.string "kind", null: false
+    t.string "http_method", null: false
     t.string "url", null: false
+    t.integer "response_code"
+    t.jsonb "request_headers"
+    t.jsonb "request_body"
+    t.integer "request_length"
+    t.jsonb "response_headers"
+    t.jsonb "response_body"
+    t.integer "response_length"
+    t.integer "duration_ms"
+    t.boolean "streamed", default: false, null: false
+    t.string "error"
+    t.string "traceable_type"
+    t.bigint "traceable_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "incoming", default: false, null: false
     t.bigint "user_id"
+    t.bigint "api_key_id"
     t.index ["api_key_id"], name: "index_api_calls_on_api_key_id"
     t.index ["created_at"], name: "index_api_calls_on_created_at"
     t.index ["traceable_type", "traceable_id"], name: "index_api_calls_on_traceable"
@@ -108,13 +108,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   end
 
   create_table "api_keys", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "last_used_at"
+    t.bigint "user_id", null: false
     t.string "name", null: false
     t.string "token_digest", null: false
     t.string "token_prefix", null: false
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["token_digest"], name: "index_api_keys_on_token_digest", unique: true
     t.index ["user_id"], name: "index_api_keys_on_user_id"
   end
@@ -123,10 +123,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.bigint "document_id", null: false
-    t.text "markdown"
     t.integer "position", null: false
     t.jsonb "structure", default: {}, null: false
     t.datetime "updated_at", null: false
+    t.text "markdown"
     t.index ["document_id", "position"], name: "index_chunks_on_document_id_and_position", unique: true
     t.index ["document_id"], name: "index_chunks_on_document_id"
   end
@@ -145,9 +145,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   end
 
   create_table "collection_users", force: :cascade do |t|
-    t.integer "access", default: 0, null: false
     t.bigint "collection_id", null: false
     t.datetime "created_at", null: false
+    t.integer "access", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["collection_id", "user_id"], name: "index_collection_users_on_collection_id_and_user_id", unique: true
@@ -157,21 +157,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
 
   create_table "collections", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.text "description"
     t.string "name", null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
+    t.text "description"
     t.index ["slug"], name: "index_collections_on_slug", unique: true
   end
 
   create_table "conversations", force: :cascade do |t|
-    t.bigint "agent_id", null: false
     t.datetime "created_at", null: false
     t.bigint "inference_model_id"
     t.jsonb "scope", default: {}, null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.bigint "agent_id", null: false
     t.index ["agent_id"], name: "index_conversations_on_agent_id"
     t.index ["inference_model_id"], name: "index_conversations_on_inference_model_id"
     t.index ["user_id"], name: "index_conversations_on_user_id"
@@ -181,12 +181,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.string "content_type"
     t.datetime "created_at", null: false
     t.string "external_id", null: false
-    t.bigint "last_seen_sync_id"
-    t.boolean "ocr"
-    t.text "outcome_detail"
-    t.string "outcome_kind"
-    t.string "outcome_stage"
-    t.string "path"
     t.bigint "source_id", null: false
     t.jsonb "source_metadata", default: {}, null: false
     t.bigint "source_sync_id"
@@ -194,7 +188,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.string "status", default: "pending", null: false
     t.string "title"
     t.datetime "updated_at", null: false
+    t.string "outcome_stage"
+    t.string "outcome_kind"
+    t.text "outcome_detail"
+    t.boolean "ocr"
+    t.string "path"
     t.string "url"
+    t.bigint "last_seen_sync_id"
     t.index ["last_seen_sync_id"], name: "index_documents_on_last_seen_sync_id"
     t.index ["outcome_kind"], name: "index_documents_on_outcome_kind", where: "(outcome_kind IS NOT NULL)"
     t.index ["source_id", "external_id"], name: "index_documents_on_source_id_and_external_id", unique: true
@@ -216,23 +216,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   end
 
   create_table "endpoints", force: :cascade do |t|
-    t.string "access_error"
-    t.datetime "accessed_at"
-    t.jsonb "config", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.text "credentials"
     t.string "name", null: false
     t.string "type", null: false
+    t.jsonb "config", default: {}, null: false
+    t.text "credentials"
+    t.datetime "accessed_at"
+    t.string "access_error"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_endpoints_on_name", unique: true
     t.index ["type"], name: "index_endpoints_on_type"
   end
 
   create_table "feedbacks", force: :cascade do |t|
-    t.text "comment"
-    t.datetime "created_at", null: false
     t.bigint "message_id", null: false
     t.integer "rating"
+    t.text "comment"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["message_id"], name: "index_feedbacks_on_message_id", unique: true
   end
@@ -245,11 +245,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.string "document_title", null: false
     t.integer "handle", null: false
     t.string "heading_path"
-    t.integer "position"
     t.float "score"
     t.bigint "segment_id", null: false
     t.text "snippet", null: false
     t.datetime "updated_at", null: false
+    t.integer "position"
     t.index ["chunk_id"], name: "index_hits_on_chunk_id"
     t.index ["document_id"], name: "index_hits_on_document_id"
     t.index ["segment_id", "handle"], name: "index_hits_on_segment_id_and_handle", unique: true
@@ -267,6 +267,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.string "name", null: false
     t.boolean "supports_tools", default: false, null: false
     t.datetime "updated_at", null: false
+    t.string "protocol", null: false
     t.index ["inference_server_id", "name"], name: "index_inference_models_on_inference_server_id_and_name", unique: true
     t.index ["inference_server_id"], name: "index_inference_models_on_inference_server_id"
     t.index ["kind"], name: "index_inference_models_on_single_embedding", unique: true, where: "(kind = 1)"
@@ -292,10 +293,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.datetime "created_at", null: false
     t.string "error"
     t.bigint "inference_model_id"
-    t.integer "input_tokens"
     t.integer "position", null: false
     t.integer "role", null: false
     t.datetime "updated_at", null: false
+    t.integer "input_tokens"
     t.index ["conversation_id", "position"], name: "index_messages_on_conversation_id_and_position", unique: true
     t.index ["conversation_id"], name: "index_messages_on_conversation_id"
     t.index ["inference_model_id"], name: "index_messages_on_inference_model_id"
@@ -306,16 +307,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.text "content"
     t.datetime "created_at", null: false
     t.string "failure_kind"
-    t.integer "generation_ms"
     t.integer "kind", null: false
-    t.jsonb "listing"
     t.bigint "message_id", null: false
     t.integer "position", null: false
     t.jsonb "queries", default: [], null: false
-    t.jsonb "reading"
-    t.integer "token_count"
-    t.jsonb "tool_call"
     t.datetime "updated_at", null: false
+    t.integer "token_count"
+    t.integer "generation_ms"
+    t.jsonb "reading"
+    t.jsonb "listing"
+    t.jsonb "tool_call"
     t.index ["message_id", "position"], name: "index_segments_on_message_id_and_position", unique: true
     t.index ["message_id"], name: "index_segments_on_message_id"
   end
@@ -323,10 +324,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
-    t.text "sso_id_token"
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.bigint "user_id", null: false
+    t.text "sso_id_token"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
@@ -349,26 +350,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   end
 
   create_table "source_reprocesses", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "cursor", default: 0, null: false
-    t.integer "enqueued", default: 0, null: false
-    t.datetime "finished_at"
     t.bigint "source_id", null: false
     t.string "status", default: "running", null: false
+    t.bigint "cursor", default: 0, null: false
     t.integer "total", default: 0, null: false
+    t.integer "enqueued", default: 0, null: false
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["source_id"], name: "index_source_reprocesses_on_running_source", unique: true, where: "((status)::text = 'running'::text)"
     t.index ["source_id"], name: "index_source_reprocesses_on_source_id"
   end
 
   create_table "source_sync_items", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "detail", default: {}, null: false
-    t.string "disposition"
-    t.string "external_id", null: false
     t.bigint "source_sync_id", null: false
-    t.integer "status_code"
+    t.string "external_id", null: false
+    t.string "disposition"
+    t.jsonb "detail", default: {}, null: false
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "status_code"
     t.index ["source_sync_id", "disposition"], name: "index_source_sync_items_on_source_sync_id_and_disposition"
     t.index ["source_sync_id", "external_id"], name: "index_source_sync_items_on_source_sync_id_and_external_id", unique: true
     t.index ["source_sync_id"], name: "index_source_sync_items_on_source_sync_id"
@@ -381,9 +382,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.integer "failed_count", default: 0, null: false
     t.datetime "finished_at"
     t.integer "found_count", default: 0, null: false
-    t.datetime "last_progress_at"
     t.integer "removed_count", default: 0, null: false
-    t.jsonb "response_stats", default: {}, null: false
     t.integer "skipped_count", default: 0, null: false
     t.bigint "source_id", null: false
     t.integer "stale_count", default: 0, null: false
@@ -392,14 +391,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
     t.integer "unchanged_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.integer "updated_count", default: 0, null: false
+    t.datetime "last_progress_at"
+    t.jsonb "response_stats", default: {}, null: false
     t.integer "withheld_count", default: 0, null: false
     t.index ["source_id", "started_at"], name: "index_source_syncs_on_source_id_and_started_at"
     t.index ["source_id"], name: "index_source_syncs_on_source_id"
   end
 
   create_table "source_users", force: :cascade do |t|
-    t.integer "access", default: 1, null: false
     t.datetime "created_at", null: false
+    t.integer "access", default: 1, null: false
     t.bigint "source_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -411,13 +412,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   create_table "sources", force: :cascade do |t|
     t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
-    t.bigint "endpoint_id"
     t.datetime "last_synced_at"
     t.string "name", null: false
     t.jsonb "state", default: {}, null: false
     t.string "type", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id"
+    t.bigint "endpoint_id"
     t.index ["endpoint_id"], name: "index_sources_on_endpoint_id"
     t.index ["type"], name: "index_sources_on_type"
     t.index ["user_id"], name: "index_manual_upload_sources_on_user_id", unique: true, where: "((type)::text = 'Sources::ManualUpload'::text)"
@@ -427,12 +428,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_120000) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
-    t.datetime "last_signed_in_at"
     t.string "password_digest"
     t.integer "role", default: 0, null: false
-    t.string "sso_issuer"
-    t.string "sso_subject"
     t.datetime "updated_at", null: false
+    t.string "sso_subject"
+    t.string "sso_issuer"
+    t.datetime "last_signed_in_at"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["role"], name: "index_users_on_role"
     t.index ["sso_subject"], name: "index_users_on_sso_subject", unique: true

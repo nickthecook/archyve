@@ -24,6 +24,14 @@ RSpec.describe ApiCalls::Body do
       end
     end
 
+    context "with a streamed body that arrived as binary" do
+      let(:raw) { "data: {\"delta\":\"4°C\"}\n\n".b }
+
+      it "reads it as UTF-8" do
+        expect(summary).to eq("data: {\"delta\":\"4°C\"}\n\n").and have_attributes(encoding: Encoding::UTF_8)
+      end
+    end
+
     context "with a string past the cap" do
       let(:long) { "x" * (described_class::MAX_STRING + 50) }
       let(:raw) { { content: long }.to_json }

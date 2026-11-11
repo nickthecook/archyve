@@ -19,6 +19,7 @@ module ApiCalls
     def self.summarize(raw)
       return nil if raw.blank?
 
+      raw = as_utf8(raw) if raw.is_a?(String)
       shrink(JSON.parse(raw))
     rescue JSON::ParserError, TypeError
       truncate(raw.to_s, MAX_RAW)
@@ -45,6 +46,14 @@ module ApiCalls
       "#{string[0, limit]}… [#{string.length} chars total]"
     end
 
-    private_class_method :shrink_array, :truncate
+    # Streamed chunks arrive as binary, which makes the whole buffer binary
+    # once any of it isn't ASCII.
+    def self.as_utf8(string)
+      return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
+
+      string.dup.force_encoding(Encoding::UTF_8).scrub
+    end
+
+    private_class_method :shrink_array, :truncate, :as_utf8
   end
 end

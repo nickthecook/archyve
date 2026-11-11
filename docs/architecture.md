@@ -451,6 +451,17 @@ Four consequences worth knowing before touching this:
   means an embedding deployment, and one embed call measures its dimensions.
   Classic `api-version` URLs and Entra ID tokens aren't supported yet; RubyLLM
   handles both, so either is configuration rather than a new client.
+- **Each chat model names its wire protocol.** `InferenceModel#protocol` is
+  `chat_completions` or `responses`, passed to RubyLLM on every chat so its own
+  routing (which sends Azure deployments named like gpt-5.4+ to Responses, and
+  all OpenAI traffic there by default) never decides for us. gpt-5.4+ and gpt-6+
+  only call tools reliably over Responses; vLLM, Ollama and older models speak
+  Chat Completions. The default comes from the model id
+  (`InferenceModel.default_protocol_for`) — for Azure, the id the deployment
+  answered lookup with, since a deployment name needn't resemble its model —
+  and the model form overrides it. vLLM's per-chunk token counts
+  (`return_token_ids`) only exist on Chat Completions, so a Responses model's
+  segments carry no token rate — see `Chat::Pace`.
 - **The embedding model is guarded by the corpus, not by a flag.**
   `InferenceModel` refuses an embedder while vectors produced by a *different*
   model exist, because those are what a switch would strand. With an empty

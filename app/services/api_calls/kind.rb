@@ -11,7 +11,7 @@ module ApiCalls
   # this table.
   module Kind
     PATTERNS = {
-      "chat" => %r{/chat/completions\z},
+      "chat" => %r{/(?:chat/completions|responses)\z},
       # Ollama answers discovery on its own API rather than the OpenAI-compatible
       # one — see InferenceServers::Ollama for why.
       "discovery" => %r{/(?:models|api/tags|api/show)\z}

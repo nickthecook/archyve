@@ -10,6 +10,12 @@ RSpec.describe ApiCalls::Kind do
       it { is_expected.to eq("chat") }
     end
 
+    context "with a Responses API call" do
+      let(:url) { "https://res.openai.azure.com/openai/v1/responses" }
+
+      it { is_expected.to eq("chat") }
+    end
+
     context "with an OpenAI-compatible model list" do
       let(:url) { "http://llm.test/v1/models" }
 

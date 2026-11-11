@@ -43,8 +43,13 @@ class InferenceServer < ApplicationRecord
   # `kind` to be filed under. Deliberately the same word, and the same meaning,
   # as Source::Item#skip_reason: reported rather than filtered out, because a
   # model that quietly vanished from the list just sends someone looking for it.
-  Discovered = Data.define(:name, :kind, :context_window, :dimensions, :supports_tools, :skip_reason) do
-    def initialize(name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: nil, skip_reason: nil)
+  #
+  # `protocol` is set only where the name can't decide it — see
+  # InferenceModel.default_protocol_for.
+  Discovered = Data.define(:name, :kind, :context_window, :dimensions, :supports_tools, :skip_reason, :protocol) do
+    def initialize(
+      name:, kind: nil, context_window: nil, dimensions: nil, supports_tools: nil, skip_reason: nil, protocol: nil
+    )
       super
     end
 

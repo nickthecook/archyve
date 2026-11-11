@@ -24,6 +24,24 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
       end
     end
 
+    context "with a protocol chosen" do
+      let(:attributes) { { name: "gpt-6-prod", kind: "chat", supports_tools: "1", protocol: "chat_completions" } }
+
+      it "keeps it over the one the id suggests" do
+        request
+        expect(InferenceModel.last.protocol).to eq("chat_completions")
+      end
+    end
+
+    context "with the protocol left to the model id" do
+      let(:attributes) { { name: "gpt-6-luna", kind: "chat", supports_tools: "1", protocol: "" } }
+
+      it "picks it from the id" do
+        request
+        expect(InferenceModel.last.protocol).to eq("responses")
+      end
+    end
+
     context "with an embedding model whose dimensions don't fit the column" do
       let(:attributes) { { name: "mxbai-embed-large", kind: "embedding", dimensions: "1024" } }
 

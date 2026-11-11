@@ -42,7 +42,8 @@ module InferenceServers
       reply = llm_context
         .chat(model: name, provider: :azure, protocol: :chat_completions, assume_model_exists: true)
         .ask(PROBE_PROMPT)
-      describe(reply.model_id.to_s).with(name:, kind: :chat)
+      model_id = reply.model_id.to_s
+      describe(model_id).with(name:, kind: :chat, protocol: InferenceModel.default_protocol_for(model_id))
     rescue RubyLLM::BadRequestError
       vectors = llm_context.embed(PROBE_PROMPT, model: name, provider: :azure, assume_model_exists: true).vectors
       Discovered.new(name:, kind: :embedding, dimensions: vectors.size)

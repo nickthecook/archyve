@@ -517,6 +517,20 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
           request
           expect(row_for("prod-chat")).to include(%(name="models[]" value="prod-chat"))
         end
+
+        context "when the model behind it needs Responses" do
+          before do
+            allow_any_instance_of(InferenceServers::Azure).to receive(:describe_deployment).with("prod-chat")
+              .and_return(
+                InferenceServer::Discovered.new(name: "prod-chat", kind: :chat, supports_tools: true, protocol: "responses")
+              )
+          end
+
+          it "carries the protocol through to the import" do
+            request
+            expect(row_for("prod-chat")).to include(%(name="protocols[prod-chat]" value="responses"))
+          end
+        end
       end
 
       context "with a deployment that doesn't exist" do
@@ -557,6 +571,26 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       it "carries the capabilities discovery reported" do
         request
         expect(InferenceModel.last).to have_attributes(context_window: 131_072, supports_tools: true)
+      end
+
+      it "picks the protocol from the model id" do
+        request
+        expect(InferenceModel.last.protocol).to eq("chat_completions")
+      end
+    end
+
+    context "with a protocol discovery worked out" do
+      subject(:request) do
+        post import_settings_inference_server_path(server), params: {
+          models: ["prod-chat"], supports_tools: { "prod-chat" => "1" }, protocols: { "prod-chat" => "responses" }
+        }
+      end
+
+      let(:server) { create(:azure_server) }
+
+      it "uses it" do
+        request
+        expect(InferenceModel.last.protocol).to eq("responses")
       end
     end
 

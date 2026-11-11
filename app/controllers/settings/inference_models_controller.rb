@@ -78,7 +78,7 @@ module Settings
     # an embedding model that became a chat model would orphan the corpus
     def model_params
       params.require(:inference_model)
-        .permit(:name, :display_name, :kind, :dimensions, :context_window, :supports_tools, :enabled)
+        .permit(:name, :display_name, :kind, :dimensions, :context_window, :supports_tools, :enabled, :protocol)
     end
   end
 end

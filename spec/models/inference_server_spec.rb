@@ -815,6 +815,14 @@ RSpec.describe InferenceServer do
         end
       end
 
+      context "with a deployment whose name hides a model that needs Responses" do
+        let(:model_id) { "gpt-6-luna-2026-09-22" }
+
+        it "picks the protocol from the model, not the deployment name" do
+          expect(discovered.protocol).to eq("responses")
+        end
+      end
+
       context "with a chat deployment of a model RubyLLM doesn't recognise" do
         let(:model_id) { "some-unreleased-model-2026-09-22" }
 

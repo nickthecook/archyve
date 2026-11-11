@@ -19,7 +19,16 @@ class InferenceModel < ApplicationRecord
   # concern. New kinds append; the integers are stored.
   enum :kind, { chat: 0, embedding: 1 }, validate: true
 
+  PROTOCOLS = { "chat_completions" => "Chat Completions", "responses" => "Responses" }.freeze
+
+  # OpenAI's gpt-5.4+ and gpt-6+ only call tools reliably over Responses. The
+  # same rule RubyLLM's Azure provider routes deployment names by.
+  RESPONSES_MODEL = /gpt-5\.[4-9]|gpt-5\d|gpt-[6-9]/
+
+  before_validation :assign_default_protocol, if: -> { protocol.blank? }
+
   validates :name, presence: true, uniqueness: { scope: :inference_server_id }
+  validates :protocol, inclusion: { in: PROTOCOLS.keys }
   validates :dimensions, presence: true, if: :embedding?
   validates :context_window, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
@@ -62,7 +71,15 @@ class InferenceModel < ApplicationRecord
     for_chat.find_by(id: Setting.chat_default_model_id) || for_chat.order(:id).first
   end
 
+  # An Azure deployment's name needn't resemble its model, so discovery passes
+  # the id the deployment answered with.
+  def self.default_protocol_for(model_id)
+    model_id.to_s.match?(RESPONSES_MODEL) ? "responses" : "chat_completions"
+  end
+
   def label = display_name.presence || name
+
+  def responses? = protocol == "responses"
 
   # Why this model can't be removed, or nil. Public because the page has to be
   # able to say so without attempting the delete, and the controller has to
@@ -81,6 +98,10 @@ class InferenceModel < ApplicationRecord
   end
 
   private
+
+  def assign_default_protocol
+    self.protocol = chat? ? self.class.default_protocol_for(name) : "chat_completions"
+  end
 
   # The other half of corpus_must_be_empty: that one refuses a *different*
   # embedder while vectors exist, and this refuses removing the one they were
