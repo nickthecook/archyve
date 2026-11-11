@@ -6,6 +6,11 @@ module Settings
     require_role :admin
 
     def update
+      if InferenceModel.default_chat_pinned?
+        return redirect_to settings_inference_servers_path,
+          alert: "The default model is set by #{Inference::Spec::DEFAULT_CHAT_VAR}."
+      end
+
       id = params[:inference_model_id].presence
 
       if id.nil?

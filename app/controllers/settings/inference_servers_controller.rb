@@ -6,12 +6,15 @@ module Settings
     require_role :admin
 
     before_action :set_server, only: [:show, :edit, :update, :destroy, :check, :discover, :import]
+    before_action :refuse_provisioned, only: [:edit, :update, :discover, :import]
 
     def index
       render Views::Settings::InferenceServers::Index.new(
         servers: InferenceServer.order(:name).includes(:inference_models),
         chat_models: InferenceModel.choosable_for_chat,
-        default_model_id: Setting.chat_default_model_id
+        default_model_id: Setting.chat_default_model_id,
+        pinned_default: InferenceModel.default_chat_pinned?,
+        pinned_model: InferenceModel.pinned_default_chat
       )
     end
 
@@ -122,6 +125,13 @@ module Settings
 
     def set_server
       @server = InferenceServer.find(params[:id])
+    end
+
+    def refuse_provisioned
+      return unless @server.provisioned?
+
+      redirect_to settings_inference_server_path(@server),
+        alert: "#{@server.name} is provisioned from the environment, so it can't be changed here."
     end
 
     def build_server

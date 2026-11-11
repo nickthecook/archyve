@@ -16,7 +16,10 @@ x-app: &app
     - ARCHYVE_HOST
     - ARCHYVE_EXTRA_HOSTS
     - ARCHYVE_FORCE_TLS
-    - OLLAMA_API_BASE
+    # Inference servers and models to provision; see the README. Each variable
+    # an api_key_env names has to be listed here too, e.g. `- OPENAI_API_KEY`.
+    - ARCHYVE_INFERENCE
+    - ARCHYVE_DEFAULT_CHAT_MODEL
     - ARCHYVE_SSO_ISSUER
     - ARCHYVE_SSO_CLIENT_ID
     - ARCHYVE_SSO_CLIENT_SECRET

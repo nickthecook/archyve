@@ -1,7 +1,7 @@
 require "rails_helper"
 
-# A fresh clone has no inference server at all — nothing is seeded unless
-# OLLAMA_API_BASE is set. Every page a person can reach in that state has to say
+# A fresh clone has no inference server at all — nothing exists unless
+# ARCHYVE_INFERENCE provisions one. Every page a person can reach in that state has to say
 # so plainly rather than fall over on a nil.
 RSpec.describe "An unconfigured install", :unauthenticated, type: :request do
   before { sign_in(create(:user, :admin)) }

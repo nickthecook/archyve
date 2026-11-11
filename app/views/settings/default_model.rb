@@ -7,8 +7,10 @@
 # already says so. Deliberately not a card — the server list below is cards, and
 # weight comes from being unlike them. See docs/design.md.
 class Views::Settings::DefaultModel < Components::Base
-  def initialize(models:, selected_id:)
+  def initialize(models:, selected_id:, pinned: false, pinned_model: nil)
     @models = models
+    @pinned = pinned
+    @pinned_model = pinned_model
     # A stale id — a model since deleted, disabled, or found not to call tools —
     # reads as no choice at all, which is how InferenceModel.default_chat
     # resolves it too.
@@ -23,11 +25,21 @@ class Views::Settings::DefaultModel < Components::Base
         p(class: "text-sm font-medium text-fg") { Setting.label("chat.default_model_id") }
         p(class: "mt-0.5 text-xs text-faint") { Setting.description("chat.default_model_id") }
       end
-      control
+      @pinned ? pinned_choice : control
     end
   end
 
   private
+
+  def pinned_choice
+    div(class: "shrink-0 sm:text-right") do
+      p(class: "font-mono text-xs text-fg") { @pinned_model&.label || "Not available" }
+      p(class: "mt-0.5 text-xs text-faint") do
+        var = Inference::Spec::DEFAULT_CHAT_VAR
+        @pinned_model ? "Set by #{var}." : "#{var} names no usable chat model."
+      end
+    end
+  end
 
   def control
     form(action: settings_default_model_path, method: "post", class: "flex shrink-0 items-center gap-2") do

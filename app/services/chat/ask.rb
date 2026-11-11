@@ -58,12 +58,19 @@ module Chat
         # Chat::Responder says so on the turn rather than raising.
         answer = @conversation.messages.create!(
           role: :assistant, position: position + 1,
-          inference_model: @conversation.inference_model || InferenceModel.default_chat
+          inference_model: answering_model
         )
       end
 
       RespondJob.perform_later(question_message, answer)
       question_message
+    end
+
+    private
+
+    # The conversation's model may have been disabled since it was chosen.
+    def answering_model
+      InferenceModel.for_chat.find_by(id: @conversation.inference_model_id) || InferenceModel.default_chat
     end
   end
 end

@@ -56,6 +56,16 @@ RSpec.describe Chat::Ask do
       end
     end
 
+    context "when the conversation's model has since been disabled" do
+      let(:chat_model) { create(:inference_model, kind: "chat", supports_tools: true, enabled: false) }
+      let!(:default_model) { create(:inference_model, kind: "chat", supports_tools: true) }
+
+      it "answers with the default instead" do
+        ask
+        expect(messages.last.inference_model).to eq(default_model)
+      end
+    end
+
     # An ordinary state on a fresh install, not an error. The turn still opens,
     # so there is somewhere for Chat::Responder to say what's missing.
     context "when no chat model is configured" do

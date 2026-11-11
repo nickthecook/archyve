@@ -30,6 +30,20 @@ RSpec.describe "Settings::DefaultModels", :unauthenticated, type: :request do
   end
 
   describe "PATCH /settings/default_model" do
+    context "when the default is set by the environment" do
+      around do |example|
+        ENV["ARCHYVE_DEFAULT_CHAT_MODEL"] = "#{model.inference_server.name}/#{model.name}"
+        example.run
+      ensure
+        ENV.delete("ARCHYVE_DEFAULT_CHAT_MODEL")
+      end
+
+      it "refuses to change it" do
+        patch settings_default_model_path, params: { inference_model_id: model.id }
+        expect(Setting.chat_default_model_id).to be_nil
+      end
+    end
+
     context "with a usable chat model" do
       it "sets it" do
         patch settings_default_model_path, params: { inference_model_id: model.id }

@@ -75,6 +75,8 @@ class InferenceServer < ApplicationRecord
 
   store_accessor :config, :base_url
 
+  scope :enabled, -> { where(enabled: true) }
+
   # There is deliberately no manageable_by/administrable_by scope trio here,
   # though Collection and Source both have one. Inference configuration is
   # system administration, not content: a curator who manages the HR
@@ -120,7 +122,11 @@ class InferenceServer < ApplicationRecord
   # refuses. Removing a server takes its models with it, so the rule protecting
   # the archive's embedder has to be asked here too, and before the cascade
   # rather than after half of it.
-  def removal_refusal = inference_models.filter_map(&:removal_refusal).first
+  def removal_refusal
+    return "#{name} is provisioned from the environment. Remove it there first." if provisioned? && enabled?
+
+    inference_models.filter_map(&:removal_refusal).first
+  end
 
   # Extra request parameters a streaming chat with this server needs. Empty for
   # a provider that streams in a way Archyve can already read — see
@@ -195,7 +201,7 @@ class InferenceServer < ApplicationRecord
   # Failed servers stay in scope on purpose: for an idle host the probe is the
   # only thing that can ever turn it green again.
   scope :due_for_check, -> {
-    where(last_checked_at: nil).or(where(last_checked_at: ..CHECK_INTERVAL.ago))
+    enabled.where(last_checked_at: nil).or(enabled.where(last_checked_at: ..CHECK_INTERVAL.ago))
   }
 
   # How much of an exception message is worth keeping on the row.

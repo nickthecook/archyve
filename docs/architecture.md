@@ -471,9 +471,48 @@ Four consequences worth knowing before touching this:
   `Embedding::DIMENSIONS`, so a model that cannot physically fit the
   `vector(768)` column can never become the archive's embedder.
 
-Nothing is seeded unless `OLLAMA_API_BASE` is set: **zero servers is a
-legitimate state**, and the pages say "not configured" rather than reporting an
-unreachable localhost nobody asked for.
+Nothing exists until an admin adds it or `ARCHYVE_INFERENCE` provisions it:
+**zero servers is a legitimate state**, and the pages say "not configured"
+rather than reporting an unreachable localhost nobody asked for.
+
+### Provisioning (2026-11-11)
+
+`ARCHYVE_INFERENCE` declares servers and models as JSON (format in the README).
+`Inference::Provisioner` reconciles against it on every boot
+(`bin/rails archyve:provision_inference`, run by the entrypoint in the web
+container only, so web and jobs never race). Rows it writes carry
+`provisioned: true` and are read-only in Settings; admins' own rows sit beside
+them untouched.
+
+- **Identity is the name.** A server is matched by `name`, a model by
+  `(server, name)`. Renaming in the env retires the old row and creates a new
+  one. Changing a server's `type` or a model's `kind` is refused: give it a new
+  name.
+- **The env is the whole truth for a provisioned row.** Every declared setting
+  is written on each boot, absent ones as nil, so removing a line clears it.
+  `context_window` is not accepted: discovery owns it.
+- **Retired rows are disabled, not deleted**, so conversations can still name
+  the model that answered them. Once disabled, `removal_refusal` lets an admin
+  delete them. `InferenceModel.usable` requires an enabled server as well as an
+  enabled model, so disabling a server takes every model on it out of chat and
+  out of the default.
+- **Except the embedder.** A model the corpus is embedded with stays enabled
+  when it leaves the env, and so does its server. Disabling it would stop
+  search and ingestion, and it is logged as an error instead.
+- **Conflicts are refused, not resolved.** A name that collides with a server
+  added in Settings, or an embedder that breaks the one-embedding-model rule,
+  is logged and skipped. A disabled embedder still occupies that slot, so moving
+  the embedder to a new name takes two steps: delete the retired one, then
+  reboot.
+- **A broken variable changes nothing.** Invalid JSON skips reconciliation
+  entirely. A malformed entry is skipped but still counts as declared, so a
+  typo can't retire what it meant to keep. An unset variable means "provision
+  nothing", and retires everything previously provisioned.
+- **`ARCHYVE_DEFAULT_CHAT_MODEL`** (`server/model`) takes priority over the
+  Setting in `InferenceModel.default_chat`, and makes the picker read-only.
+- **API keys are referenced, never inlined.** `api_key_env` names the variable
+  holding the key, so it stays in the secrets file. Compose passes variables by
+  name, so each one has to be listed in `container/compose.yml` too.
 
 ## Source-first ingestion
 

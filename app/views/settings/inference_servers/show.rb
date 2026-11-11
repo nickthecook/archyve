@@ -29,14 +29,27 @@ class Views::Settings::InferenceServers::Show < Views::Base
       div(class: "min-w-0") do
         div(class: "flex items-center gap-2") do
           h1(class: "text-2xl font-semibold tracking-tight") { @server.name }
-          span(class: "rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { @server.type_label }
+          tag(@server.type_label)
+          tag("provisioned") if @server.provisioned?
+          tag("disabled") unless @server.enabled?
         end
         p(class: "mt-1 truncate font-mono text-sm text-muted") { @server.base_url.presence || "api.openai.com" }
+        provisioning_note if @server.provisioned?
       end
       div(class: "flex shrink-0 items-center gap-2") do
         check_button
-        a(href: edit_settings_inference_server_path(@server), class: button_class(:quiet)) { "Edit" }
+        a(href: edit_settings_inference_server_path(@server), class: button_class(:quiet)) { "Edit" } unless @server.provisioned?
         remove_button
+      end
+    end
+  end
+
+  def provisioning_note
+    p(class: "mt-1 text-xs text-faint") do
+      if @server.enabled?
+        "Provisioned from #{Inference::Spec::VAR}, so it's changed there rather than here."
+      else
+        "No longer in #{Inference::Spec::VAR}. Its models can't be chosen for new chats; remove it once nothing needs it."
       end
     end
   end
@@ -101,9 +114,11 @@ class Views::Settings::InferenceServers::Show < Views::Base
     section(class: "mb-8") do
       div(class: "mb-3 flex flex-wrap items-center justify-between gap-3") do
         h2(class: "text-sm font-medium text-fg") { "Chat models" }
-        div(class: "flex items-center gap-2") do
-          a(href: discover_settings_inference_server_path(@server), class: button_class(:outlined)) { discover_label }
-          a(href: new_settings_inference_server_model_path(@server), class: button_class(:quiet)) { "Add manually" }
+        unless @server.provisioned?
+          div(class: "flex items-center gap-2") do
+            a(href: discover_settings_inference_server_path(@server), class: button_class(:outlined)) { discover_label }
+            a(href: new_settings_inference_server_model_path(@server), class: button_class(:quiet)) { "Add manually" }
+          end
         end
       end
 
@@ -141,11 +156,13 @@ class Views::Settings::InferenceServers::Show < Views::Base
 
   def model_actions(model)
     div(class: "flex shrink-0 items-center gap-4") do
-      a(
-        href: edit_settings_inference_server_model_path(@server, model),
-        class: "text-xs text-faint hover:text-fg transition-colors"
-      ) { "Edit" }
-      remove(model)
+      unless @server.provisioned?
+        a(
+          href: edit_settings_inference_server_model_path(@server, model),
+          class: "text-xs text-faint hover:text-fg transition-colors"
+        ) { "Edit" }
+      end
+      remove(model) if model.removal_refusal.nil?
     end
   end
 

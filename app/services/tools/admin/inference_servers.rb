@@ -25,6 +25,7 @@ module Tools
       def entry(server)
         {
           name: server.name, type: server.type_label, address: server.base_url,
+          provisioned: server.provisioned?, enabled: server.enabled?,
           last_check: server.checked? ? last_check(server) : "never checked",
           models: server.inference_models.map { model(it) }.join("; ").presence || "none"
         }

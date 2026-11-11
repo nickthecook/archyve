@@ -9,8 +9,8 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
     subject(:request) { get settings_inference_servers_path }
 
     context "with no servers configured" do
-      # The state a fresh clone is in: nothing is seeded unless
-      # OLLAMA_API_BASE is set.
+      # The state a fresh clone is in: nothing exists unless
+      # ARCHYVE_INFERENCE provisions one.
       it "renders" do
         request
         expect(response).to have_http_status(:ok)
@@ -262,6 +262,16 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
         expect(server.reload.name).to eq("Renamed")
       end
     end
+
+    context "when the server is provisioned" do
+      let(:server) { create(:openai_server, name: "Provisioned", provisioned: true) }
+      let(:attributes) { { name: "Renamed" } }
+
+      it "is refused" do
+        request
+        expect(server.reload.name).to eq("Provisioned")
+      end
+    end
   end
 
   describe "DELETE /settings/inference_servers/:id" do
@@ -271,6 +281,22 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
 
     context "with only chat models" do
       before { create(:inference_model, inference_server: server, kind: :chat) }
+
+      it "removes it" do
+        expect { request }.to change(InferenceServer, :count).by(-1)
+      end
+    end
+
+    context "when it is provisioned" do
+      let!(:server) { create(:ollama_server, provisioned: true) }
+
+      it "refuses" do
+        expect { request }.not_to change(InferenceServer, :count)
+      end
+    end
+
+    context "when provisioning has retired it" do
+      let!(:server) { create(:ollama_server, provisioned: true, enabled: false) }
 
       it "removes it" do
         expect { request }.to change(InferenceServer, :count).by(-1)
@@ -562,6 +588,14 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
 
     let(:server) { create(:ollama_server) }
     let(:kind) { "chat" }
+
+    context "when the server is provisioned" do
+      let(:server) { create(:ollama_server, provisioned: true) }
+
+      it "is refused" do
+        expect { request }.not_to change(InferenceModel, :count)
+      end
+    end
 
     context "with a chat model ticked" do
       it "creates it" do

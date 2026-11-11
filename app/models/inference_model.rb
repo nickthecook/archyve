@@ -38,7 +38,7 @@ class InferenceModel < ApplicationRecord
 
   before_destroy :corpus_must_not_depend_on_this
 
-  scope :usable, -> { where(enabled: true) }
+  scope :usable, -> { where(enabled: true).joins(:inference_server).merge(InferenceServer.enabled) }
 
   # Chat models that can actually do the job. Archyve's retrieval is a tool the
   # model calls, not context stuffed into the prompt — a model that can't call
@@ -54,9 +54,10 @@ class InferenceModel < ApplicationRecord
   # The corpus's embedding model, or nil.
   #
   # Returns nil rather than raising because "nothing is configured yet" is a
-  # real state of a fresh install, not an error — nothing is seeded unless
-  # OLLAMA_API_BASE is set. Callers decide what to do about it; Embeddings::Embed
-  # raises, the search page explains, the settings page offers to fix it.
+  # real state of a fresh install, not an error — nothing exists unless an
+  # admin adds it or ARCHYVE_INFERENCE provisions it. Callers decide what to do
+  # about it; Embeddings::Embed raises, the search page explains, the settings
+  # page offers to fix it.
   def self.active_embedding
     usable.embedding.first
   end
@@ -68,7 +69,16 @@ class InferenceModel < ApplicationRecord
   # back the same way an unset one does — a fresh install with one imported
   # model works without anyone visiting Settings to anoint it.
   def self.default_chat
-    for_chat.find_by(id: Setting.chat_default_model_id) || for_chat.order(:id).first
+    pinned_default_chat || for_chat.find_by(id: Setting.chat_default_model_id) || for_chat.order(:id).first
+  end
+
+  def self.default_chat_pinned? = Inference::Spec.default_chat_ref.present?
+
+  def self.pinned_default_chat(ref = Inference::Spec.default_chat_ref)
+    server_name, model_name = ref
+    return if model_name.nil?
+
+    for_chat.find_by(name: model_name, inference_servers: { name: server_name })
   end
 
   # An Azure deployment's name needn't resemble its model, so discovery passes
@@ -85,9 +95,11 @@ class InferenceModel < ApplicationRecord
   # able to say so without attempting the delete, and the controller has to
   # refuse it — the same rule answered in one place rather than two.
   #
-  # Only an embedding model is ever protected: a chat model leaves nothing
-  # behind that depends on it, which is why removing one is ordinary.
+  # A provisioned model would only come back on the next boot, so it can be
+  # removed once provisioning has disabled it. Otherwise only an embedding
+  # model is protected: a chat model leaves nothing behind that depends on it.
   def removal_refusal
+    return "#{name} is provisioned from the environment. Remove it there first." if provisioned? && enabled?
     return unless embedding?
 
     dependent = Embedding.where(embedding_model: name).count

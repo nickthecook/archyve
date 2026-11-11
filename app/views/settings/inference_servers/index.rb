@@ -2,10 +2,12 @@
 
 # Every configured inference server, and whether Archyve can reach it.
 class Views::Settings::InferenceServers::Index < Views::Base
-  def initialize(servers:, chat_models:, default_model_id:)
+  def initialize(servers:, chat_models:, default_model_id:, pinned_default: false, pinned_model: nil)
     @servers = servers
     @chat_models = chat_models
     @default_model_id = default_model_id
+    @pinned_default = pinned_default
+    @pinned_model = pinned_model
   end
 
   def view_template
@@ -16,7 +18,9 @@ class Views::Settings::InferenceServers::Index < Views::Base
       p(class: "mt-1 text-sm text-muted") { "Where Archyve sends prompts, and which models it may use." }
     end
 
-    render Views::Settings::DefaultModel.new(models: @chat_models, selected_id: @default_model_id)
+    render Views::Settings::DefaultModel.new(
+      models: @chat_models, selected_id: @default_model_id, pinned: @pinned_default, pinned_model: @pinned_model
+    )
 
     servers_section
   end
@@ -55,9 +59,9 @@ class Views::Settings::InferenceServers::Index < Views::Base
         div(class: "min-w-0") do
           div(class: "flex items-center gap-2") do
             span(class: "truncate text-sm font-medium text-fg") { server.name }
-            span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") do
-              server.type_label
-            end
+            tag(server.type_label)
+            tag("provisioned") if server.provisioned?
+            tag("disabled") unless server.enabled?
           end
           p(class: "mt-1 truncate font-mono text-xs text-faint") { server.base_url.presence || "api.openai.com" }
         end
@@ -67,6 +71,10 @@ class Views::Settings::InferenceServers::Index < Views::Base
         span(class: "font-mono tabular-nums") { model_summary(server) }
       end
     end
+  end
+
+  def tag(text)
+    span(class: "shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.7rem] text-muted") { text }
   end
 
   def model_summary(server)

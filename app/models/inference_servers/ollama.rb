@@ -126,7 +126,7 @@ module InferenceServers
       @connection ||= Http.connection(base_url, timeout: DISCOVERY_TIMEOUT, service_name: "ollama")
     end
 
-    # Accepts the /v1 endpoint people have in OLLAMA_API_BASE today and stores
+    # Accepts the /v1 endpoint RubyLLM-style configuration uses and stores
     # the root it implies, so both spellings lead to the same working server.
     def normalize_base_url
       return if base_url.blank?

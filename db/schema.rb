@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -268,6 +268,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.boolean "supports_tools", default: false, null: false
     t.datetime "updated_at", null: false
     t.string "protocol", null: false
+    t.boolean "provisioned", default: false, null: false
     t.index ["inference_server_id", "name"], name: "index_inference_models_on_inference_server_id_and_name", unique: true
     t.index ["inference_server_id"], name: "index_inference_models_on_inference_server_id"
     t.index ["kind"], name: "index_inference_models_on_single_embedding", unique: true, where: "(kind = 1)"
@@ -283,6 +284,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_10_120000) do
     t.string "name", null: false
     t.string "type", null: false
     t.datetime "updated_at", null: false
+    t.boolean "provisioned", default: false, null: false
+    t.boolean "enabled", default: true, null: false
     t.index ["name"], name: "index_inference_servers_on_name", unique: true
     t.index ["type"], name: "index_inference_servers_on_type"
   end

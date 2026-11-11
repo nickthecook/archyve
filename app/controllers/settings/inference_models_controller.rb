@@ -6,6 +6,7 @@ module Settings
 
     before_action :set_server
     before_action :set_model, only: [:edit, :update, :destroy]
+    before_action :refuse_provisioned, except: [:destroy]
     before_action :refuse_frozen_embedding, only: [:update]
 
     def new
@@ -60,6 +61,14 @@ module Settings
 
     def set_model
       @model = @server.inference_models.find(params[:id])
+    end
+
+    # A provisioned server holds only the models its env entry declares.
+    def refuse_provisioned
+      return unless @server.provisioned?
+
+      redirect_to settings_inference_server_path(@server),
+        alert: "#{@server.name} is provisioned from the environment, so its models can't be changed here."
     end
 
     # Changing a frozen embedder, as opposed to removing it: a model that is

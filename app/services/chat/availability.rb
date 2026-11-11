@@ -6,7 +6,7 @@ module Chat
   # Two surfaces need this and have to agree: the chat page, which disables its
   # composer, and the landing, whose bar asks a question now and has to fall
   # back to searching when nothing can answer one. A fresh install has neither
-  # model — nothing is seeded unless OLLAMA_API_BASE is set — so "not ready" is
+  # model — nothing exists unless ARCHYVE_INFERENCE provisions it — so "not ready" is
   # an ordinary state rather than an error.
   #
   # An admin is told where to fix it; everyone else is told it isn't ready,

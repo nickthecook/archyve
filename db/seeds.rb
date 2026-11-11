@@ -45,33 +45,3 @@ if Rails.env.development?
     puts "Development #{role}: #{user.email_address}"
   end
 end
-
-# The Ollama that OLLAMA_API_BASE points at, if anything does.
-if (ollama_url = ENV["OLLAMA_API_BASE"].presence)
-  server = InferenceServers::Ollama.find_or_initialize_by(name: "Ollama")
-
-  if server.new_record?
-    # The value carries the /v1 suffix RubyLLM needs; the row stores the root it
-    # implies, and InferenceServers::Ollama puts the suffix back where it
-    # belongs. Only set on create — an address edited since is the newer truth.
-    server.base_url = ollama_url
-    server.save!
-    puts "Inference server: #{server.name} at #{server.base_url}"
-  end
-
-  # Seeding must not depend on the network, so the embedding model is written
-  # from what we know rather than discovered — which is also why the id is
-  # written out here rather than read from EMBEDDING_MODEL. That variable used
-  # to be inert (RubyLLM's default was always overridden by an explicit
-  # `model:`), and reviving the name with different meaning would be worse than
-  # retiring it. To start on a different embedder, add it from the UI while the
-  # corpus is still empty.
-  if InferenceModel.embedding.none?
-    embedding = server.inference_models.create!(
-      name: "nomic-embed-text:v1.5",
-      kind: :embedding,
-      dimensions: Embedding::DIMENSIONS
-    )
-    puts "Embedding model: #{embedding.name} (#{embedding.dimensions}d)"
-  end
-end

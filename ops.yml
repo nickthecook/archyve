@@ -13,7 +13,7 @@ dependencies:
 
 actions:
   server:
-    command: bin/dev
+    command: bin/rails archyve:provision_inference && bin/dev
     load_secrets: true
   rails:
     command: bin/rails

@@ -24,6 +24,15 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
       end
     end
 
+    context "when the server is provisioned" do
+      let(:server) { create(:ollama_server, provisioned: true) }
+      let(:attributes) { { name: "llama3.1:8b", kind: "chat", supports_tools: "1" } }
+
+      it "is refused" do
+        expect { request }.not_to change(InferenceModel, :count)
+      end
+    end
+
     context "with a protocol chosen" do
       let(:attributes) { { name: "gpt-6-prod", kind: "chat", supports_tools: "1", protocol: "chat_completions" } }
 
@@ -116,6 +125,24 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
 
     context "with a chat model" do
       let!(:model) { create(:inference_model, inference_server: server) }
+
+      it "removes it" do
+        expect { request }.to change(InferenceModel, :count).by(-1)
+      end
+    end
+
+    context "with a provisioned model" do
+      let(:server) { create(:ollama_server, provisioned: true) }
+      let!(:model) { create(:inference_model, inference_server: server, provisioned: true) }
+
+      it "is refused" do
+        expect { request }.not_to change(InferenceModel, :count)
+      end
+    end
+
+    context "with a provisioned model that provisioning has retired" do
+      let(:server) { create(:ollama_server, provisioned: true) }
+      let!(:model) { create(:inference_model, inference_server: server, provisioned: true, enabled: false) }
 
       it "removes it" do
         expect { request }.to change(InferenceModel, :count).by(-1)

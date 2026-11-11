@@ -41,7 +41,8 @@ configuration from the environment it runs in:
 | `ARCHYVE_ADMIN_EMAIL`, `ARCHYVE_ADMIN_PASSWORD` | Required. The break-glass admin. |
 | `ARCHYVE_HOST` | The public hostname. Archyve expects a TLS-terminating proxy in front. |
 | `ARCHYVE_FORCE_TLS` | Set to `false` to serve plain HTTP, e.g. on `localhost` without a proxy. |
-| `OLLAMA_API_BASE` | Seeds an Ollama server, e.g. `http://ollama:11434/v1`. |
+| `ARCHYVE_INFERENCE` | Inference servers and models to provision, as JSON; see below. |
+| `ARCHYVE_DEFAULT_CHAT_MODEL` | Optional. The default chat model, as `server/model`. Locks the choice in Settings. |
 | `ARCHYVE_SSO_*` | Optional; see below. |
 | `ARCHYVE_PORT` | Host port for the web container (default 3000). |
 
@@ -54,6 +55,47 @@ ops container start   # or `ops c start`; plain `docker compose up -d` works too
 ops c logs
 ops c stop
 ```
+
+## Provisioning inference servers
+
+Servers and models in `ARCHYVE_INFERENCE` are created on boot and shown in
+Settings › Inference as *provisioned*, where they can't be edited. Admins can
+still add their own servers alongside them.
+
+```sh
+ARCHYVE_INFERENCE='[
+  {"name": "Ollama", "type": "ollama", "base_url": "http://ollama:11434",
+   "models": [{"name": "qwen3:32b"},
+              {"name": "nomic-embed-text:v1.5", "kind": "embedding", "dimensions": 768}]},
+  {"name": "OpenAI", "type": "openai", "api_key_env": "OPENAI_API_KEY",
+   "models": [{"name": "gpt-5.4", "display_name": "GPT-5.4"}]}
+]'
+ARCHYVE_DEFAULT_CHAT_MODEL="Ollama/qwen3:32b"
+```
+
+| Server key | |
+|---|---|
+| `name` | Required. Identifies the server between boots; renaming it replaces it. |
+| `type` | Required. `ollama`, `openai` or `azure`. |
+| `base_url` | Required except for OpenAI itself. |
+| `api_key_env` | The name of the variable holding the API key. Keys never go in the JSON. |
+| `flavour` | OpenAI only: `openai` or `vllm`, to override detection. |
+| `models` | The models to provision on it. |
+
+| Model key | |
+|---|---|
+| `name` | Required. The id the provider knows the model by. |
+| `kind` | `chat` (the default) or `embedding`. |
+| `display_name` | What pickers show instead of the name. |
+| `dimensions` | Required for an embedding model; must be 768. |
+| `protocol` | `chat_completions` or `responses`; inferred from the name when absent. |
+| `supports_tools` | Defaults to `true` for chat models. A chat model without tools is refused. |
+
+A server or model that disappears from the variable is disabled rather than
+deleted, so existing chats can still name it; an admin can delete it from
+Settings afterwards. One that collides with something added in Settings, or
+breaks the one-embedding-model rule, is logged at boot and skipped. If the
+variable isn't valid JSON, nothing is changed.
 
 ## Single sign-on with Keycloak
 

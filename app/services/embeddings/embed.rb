@@ -14,7 +14,7 @@ module Embeddings
     class DimensionMismatch < StandardError; end
 
     # Raised when nothing is configured to embed with. A fresh install has no
-    # inference servers at all — nothing is seeded unless OLLAMA_API_BASE is set
+    # inference servers at all — nothing exists unless ARCHYVE_INFERENCE provisions it
     # — so this is an ordinary state to be in, and it gets an error that says so
     # rather than a NoMethodError on nil somewhere further down.
     class NotConfigured < StandardError; end

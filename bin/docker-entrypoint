@@ -5,6 +5,7 @@
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
   ./bin/rails db:seed
+  ./bin/rails archyve:provision_inference
 fi
 
 exec "${@}"
