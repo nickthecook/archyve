@@ -7,7 +7,7 @@ module InferenceServers
   class Azure < OpenAI
     PROBE_PROMPT = "Reply with OK.".freeze
 
-    validates :base_url, presence: true, format: { with: %r{\Ahttps://}i, message: "must be an https:// address" }
+    validates :base_url, presence: true, format: { with: %r{\Ahttps://\S+\z}i, message: "must be an https:// address" }
 
     def self.type_label = "Azure"
     def self.description = "Azure OpenAI or AI Foundry, through the v1 API."
