@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -207,12 +207,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_120000) do
   create_table "embeddings", force: :cascade do |t|
     t.bigint "chunk_id", null: false
     t.datetime "created_at", null: false
-    t.vector "embedding", limit: 768
+    t.vector "embedding_768", limit: 768
     t.string "embedding_model", null: false
     t.datetime "updated_at", null: false
+    t.vector "embedding_1536", limit: 1536
     t.index ["chunk_id", "embedding_model"], name: "index_embeddings_on_chunk_id_and_embedding_model", unique: true
     t.index ["chunk_id"], name: "index_embeddings_on_chunk_id"
-    t.index ["embedding"], name: "index_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
+    t.index ["embedding_1536"], name: "index_embeddings_on_embedding_1536", opclass: :vector_cosine_ops, using: :hnsw
+    t.index ["embedding_768"], name: "index_embeddings_on_embedding_768", opclass: :vector_cosine_ops, using: :hnsw
   end
 
   create_table "endpoints", force: :cascade do |t|

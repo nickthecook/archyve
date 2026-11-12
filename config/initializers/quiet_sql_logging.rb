@@ -2,7 +2,7 @@
 
 # Some tables are pure infrastructure: the log line costs more than it tells us.
 #
-# - Embedding rows carry a 768-dimension vector, so logging their SQL dumps the
+# - Embedding rows carry a 768- or 1536-dimension vector, so logging their SQL dumps the
 #   whole vector (a wall of floats) on every load and store.
 # - SolidCable messages carry a hex-encoded Turbo Stream payload, and inference
 #   writes one per token-flush — thousands of blobs per chat response. Solid

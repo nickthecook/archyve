@@ -21,7 +21,7 @@ RSpec.describe Retrieval::Search do
       create(:embedding, chunk: create(:chunk, document:))
       create(:collection_membership, collection:, document:, origin: "manual")
       create(:collection_user, collection:, user:)
-      allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 })
+      allow(Embeddings::Embed).to receive(:query).and_return(Array.new(768) { 0.1 })
     end
 
     context "when the query matches something they may read" do
@@ -35,6 +35,21 @@ RSpec.describe Retrieval::Search do
 
       it "numbers the hit so the model can cite it" do
         expect(result.hits.first.handle).to eq(1)
+      end
+    end
+
+    context "with a 1536-dimension embedding model" do
+      let!(:embedding_model) { create(:embedding_model, name: "text-embedding-3-small", dimensions: 1536) }
+
+      before do
+        Embedding.delete_all
+        create(:embedding, chunk: create(:chunk, document:), embedding_model: embedding_model.name,
+          vector: Array.new(1536) { rand })
+        allow(Embeddings::Embed).to receive(:query).and_return(Array.new(1536) { 0.1 })
+      end
+
+      it "searches the 1536 column" do
+        expect(result.hits.map { it.document.title }).to eq(["Handbook"])
       end
     end
 

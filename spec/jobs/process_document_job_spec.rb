@@ -7,7 +7,7 @@ RSpec.describe ProcessDocumentJob do
   let(:items) { [Docling::Result::Item.new(text: "Body text.", markdown: "Body text.", label: "text", level: nil, page: nil)] }
   let(:docling_result) { instance_double(Docling::Result, items: items, partial?: false, errors: []) }
   let(:client) { instance_double(Docling::Client, convert: docling_result) }
-  let(:vector) { Array.new(Embedding::DIMENSIONS) { 0.1 } }
+  let(:vector) { Array.new(768) { 0.1 } }
 
   # The job stamps each vector with the corpus's embedding model, so one has to
   # exist for it to name.
@@ -32,6 +32,21 @@ RSpec.describe ProcessDocumentJob do
       it "embeds each chunk with the corpus model" do
         job.perform(document)
         expect(document.chunks.first.embeddings.first.embedding_model).to eq(embedding_model.name)
+      end
+
+      it "stores the vector in the 768 column" do
+        job.perform(document)
+        expect(document.chunks.first.embeddings.first.embedding_768.size).to eq(768)
+      end
+    end
+
+    context "with a 1536-dimension embedding model" do
+      let!(:embedding_model) { create(:embedding_model, name: "text-embedding-3-small", dimensions: 1536) }
+      let(:vector) { Array.new(1536) { 0.1 } }
+
+      it "stores the vector in the 1536 column" do
+        job.perform(document)
+        expect(document.chunks.first.embeddings.first.embedding_1536.size).to eq(1536)
       end
     end
 

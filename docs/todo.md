@@ -1112,10 +1112,9 @@ picks its reader off the extension.
   (different models, different vector spaces), so the model validates that no
   embedding from another model exists before allowing one — which means the
   embedder is effectively fixed for the life of an archive today. The job is:
-  set the new model, re-embed every chunk, swap atomically. Note the schema
-  constraint from architecture.md — `embeddings.embedding` is a `vector(768)`
-  with one HNSW index, so a **different-dimension** model needs a new column or
-  table, not just a new job. Same-dimension swaps are the easy first case.
+  set the new model, re-embed every chunk, swap atomically. Each supported
+  width has its own column (`Embedding::COLUMNS`), so a swap between widths
+  already has somewhere to write while the old vectors keep serving search.
   Until this exists, the UI says so in as many words rather than offering a
   control that quietly breaks search.
 - **Nothing verifies a chat model before it is imported.** "Check" proves the

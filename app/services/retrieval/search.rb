@@ -64,7 +64,7 @@ module Retrieval
       end
 
       relation
-        .nearest_neighbors(:embedding, Embeddings::Embed.query(query), distance: "cosine")
+        .nearest_neighbors(Embedding.column_for(model.dimensions), Embeddings::Embed.query(query), distance: "cosine")
         .includes(chunk: :document)
         .first(CANDIDATES_PER_QUERY)
     end

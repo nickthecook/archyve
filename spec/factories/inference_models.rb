@@ -13,7 +13,7 @@ FactoryBot.define do
     factory :embedding_model do
       name { "nomic-embed-text:v1.5" }
       kind { :embedding }
-      dimensions { Embedding::DIMENSIONS }
+      dimensions { 768 }
     end
   end
 end

@@ -12,7 +12,7 @@ RSpec.describe "Search", type: :request do
 
     # Only the network hop to Ollama is stubbed; the nearest-neighbor query and
     # the collection scope join run for real against the test database.
-    before { allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 }) }
+    before { allow(Embeddings::Embed).to receive(:query).and_return(Array.new(768) { 0.1 }) }
 
     let(:collection) { create(:collection, name: "Reports") }
     let(:inside) { create(:document, title: "Inside Report") }

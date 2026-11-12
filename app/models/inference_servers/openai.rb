@@ -25,7 +25,8 @@ module InferenceServers
     VLLM_OWNER = "vllm".freeze
 
     EMBEDDING_SKIP =
-      "Dimensions aren't discoverable from this API — add it by hand if it's #{Embedding::DIMENSIONS}-dimension.".freeze
+      "Dimensions aren't discoverable from this API — add it by hand if it's " \
+      "#{Embedding::COLUMNS.keys.to_sentence(two_words_connector: ' or ')}-dimension.".freeze
 
     before_validation :normalize_base_url
 

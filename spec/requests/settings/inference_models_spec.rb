@@ -60,7 +60,7 @@ RSpec.describe "Settings::InferenceModels", :unauthenticated, type: :request do
 
       it "re-renders with the reason" do
         request
-        expect(response.body).to include("vector(768)")
+        expect(response.body).to include("must be 768 or 1536")
       end
     end
 

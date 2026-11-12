@@ -19,7 +19,7 @@ RSpec.describe Retrieval::FixedCorpus do
     create(:collection_membership, collection: private_collection, document: outside, origin: "manual")
     [in_set, outside].each { create(:embedding, chunk: create(:chunk, document: it, position: 0)) }
     create(:agent_collection, agent:, collection: shared)
-    allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 })
+    allow(Embeddings::Embed).to receive(:query).and_return(Array.new(768) { 0.1 })
   end
 
   describe "searching" do

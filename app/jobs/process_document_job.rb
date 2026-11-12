@@ -134,7 +134,7 @@ class ProcessDocumentJob < ApplicationJob
   # outlive the InferenceModel being renamed or deleted.
   def embed(chunk)
     chunk.embeddings.create!(
-      embedding: Embeddings::Embed.document(chunk.content),
+      vector: Embeddings::Embed.document(chunk.content),
       embedding_model: InferenceModel.active_embedding.name
     )
   end

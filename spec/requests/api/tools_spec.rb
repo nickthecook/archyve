@@ -125,7 +125,7 @@ RSpec.describe "API tools", type: :request, unauthenticated: true do
 
       before do
         create(:embedding_model)
-        allow(Embeddings::Embed).to receive(:query).and_return(Array.new(Embedding::DIMENSIONS) { 0.1 })
+        allow(Embeddings::Embed).to receive(:query).and_return(Array.new(768) { 0.1 })
         create(:embedding, chunk: create(:chunk, document: readable, content: "The inside story."))
         create(:embedding, chunk: create(:chunk, document: unreadable))
       end

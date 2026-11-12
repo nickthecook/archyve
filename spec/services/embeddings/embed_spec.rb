@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Embeddings::Embed do
-  let(:vector) { Array.new(Embedding::DIMENSIONS) { 0.1 } }
+  let(:vector) { Array.new(768) { 0.1 } }
   let(:llm_result) { instance_double(RubyLLM::Embedding, vectors: vector) }
 
   # Stubbed at the context, not at RubyLLM.embed: the whole point of the
@@ -43,6 +43,26 @@ RSpec.describe Embeddings::Embed do
         provider: :ollama,
         assume_model_exists: true
       )
+    end
+  end
+
+  describe "with a model not trained on the task prefixes" do
+    let!(:model) do
+      create(:embedding_model, inference_server: server, name: "text-embedding-3-small", dimensions: 1536)
+    end
+    let(:server) { create(:azure_server) }
+    let(:vector) { Array.new(1536) { 0.1 } }
+
+    before { allow_any_instance_of(InferenceServers::Azure).to receive(:llm_context).and_return(context) }
+
+    it "sends a document unprefixed" do
+      described_class.document("how it works")
+      expect(context).to have_received(:embed).with("how it works", hash_including(model: "text-embedding-3-small"))
+    end
+
+    it "sends a query unprefixed" do
+      described_class.query("how it works")
+      expect(context).to have_received(:embed).with("how it works", hash_including(model: "text-embedding-3-small"))
     end
   end
 

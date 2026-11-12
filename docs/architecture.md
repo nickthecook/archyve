@@ -468,8 +468,16 @@ Four consequences worth knowing before touching this:
   corpus it's just a setup step, and re-declaring the model the corpus is
   already full of is not a change at all — which is how an install predating
   these rows describes itself. `dimensions` is validated against
-  `Embedding::DIMENSIONS`, so a model that cannot physically fit the
-  `vector(768)` column can never become the archive's embedder.
+  `Embedding::COLUMNS`, so a model whose width has no column can never become
+  the archive's embedder.
+- **One vector column per width** (2026-11-12). `embedding_768` (nomic) and
+  `embedding_1536` (`text-embedding-3-small`), each with its own cosine HNSW
+  index; a row fills the one its model's width selects, and search reads the
+  column `Embedding.column_for(model.dimensions)` names. Adding a width is a
+  migration plus an entry in `Embedding::COLUMNS`. pgvector's HNSW tops out at
+  2,000 dimensions for `vector`, so 3072-wide models (`text-embedding-3-large`)
+  would need a `halfvec` column. The nomic task prefixes are applied only to
+  nomic models (`Embeddings::Embed::PREFIXED_MODEL`).
 
 Nothing exists until an admin adds it or `ARCHYVE_INFERENCE` provisions it:
 **zero servers is a legitimate state**, and the pages say "not configured"

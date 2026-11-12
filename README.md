@@ -87,7 +87,7 @@ ARCHYVE_DEFAULT_CHAT_MODEL="Ollama/qwen3:32b"
 | `name` | Required. The id the provider knows the model by. |
 | `kind` | `chat` (the default) or `embedding`. |
 | `display_name` | What pickers show instead of the name. |
-| `dimensions` | Required for an embedding model; must be 768. |
+| `dimensions` | Required for an embedding model; must be 768 or 1536. |
 | `protocol` | `chat_completions` or `responses`; inferred from the name when absent. |
 | `supports_tools` | Defaults to `true` for chat models. A chat model without tools is refused. |
 

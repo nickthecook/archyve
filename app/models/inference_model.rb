@@ -32,7 +32,7 @@ class InferenceModel < ApplicationRecord
   validates :dimensions, presence: true, if: :embedding?
   validates :context_window, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
-  validate :dimensions_must_match_the_column, if: -> { embedding? && dimensions.present? }
+  validate :dimensions_must_have_a_column, if: -> { embedding? && dimensions.present? }
   validate :only_one_embedding_model
   validate :corpus_must_be_empty, on: :create, if: :embedding?
 
@@ -126,17 +126,15 @@ class InferenceModel < ApplicationRecord
     throw :abort
   end
 
-  # The embeddings.embedding column is a vector(768) with one cosine HNSW index.
-  # A model of any other width cannot physically be stored in it, so it can
-  # never be this corpus's embedder — better to say so on the form than to fail
-  # on the first document somebody uploads.
-  def dimensions_must_match_the_column
-    return if dimensions == Embedding::DIMENSIONS
+  # Better to say so on the form than to fail on the first document uploaded.
+  def dimensions_must_have_a_column
+    supported = Embedding::COLUMNS.keys
+    return if supported.include?(dimensions)
 
     errors.add(
       :dimensions,
-      "must be #{Embedding::DIMENSIONS} — the embeddings column is a vector(#{Embedding::DIMENSIONS}), " \
-      "so a #{dimensions}-dimension model can't be stored in it"
+      "must be #{supported.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} — " \
+      "Archyve has no column for #{dimensions}-dimension vectors"
     )
   end
 

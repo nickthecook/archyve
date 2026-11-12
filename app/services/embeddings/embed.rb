@@ -3,7 +3,8 @@ module Embeddings
   # asymmetric: text being indexed must be prefixed with "search_document:" and
   # a query with "search_query:", or retrieval quality drops and the two sides
   # stop lining up. Callers pick the side by method: `document` when embedding
-  # chunks for storage, `query` when embedding a search.
+  # chunks for storage, `query` when embedding a search. Models that aren't
+  # trained on those prefixes (OpenAI's) get the text as-is.
   #
   # The prefixes live here, not on the InferenceModel row, because they are
   # inference semantics rather than configuration — a different embedder is not
@@ -20,16 +21,17 @@ module Embeddings
     class NotConfigured < StandardError; end
 
     PREFIXES = { search_document: "search_document: ", search_query: "search_query: " }.freeze
+    PREFIXED_MODEL = /nomic-embed/
 
     def self.document(text) = new.call(text, task: :search_document)
     def self.query(text) = new.call(text, task: :search_query)
 
-    # => Array<Float> of length Embedding::DIMENSIONS
+    # => Array<Float> of the model's dimensions
     def call(text, task:)
       model = active_model
 
       result = model.inference_server.llm_context.embed(
-        "#{PREFIXES.fetch(task)}#{text}",
+        "#{prefix_for(model, task)}#{text}",
         model: model.name,
         provider: model.inference_server.ruby_llm_provider,
         assume_model_exists: true
@@ -44,6 +46,10 @@ module Embeddings
     def active_model
       InferenceModel.active_embedding ||
         raise(NotConfigured, "no embedding model is configured — add one under Settings › Inference")
+    end
+
+    def prefix_for(model, task)
+      model.name.match?(PREFIXED_MODEL) ? PREFIXES.fetch(task) : ""
     end
 
     def ensure_dimensions!(vector, model)
