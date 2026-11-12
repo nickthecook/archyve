@@ -3,11 +3,12 @@ name: Image
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: image
+  group: image-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,7 +40,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
             type=sha,format=long
 
       - name: Build and push
