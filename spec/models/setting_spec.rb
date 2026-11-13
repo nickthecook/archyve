@@ -1,4 +1,5 @@
 require "rails_helper"
+require "vips"
 
 RSpec.describe Setting do
   # Pinned so the suite doesn't read whoever's shell set them for their own
