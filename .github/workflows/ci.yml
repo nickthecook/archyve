@@ -73,3 +73,44 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: archyve
+          POSTGRES_PASSWORD: archyve
+          POSTGRES_DB: archyve_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U archyve"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      RAILS_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        with:
+          bundler-cache: true
+
+      - name: Build Tailwind
+        run: bin/rails tailwindcss:build
+
+      - name: Prepare database
+        run: bin/rails db:test:prepare
+
+      - name: Run specs
+        run: bundle exec rspec
