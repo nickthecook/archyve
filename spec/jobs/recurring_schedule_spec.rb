@@ -9,10 +9,10 @@ RSpec.describe SolidQueue::Scheduler::RecurringSchedule do
 
   # A stand-in rather than SolidQueue::RecurringTask: the queue schema lives in
   # its own database, which the single-database test config doesn't carry. The
-  # schedule only asks a task for these two things before the timer fires.
-  let(:task) { Struct.new(:key, :next_time).new("spec_heartbeat", 1.hour.from_now) }
+  # schedule only asks a task for these things before the timer fires.
+  let(:task) { Struct.new(:id, :key, :next_time).new(1, "spec_heartbeat", 1.hour.from_now) }
 
-  let(:delay) { schedule.scheduled_tasks[task.key].initial_delay }
+  let(:delay) { schedule.scheduled_tasks[task.id].initial_delay }
 
   after { schedule.unschedule_tasks }
 

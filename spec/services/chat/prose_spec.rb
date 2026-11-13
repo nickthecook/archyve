@@ -42,12 +42,12 @@ RSpec.describe Chat::Prose do
     context "when the completion contains a script tag" do
       let(:content) { "Before <script>alert(1)</script> after" }
 
-      it "escapes it rather than running it" do
+      it "removes it rather than running it" do
         expect(html).not_to include("<script")
       end
 
-      it "shows it as the string it is" do
-        expect(html).to include("&lt;script&gt;")
+      it "drops the tag and keeps the prose around it" do
+        expect(html).to include("Before", "after")
       end
     end
 
