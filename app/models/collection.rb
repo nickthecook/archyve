@@ -4,6 +4,7 @@ class Collection < ApplicationRecord
 
   has_many :collection_users, dependent: :destroy
   has_many :users, through: :collection_users
+  has_many :collection_groups, dependent: :destroy
 
   has_many :agent_collections, dependent: :destroy
 
@@ -22,42 +23,52 @@ class Collection < ApplicationRecord
 
   before_validation :set_slug, on: :create
 
+  # Granted directly or through any of the user's groups, at one of these levels.
+  # Ignores the global role; the scopes below apply it.
+  scope :granted_to, ->(user, access = Grantable::ACCESS.keys) {
+    where(id: CollectionUser.where(user:, access:).select(:collection_id))
+      .or(where(id: CollectionGroup.where(group_id: user.group_users.select(:group_id), access:).select(:collection_id)))
+  }
+
   # Everything this person can reach at all — any grant, however weak, since
   # even the weakest is enough to search it and draw on it in chat.
   scope :readable_by, ->(user) {
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:).select(:collection_id))
+    granted_to(user)
   }
 
-  # Everything they can change. Needs the ceiling *and* the grant: a visitor
-  # granted manager is still only an accessor.
+  # Everything whose contents they can change. Needs the ceiling *and* the
+  # grant: a visitor granted manager is still only an accessor.
   scope :manageable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:, access: [:editor, :manager]).select(:collection_id))
+    granted_to(user, [:editor, :manager])
   }
 
-  # Everything they can hand out access to, or delete. Manager is reachable by a
-  # curator — owning a collection includes deciding who uses it — but never by a
-  # visitor, whose ceiling is reading.
+  # Everything they can describe or delete. Never reachable by a visitor, whose
+  # ceiling is reading.
   scope :administrable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: CollectionUser.where(user:, access: :manager).select(:collection_id))
+    granted_to(user, :manager)
   }
 
-  # The grant itself, or nil. User#grant_on combines it with the global role;
-  # Source answers the same question, so the two are interchangeable there.
+  # The strongest grant, direct or through a group, or nil. User#grant_on
+  # combines it with the global role; Source answers the same question, so the
+  # two are interchangeable there.
   def granted_access_for(user)
-    collection_users.find_by(user:)&.access
+    Grantable.strongest(
+      collection_users.where(user:).pluck(:access) +
+        collection_groups.where(group_id: user.group_users.select(:group_id)).pluck(:access)
+    )
   end
 
   # A collection has no grants until it has one, so whoever creates it has to be
-  # given it — otherwise a curator immediately can't manage the thing they
-  # just made, and only an admin could rescue them.
+  # given it — otherwise a curator immediately can't build the thing they just
+  # made. Nobody else sees it until an admin grants them access.
   def grant_manager_to!(user)
     collection_users.create!(user:, access: :manager)
   end

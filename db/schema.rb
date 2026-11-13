@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -131,6 +131,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
     t.index ["document_id"], name: "index_chunks_on_document_id"
   end
 
+  create_table "collection_groups", force: :cascade do |t|
+    t.bigint "collection_id", null: false
+    t.bigint "group_id", null: false
+    t.integer "access", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collection_id", "group_id"], name: "index_collection_groups_on_collection_id_and_group_id", unique: true
+    t.index ["collection_id"], name: "index_collection_groups_on_collection_id"
+    t.index ["group_id"], name: "index_collection_groups_on_group_id"
+  end
+
   create_table "collection_memberships", force: :cascade do |t|
     t.bigint "collection_id", null: false
     t.datetime "created_at", null: false
@@ -237,6 +248,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["message_id"], name: "index_feedbacks_on_message_id", unique: true
+  end
+
+  create_table "group_users", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id", "user_id"], name: "index_group_users_on_group_id_and_user_id", unique: true
+    t.index ["group_id"], name: "index_group_users_on_group_id"
+    t.index ["user_id"], name: "index_group_users_on_user_id"
+  end
+
+  create_table "groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_groups_on_name", unique: true
   end
 
   create_table "hits", force: :cascade do |t|
@@ -354,6 +382,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
     t.index ["source_id"], name: "index_source_collections_on_source_id"
   end
 
+  create_table "source_groups", force: :cascade do |t|
+    t.bigint "source_id", null: false
+    t.bigint "group_id", null: false
+    t.integer "access", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id"], name: "index_source_groups_on_group_id"
+    t.index ["source_id", "group_id"], name: "index_source_groups_on_source_id_and_group_id", unique: true
+    t.index ["source_id"], name: "index_source_groups_on_source_id"
+  end
+
   create_table "source_reprocesses", force: :cascade do |t|
     t.bigint "source_id", null: false
     t.string "status", default: "running", null: false
@@ -455,6 +494,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
   add_foreign_key "api_calls", "users", on_delete: :nullify
   add_foreign_key "api_keys", "users"
   add_foreign_key "chunks", "documents"
+  add_foreign_key "collection_groups", "collections", on_delete: :cascade
+  add_foreign_key "collection_groups", "groups", on_delete: :cascade
   add_foreign_key "collection_memberships", "collections"
   add_foreign_key "collection_memberships", "documents"
   add_foreign_key "collection_users", "collections"
@@ -467,6 +508,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
   add_foreign_key "documents", "sources"
   add_foreign_key "embeddings", "chunks"
   add_foreign_key "feedbacks", "messages", on_delete: :cascade
+  add_foreign_key "group_users", "groups", on_delete: :cascade
+  add_foreign_key "group_users", "users", on_delete: :cascade
   add_foreign_key "hits", "chunks", on_delete: :nullify
   add_foreign_key "hits", "documents", on_delete: :nullify
   add_foreign_key "hits", "segments", on_delete: :cascade
@@ -477,6 +520,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_120000) do
   add_foreign_key "sessions", "users"
   add_foreign_key "source_collections", "collections"
   add_foreign_key "source_collections", "sources"
+  add_foreign_key "source_groups", "groups", on_delete: :cascade
+  add_foreign_key "source_groups", "sources", on_delete: :cascade
   add_foreign_key "source_reprocesses", "sources"
   add_foreign_key "source_sync_items", "source_syncs"
   add_foreign_key "source_syncs", "sources"

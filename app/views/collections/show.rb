@@ -222,10 +222,8 @@ class Views::Collections::Show < Views::Base
     end
   end
 
-  # Only for whoever manages this collection — an editor has no business
-  # handing out access.
   def people_link
-    return unless may_on?(@collection, :manager)
+    return unless may?(:admin)
 
     a(
       href: collection_people_path(@collection),
@@ -253,7 +251,7 @@ class Views::Collections::Show < Views::Base
   # a model choosing where to look has only this and the name to go on.
   def description
     p(class: "mb-3 text-sm leading-relaxed text-muted") { @collection.description } if @collection.description.present?
-    description_editor if editor?
+    description_editor if may_on?(@collection, :manager)
   end
 
   def description_editor

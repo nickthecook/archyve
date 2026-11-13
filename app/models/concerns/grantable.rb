@@ -9,4 +9,6 @@ module Grantable
   included do
     enum :access, ACCESS, validate: true
   end
+
+  def self.strongest(levels) = levels.max_by { ACCESS.fetch(it.to_sym) }
 end

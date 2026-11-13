@@ -5,6 +5,8 @@ class User < ApplicationRecord
   has_many :collection_users, dependent: :destroy
   has_many :source_users, dependent: :destroy
   has_many :agent_users, dependent: :destroy
+  has_many :group_users, dependent: :destroy
+  has_many :groups, through: :group_users
   # Kept without a creator: the agent may be in other people's conversations.
   has_many :created_agents, class_name: "Agent", foreign_key: :creator_id, inverse_of: :creator, dependent: :nullify
 

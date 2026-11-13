@@ -67,6 +67,20 @@ RSpec.describe Source do
       end
     end
 
+    context "when asked about someone whose group has a grant" do
+      let(:person) { create(:user, :curator) }
+
+      before do
+        group = create(:group)
+        group.users << person
+        create(:source_group, :editor, source:, group:)
+      end
+
+      it "is the group's grant" do
+        expect(result).to eq("editor")
+      end
+    end
+
     context "when asked about someone with neither" do
       let(:person) { create(:user, :curator) }
 

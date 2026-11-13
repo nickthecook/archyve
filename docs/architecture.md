@@ -886,9 +886,9 @@ would put the archive one forwarded link away from anybody.
 **Per-source grants (built 2026-09-07).** `source_users` grants one person
 standing with one source:
 
-- `accessor` — may feed this source into a collection they manage.
+- `accessor` — may feed this source into a collection they can edit.
 - `editor` — + change its config, trigger a sync.
-- `manager` — + manage its people, and delete it.
+- `manager` — + delete it.
 
 The `accessor` grant is not "may read this source". It is "may draw on it", and
 it exists because **configuring a source and drawing on it are different
@@ -974,8 +974,9 @@ nothing ticked was claiming the opposite of what it did.
 - **`collection_users`** join: `user ↔ collection` with an ordered `access`
   grant (`Grantable`, shared with `source_users`).
   - `accessor` — search it, and draw on it in chat.
-  - `editor` — + add and remove document memberships by hand.
-  - `manager` — + manage its people and delete it. Deleting unfiles documents;
+  - `editor` — + add and remove document memberships by hand, and attach or
+    detach sources.
+  - `manager` — + describe it, and delete it. Deleting unfiles documents;
     it never destroys them, since they belong to the source that produced them,
     and anything that was only in that collection becomes Unsorted.
 - **Grants are named for what they permit, not after the roles** (renamed
@@ -985,8 +986,22 @@ nothing ticked was claiming the opposite of what it did.
   `nil`, deliberately not `:accessor`: absence is not the weakest presence, and
   conflating them would hand every curator read access to every collection.
 - Whoever creates a collection is granted `manager` on it. Otherwise a curator
-  immediately can't manage what they just made, and only a system admin could
-  rescue them.
+  immediately can't build what they just made.
+
+**Only admins hand out access (settled 2026-11-13, #98).** Curators manage
+content; admins manage who sees it. A curator can create a collection, feed it,
+and try it out themselves, but nobody else sees it until an admin grants
+access — so collections roll out deliberately rather than appearing in people's
+chat pickers whenever a curator makes one. Every People page, and every user and
+group grant, is behind `require_role :admin`.
+
+**Groups (built 2026-11-13, #98).** A `Group` has members (`group_users`) and
+grants (`collection_groups`, `source_groups`) on the same `Grantable` ladder as
+user grants. A member's effective grant is the strongest of their own and their
+groups', then capped by their role as below. Groups have no grants *on*
+themselves: only admins create them, change membership, or grant them access.
+`Collection.granted_to` / `Source.granted_to` are the one place direct and
+group grants are combined; every access scope goes through them.
 
 **How the two axes combine — a two-band ceiling, not `min`.** The global role
 caps the *kind* of thing you can do (chat / content / system); it is not another
@@ -994,15 +1009,9 @@ rung on the same ladder:
 
 - global `admin` — `manager`, everywhere, no grant needed.
 - global `curator` — the grant exactly as written, up to and including
-  `manager`. Managing a collection, its people included, is content ownership,
-  which is what a curator is for.
+  `manager`.
 - global `visitor` — `accessor` at most, whatever the grant says. Chat-only
   means chat-only; a grant cannot widen it.
-
-A numeric `min` was the original plan and is wrong: it would cap a curator at
-`editor`, which would mean an HR curator could not grant a colleague access
-to the HR collection, leaving every access change waiting on a system admin.
-That contradicts the whole point of appointing curators.
 - **Multi-collection query:** retrieval takes a **set of collection IDs** from
   day one (same query shape as one — `document_id ∈ (active members of ANY of the
   user's readable selected collections)`, **de-duplicated**). This is cheap

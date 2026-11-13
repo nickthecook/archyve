@@ -33,10 +33,10 @@ Rails.application.routes.draw do
     # A user adding/removing a document to/from this collection (manual
     # memberships only; source rows are retracted at the source).
     resources :documents, only: [:create, :destroy], controller: "collection_memberships"
-    # Who may use this collection. Managed by whoever administers the
-    # collection, not only by a system admin — owning content includes deciding
-    # who sees it.
+    # Who may use this collection, people and groups both. Admin-only: a
+    # curator builds a collection, an admin decides who sees it.
     resources :people, only: [:index, :create, :update, :destroy], controller: "collection_users"
+    resources :groups, only: [:create, :update, :destroy], controller: "collection_groups"
     # Which sources feed this collection. Lives here, not on the source,
     # because it decides what this collection's readers see.
     resources :sources, only: [:create, :destroy], controller: "collection_sources"
@@ -94,6 +94,10 @@ Rails.application.routes.draw do
       resources :collection_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "collection" }
       resources :source_grants, only: [:create, :destroy], controller: "user_grants", defaults: { kind: "source" }
     end
+    # Listed on the People page (Settings::UsersController#index), so no index of their own.
+    resources :groups, only: [:create, :show, :update, :destroy] do
+      resources :members, only: [:create, :destroy], controller: "group_users"
+    end
     resources :agents do
       post :duplicate, on: :member
       resources :people, only: [:index, :create, :update, :destroy], controller: "agent_users"
@@ -147,6 +151,7 @@ Rails.application.routes.draw do
     # Who may manage this source. Not who may read its documents — that is
     # decided by the collections it feeds.
     resources :people, only: [:index, :create, :update, :destroy], controller: "source_users"
+    resources :groups, only: [:create, :update, :destroy], controller: "source_groups"
   end
 
   # Key-authenticated JSON, for scripts and integrations. /v1 is kept free for an

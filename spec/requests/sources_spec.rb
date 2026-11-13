@@ -807,5 +807,23 @@ RSpec.describe "Sources", type: :request do
         expect { delete source_path(source) }.to change { Document.count }.by(-1)
       end
     end
+
+    context "when they can only configure it" do
+      before { source.source_users.find_by!(user: current_user).update!(access: :editor) }
+
+      it "refuses" do
+        delete source_path(source)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "keeps the source" do
+        expect { delete source_path(source) }.not_to change(Source, :count)
+      end
+
+      it "doesn't offer the button" do
+        get source_path(source)
+        expect(response.body).not_to include("Delete this source")
+      end
+    end
   end
 end

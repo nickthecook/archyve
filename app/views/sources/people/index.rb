@@ -14,10 +14,12 @@ class Views::Sources::People::Index < Views::Base
     "manager" => "…and manage its people, and delete it"
   }.freeze
 
-  def initialize(source:, grants:, candidates:)
+  def initialize(source:, grants:, candidates:, group_grants:, group_candidates:)
     @source = source
     @grants = grants
     @candidates = candidates
+    @group_grants = group_grants
+    @group_candidates = group_candidates
   end
 
   def view_template
@@ -45,6 +47,17 @@ class Views::Sources::People::Index < Views::Base
       access: ACCESS,
       create_path: source_people_path(@source),
       member_path: ->(grant) { source_person_path(@source, grant) }
+    )
+
+    h2(class: "mt-12 mb-3 text-sm font-medium text-fg") { "Groups" }
+    render Views::People::Panel.new(
+      subject: @source,
+      grants: @group_grants,
+      candidates: @group_candidates,
+      access: ACCESS,
+      create_path: source_groups_path(@source),
+      member_path: ->(grant) { source_group_path(@source, grant) },
+      grantee: :group
     )
   end
 

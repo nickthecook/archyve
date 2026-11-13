@@ -18,7 +18,7 @@ class SourcesController < ApplicationController
   ].freeze
 
   before_action :set_source,
-    only: [:show, :edit, :update, :destroy, :sync, :reprocess, :cancel_reprocess]
+    only: [:show, :edit, :update, :sync, :reprocess, :cancel_reprocess]
 
   def index
     render Views::Sources::Index.new(sources: Source.manageable_by(Current.user).order(:name))
@@ -92,8 +92,9 @@ class SourcesController < ApplicationController
   # Deleting a source cascades to its documents, chunks and embeddings —
   # they are source-owned, and this is the record of that source.
   def destroy
-    @source.destroy!
-    redirect_to sources_path, notice: "Deleted “#{@source.name}”."
+    source = Source.administrable_by(Current.user).find(params[:id])
+    source.destroy!
+    redirect_to sources_path, notice: "Deleted “#{source.name}”."
   end
 
   def sync

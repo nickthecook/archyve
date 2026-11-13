@@ -107,6 +107,7 @@ class Source < ApplicationRecord
 
   has_many :source_users, dependent: :destroy
   has_many :users, through: :source_users
+  has_many :source_groups, dependent: :destroy
 
   has_many :source_collections, dependent: :destroy
   has_many :collections, through: :source_collections
@@ -200,44 +201,44 @@ class Source < ApplicationRecord
     chosen.nil? ? OCR_BY_DEFAULT : chosen
   end
 
-  # Everything this person may configure, sync or delete. Ownership counts as a
-  # grant: your own upload source is yours without anyone having to say so.
+  # Granted directly, through any of the user's groups, or by ownership — your
+  # own upload source is yours without anyone having to say so. Ignores the
+  # global role; the scopes below apply it.
+  scope :granted_to, ->(user, access = Grantable::ACCESS.keys) {
+    where(id: SourceUser.where(user:, access:).select(:source_id))
+      .or(where(id: SourceGroup.where(group_id: user.group_users.select(:group_id), access:).select(:source_id)))
+      .or(where(user_id: user.id))
+  }
+
+  # Everything this person may configure, sync or delete.
   scope :manageable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: SourceUser.where(user:, access: [:editor, :manager]).select(:source_id))
-      .or(where(user_id: user.id))
+    granted_to(user, [:editor, :manager])
   }
 
-  # Everything this person may feed into a collection they administer. Any
-  # grant will do, including the weakest: `accessor` means exactly "you may draw
-  # on this", which is the whole point of that grant. Deliberately wider than
+  # Everything this person may feed into a collection they can edit. Any grant
+  # will do, including the weakest: `accessor` means exactly "you may draw on
+  # this", which is the whole point of that grant. Deliberately wider than
   # manageable_by — attaching a source is not configuring it, and the person who
   # owns a collection is rarely the person who owns the credentials.
   scope :attachable_by, ->(user) {
     next none unless user.at_least?(:curator)
 
-    grants = if user.admin?
-      all
-    else
-      where(id: SourceUser.where(user:).select(:source_id)).or(where(user_id: user.id))
-    end
-
-    grants.where(type: feeding_types)
+    (user.admin? ? all : granted_to(user)).where(type: feeding_types)
   }
 
-  # Everything they may hand out authority over. Same shape, narrowed to manager
-  # grants — and ownership again, since you manage what you own.
+  # Everything they may delete.
   scope :administrable_by, ->(user) {
     next none unless user.at_least?(:curator)
     next all if user.admin?
 
-    where(id: SourceUser.where(user:, access: :manager).select(:source_id)).or(where(user_id: user.id))
+    granted_to(user, :manager)
   }
 
-  # The grant, or nil. Same question Collection answers, so User#grant_on works
-  # against either without knowing which it has.
+  # The strongest grant, or nil. Same question Collection answers, so
+  # User#grant_on works against either without knowing which it has.
   #
   # Owning a source implies managing it. That is what keeps a per-user upload
   # source working without a redundant grant row beside the user_id that already
@@ -245,7 +246,10 @@ class Source < ApplicationRecord
   def granted_access_for(user)
     return "manager" if user_id.present? && user_id == user.id
 
-    source_users.find_by(user:)&.access
+    Grantable.strongest(
+      source_users.where(user:).pluck(:access) +
+        source_groups.where(group_id: user.group_users.select(:group_id)).pluck(:access)
+    )
   end
 
   # A source has no grants until it has one, so whoever adds it gets it —

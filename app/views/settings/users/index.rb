@@ -3,8 +3,10 @@
 # Everyone with an account. The only place accounts are created, since Archyve
 # has no public sign-up.
 class Views::Settings::Users::Index < Views::Base
-  def initialize(users:)
+  def initialize(users:, groups:, group: Group.new)
     @users = users
+    @groups = groups
+    @group = group
   end
 
   def view_template
@@ -21,6 +23,9 @@ class Views::Settings::Users::Index < Views::Base
       ) { "Add someone" }
     end
 
+    render Views::Settings::Groups::Section.new(groups: @groups, group: @group)
+
+    h2(class: "mb-3 text-sm font-medium text-fg") { "Users" }
     ul(class: "rounded-lg border border-line bg-ink/40 divide-y divide-line") do
       @users.each { |user| row(user) }
     end

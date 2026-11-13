@@ -7,7 +7,7 @@ module Settings
     before_action :set_user, only: [:edit, :update, :destroy]
 
     def index
-      render Views::Settings::Users::Index.new(users: User.order(:email_address))
+      render Views::Settings::Users::Index.new(users: User.order(:email_address), groups: Group.includes(:group_users).order(:name))
     end
 
     def new
@@ -56,7 +56,8 @@ module Settings
       render Views::Settings::Users::Edit.new(
         user: @user,
         collection_grants: @user.collection_users.includes(:collection).joins(:collection).order("collections.name"),
-        source_grants: @user.source_users.includes(:source).joins(:source).order("sources.name")
+        source_grants: @user.source_users.includes(:source).joins(:source).order("sources.name"),
+        groups: @user.groups.order(:name)
       ), status:
     end
 

@@ -3,15 +3,13 @@ require "rails_helper"
 RSpec.describe "Collection people", :unauthenticated, type: :request do
   let(:collection) { create(:collection, name: "Handbook") }
   let(:curator) { create(:user, :curator) }
+  let(:admin) { create(:user, :admin) }
 
   describe "GET /collections/:slug/people" do
     subject(:request) { get collection_people_path(collection) }
 
-    context "when the signed-in curator administers the collection" do
-      before do
-        sign_in(curator)
-        create(:collection_user, :manager, collection:, user: curator)
-      end
+    context "when signed in as an admin" do
+      before { sign_in(admin) }
 
       it "renders" do
         request
@@ -22,27 +20,52 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
         request
         expect(response.body).to include("Collection")
       end
+
+      # A grant to a system admin is a no-op — they reach every collection
+      # already — and it was that no-op that sorted first in the person list.
+      it "does not offer system admins as candidates" do
+        other = create(:user, :admin, email_address: "boss@example.com")
+        request
+        expect(response.body).not_to include(other.email_address)
+      end
+
+      it "requires a person to be chosen rather than defaulting to one" do
+        create(:user)
+        request
+        expect(response.body).to include("Choose someone")
+      end
+
+      context "when a group exists" do
+        before { create(:group, name: "Human Resources") }
+
+        it "offers it" do
+          request
+          expect(response.body).to include("Human Resources")
+        end
+      end
+
+      context "when a group has been given access" do
+        let(:group) { create(:group) }
+
+        before { create(:collection_group, collection:, group:) }
+
+        it "links to the group" do
+          request
+          expect(response.body).to include(settings_group_path(group))
+        end
+      end
     end
 
-    # Filing documents into a collection is not the same as handing out access.
-    context "when the signed-in curator only files documents into it" do
+    # A curator builds a collection; an admin decides who sees it.
+    context "when signed in as a curator who manages the collection" do
       before do
         sign_in(curator)
-        create(:collection_user, :editor, collection:, user: curator)
+        create(:collection_user, :manager, collection:, user: curator)
       end
 
-      it "is not found" do
+      it "is refused" do
         request
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
-    context "when signed in as a system admin with no grant" do
-      before { sign_in(create(:user, :admin)) }
-
-      it "renders, because admins reach every collection" do
-        request
-        expect(response).to have_http_status(:ok)
+        expect(response).to redirect_to(root_path)
       end
     end
   end
@@ -52,33 +75,29 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
 
     let(:target) { create(:user) }
 
-    before do
-      sign_in(curator)
-      create(:collection_user, :manager, collection:, user: curator)
+    context "when signed in as an admin" do
+      before { sign_in(admin) }
+
+      it "grants access" do
+        expect { request }.to change { collection.collection_users.count }.by(1)
+      end
+
+      context "when they already have a grant" do
+        before { create(:collection_user, collection:, user: target) }
+
+        it "grants nothing further" do
+          expect { request }.not_to(change { collection.collection_users.count })
+        end
+      end
     end
 
-    it "grants access" do
-      expect { request }.to change { collection.collection_users.count }.by(1)
-    end
+    context "when signed in as a curator who manages the collection" do
+      before do
+        sign_in(curator)
+        create(:collection_user, :manager, collection:, user: curator)
+      end
 
-    # A grant to a system admin is a no-op — they reach every collection
-    # already — and it was that no-op that sorted first in the person list.
-    it "does not offer system admins as candidates" do
-      admin = create(:user, :admin, email_address: "boss@example.com")
-      get collection_people_path(collection)
-      expect(response.body).not_to include(admin.email_address)
-    end
-
-    it "requires a person to be chosen rather than defaulting to one" do
-      target # the form only renders when there is somebody to add
-      get collection_people_path(collection)
-      expect(response.body).to include("Choose someone")
-    end
-
-    context "when they already have a grant" do
-      before { create(:collection_user, collection:, user: target) }
-
-      it "grants nothing further" do
+      it "grants nothing" do
         expect { request }.not_to(change { collection.collection_users.count })
       end
     end
@@ -87,12 +106,9 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
   describe "PATCH /collections/:slug/people/:id" do
     subject(:request) { patch collection_person_path(collection, grant), params: { access: "editor" } }
 
-    let(:grant) { create(:collection_user, collection:, user: create(:user, :curator)) }
+    let(:grant) { create(:collection_user, collection:, user: curator) }
 
-    before do
-      sign_in(curator)
-      create(:collection_user, :manager, collection:, user: curator)
-    end
+    before { sign_in(admin) }
 
     it "changes the grant" do
       request
@@ -103,44 +119,17 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
   describe "DELETE /collections/:slug/people/:id" do
     subject(:request) { delete collection_person_path(collection, grant) }
 
-    before do
-      sign_in(curator)
-      create(:collection_user, :manager, collection:, user: curator)
+    let!(:grant) { create(:collection_user, collection:, user: curator) }
+
+    before { sign_in(admin) }
+
+    it "revokes access" do
+      expect { request }.to change { collection.collection_users.count }.by(-1)
     end
 
-    context "with someone else's grant" do
-      let!(:grant) { create(:collection_user, collection:, user: create(:user)) }
-
-      it "revokes access" do
-        expect { request }.to change { collection.collection_users.count }.by(-1)
-      end
-
-      it "stays on the people page" do
-        request
-        expect(response).to redirect_to(collection_people_path(collection))
-      end
-    end
-
-    # Revoking your own access is allowed — a system admin can restore it — but
-    # the page you were on is one you can no longer reach, so the redirect can't
-    # go back to it.
-    context "when revoking your own access" do
-      let(:grant) { collection.collection_users.find_by!(user: curator) }
-
-      it "still revokes it" do
-        expect { request }.to change { collection.collection_users.count }.by(-1)
-      end
-
-      it "redirects to the collections list" do
-        request
-        expect(response).to redirect_to(collections_path)
-      end
-
-      it "lands somewhere still reachable, rather than 404ing on the way out" do
-        request
-        follow_redirect!
-        expect(response).to have_http_status(:ok)
-      end
+    it "stays on the people page" do
+      request
+      expect(response).to redirect_to(collection_people_path(collection))
     end
   end
 
@@ -166,6 +155,19 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
         expect(response.body).to include("Handbook")
       end
     end
+
+    context "when the curator's group holds an editor grant" do
+      before do
+        group = create(:group)
+        group.users << curator
+        create(:collection_group, :editor, collection:, group:)
+      end
+
+      it "shows the collection" do
+        request
+        expect(response.body).to include("Handbook")
+      end
+    end
   end
 
   describe "creating a collection" do
@@ -173,7 +175,7 @@ RSpec.describe "Collection people", :unauthenticated, type: :request do
 
     before { sign_in(curator) }
 
-    # Otherwise a curator immediately can't manage the thing they just made.
+    # Otherwise a curator immediately can't build the thing they just made.
     it "makes the creator its manager" do
       request
       expect(curator.grant_on(Collection.find_by(name: "New Shelf"))).to eq(:manager)

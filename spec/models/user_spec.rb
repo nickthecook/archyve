@@ -123,8 +123,6 @@ RSpec.describe User, type: :model do
 
       before { create(:collection_user, :manager, collection:, user:) }
 
-      # Owning a collection includes deciding who uses it. Capping this at
-      # editor would leave every access change waiting on a system admin.
       it "makes them its manager" do
         expect(result).to eq(:manager)
       end
@@ -134,6 +132,50 @@ RSpec.describe User, type: :model do
       let(:account_role) { :visitor }
 
       before { create(:collection_user, :manager, collection:, user:) }
+
+      it "still only reads, because the account role is the ceiling" do
+        expect(result).to eq(:accessor)
+      end
+    end
+
+    context "when their group is granted editor of the collection" do
+      let(:account_role) { :curator }
+
+      before do
+        group = create(:group)
+        group.users << user
+        create(:collection_group, :editor, collection:, group:)
+      end
+
+      it "makes them an editor" do
+        expect(result).to eq(:editor)
+      end
+
+      context "when they also hold a weaker grant of their own" do
+        before { create(:collection_user, collection:, user:) }
+
+        it "gives them the stronger of the two" do
+          expect(result).to eq(:editor)
+        end
+      end
+
+      context "when they also hold a stronger grant of their own" do
+        before { create(:collection_user, :manager, collection:, user:) }
+
+        it "gives them the stronger of the two" do
+          expect(result).to eq(:manager)
+        end
+      end
+    end
+
+    context "when a visitor's group is granted manager of the collection" do
+      let(:account_role) { :visitor }
+
+      before do
+        group = create(:group)
+        group.users << user
+        create(:collection_group, :manager, collection:, group:)
+      end
 
       it "still only reads, because the account role is the ceiling" do
         expect(result).to eq(:accessor)

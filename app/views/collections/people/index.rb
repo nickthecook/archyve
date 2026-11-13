@@ -9,10 +9,12 @@ class Views::Collections::People::Index < Views::Base
     "manager" => "…and manage its people"
   }.freeze
 
-  def initialize(collection:, grants:, candidates:)
+  def initialize(collection:, grants:, candidates:, group_grants:, group_candidates:)
     @collection = collection
     @grants = grants
     @candidates = candidates
+    @group_grants = group_grants
+    @group_candidates = group_candidates
   end
 
   def view_template
@@ -35,6 +37,17 @@ class Views::Collections::People::Index < Views::Base
       access: ACCESS,
       create_path: collection_people_path(@collection),
       member_path: ->(grant) { collection_person_path(@collection, grant) }
+    )
+
+    h2(class: "mt-12 mb-3 text-sm font-medium text-fg") { "Groups" }
+    render Views::People::Panel.new(
+      subject: @collection,
+      grants: @group_grants,
+      candidates: @group_candidates,
+      access: ACCESS,
+      create_path: collection_groups_path(@collection),
+      member_path: ->(grant) { collection_group_path(@collection, grant) },
+      grantee: :group
     )
   end
 

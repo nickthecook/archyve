@@ -119,9 +119,21 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
-    it "offers the People button to whoever administers the collection" do
-      request
-      expect(response.body).to include(collection_people_path(collection))
+    # A curator builds a collection; an admin decides who sees it.
+    describe "the People button" do
+      it "is not offered to a curator, even one who manages the collection" do
+        request
+        expect(response.body).not_to include(collection_people_path(collection))
+      end
+
+      context "when signed in as an admin" do
+        before { sign_in(create(:user, :admin)) }
+
+        it "is offered" do
+          request
+          expect(response.body).to include(collection_people_path(collection))
+        end
+      end
     end
 
     # Deleting is work on the source that produced the document, so the button
@@ -465,10 +477,10 @@ RSpec.describe "Collections", type: :request do
       end
     end
 
-    # Hiding the form is not access control: describing a collection is
-    # curation, and it takes a grant on this collection to do it.
-    context "when they only read the collection" do
-      before { create(:collection_user, collection:, user: current_user, access: :accessor) }
+    # Hiding the form is not access control: describing a collection takes a
+    # manager grant on it.
+    context "when they only edit the collection's contents" do
+      before { create(:collection_user, :editor, collection:, user: current_user) }
 
       it "refuses" do
         request
@@ -477,6 +489,20 @@ RSpec.describe "Collections", type: :request do
 
       it "changes nothing" do
         expect { request }.not_to change { collection.reload.description }
+      end
+
+      it "doesn't offer the form" do
+        get collection_path(collection)
+        expect(response.body).not_to include("collection[description]")
+      end
+    end
+
+    context "when they only read the collection" do
+      before { create(:collection_user, collection:, user: current_user, access: :accessor) }
+
+      it "refuses" do
+        request
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

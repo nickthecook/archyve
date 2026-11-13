@@ -1,8 +1,8 @@
 # One person's standing with one source. See docs/architecture.md.
 #
-#   accessor — may feed this source into a collection they manage
+#   accessor — may feed this source into a collection they can edit
 #   editor   — + change its config and trigger a sync
-#   manager  — + manage who else may, and delete it
+#   manager  — + delete it
 #
 # `accessor` exists because configuring a source and drawing on it are
 # different mandates, and in an organisation they belong to different people.

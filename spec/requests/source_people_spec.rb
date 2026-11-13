@@ -4,17 +4,15 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
   let(:root) { Dir.mktmpdir("archyve-source-people-spec") }
   let(:source) { create(:folder_source, name: "Reference library", path: root) }
   let(:curator) { create(:user, :curator) }
+  let(:admin) { create(:user, :admin) }
 
   after { FileUtils.remove_entry(root) if File.exist?(root) }
 
   describe "GET /sources/:id/people" do
     subject(:request) { get source_people_path(source) }
 
-    context "when the curator administers the source" do
-      before do
-        sign_in(curator)
-        create(:source_user, :manager, source:, user: curator)
-      end
+    context "when signed in as an admin" do
+      before { sign_in(admin) }
 
       it "renders" do
         request
@@ -37,27 +35,15 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
       end
     end
 
-    # Configuring a source and delegating it are different things.
-    context "when the curator can only configure the source" do
+    context "when signed in as a curator who manages the source" do
       before do
         sign_in(curator)
-        create(:source_user, source:, user: curator)
+        create(:source_user, :manager, source:, user: curator)
       end
 
-      it "is not found" do
+      it "is refused" do
         request
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
-    context "when they own the source" do
-      let(:source) { create(:source, name: "Uploads", user: curator) }
-
-      before { sign_in(curator) }
-
-      it "renders, because owning a source is administering it" do
-        request
-        expect(response).to have_http_status(:ok)
+        expect(response).to redirect_to(root_path)
       end
     end
   end
@@ -68,10 +54,7 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
     let(:target) { create(:user, :curator) }
     let(:access) { "editor" }
 
-    before do
-      sign_in(curator)
-      create(:source_user, :manager, source:, user: curator)
-    end
+    before { sign_in(admin) }
 
     it "grants access" do
       expect { request }.to change { source.source_users.count }.by(1)
@@ -81,10 +64,6 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
     # without touching its settings.
     context "when the grant is `accessor`" do
       let(:access) { "accessor" }
-
-      it "grants it" do
-        expect { request }.to change { source.source_users.count }.by(1)
-      end
 
       it "does not make the source manageable by them" do
         request
@@ -101,12 +80,9 @@ RSpec.describe "Source people", :unauthenticated, type: :request do
   describe "PATCH /sources/:id/people/:id" do
     subject(:request) { patch source_person_path(source, grant), params: { access: "accessor" } }
 
-    let(:grant) { create(:source_user, source:, user: create(:user, :curator)) }
+    let(:grant) { create(:source_user, source:, user: curator) }
 
-    before do
-      sign_in(curator)
-      create(:source_user, :manager, source:, user: curator)
-    end
+    before { sign_in(admin) }
 
     it "changes the grant" do
       request

@@ -1,6 +1,42 @@
 require "rails_helper"
 
 RSpec.describe Collection do
+  describe "access scopes" do
+    let(:user) { create(:user, :curator) }
+    let!(:collection) { create(:collection) }
+    let(:group) { create(:group) }
+
+    before { group.users << user }
+
+    context "when the user's group holds an accessor grant" do
+      before { create(:collection_group, collection:, group:) }
+
+      it "is readable" do
+        expect(described_class.readable_by(user)).to include(collection)
+      end
+
+      it "is not manageable" do
+        expect(described_class.manageable_by(user)).not_to include(collection)
+      end
+    end
+
+    context "when the user's group holds a manager grant" do
+      before { create(:collection_group, :manager, collection:, group:) }
+
+      it "is administrable" do
+        expect(described_class.administrable_by(user)).to include(collection)
+      end
+    end
+
+    context "when a group the user isn't in holds a grant" do
+      before { create(:collection_group, :manager, collection:) }
+
+      it "is not readable" do
+        expect(described_class.readable_by(user)).not_to include(collection)
+      end
+    end
+  end
+
   describe "#set_slug" do
     subject(:collection) { described_class.create!(name:, slug:) }
 
