@@ -9,6 +9,7 @@ class Views::Sources::SyncStatus < Components::Base
     case sync.status
     when "completed" then "bg-emerald-400"
     when "failed" then "bg-red-400"
+    when "stopped" then "bg-line-2"
     else "bg-accent animate-pulse"
     end
   end
@@ -33,6 +34,7 @@ class Views::Sources::SyncStatus < Components::Base
     case @sync.status
     when "completed" then "scanned #{ago(@sync.finished_at)}"
     when "failed" then "scan failed #{ago(@sync.finished_at)}"
+    when "stopped" then "scan stopped #{ago(@sync.finished_at)}"
     else "scanning…"
     end
   end

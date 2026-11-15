@@ -144,6 +144,7 @@ Rails.application.routes.draw do
   # "Sync now" is a POST because it starts work, not a page.
   resources :sources do
     post :sync, on: :member
+    post :stop_sync, on: :member
     # Re-extract what this source already produced, from the files already
     # stored. Not a sync: nothing is fetched.
     post :reprocess, on: :member

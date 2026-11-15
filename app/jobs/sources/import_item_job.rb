@@ -17,6 +17,8 @@ module Sources
     limits_concurrency key: ->(document, _version) { document.id }, to: 1, duration: 15.minutes
 
     def perform(document, version)
+      return abandon(document) if document.source_sync&.stopped?
+
       bytes = document.source.read(document.external_id)
       checksum = Digest::SHA256.hexdigest(bytes)
 
@@ -45,6 +47,13 @@ module Sources
     end
 
     private
+
+    # A document the stopped run created has no bytes and would sit `pending`
+    # forever; the next scan recreates it. One it was updating still holds its
+    # previous content and version, so the next scan simply picks it up again.
+    def abandon(document)
+      document.destroy! unless document.file.attached?
+    end
 
     # Only skip when we have a processed document to skip *to*. A document whose
     # content matches but whose last pipeline run failed still needs processing.

@@ -116,5 +116,37 @@ RSpec.describe Sources::ImportItemJob do
         expect(document.reload.status).to eq("failed")
       end
     end
+
+    context "when the run that queued it has been stopped" do
+      before { document.update!(source_sync: create(:source_sync, source:, status: "stopped")) }
+
+      context "with a document that run created" do
+        it "discards it, since the next scan recreates it" do
+          result
+          expect(Document.exists?(document.id)).to be(false)
+        end
+
+        it "doesn't hand anything to the pipeline" do
+          expect { result }.not_to have_enqueued_job(ProcessDocumentJob)
+        end
+      end
+
+      context "with a document that run was updating" do
+        before do
+          document.update!(status: "processed", source_version: "old")
+          document.file.attach(io: StringIO.new("old body"), filename: "doc.md", content_type: "text/markdown")
+        end
+
+        it "keeps the content it already had" do
+          result
+          expect(document.reload.file.download).to eq("old body")
+        end
+
+        it "keeps the old version, so the next scan retries it" do
+          result
+          expect(document.reload.source_version).to eq("old")
+        end
+      end
+    end
   end
 end

@@ -181,6 +181,7 @@ class Views::Sources::LastScan < Components::Base
     case @sync.status
     when "completed" then timed_label("completed in")
     when "failed" then timed_label("failed after")
+    when "stopped" then timed_label("stopped after")
     when "paused" then plain("scanning — paused between passes")
     else plain("scanning…")
     end

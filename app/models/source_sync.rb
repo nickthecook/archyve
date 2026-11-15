@@ -32,11 +32,12 @@ class SourceSync < ApplicationRecord
     running: "running",
     paused: "paused",
     completed: "completed",
-    failed: "failed"
+    failed: "failed",
+    stopped: "stopped"
   }, default: "running"
 
   # The scan is over, one way or another. Its counts will not move again.
-  TERMINAL_STATUSES = %w[completed failed].freeze
+  TERMINAL_STATUSES = %w[completed failed stopped].freeze
 
   scope :recent, -> { order(started_at: :desc) }
   scope :unfinished, -> { where(status: [:running, :paused]) }
@@ -55,6 +56,14 @@ class SourceSync < ApplicationRecord
       finished_at: Time.current, response_stats: items.histogram)
 
     items.spent.delete_all
+  end
+
+  # A running pass stands down at its next heartbeat (Sources::Sync#record_progress)
+  # and imports already queued skip themselves. Stamping `last_synced_at` keeps
+  # the scheduler from starting a fresh run on the next tick.
+  def stop!
+    retire!(status: :stopped)
+    source.update!(last_synced_at: Time.current)
   end
 
   # Push the source page's live region when a scan starts and when it ends.

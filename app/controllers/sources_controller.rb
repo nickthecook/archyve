@@ -18,7 +18,7 @@ class SourcesController < ApplicationController
   ].freeze
 
   before_action :set_source,
-    only: [:show, :edit, :update, :sync, :reprocess, :cancel_reprocess]
+    only: [:show, :edit, :update, :sync, :stop_sync, :reprocess, :cancel_reprocess]
 
   def index
     render Views::Sources::Index.new(sources: Source.manageable_by(Current.user).order(:name))
@@ -109,6 +109,14 @@ class SourcesController < ApplicationController
     Sources::SyncJob.perform_later(@source)
 
     redirect_to source_path(@source), notice: "Sync started."
+  end
+
+  def stop_sync
+    run = @source.syncs.unfinished.recent.first
+    return redirect_to(source_path(@source), alert: "No sync is running.") if run.nil?
+
+    run.stop!
+    redirect_to source_path(@source), notice: "Sync stopped. Documents already processing will finish."
   end
 
   # Re-extract every document this source has already produced, from the files

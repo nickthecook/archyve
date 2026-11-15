@@ -54,8 +54,20 @@ class Views::Sources::Show < Views::Base
           href: edit_source_path(@source),
           class: button_class(:quiet)
         ) { "Edit" }
+        stop_sync_button if @source.latest_sync&.finished? == false
         sync_button if @source.supports_sync?
       end
+    end
+  end
+
+  def stop_sync_button
+    form(action: stop_sync_source_path(@source), method: "post") do
+      input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
+      button(
+        type: "submit",
+        class: button_class(:quiet),
+        data: { turbo_confirm: "Stop this sync? Documents already processing will finish." }
+      ) { "Stop sync" }
     end
   end
 

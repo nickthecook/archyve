@@ -134,6 +134,7 @@ class Views::Sources::Index < Views::Base
     case sync.status
     when "completed" then "bg-emerald-400"
     when "failed" then "bg-red-400"
+    when "stopped" then "bg-line-2"
     else "bg-accent"
     end
   end

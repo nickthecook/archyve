@@ -864,6 +864,101 @@ RSpec.describe "Sources", type: :request do
     end
   end
 
+  describe "POST /sources/:id/stop_sync" do
+    let(:source) { create(:folder_source, path: root) }
+
+    before { create(:source_user, :manager, source:, user: current_user) }
+
+    context "with a scan running" do
+      let!(:run) { create(:source_sync, source:, status: "running", finished_at: nil) }
+
+      it "stops it" do
+        expect { post stop_sync_source_path(source) }.to change { run.reload.status }.to("stopped")
+      end
+
+      it "keeps the scheduler from starting another straight away" do
+        post stop_sync_source_path(source)
+        expect(Source.due_for_sync).not_to include(source)
+      end
+
+      it "says that work already processing still finishes" do
+        post stop_sync_source_path(source)
+        expect(flash[:notice]).to match(/already processing will finish/i)
+      end
+    end
+
+    context "with a scan paused between passes" do
+      let!(:run) { create(:source_sync, source:, status: "paused", finished_at: nil) }
+
+      it "stops it rather than letting it resume" do
+        expect { post stop_sync_source_path(source) }.to change { run.reload.status }.to("stopped")
+      end
+
+      it "takes the source off the resume list" do
+        post stop_sync_source_path(source)
+        expect(Source.mid_paused_scan).not_to include(source)
+      end
+    end
+
+    context "with no scan going" do
+      before { create(:source_sync, source:) }
+
+      it "says so rather than pretending to stop one" do
+        post stop_sync_source_path(source)
+        expect(flash[:alert]).to match(/no sync is running/i)
+      end
+    end
+
+    context "as a reader" do
+      let!(:run) { create(:source_sync, source:, status: "running", finished_at: nil) }
+
+      before { sign_in(create(:user)) }
+
+      it "leaves the scan alone" do
+        post stop_sync_source_path(source)
+        expect(run.reload.status).to eq("running")
+      end
+    end
+  end
+
+  describe "the Stop sync button" do
+    let(:source) { create(:folder_source, path: root) }
+
+    before { create(:source_user, :manager, source:, user: current_user) }
+
+    context "while a scan is going" do
+      before { create(:source_sync, source:, status: "running", finished_at: nil) }
+
+      it "is offered" do
+        get source_path(source)
+        expect(response.body).to include("Stop sync")
+      end
+    end
+
+    context "once the scan has finished" do
+      before { create(:source_sync, source:) }
+
+      it "is not offered" do
+        get source_path(source)
+        expect(response.body).not_to include("Stop sync")
+      end
+    end
+
+    context "after a scan was stopped" do
+      before { create(:source_sync, source:, status: "stopped") }
+
+      it "says so" do
+        get source_path(source)
+        expect(response.body).to include("stopped after")
+      end
+
+      it "doesn't claim it is still scanning" do
+        get source_path(source)
+        expect(response.body).not_to include("scanning…")
+      end
+    end
+  end
+
   describe "DELETE /sources/:id" do
     let!(:source) { create(:folder_source, path: root) }
 
