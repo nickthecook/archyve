@@ -12,7 +12,7 @@ class SourcesController < ApplicationController
   # Only `config` keys, never `state` ones: what a person set, never what a
   # source learned. spec/models/source_spec.rb holds that line.
   PERMITTED_PARAMS = [
-    :name, :path, :endpoint_id, :sync_interval_minutes, :ocr,
+    :name, :path, :endpoint_id, :drive_id, :sync_interval_minutes, :ocr,
     :path_prefix, :start_path, :content_selector, :max_pages, :max_depth, :crawl_delay_seconds,
     { collection_ids: [], selectors: [], folders: [] }
   ].freeze

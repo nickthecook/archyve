@@ -76,6 +76,19 @@ RSpec.describe Endpoints::Sharepoint do
 
       it { expect(result).to eq("sites/example.sharepoint.com") }
     end
+
+    context "with something beneath a site under /sites" do
+      let(:result) { endpoint.site_path("drives") }
+
+      it { expect(result).to eq("sites/example.sharepoint.com:/sites/Team:/drives") }
+    end
+
+    context "with something beneath the root site" do
+      let(:base_url) { "https://example.sharepoint.com" }
+      let(:result) { endpoint.site_path("drives") }
+
+      it { expect(result).to eq("sites/example.sharepoint.com/drives") }
+    end
   end
 
   describe "#access" do
@@ -98,6 +111,27 @@ RSpec.describe Endpoints::Sharepoint do
 
       stubs.post(token_path, ->(body) { body.include?("client_secret=client-secret") }) { token_response }
       stubs.get(site_path, { "Authorization" => "Bearer graph-token" }) { site_response }
+    end
+
+    context "when another instance of the same endpoint already fetched a token" do
+      before { Endpoint.find(endpoint.id).access }
+
+      it "re-uses it" do
+        result
+        expect(Http).to have_received(:connection).with(described_class::LOGIN_URL, anything).once
+      end
+    end
+
+    context "when the endpoint was saved after the token was fetched" do
+      before do
+        Endpoint.find(endpoint.id).access
+        endpoint.update!(client_secret: "client-secret", updated_at: 1.minute.from_now)
+      end
+
+      it "fetches a new one" do
+        result
+        expect(Http).to have_received(:connection).with(described_class::LOGIN_URL, anything).twice
+      end
     end
 
     context "when Entra issues a token and Graph finds the site" do
@@ -129,7 +163,7 @@ RSpec.describe Endpoints::Sharepoint do
 
       it "records Graph's reason" do
         result
-        expect(endpoint.access_error).to eq("Endpoints::Sharepoint::Error: Access denied")
+        expect(endpoint.access_error).to eq("Endpoints::Sharepoint::Error: accessDenied: Access denied")
       end
     end
   end

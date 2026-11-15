@@ -89,7 +89,7 @@ class Source < ApplicationRecord
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched.
-  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Nextcloud Sources::Web Sources::ManualUpload].freeze
+  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Nextcloud Sources::Sharepoint Sources::Web Sources::ManualUpload].freeze
 
   # Fallback when a source names no interval of its own. On the base class
   # because Source.due_for_sync inlines it into SQL for every type at once.

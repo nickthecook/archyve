@@ -24,6 +24,13 @@ FactoryBot.define do
     folders { ["Documents"] }
   end
 
+  factory :sharepoint_source, class: "Sources::Sharepoint" do
+    sequence(:name) { |n| "Intranet #{n}" }
+    endpoint factory: :sharepoint_endpoint
+    drive_id { "drive-1" }
+    folders { ["Policies"] }
+  end
+
   # Needs an Endpoints::Web: the source validates the pairing.
   factory :web_source, class: "Sources::Web" do
     sequence(:name) { |n| "Docs #{n}" }

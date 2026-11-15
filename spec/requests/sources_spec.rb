@@ -669,6 +669,75 @@ RSpec.describe "Sources", type: :request do
     end
   end
 
+  describe "the SharePoint source" do
+    let(:endpoint) { create(:sharepoint_endpoint, name: "Intranet") }
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+
+    before do
+      stub_graph(stubs)
+      stub_graph_get(stubs, "sites/example.sharepoint.com:/sites/Team:/drives", value: [
+        { id: "drive-1", name: "Documents", webUrl: "https://example.sharepoint.com/sites/Team/Shared%20Documents" },
+        { id: "drive-2", name: "Site Assets", webUrl: "https://example.sharepoint.com/sites/Team/SiteAssets" }
+      ])
+      stub_graph_get(stubs, "drives/drive-1/root/children", value: [graph_folder("Policies"), graph_folder("HR")])
+      stub_graph_get(stubs, "drives/drive-2/root/children", value: [graph_folder("Logos")])
+      stub_graph_get(stubs, "drives/drive-1/root:/Policies:/children", value: [graph_folder("2026")])
+    end
+
+    describe "GET /sources/new" do
+      context "with a site that answers" do
+        before do
+          endpoint
+          get new_source_path(type: "Sources::Sharepoint")
+        end
+
+        it "offers the libraries" do
+          expect(response.body).to include("Documents", "Site Assets")
+        end
+
+        it "lists the first library's folders" do
+          expect(response.body).to include("Policies", "HR")
+        end
+      end
+
+      context "with another library chosen" do
+        before do
+          get new_source_path(type: "Sources::Sharepoint", browse: "",
+            source: { name: "Intranet", endpoint_id: endpoint.id, drive_id: "drive-2" })
+        end
+
+        it "lists that library's folders" do
+          expect(response.body).to include("Logos")
+        end
+      end
+
+      context "browsing into a folder with a tick already made elsewhere" do
+        before do
+          get new_source_path(type: "Sources::Sharepoint", browse: "Policies",
+            source: { name: "Intranet", endpoint_id: endpoint.id, drive_id: "drive-1", folders: ["", "HR"] })
+        end
+
+        it "lists that folder's subfolders, keeping the tick" do
+          expect(response.body).to include("2026", "HR")
+        end
+      end
+    end
+
+    describe "POST /sources" do
+      let(:params) do
+        {
+          type: "Sources::Sharepoint",
+          source: { name: "Intranet", endpoint_id: endpoint.id, drive_id: "drive-1", folders: ["", "/Policies/"] }
+        }
+      end
+
+      it "stores the library and folders" do
+        post sources_path, params: params
+        expect(Sources::Sharepoint.last).to have_attributes(drive_id: "drive-1", folders: ["Policies"])
+      end
+    end
+  end
+
   describe "PATCH /sources/:id" do
     let(:source) { create(:folder_source, path: root) }
 

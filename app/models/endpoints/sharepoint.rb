@@ -13,6 +13,8 @@ module Endpoints
 
     Error = Class.new(StandardError)
 
+    TOKENS = Concurrent::Map.new
+
     store_accessor :config, :client_id, :tenant_id
     credential :client_secret
 
@@ -35,9 +37,13 @@ module Endpoints
     def tenant = tenant_id.presence || "#{host.split('.').first}.onmicrosoft.com"
 
     # Relative, so Faraday appends it to GRAPH_URL's /v1.0 rather than replacing it.
-    def site_path
+    # A site addressed by path needs a closing colon before anything beneath it.
+    def site_path(child = nil)
       path = URI.parse(base_url).path
-      path.present? ? "sites/#{host}:#{path}" : "sites/#{host}"
+      site = path.present? ? "sites/#{host}:#{path}" : "sites/#{host}"
+      return site if child.nil?
+
+      path.present? ? "#{site}:/#{child}" : "#{site}/#{child}"
     end
 
     def client(timeout: DEFAULT_TIMEOUT, raise_errors: true)
@@ -48,6 +54,15 @@ module Endpoints
 
     def auth_headers = { "Authorization" => "Bearer #{access_token}" }
 
+    def graph_get(path, params = {}, timeout: DEFAULT_TIMEOUT)
+      response = client(timeout:, raise_errors: false).get(path, params)
+      return parse(response) if response.success?
+
+      raise Error, graph_error(response)
+    end
+
+    def graph(timeout: DEFAULT_TIMEOUT) = ::Sharepoint::Graph.new(self, timeout:)
+
     def access!
       response = client(timeout: ACCESS_TIMEOUT, raise_errors: false).get(site_path)
       return if response.success?
@@ -57,14 +72,18 @@ module Endpoints
 
     private
 
-    # Held on the instance rather than in Rails.cache, which would put a bearer
-    # token in the cache table in the clear. One token per job is cheap.
+    # Per process rather than in Rails.cache, which would put a bearer token in the
+    # cache table in the clear. Checked against updated_at so a new secret takes
+    # effect at once; without it every ImportItemJob would fetch its own token.
     def access_token
-      return @access_token if @access_token && Time.current < @access_token_expires_at
+      cached = TOKENS[id]
+      return cached[:token] if cached && cached[:saved_at] == updated_at && Time.current < cached[:expires_at]
 
       body = request_token
-      @access_token_expires_at = Time.current + body.fetch("expires_in").to_i.seconds - TOKEN_EXPIRY_MARGIN
-      @access_token = body.fetch("access_token")
+      expires_at = Time.current + body.fetch("expires_in").to_i.seconds - TOKEN_EXPIRY_MARGIN
+      entry = { token: body.fetch("access_token"), expires_at:, saved_at: updated_at }
+      TOKENS[id] = entry
+      entry[:token]
     end
 
     # raise_errors is off because Entra's AADSTS code, which says whether the
@@ -84,7 +103,8 @@ module Endpoints
     end
 
     def graph_error(response)
-      parse(response).dig("error", "message").presence || "Graph answered #{response.status}"
+      error = parse(response)["error"] || {}
+      error["message"].present? ? [error["code"], error["message"]].compact.join(": ") : "Graph answered #{response.status}"
     end
 
     def parse(response)

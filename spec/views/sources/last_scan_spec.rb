@@ -87,6 +87,32 @@ RSpec.describe Views::Sources::LastScan do
       end
 
       it { expect(result).to include('data-progress-terminal-value="false"') }
+
+      # Otherwise the previous run's card reads as the one just asked for.
+      it "replaces the previous scan with what it is waiting for" do
+        expect(result).to include("waiting for a worker")
+        expect(result).not_to include("completed in")
+      end
+    end
+
+    # The new request queues behind it, and its progress is still worth watching.
+    context "with a request made while a scan is running" do
+      before do
+        source.syncs.create!(started_at: 1.minute.ago, status: "running")
+        source.request_sync!
+      end
+
+      it { expect(result).to include("scanning…") }
+    end
+
+    context "with a request and a scan started since" do
+      before do
+        previous
+        source.request_sync!
+        source.syncs.create!(started_at: 1.second.from_now, status: "running")
+      end
+
+      it { expect(result).to include("scanning…") }
     end
 
     context "with a request and no scan ever" do
