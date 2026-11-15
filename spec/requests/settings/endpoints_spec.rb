@@ -89,6 +89,15 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
       end
     end
 
+    context "with the SharePoint type" do
+      before { get new_settings_endpoint_path(type: "Endpoints::Sharepoint") }
+
+      it "renders its credentials" do
+        expect(response.body).to include("Client ID")
+        expect(response.body).to include("Client secret")
+      end
+    end
+
     context "with a type nobody registered" do
       it "refuses rather than constantizing it" do
         get new_settings_endpoint_path(type: "User")

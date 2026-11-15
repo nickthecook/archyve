@@ -18,6 +18,13 @@ FactoryBot.define do
     app_password { "apppassword" }
   end
 
+  factory :sharepoint_endpoint, class: "Endpoints::Sharepoint" do
+    sequence(:name) { |n| "Intranet #{n}" }
+    base_url { "https://example.sharepoint.com/sites/Team" }
+    client_id { "client-id" }
+    client_secret { "client-secret" }
+  end
+
   # The origin only — a path here is a validation error, since the path prefix
   # belongs to the source.
   factory :web_endpoint, class: "Endpoints::Web" do
