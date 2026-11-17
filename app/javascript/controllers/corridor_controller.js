@@ -1,30 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
-// The landing's signature: an infinite triangular corridor into the archive.
-// Flat-bottom triangles at geometric (perspective) depth that recycles, so we can
-// dolly forever. Rings are driven each frame from one scalar `current` (how far
-// we've walked).
-//
-// Each keystroke walks one slot toward a `target` (typing walks in, deleting
-// walks out). Motion follows a trapezoidal velocity profile — accelerate from
-// rest, cruise at a constant speed, decelerate to a stop — so a lone keystroke
-// eases in and out over ~800ms while continuous typing flows smoothly at a
-// steady pace (velocity never drops to zero mid-walk, which is what made
-// per-step easing feel jerky). The target's lead over the current position is
-// capped, so you can't out-type the walk and it settles about one step after you
-// stop. Focus lights the far end; the pointer shifts the vanishing point. One rAF
-// loop that sleeps when nothing is moving.
+// The landing's signature: a triangular corridor into the archive, rings at
+// geometric (perspective) depth. Focus lights the far end; the pointer shifts
+// the vanishing point. One rAF loop that sleeps when nothing is moving.
 //
 // On load the corridor builds itself: every ring starts past the far plane (so the
 // frame is empty), then they bloom out of the vanishing point one after another and
-// glide outward into their resting slots. Same direction as walking in — forward —
-// and it is a pure render offset, so the walk system never sees it.
+// glide outward into their resting slots.
 export default class extends Controller {
   static targets = ["rings", "input"]
 
-  VMAX = 0.6    // slots per second at cruise (≈ one 800ms step when isolated)
-  ACCEL = 8     // slots per second² — the ease-in / ease-out ramp
-  LEAD = 1.15   // how far target may lead current: a single step, and the max coast after you stop
   INTRO = 1.6   // seconds for the load bloom: rings emerge fast, then ease into place
 
   connect() {
@@ -62,14 +47,10 @@ export default class extends Controller {
       document.addEventListener("turbo:before-cache", this._beforeCache)
     }
 
-    this.current = 0
-    this.target = 0
-    this.vel = 0
     this.litAmt = 0
     this.litTarget = 0
     this.kbShift = 0
     this.px = 0; this.py = 0; this.tpx = 0; this.tpy = 0
-    this.lastLen = 0
     this.running = false
     // Rings sit a whole corridor-length beyond the far plane, which renders as nothing.
     this.introLeft = this.reduce ? 0 : this.INTRO
@@ -89,18 +70,7 @@ export default class extends Controller {
   }
 
   // --- input wiring (Stimulus actions) --------------------------------------
-  step() {
-    const delta = this.inputTarget.value.length - this.lastLen
-    this.lastLen = this.inputTarget.value.length
-    const dir = delta < 0 ? -1 : 1
-
-    if (this.reduce) { this.current = this.normalize(this.current + dir); this.render(); return }
-    this.target = this.clamp(this.target + dir, this.current - this.LEAD, this.current + this.LEAD)
-    this.kick()
-  }
-
   light() {
-    this.lastLen = this.inputTarget.value.length
     this.element.classList.add("is-lit")
     this.litTarget = 1
     this.kick()
@@ -176,7 +146,6 @@ export default class extends Controller {
   motion(event) {
     this.reduce = event ? event.detail.reduce : this.motionReduced
     if (this.reduce) {
-      this.current = 0; this.target = 0; this.vel = 0
       this.introLeft = 0; this.introOffset = 0
       this.tpx = 0; this.tpy = 0; this.px = 0; this.py = 0
       this.litTarget = this.element.classList.contains("is-lit") ? 1 : 0
@@ -189,37 +158,12 @@ export default class extends Controller {
     }
   }
 
-  // Phase is periodic in RINGS, so keep the walk counter small (invisible jump).
-  normalize(v) { return v - Math.round(v / this.RINGS) * this.RINGS }
-
-  // Trapezoidal follow: accelerate toward target, but start braking once the
-  // remaining distance equals our stopping distance, so we ease to a clean stop.
-  walk(dt) {
-    const rem = this.target - this.current
-    const stopDist = (this.vel * this.vel) / (2 * this.ACCEL)
-    if (rem === 0 && this.vel === 0) return
-
-    if (Math.abs(rem) <= stopDist || Math.sign(rem) === 0) {
-      const braked = this.vel - Math.sign(this.vel) * this.ACCEL * dt
-      this.vel = Math.sign(braked) !== Math.sign(this.vel) ? 0 : braked
-    } else {
-      this.vel = this.clamp(this.vel + Math.sign(rem) * this.ACCEL * dt, -this.VMAX, this.VMAX)
-    }
-    this.current += this.vel * dt
-
-    if (Math.abs(this.target - this.current) < 0.002 && Math.abs(this.vel) < 0.02) {
-      this.current = this.normalize(this.target)
-      this.target = this.current
-      this.vel = 0
-    }
-  }
-
   // --- engine ---------------------------------------------------------------
   clamp(v, a, b) { return Math.min(b, Math.max(a, v)) }
   lerp(a, b, t) { return a + (b - a) * t }
 
   drawRing(o) {
-    let p = o.i - this.current
+    let p = o.i
     while (p < this.NEAR) p += this.RINGS
     while (p >= this.FAR) p -= this.RINGS
     p += this.introOffset   // load bloom only; zero once the corridor has arrived
@@ -251,8 +195,6 @@ export default class extends Controller {
     const dt = Math.min((now - this.lastT) / 1000, 0.05)
     this.lastT = now
 
-    this.walk(dt)
-
     // Ease-out: the corridor rushes out of the vanishing point and settles slowly.
     if (this.introLeft > 0) {
       this.introLeft = Math.max(0, this.introLeft - dt)
@@ -266,7 +208,7 @@ export default class extends Controller {
 
     this.render()
 
-    const settled = this.introLeft === 0 && this.vel === 0 && this.current === this.target && this.litAmt === this.litTarget &&
+    const settled = this.introLeft === 0 && this.litAmt === this.litTarget &&
       Math.abs(this.tpx - this.px) < 0.004 && Math.abs(this.tpy - this.py) < 0.004
     if (settled) this.running = false
     else this.raf = requestAnimationFrame(this._tick)

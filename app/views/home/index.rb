@@ -1,18 +1,16 @@
 # frozen_string_literal: true
 
 # The landing: the archive corridor. The bar is the way in (a real question),
-# the three facets are the sections, and the corridor dollies as you type — the
-# motion lives in corridor_controller.js.
+# the three facets are the sections, and the corridor's motion lives in
+# corridor_controller.js.
 class Views::Home::Index < Views::Base
   include Phlex::Rails::Helpers::Flash
 
   # AGPL §13: a modified deployment must offer users its own source, so forks change this.
   SOURCE_URL = "https://github.com/nickthecook/archyve"
 
-  def initialize(stats:, models: [], model: nil, unavailable: nil)
+  def initialize(stats:, unavailable: nil)
     @stats = stats
-    @models = models
-    @model = model
     @unavailable = unavailable
   end
 
@@ -99,7 +97,7 @@ class Views::Home::Index < Views::Base
   # One column, so the disclaimer follows the hint however many lines it wraps to.
   def below_field(&hint)
     div(class: "ask-below") do
-      p(class: "ask-hint", &hint)
+      p(class: "ask-hint", &hint) if hint
       render Views::Disclaimer.new(css: "ask-disclaimer")
     end
   end
@@ -108,16 +106,7 @@ class Views::Home::Index < Views::Base
     form(action: conversations_path, method: "post") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       field(name: "message", placeholder: Brand.current.ask_placeholder) { ask_icon }
-      # The hint line is the only furniture the corridor gains, and it gains it
-      # on focus rather than at rest: which model answers is worth a choice, but
-      # not worth a control sitting in the threshold competing with the question.
-      below_field do
-        span { "Draws on everything you can read" }
-        if @models.any?
-          span { "·" }
-          render Views::Conversations::ModelPicker.new(models: @models, selected: @model, caption: nil)
-        end
-      end
+      below_field
     end
   end
 
@@ -139,7 +128,7 @@ class Views::Home::Index < Views::Base
       input(
         type: "text", name: name, placeholder: placeholder,
         aria_label: placeholder, autocomplete: "off",
-        data: { corridor_target: "input", action: "input->corridor#step focus->corridor#light blur->corridor#dim" }
+        data: { corridor_target: "input", action: "focus->corridor#light blur->corridor#dim" }
       )
       kbd { "↵" }
     end

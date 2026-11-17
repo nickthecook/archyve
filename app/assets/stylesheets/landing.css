@@ -45,7 +45,7 @@
 .corridor-stage .glow {
   position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%);
   width: 62%; aspect-ratio: 1;
-  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 30%, transparent) 0%, color-mix(in srgb, var(--color-accent) 9%, transparent) 36%, transparent 66%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 18%, transparent) 0%, color-mix(in srgb, var(--color-accent) 5%, transparent) 36%, transparent 66%);
   filter: blur(8px); opacity: 0; transition: opacity 0.7s ease; z-index: 2; pointer-events: none;
 }
 .corridor-stage.is-lit .glow { opacity: 1; }
@@ -97,11 +97,7 @@
   transition: opacity 0.35s ease, transform 0.35s ease;
   text-shadow: 0 1px 10px var(--color-void), 0 0 4px var(--color-void); pointer-events: none;
 }
-/* The model picker lives in here, so the line has to take a click — but only
-   once it is visible, or the corridor would hold an invisible control. */
-.corridor-stage .ask:focus-within .ask-hint {
-  opacity: 1; transform: translateY(0); pointer-events: auto;
-}
+.corridor-stage .ask:focus-within .ask-hint { opacity: 1; transform: translateY(0); }
 
 .corridor-stage .ask-disclaimer {
   margin: 0; text-align: center; font-size: 0.75rem; color: var(--color-muted);

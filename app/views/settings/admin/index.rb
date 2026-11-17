@@ -28,7 +28,7 @@ class Views::Settings::Admin::Index < Views::Base
       render Views::MenuCard.new(
         href: settings_api_calls_path,
         title: "API calls",
-        description: "What Archyve sent inference servers and what its API was sent, with what came back.",
+        description: "Outgoing API calls to inference servers, and their responses.",
         meta: api_call_meta
       ) { api_call_icon }
       render Views::MenuCard.new(

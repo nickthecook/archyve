@@ -13,21 +13,16 @@
 # it degrades to a label: there is nothing to choose, but still something worth
 # saying about which model is about to answer.
 class Views::Conversations::ModelPicker < Components::Base
-  # `caption` names the choice, which the composer needs — several controls sit
-  # in that row and each has to say what it is. The corridor passes nil: its
-  # field says "Ask your archive" one line above, so saying it again is the
-  # furniture that landing is trying not to have.
-  def initialize(models:, selected: nil, caption: "Ask")
+  def initialize(models:, selected: nil)
     @models = models
     @selected = selected
-    @caption = caption
   end
 
   def view_template
     return if @models.empty?
 
     label(class: "flex items-center gap-2") do
-      span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { @caption } if @caption
+      span(class: "text-[0.7rem] uppercase tracking-[0.12em] text-faint") { "Ask" }
       # With one model there is nothing to choose, but there is still something
       # to say: which model is about to answer. A select of one is a control
       # that can only disappoint, so it becomes a label instead.
@@ -40,8 +35,6 @@ class Views::Conversations::ModelPicker < Components::Base
   def chooser
     select(
       name: "inference_model_id",
-      # 70%, not 60%: on the landing this floats over the lit corridor, and the
-      # rings bleeding through were enough to make the model name hard to read.
       class: "rounded border border-line bg-void/70 px-2.5 py-1 font-mono text-xs text-muted " \
              "outline-none focus:border-accent hover:text-fg transition-colors"
     ) do
