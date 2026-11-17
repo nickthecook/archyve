@@ -24,6 +24,7 @@ class Views::Settings::Agents::Show < Views::Base
     end
 
     prompt
+    model
     toolsets
     access
   end
@@ -68,6 +69,15 @@ class Views::Settings::Agents::Show < Views::Base
         end
       else
         p(class: "rounded-lg border border-dashed border-line px-5 py-4 text-sm text-faint") { "No prompt." }
+      end
+    end
+  end
+
+  def model
+    section_titled("Model") do
+      p(class: "text-sm text-muted") do
+        name = @agent.inference_model&.label || "The instance default"
+        @agent.model_overridable? ? "#{name}, unless the person chatting picks another" : name
       end
     end
   end

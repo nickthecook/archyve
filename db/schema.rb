@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -75,7 +75,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_120000) do
     t.integer "access_mode", default: 0, null: false
     t.integer "collection_mode", default: 0, null: false
     t.bigint "creator_id"
+    t.bigint "inference_model_id"
+    t.boolean "model_overridable", default: true, null: false
     t.index ["creator_id"], name: "index_agents_on_creator_id"
+    t.index ["inference_model_id"], name: "index_agents_on_inference_model_id"
     t.index ["slug"], name: "index_agents_on_slug", unique: true
   end
 
@@ -489,6 +492,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_120000) do
   add_foreign_key "agent_collections", "collections", on_delete: :cascade
   add_foreign_key "agent_users", "agents", on_delete: :cascade
   add_foreign_key "agent_users", "users", on_delete: :cascade
+  add_foreign_key "agents", "inference_models", on_delete: :nullify
   add_foreign_key "agents", "users", column: "creator_id", on_delete: :nullify
   add_foreign_key "api_calls", "api_keys", on_delete: :nullify
   add_foreign_key "api_calls", "users", on_delete: :nullify

@@ -33,7 +33,8 @@ module Chat
     def initialize(conversation, question, model: nil)
       @conversation = conversation
       @question = question
-      @model = model
+      # A fixed model is reasserted every turn, so changing the agent moves its chats with it.
+      @model = conversation.agent.model_overridable? ? model : conversation.agent.chat_model
     end
 
     def call

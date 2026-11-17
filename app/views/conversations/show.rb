@@ -94,7 +94,9 @@ class Views::Conversations::Show < Views::Base
         if @conversation.agent.narrowable?
           render Views::ScopeChip.new(label: @conversation.scope_label, searching: @conversation.searches_archive?)
         end
-        render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
+        if @conversation.agent.model_overridable?
+          render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
+        end
         button(
           type: "submit", disabled: @unavailable.present?,
           class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-dim transition-colors"

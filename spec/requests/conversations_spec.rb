@@ -223,6 +223,31 @@ RSpec.describe "Conversations", type: :request do
     # The id arrives in a form field, and a model that can't call tools can't
     # search the archive — so the choice is looked up through what chat may
     # offer rather than by id alone.
+    context "when the agent has its own model" do
+      let(:own) { create(:inference_model, :tools, kind: "chat") }
+      let(:picked) { create(:inference_model, :tools, kind: "chat") }
+      let(:agent) { create(:agent, inference_model: own, model_overridable:) }
+      let(:params) { { message: "anything", agent: agent.slug, inference_model_id: picked.id } }
+
+      context "and people may choose another" do
+        let(:model_overridable) { true }
+
+        it "asks the one they picked" do
+          request
+          expect(Conversation.last.inference_model).to eq(picked)
+        end
+      end
+
+      context "and it is fixed" do
+        let(:model_overridable) { false }
+
+        it "asks the agent's model, whatever was posted" do
+          request
+          expect(Conversation.last.inference_model).to eq(own)
+        end
+      end
+    end
+
     context "when the picked model isn't one chat can offer" do
       let(:toolless) { create(:inference_model, kind: "chat", supports_tools: false, name: "no-tools") }
       let(:params) { { message: "anything", inference_model_id: toolless.id } }
@@ -365,6 +390,21 @@ RSpec.describe "Conversations", type: :request do
 
         it "offers them in the composer" do
           expect(response.body).to include("small-model", "big-model")
+        end
+
+        context "and the agent's model is fixed" do
+          let(:conversation) do
+            own = InferenceModel.find_by!(name: "big-model")
+            create(:conversation, user: current_user, agent: create(:agent, inference_model: own, model_overridable: false))
+          end
+
+          it "offers no choice" do
+            expect(response.body).not_to include('name="inference_model_id"')
+          end
+
+          it "doesn't name the model either" do
+            expect(response.body).not_to include("big-model")
+          end
         end
       end
 
@@ -579,6 +619,19 @@ RSpec.describe "Conversations", type: :request do
     it "stamps the turn with the model that was picked" do
       request
       expect(conversation.messages.last.inference_model).to eq(picked)
+    end
+
+    context "when the agent's model is fixed" do
+      let(:own) { create(:inference_model, :tools, kind: "chat") }
+      let(:conversation) do
+        create(:conversation, user: current_user, inference_model: was,
+          agent: create(:agent, inference_model: own, model_overridable: false))
+      end
+
+      it "answers with the agent's model" do
+        request
+        expect(conversation.messages.last.inference_model).to eq(own)
+      end
     end
   end
 

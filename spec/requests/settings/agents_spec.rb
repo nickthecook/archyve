@@ -110,6 +110,12 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       get new_settings_agent_path
       expect(response.body).to include("Create agent")
     end
+
+    it "names each model it could use" do
+      model = create(:inference_model, :tools, name: "qwen3.8-27b")
+      get new_settings_agent_path
+      expect(response.body).to include(%(<option value="#{model.id}">qwen3.8-27b</option>))
+    end
   end
 
   describe "POST /settings/agents" do
@@ -177,6 +183,35 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
     it "saves the change" do
       request
       expect(agent.reload).to have_attributes(prompt: "Be brief.", access_mode: "granted")
+    end
+
+    context "with a fixed model" do
+      let(:model) { create(:inference_model, :tools) }
+      let(:attributes) { super().merge(inference_model_id: model.id.to_s, model_overridable: "0") }
+
+      it "saves it" do
+        request
+        expect(agent.reload).to have_attributes(inference_model: model, model_overridable: false)
+      end
+    end
+
+    context "with a model that can't call tools" do
+      let(:attributes) { super().merge(inference_model_id: create(:inference_model).id.to_s) }
+
+      it "shows the form again" do
+        request
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    context "with the instance default" do
+      let(:agent) { create(:agent, name: "Policy bot", creator: user, inference_model: create(:inference_model, :tools)) }
+      let(:attributes) { super().merge(inference_model_id: "") }
+
+      it "clears its own model" do
+        request
+        expect(agent.reload.inference_model).to be_nil
+      end
     end
 
     context "when the agent is built in" do

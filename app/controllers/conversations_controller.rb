@@ -17,7 +17,6 @@ class ConversationsController < ApplicationController
       agent: agents.find { it.slug == params[:agent] } || Agent.default_chat,
       collections: readable_collections,
       models: choosable_models,
-      model: InferenceModel.default_chat,
       scope: Retrieval::Scope.from_params(params, user: Current.user),
       unavailable: unavailable_reason
     )
@@ -42,7 +41,7 @@ class ConversationsController < ApplicationController
     agent = chosen_agent
     conversation = Current.user.conversations.create!(
       scope: agent.narrowable? ? scope_spec : { "c" => [] },
-      agent:, inference_model: chosen_model || InferenceModel.default_chat,
+      agent:, inference_model: agent.model_for(chosen_model),
       title: question.truncate(80)
     )
     Chat::Ask.call(conversation, question)

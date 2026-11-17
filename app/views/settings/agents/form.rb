@@ -5,8 +5,9 @@ class Views::Settings::Agents::Form < Views::Base
   INPUT = "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg placeholder:text-faint " \
           "outline-none focus:border-accent transition-colors"
 
-  def initialize(agent:, collections:, toolsets:, checked_collection_ids:)
+  def initialize(agent:, collections:, toolsets:, models:, checked_collection_ids:)
     @agent = agent
+    @models = models
     @collections = collections
     @toolsets = toolsets
     @checked_collection_ids = checked_collection_ids
@@ -27,6 +28,7 @@ class Views::Settings::Agents::Form < Views::Base
 
       name_field
       prompt_field
+      model_field
       toolsets_field
       access_field
       collections_field
@@ -61,6 +63,20 @@ class Views::Settings::Agents::Form < Views::Base
         data: { controller: "autogrow", action: "input->autogrow#resize" },
         class: "#{INPUT} resize-none overflow-y-hidden"
       ) { @agent.prompt }
+    end
+  end
+
+  def model_field
+    field("Model", "What its chats are answered with.") do
+      select(name: "agent[inference_model_id]", class: INPUT) do
+        option(value: "", selected: @agent.inference_model_id.nil?) { "Instance default (#{InferenceModel.default_chat&.label || "none set"})" }
+        @models.each { |model| option(value: model.id, selected: model.id == @agent.inference_model_id) { model.label } }
+      end
+      input(type: "hidden", name: "agent[model_overridable]", value: "0")
+      div(class: "mt-3") do
+        choice("checkbox", "agent[model_overridable]", "1", @agent.model_overridable?,
+          "Let people choose a different model", "Shows the model picker in chats with this agent.")
+      end
     end
   end
 

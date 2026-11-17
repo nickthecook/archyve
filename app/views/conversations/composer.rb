@@ -3,10 +3,9 @@
 # The box that starts a chat with one agent. The scope picker only appears for
 # an agent that searches the archive; there is nothing to narrow otherwise.
 class Views::Conversations::Composer < Components::Base
-  def initialize(agent:, models:, model: nil, collections: [], scope: nil, unavailable: nil, placeholder: nil)
+  def initialize(agent:, models:, collections: [], scope: nil, unavailable: nil, placeholder: nil)
     @agent = agent
     @models = models
-    @model = model
     @collections = collections
     @scope = scope
     @unavailable = unavailable
@@ -36,7 +35,7 @@ class Views::Conversations::Composer < Components::Base
       )
       div(class: "flex flex-wrap items-center gap-3 border-t border-line/60 pt-3") do
         scope_picker if @agent.narrowable?
-        render Views::Conversations::ModelPicker.new(models: @models, selected: @model)
+        render Views::Conversations::ModelPicker.new(models: @models, selected: @agent.chat_model) if @agent.model_overridable?
         button(
           type: "submit", disabled: @unavailable.present?,
           class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-dim transition-colors"

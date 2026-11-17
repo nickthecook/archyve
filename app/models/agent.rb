@@ -25,6 +25,7 @@ class Agent < ApplicationRecord
   enum :collection_mode, { user: 0, fixed: 1 }, suffix: :collections, validate: true
 
   belongs_to :creator, class_name: "User", optional: true
+  belongs_to :inference_model, optional: true
 
   has_many :conversations, dependent: :restrict_with_exception
   has_many :agent_users, dependent: :destroy
@@ -40,6 +41,7 @@ class Agent < ApplicationRecord
   validates :name, presence: true
   validates :creator, presence: true, if: -> { creator_only? && new_record? }
   validate :toolsets_exist
+  validate :model_answers_chat, if: :inference_model_id_changed?
 
   def self.archivist = find_by!(slug: "archivist")
   def self.admin_support = find_by!(slug: "admin_support")
@@ -86,13 +88,18 @@ class Agent < ApplicationRecord
   # Whether the person chatting picks what it draws on. A fixed set can't be narrowed.
   def narrowable? = searches_archive? && user_collections?
 
+  # Its own model, unless that has since been disabled or stopped calling tools.
+  def chat_model = InferenceModel.for_chat.find_by(id: inference_model_id) || InferenceModel.default_chat
+
+  def model_for(chosen) = (chosen if model_overridable?) || chat_model
+
   # The default answers everyone's new chats, so it has to be usable by everyone.
   def default_eligible? = everyone? && role_floor == :visitor
 
   # Private to whoever copied it until they choose to share it.
   def duplicate(by:)
     Agent.new(
-      name: "#{name} (copy)", prompt:, toolset_keys:, collection_mode:, collection_ids:,
+      name: "#{name} (copy)", prompt:, toolset_keys:, collection_mode:, collection_ids:, inference_model_id:, model_overridable:,
       access_mode: "creator_only", creator: by
     )
   end
@@ -118,5 +125,11 @@ class Agent < ApplicationRecord
   def toolsets_exist
     unknown = toolset_keys - Toolsets.keys
     errors.add(:toolset_keys, "names unknown toolsets: #{unknown.join(', ')}") if unknown.any?
+  end
+
+  def model_answers_chat
+    return if inference_model_id.nil? || InferenceModel.for_chat.exists?(inference_model_id)
+
+    errors.add(:inference_model, "can't answer chats")
   end
 end

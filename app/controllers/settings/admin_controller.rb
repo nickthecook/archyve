@@ -8,7 +8,6 @@ module Settings
       render Views::Settings::Admin::Index.new(
         agent: Agent.admin_support,
         models: InferenceModel.choosable_for_chat,
-        model: InferenceModel.default_chat,
         unavailable: Chat::Availability.reason_for(Current.user),
         api_call_count: ApiCall.count,
         api_key_count: ApiKey.count,

@@ -81,7 +81,10 @@ module Settings
     end
 
     def agent_params
-      permitted = params.expect(agent: [:name, :prompt, :access_mode, :collection_mode, { toolset_keys: [], collection_ids: [] }])
+      permitted = params.expect(agent: [
+        :name, :prompt, :access_mode, :collection_mode, :inference_model_id, :model_overridable,
+        { toolset_keys: [], collection_ids: [] }
+      ])
       permitted[:toolset_keys] = Array(permitted[:toolset_keys]).compact_blank
       permitted[:collection_ids] = permitted[:collection_mode] == "fixed" ? Array(permitted[:collection_ids]).compact_blank : []
       permitted.to_h.symbolize_keys
@@ -89,7 +92,7 @@ module Settings
 
     def render_form(agent, collection_ids: agent.collection_ids, status: :ok)
       render Views::Settings::Agents::Form.new(
-        agent:, collections: Collection.order(:name), toolsets: Toolsets.all,
+        agent:, collections: Collection.order(:name), toolsets: Toolsets.all, models: InferenceModel.choosable_for_chat,
         checked_collection_ids: collection_ids.map(&:to_i)
       ), status:
     end

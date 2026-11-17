@@ -9,7 +9,7 @@
 class Views::Conversations::Index < Views::Base
   include Phlex::Rails::Helpers::TurboStreamFrom
 
-  def initialize(conversations:, agent:, collections:, answering: Set.new, agents: [], models: [], model: nil, scope: nil,
+  def initialize(conversations:, agent:, collections:, answering: Set.new, agents: [], models: [], scope: nil,
     unavailable: nil)
     @conversations = conversations
     @answering = answering
@@ -17,7 +17,6 @@ class Views::Conversations::Index < Views::Base
     @agent = agent
     @collections = collections
     @models = models
-    @model = model
     @scope = scope
     @unavailable = unavailable
   end
@@ -51,7 +50,7 @@ class Views::Conversations::Index < Views::Base
   def composer
     agent_picker if @agents.size > 1
     render Views::Conversations::Composer.new(
-      agent: @agent, models: @models, model: @model, collections: @collections, scope: @scope,
+      agent: @agent, models: @models, collections: @collections, scope: @scope,
       unavailable: @unavailable, placeholder: (Brand.current.chat_placeholder if @agent.narrowable?)
     )
   end

@@ -4,10 +4,9 @@
 # added as each model gets one. The pages themselves are generated; see
 # docs/design.md.
 class Views::Settings::Admin::Index < Views::Base
-  def initialize(agent:, models:, model:, unavailable:, api_call_count:, api_key_count:, recording:)
+  def initialize(agent:, models:, unavailable:, api_call_count:, api_key_count:, recording:)
     @agent = agent
     @models = models
-    @model = model
     @unavailable = unavailable
     @api_call_count = api_call_count
     @api_key_count = api_key_count
@@ -19,7 +18,7 @@ class Views::Settings::Admin::Index < Views::Base
     render Views::Admin::Heading.new(title: "Admin", blurb: "Tools for Archyve Admins.")
 
     render Views::Conversations::Composer.new(
-      agent: @agent, models: @models, model: @model, unavailable: @unavailable,
+      agent: @agent, models: @models, unavailable: @unavailable,
       placeholder: "Ask about failed jobs, queues, servers, document processing..."
     )
     render Views::Rule.new

@@ -329,6 +329,63 @@ RSpec.describe Agent do
     end
   end
 
+  describe "#model_for" do
+    subject(:model) { agent.model_for(chosen) }
+
+    let!(:instance_default) { create(:inference_model, :tools) }
+    let(:own) { create(:inference_model, :tools) }
+    let(:chosen) { create(:inference_model, :tools) }
+    let(:agent) { build(:agent, inference_model: own, model_overridable:) }
+    let(:model_overridable) { true }
+
+    context "when people may choose" do
+      it { is_expected.to eq(chosen) }
+
+      context "and nobody chose" do
+        let(:chosen) { nil }
+
+        it { is_expected.to eq(own) }
+      end
+    end
+
+    context "when the model is fixed" do
+      let(:model_overridable) { false }
+
+      it { is_expected.to eq(own) }
+    end
+
+    context "when it has no model of its own" do
+      let(:own) { nil }
+      let(:chosen) { nil }
+
+      it { is_expected.to eq(instance_default) }
+    end
+
+    context "when its own model has been disabled" do
+      before { own.update!(enabled: false) }
+
+      let(:chosen) { nil }
+
+      it { is_expected.to eq(instance_default) }
+    end
+  end
+
+  describe "validation of its model" do
+    subject(:agent) { build(:agent, inference_model: model) }
+
+    context "with a model that can call tools" do
+      let(:model) { create(:inference_model, :tools) }
+
+      it { is_expected.to be_valid }
+    end
+
+    context "with a model that can't" do
+      let(:model) { create(:inference_model) }
+
+      it { is_expected.not_to be_valid }
+    end
+  end
+
   describe "a collection in its fixed set" do
     let(:agent) { create(:agent, collection_mode: "fixed") }
     let(:collection) { create(:collection) }
