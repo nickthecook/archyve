@@ -107,7 +107,7 @@ export default class extends Controller {
   busy(element) {
     if (element.contains(document.activeElement)) return true
     if (element.querySelector("input:checked")) return true
-    if (some(element, TEXTUAL, (field) => field.value !== "")) return true
+    if (some(element, TEXTUAL, (field) => field.value !== field.defaultValue)) return true
 
     return some(element, "select", (field) => [...field.options].some((o) => o.selected !== o.defaultSelected))
   }
