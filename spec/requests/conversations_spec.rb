@@ -417,6 +417,36 @@ RSpec.describe "Conversations", type: :request do
         end
       end
 
+      describe "what it draws on" do
+        let(:chip) { Views::ScopeChip.new(label: conversation.scope_label, searching: true).call }
+
+        context "when the person chose the collections" do
+          it "shows the banner" do
+            request
+            expect(response.body).to include("Drawing on")
+          end
+
+          it "shows the scope chip" do
+            request
+            expect(response.body).to include(chip)
+          end
+        end
+
+        context "when the agent has a fixed set of collections" do
+          let(:conversation) { create(:conversation, user: current_user, agent: create(:agent, collection_mode: "fixed")) }
+
+          it "shows no banner" do
+            request
+            expect(response.body).not_to include("Drawing on")
+          end
+
+          it "shows no scope chip" do
+            request
+            expect(response.body).not_to include(chip)
+          end
+        end
+      end
+
       context "when a turn was answered by a model" do
         let(:model) { create(:inference_model, kind: "chat", supports_tools: true, name: "big-model") }
 

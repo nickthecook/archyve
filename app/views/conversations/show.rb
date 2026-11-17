@@ -91,7 +91,7 @@ class Views::Conversations::Show < Views::Base
         span(class: "inline-flex items-center rounded-full border border-line px-2.5 py-1 text-xs text-fg") do
           @conversation.agent.name
         end
-        if @conversation.agent.searches_archive?
+        if @conversation.agent.narrowable?
           render Views::ScopeChip.new(label: @conversation.scope_label, searching: @conversation.searches_archive?)
         end
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)

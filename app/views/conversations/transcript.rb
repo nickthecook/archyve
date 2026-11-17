@@ -10,7 +10,7 @@ class Views::Conversations::Transcript < Components::Base
   end
 
   def view_template
-    scope_banner
+    scope_banner unless @conversation.agent.fixed_collections?
     thread
   end
 
