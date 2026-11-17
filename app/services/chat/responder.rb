@@ -62,7 +62,7 @@ module Chat
         # How much of the window this conversation now fills, as the server
         # counted it. Arrives on its own chunk at the end of each round, which
         # carries no text — so it is noted here rather than alongside a delta.
-        turn.note_context(chunk.tokens&.input)
+        turn.note_context(prompt_size(chunk.tokens))
       end
       # Once per turn, not once per chunk: `ask` is a single call, however much
       # it streams back through the block above.
@@ -79,6 +79,14 @@ module Chat
     # server, and asking per chunk would ask thousands of times.
     def assumed_token_count(model)
       1 if model.inference_server.one_token_per_delta?
+    end
+
+    # RubyLLM counts cached prompt tokens apart from `input`, and a provider that
+    # caches prefixes serves nearly the whole history from cache after round one.
+    def prompt_size(tokens)
+      return if tokens&.input.nil?
+
+      tokens.input + tokens.cache_read.to_i + tokens.cache_write.to_i
     end
 
     # Only a genuine no-answer marks the server down. This rescue is deliberately

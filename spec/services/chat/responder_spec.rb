@@ -120,6 +120,18 @@ RSpec.describe Chat::Responder do
         respond
         expect(turn.input_tokens).to eq(4_210)
       end
+
+      context "when most of it came from the provider's prompt cache" do
+        let(:chunk) do
+          double(content: reply, thinking:, streamed_token_count:,
+                 tokens: RubyLLM::Tokens.new(input: 3, cache_read: 4_096, cache_write: 111))
+        end
+
+        it "counts the cached tokens toward the context" do
+          respond
+          expect(turn.input_tokens).to eq(4_210)
+        end
+      end
     end
 
     context "when the server reports nothing" do
