@@ -27,6 +27,10 @@ class Views::Settings::Brandings::Show < Views::Base
         input(type: "text", name: "name", value: @brand.name, autocomplete: "off", class: input_classes)
       end
 
+      field("title") do
+        input(type: "text", name: "title", value: @brand.title, autocomplete: "off", placeholder: @brand.name, class: input_classes)
+      end
+
       placeholder_field("ask_placeholder", @brand.ask_placeholder)
       placeholder_field("chat_placeholder", @brand.chat_placeholder)
 

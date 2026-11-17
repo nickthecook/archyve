@@ -93,6 +93,26 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
       end
     end
 
+    context "with a page title" do
+      let(:params) { { name: "Acme", title: "Acme Archive" } }
+
+      it "shows it in the browser tab" do
+        request
+        follow_redirect!
+        expect(response.body).to include("<title>Settings · Acme Archive</title>")
+      end
+    end
+
+    context "without a page title" do
+      let(:params) { { name: "Acme", title: "" } }
+
+      it "uses the name in the browser tab" do
+        request
+        follow_redirect!
+        expect(response.body).to include("<title>Settings · Acme</title>")
+      end
+    end
+
     context "with a blank name" do
       let(:params) { { name: "" } }
 

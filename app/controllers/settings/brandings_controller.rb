@@ -4,7 +4,7 @@ module Settings
 
     # Unlike the name, none of these is worth storing blank, so blank means
     # "back to the default".
-    DEFAULTABLE = %w[ask_placeholder chat_placeholder disclaimer].freeze
+    DEFAULTABLE = %w[title ask_placeholder chat_placeholder disclaimer].freeze
     IMAGES = { "logo" => "logo", "landing_image" => "landing image" }.freeze
 
     def show

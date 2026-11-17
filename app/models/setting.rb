@@ -110,6 +110,13 @@ class Setting < ApplicationRecord
       label: "Name",
       description: "Shown beside the logo, exactly as typed. Leave it blank to show the logo alone."
     ),
+    # Blank follows the name, so renaming the instance doesn't leave the tab behind.
+    "brand.title" => Definition.new(
+      default: "",
+      type: :string,
+      label: "Page title",
+      description: "Shown in the browser tab, after the name of the page. Leave it blank to use the name."
+    ),
     "brand.logo" => Definition.new(
       default: nil,
       type: :image,
@@ -183,6 +190,7 @@ class Setting < ApplicationRecord
     def record_api_calls? = self["debug.record_api_calls"]
     def record_incoming_api_calls? = self["debug.record_incoming_api_calls"]
     def brand_name = self["brand.name"]
+    def brand_title = self["brand.title"]
     def brand_logo = self["brand.logo"]
     def brand_ask_placeholder = self["brand.ask_placeholder"]
     def brand_chat_placeholder = self["brand.chat_placeholder"]

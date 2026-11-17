@@ -26,7 +26,7 @@ class Views::Layout < Phlex::HTML
     doctype
     html(**html_attrs) do
       head do
-        title { [@title, Brand.current.name.presence].compact.join(" · ") }
+        title { [@title, Brand.current.tab_title].compact.join(" · ") }
         meta(name: "viewport", content: "width=device-width,initial-scale=1")
         favicon
         csrf_meta_tags
