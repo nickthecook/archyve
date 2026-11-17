@@ -7,8 +7,8 @@ class Views::Documents::StatusBadge < Components::Base
   COLORS = {
     "pending" => "bg-line/60 text-muted",
     "processing" => "bg-accent/15 text-accent animate-pulse",
-    "processed" => "bg-emerald-500/15 text-emerald-300",
-    "failed" => "bg-red-500/15 text-red-300",
+    "processed" => "bg-ok/15 text-ok-fg",
+    "failed" => "bg-danger/15 text-danger-fg",
     "removed" => "bg-line/40 text-faint"
   }.freeze
 

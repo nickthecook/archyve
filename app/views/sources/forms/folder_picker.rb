@@ -149,9 +149,9 @@ module Views::Sources::Forms::FolderPicker
   end
 
   def catalogue_error
-    div(class: "rounded border border-red-400/40 bg-red-400/5 px-3 py-2.5") do
-      p(class: "text-sm text-red-300") { "Couldn't read #{@source.endpoint&.name}." }
-      p(class: "mt-1 font-mono text-xs text-red-300/70") { @catalogue.error }
+    div(class: "rounded border border-danger/40 bg-danger/5 px-3 py-2.5") do
+      p(class: "text-sm text-danger-fg") { "Couldn't read #{@source.endpoint&.name}." }
+      p(class: "mt-1 font-mono text-xs text-danger-fg/70") { @catalogue.error }
       p(class: "mt-1.5 text-xs text-faint") { catalogue_error_hint }
     end
   end

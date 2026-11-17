@@ -39,7 +39,7 @@ class Views::Conversations::Composer < Components::Base
         render Views::Conversations::ModelPicker.new(models: @models, selected: @model)
         button(
           type: "submit", disabled: @unavailable.present?,
-          class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-void hover:bg-accent-dim transition-colors"
+          class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-dim transition-colors"
         ) { "Start chat" }
       end
     end

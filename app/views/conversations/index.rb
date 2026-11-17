@@ -45,7 +45,7 @@ class Views::Conversations::Index < Views::Base
   end
 
   def unavailable_panel
-    div(class: "mb-6 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300") { @unavailable }
+    div(class: "mb-6 rounded border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger-fg") { @unavailable }
   end
 
   def composer

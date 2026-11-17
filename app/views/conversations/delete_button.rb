@@ -5,7 +5,7 @@
 # token the page was rendered with.
 class Views::Conversations::DeleteButton < Components::Base
   ROW = "rounded border border-line px-2.5 py-1 text-xs text-faint transition-colors " \
-        "enabled:hover:text-red-300 enabled:hover:border-red-400/40"
+        "enabled:hover:text-danger-fg enabled:hover:border-danger/40"
 
   def self.dom_id(conversation) = ActionView::RecordIdentifier.dom_id(conversation, :delete)
 

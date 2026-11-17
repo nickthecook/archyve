@@ -64,7 +64,7 @@ class Views::Accounts::Show < Views::Base
       div do
         button(
           type: "submit",
-          class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+          class: "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
         ) { "Change password" }
       end
     end
@@ -145,7 +145,7 @@ class Views::Accounts::Show < Views::Base
     ) do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Delete" }
+      button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Delete" }
     end
   end
 
@@ -165,7 +165,7 @@ class Views::Accounts::Show < Views::Base
       end
       button(
         type: "submit",
-        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
       ) { "Create key" }
     end
   end

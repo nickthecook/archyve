@@ -96,7 +96,7 @@ class Views::People::Panel < Components::Base
     form(action: @member_path.call(grant), method: "post", class: "inline") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "delete")
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Revoke" }
+      button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Revoke" }
     end
   end
 
@@ -132,7 +132,7 @@ class Views::People::Panel < Components::Base
 
       button(
         type: "submit",
-        class: "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: "shrink-0 rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
       ) { "Give access" }
     end
   end

@@ -54,9 +54,9 @@ class Views::Documents::Diagnostics < Components::Base
 
   def failed? = @document.failed?
 
-  def tone = failed? ? "border-red-400/40 bg-red-400/5" : "border-amber-400/40 bg-amber-400/5"
-  def headline_tone = failed? ? "text-red-400/80" : "text-amber-400/80"
-  def detail_tone = failed? ? "text-red-300" : "text-amber-300"
+  def tone = failed? ? "border-danger/40 bg-danger/5" : "border-warn/40 bg-warn/5"
+  def headline_tone = failed? ? "text-danger/80" : "text-warn/80"
+  def detail_tone = failed? ? "text-danger-fg" : "text-warn-fg"
 
   # Stage and kind together, because each answers half of it: where the pipeline
   # was, and what happened there. Either may be absent on a document that failed

@@ -30,7 +30,7 @@ class Views::Documents::Row < Components::Base
     form(action: collection_document_path(@removable_from, @document), method: "post", class: "inline") do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Remove" }
+      button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Remove" }
     end
   end
 
@@ -47,7 +47,7 @@ class Views::Documents::Row < Components::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "rounded border border-red-400/40 px-2 py-0.5 text-xs text-red-300 hover:bg-red-400/10 transition-colors"
+        class: "rounded border border-danger/40 px-2 py-0.5 text-xs text-danger-fg hover:bg-danger/10 transition-colors"
       ) { "Delete" }
     end
   end

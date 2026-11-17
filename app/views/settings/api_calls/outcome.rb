@@ -4,8 +4,8 @@
 # reads it the way ApiCall splits it.
 class Views::Settings::ApiCalls::Outcome < Components::Base
   TINT = {
-    ok: "bg-emerald-500/15 text-emerald-300",
-    bad: "bg-red-500/15 text-red-300",
+    ok: "bg-ok/15 text-ok-fg",
+    bad: "bg-danger/15 text-danger-fg",
     unknown: "bg-line/40 text-faint"
   }.freeze
 

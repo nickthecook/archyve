@@ -38,7 +38,7 @@ class Views::Settings::Groups::Show < Views::Base
       div(class: "flex-1 basis-56 min-w-0") do
         label(class: "block mb-2 text-sm font-medium text-fg", for: "group_name") { "Name" }
         input(id: "group_name", type: "text", name: "group[name]", value: @group.name, required: true, class: input_classes)
-        p(class: "mt-2 text-xs text-red-300") { @group.errors.full_messages.to_sentence } if @group.errors.any?
+        p(class: "mt-2 text-xs text-danger-fg") { @group.errors.full_messages.to_sentence } if @group.errors.any?
       end
 
       button(type: "submit", class: button_class(:quiet, "shrink-0")) { "Rename" }
@@ -74,7 +74,7 @@ class Views::Settings::Groups::Show < Views::Base
       form(action: settings_group_member_path(@group, member), method: "post", class: "inline shrink-0") do
         input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
         input(type: "hidden", name: "_method", value: "delete")
-        button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Remove" }
+        button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Remove" }
       end
     end
   end

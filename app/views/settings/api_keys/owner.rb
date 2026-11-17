@@ -16,7 +16,7 @@ class Views::Settings::ApiKeys::Owner < Components::Base
 
   def dormant
     span(
-      class: "inline-flex items-center rounded-full bg-amber-400/15 px-2.5 py-1 text-xs font-medium text-amber-300",
+      class: "inline-flex items-center rounded-full bg-warn/15 px-2.5 py-1 text-xs font-medium text-warn-fg",
       title: "Hasn't signed in for #{ApiKey::DORMANT_AFTER.inspect}"
     ) { "not signed in lately" }
   end

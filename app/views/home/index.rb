@@ -183,6 +183,7 @@ class Views::Home::Index < Views::Base
       a(href: help_path, class: "status-link") { "Help" }
       a(href: SOURCE_URL, class: "status-link") { "Source" }
       motion_toggle
+      render Views::ThemeToggle.new(classes: "status-link")
     end
   end
 
@@ -198,7 +199,7 @@ class Views::Home::Index < Views::Base
                   "group-hover:border-line-2 group-has-[:checked]:border-accent group-has-[:checked]:bg-accent " \
                   "group-has-[:focus-visible]:ring-1 group-has-[:focus-visible]:ring-accent") do
         span(class: "block h-3.5 w-3.5 translate-x-[3px] rounded-full bg-muted transition-transform " \
-                    "group-has-[:checked]:translate-x-[18px] group-has-[:checked]:bg-void")
+                    "group-has-[:checked]:translate-x-[18px] group-has-[:checked]:bg-on-accent")
       end
       span { "reduce motion" }
     end

@@ -89,7 +89,7 @@ class Views::Collections::Show < Views::Base
   def source_counts(row)
     span(class: "font-mono tabular-nums text-xs text-muted") do
       plain "#{row.documents_count} #{'document'.pluralize(row.documents_count)}"
-      span(class: "text-red-300") { " · #{row.failed_count} failed" } if row.failed_count.positive?
+      span(class: "text-danger-fg") { " · #{row.failed_count} failed" } if row.failed_count.positive?
     end
   end
 
@@ -114,7 +114,7 @@ class Views::Collections::Show < Views::Base
     ) do
       input(type: "hidden", name: "_method", value: "delete")
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Detach" }
+      button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Detach" }
     end
   end
 
@@ -380,7 +380,7 @@ class Views::Collections::Show < Views::Base
         @candidates.each { |document| candidate_row(document) }
         no_candidate_matches
       end
-      button(type: "submit", class: "mt-3 rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors") { "Add selected" }
+      button(type: "submit", class: "mt-3 rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors") { "Add selected" }
     end
   end
 

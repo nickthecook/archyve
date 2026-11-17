@@ -107,8 +107,8 @@ class Views::Settings::Brandings::Show < Views::Base
   end
 
   def error
-    div(class: "rounded border border-red-400/40 bg-red-400/5 px-4 py-3") do
-      p(class: "text-sm text-red-300") { @error }
+    div(class: "rounded border border-danger/40 bg-danger/5 px-4 py-3") do
+      p(class: "text-sm text-danger-fg") { @error }
     end
   end
 
@@ -116,7 +116,7 @@ class Views::Settings::Brandings::Show < Views::Base
     div(class: "flex items-center gap-3") do
       button(
         type: "submit",
-        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
       ) { "Save" }
       a(href: settings_path, class: "text-sm text-muted hover:text-fg transition-colors") { "Cancel" }
     end

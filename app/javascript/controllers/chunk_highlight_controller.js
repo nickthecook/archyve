@@ -18,11 +18,14 @@ export default class extends Controller {
     if (reduced) return
 
     // Brass ring + wash that fades out — enough to pick the chunk out of a wall
-    // of similar cards without becoming decoration.
+    // of similar cards without becoming decoration. Keyframes take resolved
+    // colours, not var(), so the theme's brass is read first.
+    const brass = getComputedStyle(document.documentElement).getPropertyValue("--color-accent").trim()
+    const tint = (pct) => `color-mix(in srgb, ${brass} ${pct}%, transparent)`
     target.animate(
       [
-        { boxShadow: "0 0 0 1px rgba(230, 180, 85, 0.9)", backgroundColor: "rgba(230, 180, 85, 0.08)" },
-        { boxShadow: "0 0 0 1px rgba(230, 180, 85, 0)", backgroundColor: "rgba(230, 180, 85, 0)" }
+        { boxShadow: `0 0 0 1px ${tint(90)}`, backgroundColor: tint(8) },
+        { boxShadow: `0 0 0 1px ${tint(0)}`, backgroundColor: tint(0) }
       ],
       { duration: 1600, easing: "ease-out" }
     )

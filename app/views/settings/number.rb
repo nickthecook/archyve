@@ -54,7 +54,7 @@ class Views::Settings::Number < Components::Base
   def save
     button(
       type: "submit",
-      class: "rounded bg-accent px-3 py-1 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+      class: "rounded bg-accent px-3 py-1 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
     ) { "Save" }
   end
 end

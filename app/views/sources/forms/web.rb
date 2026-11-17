@@ -62,7 +62,7 @@ class Views::Sources::Forms::Web < Views::Sources::Form
     limit = @source.endpoint&.path_prefix
     return if limit.blank?
 
-    p(class: "mt-1.5 text-xs text-amber-200/80") do
+    p(class: "mt-1.5 text-xs text-warn-fg/80") do
       plain "#{@source.endpoint.name} is limited to #{limit}, so this path must sit under it."
     end
   end

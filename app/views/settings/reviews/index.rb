@@ -52,7 +52,7 @@ class Views::Settings::Reviews::Index < Views::Base
 
   def answered(answer)
     if answer.failed?
-      p(class: "text-sm text-red-300 break-words") { answer.error }
+      p(class: "text-sm text-danger-fg break-words") { answer.error }
     else
       p(class: "line-clamp-3 text-sm text-muted break-words") { answer.prose.squish.truncate(500) }
     end

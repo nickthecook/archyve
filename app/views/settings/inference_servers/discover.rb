@@ -106,7 +106,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       div(class: "flex items-center gap-3") do
         button(
           type: "submit",
-          class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+          class: "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
         ) { "Import selected" }
         a(
           href: settings_inference_server_path(@server),
@@ -232,7 +232,7 @@ class Views::Settings::InferenceServers::Discover < Views::Base
       p(class: "text-xs text-faint") do
         "As listed under Deployments in the Foundry portal. Looking one up sends it a short test prompt."
       end
-      p(class: "text-sm text-red-300") { @lookup_error } if @lookup_error
+      p(class: "text-sm text-danger-fg") { @lookup_error } if @lookup_error
     end
   end
 

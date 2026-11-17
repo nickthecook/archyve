@@ -13,10 +13,10 @@ class Views::Sources::LastScan < Components::Base
   include ActionView::Helpers::DateHelper
 
   METER = {
-    "processed" => "bg-emerald-400",
+    "processed" => "bg-ok",
     "processing" => "bg-accent",
     "pending" => "bg-line-2",
-    "failed" => "bg-red-400"
+    "failed" => "bg-danger"
   }.freeze
 
   HINTS = {
@@ -159,7 +159,7 @@ class Views::Sources::LastScan < Components::Base
         span(
           title: DISPOSITIONS[key],
           class: "rounded border border-line px-1.5 py-0.5 font-mono text-[0.7rem] " \
-                 "#{key.match?(/\A[2-3]\d\d\z/) ? 'text-muted' : 'text-amber-300/80'}"
+                 "#{key.match?(/\A[2-3]\d\d\z/) ? 'text-muted' : 'text-warn-fg/80'}"
         ) { "#{key} #{count}" }
       end
     end
@@ -215,8 +215,8 @@ class Views::Sources::LastScan < Components::Base
   end
 
   def error_row
-    div(class: "mb-4 rounded border border-red-400/40 bg-red-400/5 px-3 py-2") do
-      p(class: "font-mono text-xs text-red-300 break-words") { @sync.error }
+    div(class: "mb-4 rounded border border-danger/40 bg-danger/5 px-3 py-2") do
+      p(class: "font-mono text-xs text-danger-fg break-words") { @sync.error }
     end
   end
 
@@ -225,8 +225,8 @@ class Views::Sources::LastScan < Components::Base
   # being wrong. Say so plainly rather than leaving it as a number in a row.
   def stale_warning
     count = @sync.stale_count
-    div(class: "mb-4 rounded border border-amber-400/40 bg-amber-400/5 px-3 py-2") do
-      p(class: "text-xs text-amber-200") do
+    div(class: "mb-4 rounded border border-warn/40 bg-warn/5 px-3 py-2") do
+      p(class: "text-xs text-warn-fg") do
         plain "#{count} #{'document'.pluralize(count)} #{count == 1 ? 'is' : 'are'} out of date: "
         plain "the file changed into something this source can't ingest. "
         plain "Raising the size limit and re-syncing will pick #{count == 1 ? 'it' : 'them'} up."
@@ -272,7 +272,7 @@ class Views::Sources::LastScan < Components::Base
     colour = if value.zero?
       "text-faint"
     elsif warn
-      "text-amber-300"
+      "text-warn-fg"
     else
       "text-fg"
     end

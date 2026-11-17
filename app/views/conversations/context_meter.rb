@@ -21,9 +21,9 @@ class Views::Conversations::ContextMeter < Components::Base
   # than resting there: a meter that were brass at idle would spend the page's
   # whole accent budget saying nothing was wrong. See docs/design.md.
   BANDS = [
-    [0.5, "bg-emerald-600"],
+    [0.5, "bg-ok/70"],
     [0.8, "bg-accent"],
-    [Float::INFINITY, "bg-red-400"]
+    [Float::INFINITY, "bg-danger"]
   ].freeze
 
   def self.dom_id(conversation) = ActionView::RecordIdentifier.dom_id(conversation, :context)

@@ -64,7 +64,7 @@ class Views::Documents::Detail < Components::Base
   # Red for a document that isn't here, amber for one that is here with a piece
   # missing — the reader's cue that the second is still worth reading.
   def outcome_note
-    tone = @document.failed? ? "text-red-300" : "text-amber-300"
+    tone = @document.failed? ? "text-danger-fg" : "text-warn-fg"
     p(class: "text-sm #{tone}") { SENTENCES.fetch(@document.outcome_kind, UNCLASSIFIED) }
   end
 

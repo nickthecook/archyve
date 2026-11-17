@@ -45,7 +45,7 @@
 .corridor-stage .glow {
   position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%);
   width: 62%; aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(230,180,85,0.30) 0%, rgba(230,180,85,0.09) 36%, transparent 66%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 30%, transparent) 0%, color-mix(in srgb, var(--color-accent) 9%, transparent) 36%, transparent 66%);
   filter: blur(8px); opacity: 0; transition: opacity 0.7s ease; z-index: 2; pointer-events: none;
 }
 .corridor-stage.is-lit .glow { opacity: 1; }
@@ -55,12 +55,12 @@
 .corridor-stage .ask { position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%); width: 72%; z-index: 6; }
 .corridor-stage .ask-field {
   display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1.1rem;
-  background: rgba(8, 12, 19, 0.72); border: 1px solid var(--color-line-2); border-radius: 2px;
+  background: color-mix(in srgb, var(--color-void) 72%, transparent); border: 1px solid var(--color-line-2); border-radius: 2px;
   backdrop-filter: blur(6px); transition: border-color 0.35s, box-shadow 0.35s, background 0.35s;
 }
 .corridor-stage .ask-field:focus-within {
-  border-color: var(--color-accent); background: rgba(8, 12, 19, 0.82);
-  box-shadow: 0 0 0 1px var(--color-accent), 0 12px 55px -14px rgba(230,180,85,0.6);
+  border-color: var(--color-accent); background: color-mix(in srgb, var(--color-void) 82%, transparent);
+  box-shadow: 0 0 0 1px var(--color-accent), 0 12px 55px -14px color-mix(in srgb, var(--color-accent) 60%, transparent);
 }
 .corridor-stage .ask-field .icon { flex: none; color: var(--color-faint); transition: color 0.35s; }
 .corridor-stage .ask-field:focus-within .icon { color: var(--color-accent); }

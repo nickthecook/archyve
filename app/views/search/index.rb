@@ -60,7 +60,7 @@ class Views::Search::Index < Views::Base
   # not the same message: there is nothing to reach yet. Only admins can fix
   # that, so only they are told how.
   def error_panel
-    div(class: "mb-6 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300") { failure_message }
+    div(class: "mb-6 rounded border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger-fg") { failure_message }
   end
 
   def failure_message

@@ -132,8 +132,8 @@ class Views::Sources::Index < Views::Base
 
   def dot(sync)
     case sync.status
-    when "completed" then "bg-emerald-400"
-    when "failed" then "bg-red-400"
+    when "completed" then "bg-ok"
+    when "failed" then "bg-danger"
     when "stopped" then "bg-line-2"
     else "bg-accent"
     end

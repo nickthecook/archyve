@@ -30,6 +30,6 @@ class Views::Settings::Switch < Components::Base
   end
 
   def knob
-    @on ? "translate-x-[18px] bg-void" : "translate-x-[3px] bg-muted"
+    @on ? "translate-x-[18px] bg-on-accent" : "translate-x-[3px] bg-muted"
   end
 end

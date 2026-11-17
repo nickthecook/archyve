@@ -44,11 +44,11 @@ RSpec.describe Views::Documents::Diagnostics do
     end
 
     it "is amber, not red" do
-      expect(result).to include("border-amber-400/40")
+      expect(result).to include("border-warn/40")
     end
 
     it "is not dressed as a failure" do
-      expect(result).not_to include("border-red-400/40")
+      expect(result).not_to include("border-danger/40")
     end
   end
 

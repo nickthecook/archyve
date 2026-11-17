@@ -79,9 +79,9 @@ RSpec.describe Views::Conversations::ContextMeter do
 
     describe "the bands" do
       {
-        "under half the window" => [40_000, "bg-emerald-600"],
+        "under half the window" => [40_000, "bg-ok/70"],
         "past half" => [80_000, "bg-accent"],
-        "past four fifths" => [120_000, "bg-red-400"]
+        "past four fifths" => [120_000, "bg-danger"]
       }.each do |description, (tokens, colour)|
         context "when the prompt is #{description}" do
           before { answered(input_tokens: tokens) }

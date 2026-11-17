@@ -138,9 +138,9 @@ class Views::Settings::Agents::Form < Views::Base
   end
 
   def errors
-    div(class: "rounded border border-red-400/40 bg-red-400/5 px-4 py-3") do
-      p(class: "text-sm font-medium text-red-300") { "This agent couldn't be saved." }
-      ul(class: "mt-1.5 list-disc pl-4 text-sm text-red-300/80") do
+    div(class: "rounded border border-danger/40 bg-danger/5 px-4 py-3") do
+      p(class: "text-sm font-medium text-danger-fg") { "This agent couldn't be saved." }
+      ul(class: "mt-1.5 list-disc pl-4 text-sm text-danger-fg/80") do
         @agent.errors.full_messages.each { |message| li { message } }
       end
     end

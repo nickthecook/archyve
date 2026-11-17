@@ -21,10 +21,18 @@ Phlex classes under `app/views/`; there is no ERB.
 | `line`, `line-2` | Structure. `line` at rest, `line-2` on hover — borders brighten, they don't change hue. |
 | `fg`, `muted`, `faint` | Text, in descending importance. Body copy is `muted`; supporting detail is `faint`. |
 | `accent`, `accent-dim` | Brass. Interaction and consequence — never decoration. |
+| `on-accent` | Text or knobs sitting on solid brass. |
+| `danger`, `warn`, `ok` | Status. The plain token fills dots, meters and tints; the `-fg` variant is for text. Never Tailwind's raw `red-*`/`amber-*`/`emerald-*` — they were picked for one ground and vanish on the other. |
 
 **The accent budget is the whole game.** Brass reads as "this matters" only
 while it stays rare. One accent rail per zone, one solid accent button per
 surface. If a page has three brass elements competing, it has none.
+
+**Two grounds, one set of names.** Light mode redefines the same tokens (the
+`light` variant in `application.css`), so a view never asks which theme it is
+in. The tokens name a role, not a brightness: `void` is the deepest ground in
+dark and the palest in light. Anything that hard-codes a colour — an SVG
+stroke, a JS keyframe, an `rgba()` — will be wrong in one of them.
 
 ## Zones: ways out, then the page
 
@@ -105,10 +113,10 @@ Before making a button solid, ask whether clicking it *commits* anything.
 
 | Weight | Classes | Use |
 |---|---|---|
-| Solid | `bg-accent text-void hover:bg-accent-dim` | The action that commits — form submits. |
+| Solid | `bg-accent text-on-accent hover:bg-accent-dim` | The action that commits — form submits. |
 | Outlined | `border border-accent/60 bg-accent/10 text-accent hover:bg-accent/20 hover:border-accent` | Primary controls that only *open* something. Add `group-open:` for disclosures. |
 | Quiet | `border border-line text-muted hover:text-fg hover:border-line-2` | Secondary actions. |
-| Danger | `border border-red-400/40 text-red-300 hover:bg-red-400/10` | Destroys something. Never solid, always paired with a `turbo_confirm` — the cost belongs in the confirmation, not beside the button. |
+| Danger | `border border-danger/40 text-danger-fg hover:bg-danger/10` | Destroys something. Never solid, always paired with a `turbo_confirm` — the cost belongs in the confirmation, not beside the button. |
 
 Give outlined buttons a border even where the design doesn't demand one: a
 borderless button sits 2px shorter than bordered siblings in a flex row.

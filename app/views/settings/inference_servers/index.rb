@@ -92,7 +92,7 @@ class Views::Settings::InferenceServers::Index < Views::Base
     return span(class: "shrink-0 text-xs text-faint") { "not checked" } unless server.checked?
 
     span(class: "shrink-0 inline-flex items-center gap-1.5 text-xs text-muted") do
-      span(class: "h-1.5 w-1.5 rounded-full #{server.reachable? ? 'bg-emerald-400' : 'bg-red-400'}")
+      span(class: "h-1.5 w-1.5 rounded-full #{server.reachable? ? 'bg-ok' : 'bg-danger'}")
       plain(server.reachable? ? "reachable" : "unreachable")
     end
   end

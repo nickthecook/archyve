@@ -108,8 +108,8 @@ class Views::Conversations::Message < Components::Base
 
   # A transport failure, not something the model said — see Message#error.
   def broken
-    div(class: "flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300") do
-      span(class: "grid h-7 w-7 shrink-0 place-items-center rounded bg-red-500/15") do
+    div(class: "flex items-center gap-3 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger-fg") do
+      span(class: "grid h-7 w-7 shrink-0 place-items-center rounded bg-danger/15") do
         svg(width: "14", height: "14", viewbox: "0 0 24 24", fill: "none", stroke: "currentColor", stroke_width: "2", aria_hidden: "true") do |s|
           s.path(d: "M12 8v5")
           s.path(d: "M12 16.5v.5")

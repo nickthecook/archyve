@@ -21,7 +21,11 @@ class Views::Styleguide::Index < Views::Base
     ["muted", "bg-muted", "Body / secondary text"],
     ["faint", "bg-faint", "Supporting detail"],
     ["accent", "bg-accent", "Interaction & consequence"],
-    ["accent-dim", "bg-accent-dim", "Accent, pressed"]
+    ["accent-dim", "bg-accent-dim", "Accent, pressed"],
+    ["on-accent", "bg-on-accent", "On solid brass"],
+    ["danger", "bg-danger", "Failed, destructive"],
+    ["warn", "bg-warn", "Stalled, caution"],
+    ["ok", "bg-ok", "Healthy, done"]
   ].freeze
 
   # Labelled by weight, and rendered from Components::Base::BUTTON — so this

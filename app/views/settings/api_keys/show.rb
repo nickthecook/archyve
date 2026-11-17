@@ -44,8 +44,8 @@ class Views::Settings::ApiKeys::Show < Views::Base
       input(type: "hidden", name: "_method", value: "delete")
       button(
         type: "submit",
-        class: "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 " \
-               "hover:bg-red-400/10 transition-colors"
+        class: "rounded border border-danger/40 px-3 py-2 text-sm font-medium text-danger-fg " \
+               "hover:bg-danger/10 transition-colors"
       ) { "Delete" }
     end
   end

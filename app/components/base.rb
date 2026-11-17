@@ -32,11 +32,11 @@ class Components::Base < Phlex::HTML
   # the strings the app actually uses. Before reaching for a weight, read the
   # ladder: the question is whether clicking *commits* anything.
   BUTTON = {
-    solid: "rounded bg-accent px-3 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors",
+    solid: "rounded bg-accent px-3 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors",
     outlined: "rounded border border-accent/60 bg-accent/10 px-3 py-2 text-sm font-medium text-accent " \
               "hover:bg-accent/20 hover:border-accent transition-colors",
     quiet: "rounded border border-line px-3 py-2 text-sm text-muted hover:text-fg hover:border-line-2 transition-colors",
-    danger: "rounded border border-red-400/40 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-400/10 " \
+    danger: "rounded border border-danger/40 px-3 py-2 text-sm font-medium text-danger-fg hover:bg-danger/10 " \
             "transition-colors"
   }.freeze
 

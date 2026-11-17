@@ -42,7 +42,7 @@ class Views::Settings::Groups::Section < Components::Base
           id: "group_name", type: "text", name: "group[name]", value: @group.name, required: true, autocomplete: "off",
           class: "w-full rounded border border-line bg-void/60 px-3 py-2 text-sm text-fg outline-none focus:border-accent transition-colors"
         )
-        p(class: "mt-2 text-xs text-red-300") { @group.errors.full_messages.to_sentence } if @group.errors.any?
+        p(class: "mt-2 text-xs text-danger-fg") { @group.errors.full_messages.to_sentence } if @group.errors.any?
       end
 
       button(type: "submit", class: button_class(:solid, "shrink-0")) { "Add group" }

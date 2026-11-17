@@ -17,10 +17,63 @@
   --color-faint:  #5b6577;
   --color-accent: #e6b455;
   --color-accent-dim: #b98a34;
+  --color-on-accent:  #05070b;
+
+  /* Status: the plain token fills dots, meters and tints; -fg is for text. */
+  --color-danger:    #f87171;
+  --color-danger-fg: #fca5a5;
+  --color-warn:      #fbbf24;
+  --color-warn-fg:   #fcd34d;
+  --color-ok:        #34d399;
+  --color-ok-fg:     #6ee7b7;
 
   /* Active UI face — swap "IBM Plex Sans" ⇄ "Inter" (both self-hosted in fonts.css). */
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, monospace;
+}
+
+/* Light applies when the theme cookie says so, or when there is no choice and
+   the OS prefers light. See Views::ThemeToggle. */
+@custom-variant light {
+  &:where([data-theme="light"], [data-theme="light"] *) { @slot; }
+  @media (prefers-color-scheme: light) {
+    &:where(:not([data-theme="dark"], [data-theme="dark"] *)) { @slot; }
+  }
+}
+
+/* The archive by daylight: paper, ink and a darker brass that holds its
+   contrast on a pale ground. */
+@layer base {
+  :root {
+    color-scheme: dark;
+    --corridor-ring: #2a3a4e;
+    --corridor-lit:  #f2c463;
+
+    @variant light {
+      color-scheme: light;
+      --color-void:   #fdfcf9;
+      --color-base:   #f4f1ea;
+      --color-ink:    #e9e4d8;
+      --color-line:   #d6cfbf;
+      --color-line-2: #b9af9a;
+      --color-fg:     #1d1b17;
+      --color-muted:  #57524a;
+      --color-faint:  #7c7568;
+      --color-accent: #8a5d0e;
+      --color-accent-dim: #6b4709;
+      --color-on-accent:  #fdfaf2;
+
+      --color-danger:    #dc2626;
+      --color-danger-fg: #b91c1c;
+      --color-warn:      #d97706;
+      --color-warn-fg:   #a14a06;
+      --color-ok:        #059669;
+      --color-ok-fg:     #047857;
+
+      --corridor-ring: #c9c0ad;
+      --corridor-lit:  #a8720f;
+    }
+  }
 }
 
 /* Tailwind v4 resets buttons to `cursor: default`, so a control only shows the

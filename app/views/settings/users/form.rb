@@ -69,9 +69,9 @@ class Views::Settings::Users::Form < Components::Base
   end
 
   def errors
-    div(class: "rounded border border-red-400/40 bg-red-400/5 px-4 py-3") do
-      p(class: "text-sm font-medium text-red-300") { "This account couldn't be saved." }
-      ul(class: "mt-1.5 list-disc pl-4 text-sm text-red-300/80") do
+    div(class: "rounded border border-danger/40 bg-danger/5 px-4 py-3") do
+      p(class: "text-sm font-medium text-danger-fg") { "This account couldn't be saved." }
+      ul(class: "mt-1.5 list-disc pl-4 text-sm text-danger-fg/80") do
         @user.errors.full_messages.each { |message| li { message } }
       end
     end
@@ -81,7 +81,7 @@ class Views::Settings::Users::Form < Components::Base
     div(class: "flex items-center gap-3") do
       button(
         type: "submit",
-        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+        class: "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
       ) { @user.persisted? ? "Save" : "Add person" }
       a(href: settings_users_path, class: "text-sm text-muted hover:text-fg transition-colors") { "Cancel" }
     end

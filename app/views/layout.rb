@@ -55,17 +55,22 @@ class Views::Layout < Phlex::HTML
     end
   end
 
-  # Honour the reduce-motion preference before first paint (no flash): the class
-  # lets CSS suppress load animations and signals the JS animation controllers.
+  # Honour the motion and theme preferences before first paint (no flash). The
+  # reduce-motion class also signals the JS animation controllers; with no
+  # data-theme, CSS follows the device.
   def html_attrs
-    cookies[:reduce_motion] == "1" ? { class: "reduce-motion" } : {}
+    theme = Views::ThemeToggle.choice(cookies)
+    {
+      class: ("reduce-motion" if cookies[:reduce_motion] == "1"),
+      data: { theme: (theme unless theme == "system") }
+    }
   end
 
   def contained
     render Views::Chrome.new(wide: @wide)
     main(class: "mx-auto #{@wide ? 'max-w-6xl' : 'max-w-3xl'} px-5 py-6 sm:py-10") do
       flash.to_hash.slice("notice", "alert").each do |type, message|
-        color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
+        color = type.to_sym == :alert ? "bg-danger/10 text-danger-fg border-danger/30" : "bg-accent/10 text-accent border-accent/30"
         div(class: "mb-6 flex items-center justify-between gap-3 rounded border px-4 py-3 text-sm #{color}") do
           span { message }
           undo(flash[:undo]) if type == "notice" && flash[:undo]

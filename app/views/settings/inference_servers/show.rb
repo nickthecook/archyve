@@ -102,8 +102,8 @@ class Views::Settings::InferenceServers::Show < Views::Base
         p(class: "text-sm text-fg") { "Answered #{time_ago_in_words(@server.last_checked_at)} ago." }
         p(class: "mt-1 text-xs text-faint") { @server.lists_models? ? "Fetch models to see what it can run." : "Add a deployment by name to use it." }
       else
-        p(class: "text-sm text-red-300") { "Unreachable as of #{time_ago_in_words(@server.last_checked_at)} ago." }
-        p(class: "mt-1 break-words font-mono text-xs text-red-300/70") { @server.last_check_error.to_s }
+        p(class: "text-sm text-danger-fg") { "Unreachable as of #{time_ago_in_words(@server.last_checked_at)} ago." }
+        p(class: "mt-1 break-words font-mono text-xs text-danger-fg/70") { @server.last_check_error.to_s }
       end
     end
   end
@@ -272,7 +272,7 @@ class Views::Settings::InferenceServers::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "shrink-0 text-xs text-faint hover:text-red-300 transition-colors"
+        class: "shrink-0 text-xs text-faint hover:text-danger-fg transition-colors"
       ) { "Remove" }
     end
   end

@@ -61,14 +61,14 @@ class Views::Settings::Endpoints::Show < Views::Base
       else
         verdict
         p(class: "mt-1 text-xs text-faint") { "Last used #{time_ago_in_words(@endpoint.accessed_at)} ago." }
-        p(class: "mt-2 break-words font-mono text-xs text-red-300/70") { @endpoint.access_error.to_s } unless @endpoint.accessible?
+        p(class: "mt-2 break-words font-mono text-xs text-danger-fg/70") { @endpoint.access_error.to_s } unless @endpoint.accessible?
       end
     end
   end
 
   def verdict
     p(class: "flex items-center gap-2 text-sm text-fg") do
-      span(class: "h-1.5 w-1.5 shrink-0 rounded-full #{@endpoint.accessible? ? 'bg-emerald-400' : 'bg-red-400'}")
+      span(class: "h-1.5 w-1.5 shrink-0 rounded-full #{@endpoint.accessible? ? 'bg-ok' : 'bg-danger'}")
       plain(@endpoint.accessible? ? "Connection is working." : "Connection is failing.")
     end
   end

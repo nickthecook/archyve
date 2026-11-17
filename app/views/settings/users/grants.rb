@@ -75,7 +75,7 @@ class Views::Settings::Users::Grants < Components::Base
     form(action: revoke_path(kind, grant), method: "post", class: "inline shrink-0") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "_method", value: "delete")
-      button(type: "submit", class: "text-xs text-faint hover:text-red-300 transition-colors") { "Revoke" }
+      button(type: "submit", class: "text-xs text-faint hover:text-danger-fg transition-colors") { "Revoke" }
     end
   end
 

@@ -15,9 +15,13 @@ class Views::Sessions::New < Views::Base
         alerts
         if Sso.configured?
           sso_button
-          password_disclosure
+          div(class: "relative") do
+            password_disclosure
+            theme_toggle("absolute right-0 top-0")
+          end
         else
           form_panel
+          theme_toggle("mt-4 ml-auto")
         end
       end
     end
@@ -40,7 +44,7 @@ class Views::Sessions::New < Views::Base
 
   def alerts
     flash.each do |type, message|
-      color = type.to_sym == :alert ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-accent/10 text-accent border-accent/30"
+      color = type.to_sym == :alert ? "bg-danger/10 text-danger-fg border-danger/30" : "bg-accent/10 text-accent border-accent/30"
       div(class: "mb-5 rounded border px-4 py-3 text-sm #{color}") { message }
     end
   end
@@ -55,7 +59,7 @@ class Views::Sessions::New < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "w-full rounded bg-accent px-4 py-2.5 text-sm font-medium text-void " \
+        class: "w-full rounded bg-accent px-4 py-2.5 text-sm font-medium text-on-accent " \
                "hover:bg-accent-dim transition-colors"
       ) { "Sign in with SSO" }
     end
@@ -72,6 +76,10 @@ class Views::Sessions::New < Views::Base
 
       div(class: "mt-4") { form_panel }
     end
+  end
+
+  def theme_toggle(placement)
+    render Views::ThemeToggle.new(classes: "#{placement} h-5 w-5 text-faint hover:text-muted")
   end
 
   def chevron
@@ -105,7 +113,7 @@ class Views::Sessions::New < Views::Base
       "rounded border border-accent/60 bg-accent/10 px-4 py-2 text-sm font-medium text-accent " \
         "hover:bg-accent/20 hover:border-accent transition-colors"
     else
-      "rounded bg-accent px-4 py-2 text-sm font-medium text-void hover:bg-accent-dim transition-colors"
+      "rounded bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-dim transition-colors"
     end
   end
 

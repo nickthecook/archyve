@@ -34,6 +34,7 @@ class Views::Chrome < Components::Base
           nav(class: "flex items-center gap-3 text-sm sm:gap-6") do
             visible_nav.each { |label, path, _| nav_link(label, public_send(path)) }
           end
+          render Views::ThemeToggle.new(classes: "h-7 w-7 text-muted hover:text-fg")
           render Views::AccountMenu.new if Current.user
         end
       end

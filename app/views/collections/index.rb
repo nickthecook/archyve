@@ -9,10 +9,10 @@ class Views::Collections::Index < Views::Base
   # Segment colours for the status meter, ordered as they stack left-to-right.
   # Shares the status vocabulary of Views::Documents::StatusBadge.
   METER = {
-    "processed" => "bg-emerald-600",
+    "processed" => "bg-ok/70",
     "processing" => "bg-accent",
     "pending" => "bg-line-2",
-    "failed" => "bg-red-400",
+    "failed" => "bg-danger",
     "removed" => "bg-faint"
   }.freeze
 

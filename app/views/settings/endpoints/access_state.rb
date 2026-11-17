@@ -11,7 +11,7 @@ class Views::Settings::Endpoints::AccessState < Components::Base
     return span(class: "shrink-0 text-xs text-faint") { "never used" } if @endpoint.accessed_at.blank?
 
     span(class: "shrink-0 inline-flex items-center gap-1.5 text-xs text-muted") do
-      span(class: "h-1.5 w-1.5 rounded-full #{@endpoint.accessible? ? 'bg-emerald-400' : 'bg-red-400'}")
+      span(class: "h-1.5 w-1.5 rounded-full #{@endpoint.accessible? ? 'bg-ok' : 'bg-danger'}")
       plain(@endpoint.accessible? ? "working" : "failing")
     end
   end

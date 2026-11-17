@@ -40,8 +40,6 @@ export default class extends Controller {
     this.RATIO = 0.8
     this.NEAR = -1.6
     this.FAR = this.NEAR + this.RINGS
-    this.cool = [42, 58, 78]
-    this.warm = [242, 196, 99]
 
     // Start from an empty rings group. Turbo Drive caches the page snapshot with
     // our appended polygons still in it; without this, a Back navigation restores
@@ -219,9 +217,6 @@ export default class extends Controller {
   // --- engine ---------------------------------------------------------------
   clamp(v, a, b) { return Math.min(b, Math.max(a, v)) }
   lerp(a, b, t) { return a + (b - a) * t }
-  mix(a, b, t) {
-    return `rgb(${Math.round(this.lerp(a[0], b[0], t))},${Math.round(this.lerp(a[1], b[1], t))},${Math.round(this.lerp(a[2], b[2], t))})`
-  }
 
   drawRing(o) {
     let p = o.i - this.current
@@ -243,7 +238,8 @@ export default class extends Controller {
       `${(this.cx + (x - this.cx) * s + dx).toFixed(1)},${(this.cy + (y - this.cy) * s + dy).toFixed(1)}`).join(" ")
 
     o.el.setAttribute("points", pts)
-    o.el.setAttribute("stroke", this.mix(this.cool, this.warm, warmth))
+    // Inline style rather than the attribute, so the theme can retint the rings live.
+    o.el.style.stroke = `color-mix(in srgb, var(--corridor-lit) ${(warmth * 100).toFixed(1)}%, var(--corridor-ring))`
     o.el.setAttribute("stroke-width", this.clamp(4.4 * Math.pow(Math.min(s, 1.3), 0.8), 0.25, 5.5).toFixed(2))
     o.el.setAttribute("opacity", op.toFixed(3))
   }

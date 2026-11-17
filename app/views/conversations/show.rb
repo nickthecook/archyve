@@ -97,7 +97,7 @@ class Views::Conversations::Show < Views::Base
         render Views::Conversations::ModelPicker.new(models: @models, selected: @conversation.inference_model)
         button(
           type: "submit", disabled: @unavailable.present?,
-          class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-void hover:bg-accent-dim transition-colors"
+          class: "ml-auto rounded bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-dim transition-colors"
         ) { "Send" }
       end
     end

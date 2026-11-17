@@ -49,7 +49,7 @@ class Views::Conversations::Retrieval < Components::Base
   end
 
   def tile_class
-    return "bg-red-500/15 text-red-300" if @segment.failed?
+    return "bg-danger/15 text-danger-fg" if @segment.failed?
     return "bg-line/40 text-faint" if @segment.hits.empty?
 
     "bg-accent/10 text-accent"

@@ -61,7 +61,7 @@ class Views::Settings::Users::Index < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       button(
         type: "submit",
-        class: "text-xs text-faint hover:text-red-300 transition-colors"
+        class: "text-xs text-faint hover:text-danger-fg transition-colors"
       ) { "Remove" }
     end
   end
