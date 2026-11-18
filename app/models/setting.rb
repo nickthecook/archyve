@@ -120,8 +120,14 @@ class Setting < ApplicationRecord
     "brand.logo" => Definition.new(
       default: nil,
       type: :image,
-      label: "Logo",
-      description: "Shown in place of the triangle mark."
+      label: "Default logo",
+      description: "Shown in place of the triangle mark. If only one logo is set, it is used in both light and dark mode."
+    ),
+    "brand.logo_light" => Definition.new(
+      default: nil,
+      type: :image,
+      label: "Light mode logo",
+      description: "Shown instead of the default logo in light mode. If only one logo is set, it is used in both light and dark mode."
     ),
     "brand.ask_placeholder" => Definition.new(
       default: "Consult the archive",
@@ -150,8 +156,14 @@ class Setting < ApplicationRecord
     "brand.landing_image" => Definition.new(
       default: nil,
       type: :image,
-      label: "Landing image",
-      description: "Shown in place of the corridor when it's turned off, without animation."
+      label: "Default landing image",
+      description: "Shown in place of the corridor when it's turned off, without animation. If only one landing image is set, it is used in both light and dark mode."
+    ),
+    "brand.landing_image_light" => Definition.new(
+      default: nil,
+      type: :image,
+      label: "Light mode landing image",
+      description: "Shown instead of the default landing image in light mode. If only one landing image is set, it is used in both light and dark mode."
     )
   }.freeze
 
@@ -192,11 +204,13 @@ class Setting < ApplicationRecord
     def brand_name = self["brand.name"]
     def brand_title = self["brand.title"]
     def brand_logo = self["brand.logo"]
+    def brand_logo_light = self["brand.logo_light"]
     def brand_ask_placeholder = self["brand.ask_placeholder"]
     def brand_chat_placeholder = self["brand.chat_placeholder"]
     def brand_disclaimer = self["brand.disclaimer"]
     def brand_corridor? = self["brand.corridor"]
     def brand_landing_image = self["brand.landing_image"]
+    def brand_landing_image_light = self["brand.landing_image_light"]
 
     def label(key) = definition!(key).label
     def description(key) = definition!(key).description_text

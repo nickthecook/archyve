@@ -12,7 +12,7 @@ class Views::BrandMark < Components::Base
   end
 
   def view_template
-    @brand.logo ? logo : mark
+    @brand.logo? ? logo : mark
     span(class: @name_class) { @brand.name } if @brand.name.present?
   end
 
@@ -20,7 +20,9 @@ class Views::BrandMark < Components::Base
 
   # Alt text only when it's all there is: beside the name, it would say it twice.
   def logo
-    img(src: rails_blob_path(@brand.logo, only_path: true), class: @logo_class, alt: @brand.name.present? ? "" : "Logo")
+    render Views::ThemedImage.new(
+      default: @brand.logo, light: @brand.logo_light, class: @logo_class, alt: @brand.name.present? ? "" : "Logo"
+    )
   end
 
   def mark

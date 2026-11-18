@@ -77,9 +77,9 @@ class Views::Home::Index < Views::Base
         aria_hidden: "true", style: "animation-delay:.2s", data: { corridor_target: "rings" }
       )
       div(class: "glow")
-    elsif brand.landing_image
-      img(
-        src: rails_blob_path(brand.landing_image, only_path: true), alt: "",
+    elsif brand.landing_image?
+      render Views::ThemedImage.new(
+        default: brand.landing_image, light: brand.landing_image_light, alt: "",
         class: "hall-image reveal", style: "animation-delay:.2s"
       )
     end

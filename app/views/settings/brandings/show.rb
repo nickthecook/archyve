@@ -22,6 +22,7 @@ class Views::Settings::Brandings::Show < Views::Base
       error if @error
 
       field("logo", IMAGE_LIMITS) { image_field("logo", @brand.logo) }
+      field("logo_light", IMAGE_LIMITS) { image_field("logo_light", @brand.logo_light) }
 
       field("name") do
         input(type: "text", name: "name", value: @brand.name, autocomplete: "off", class: input_classes)
@@ -43,9 +44,8 @@ class Views::Settings::Brandings::Show < Views::Base
 
       corridor_field
 
-      field("landing_image", IMAGE_LIMITS) do
-        image_field("landing_image", @brand.landing_image)
-      end
+      field("landing_image", IMAGE_LIMITS) { image_field("landing_image", @brand.landing_image) }
+      field("landing_image_light", IMAGE_LIMITS) { image_field("landing_image_light", @brand.landing_image_light) }
 
       actions
     end
@@ -61,7 +61,7 @@ class Views::Settings::Brandings::Show < Views::Base
         div(class: "rounded border border-line bg-void/60 p-3") do
           img(
             src: (rails_blob_path(image, only_path: true) if image), alt: "",
-            class: "#{name == 'logo' ? 'h-10' : 'h-24'} w-auto max-w-48 object-contain",
+            class: "#{logo?(name) ? 'h-10' : 'h-24'} w-auto max-w-48 object-contain",
             data: { image_preview_target: "image" }
           )
         end
@@ -78,9 +78,11 @@ class Views::Settings::Brandings::Show < Views::Base
   def remove_image(name)
     label(class: "flex cursor-pointer items-center gap-2 text-sm text-muted") do
       input(type: "checkbox", name: "remove_#{name}", value: "1", class: "accent-accent", data: { image_preview_target: "remove" })
-      span { name == "logo" ? "Remove logo" : "Remove image" }
+      span { logo?(name) ? "Remove logo" : "Remove image" }
     end
   end
+
+  def logo?(name) = name.start_with?("logo")
 
   def corridor_field
     div do

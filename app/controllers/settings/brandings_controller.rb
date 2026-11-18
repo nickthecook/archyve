@@ -5,7 +5,10 @@ module Settings
     # Unlike the name, none of these is worth storing blank, so blank means
     # "back to the default".
     DEFAULTABLE = %w[title ask_placeholder chat_placeholder disclaimer].freeze
-    IMAGES = { "logo" => "logo", "landing_image" => "landing image" }.freeze
+    IMAGES = {
+      "logo" => "default logo", "logo_light" => "light mode logo",
+      "landing_image" => "default landing image", "landing_image_light" => "light mode landing image"
+    }.freeze
 
     def show
       render Views::Settings::Brandings::Show.new(brand: Brand.current)

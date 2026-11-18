@@ -89,7 +89,7 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
 
       it "names the landing image in the error" do
         request
-        expect(response.body).to include("The landing image has an invalid content type")
+        expect(response.body).to include("The default landing image has an invalid content type")
       end
     end
 
@@ -173,6 +173,61 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
       it "refuses it, since it wouldn't render" do
         request
         expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    context "with a light mode logo" do
+      let(:params) { { name: "Acme", logo_light: logo } }
+
+      it "attaches it" do
+        request
+        expect(Setting.brand_logo_light).to be_attached
+      end
+
+      it "leaves the default logo unset" do
+        request
+        expect(Setting.brand_logo).to be_nil
+      end
+
+      it "shows it in the header" do
+        request
+        follow_redirect!
+        expect(response.body).to include("/rails/active_storage/blobs/")
+      end
+
+      it "shows it in both themes" do
+        request
+        follow_redirect!
+        expect(response.body).not_to include("light:hidden")
+      end
+
+      context "when there is a default logo too" do
+        before { Setting["brand.logo"] = logo }
+
+        it "leaves the theme to choose between them" do
+          request
+          follow_redirect!
+          expect(response.body).to include("light:hidden").and include("hidden light:inline")
+        end
+      end
+    end
+
+    context "when removing the light mode logo" do
+      let(:params) { { name: "Acme", remove_logo_light: "1" } }
+
+      before do
+        Setting["brand.logo"] = logo
+        Setting["brand.logo_light"] = logo
+      end
+
+      it "removes it" do
+        request
+        expect(Setting.brand_logo_light).to be_nil
+      end
+
+      it "keeps the default logo" do
+        request
+        expect(Setting.brand_logo).to be_attached
       end
     end
 

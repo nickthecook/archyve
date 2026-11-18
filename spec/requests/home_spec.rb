@@ -91,6 +91,34 @@ RSpec.describe "The corridor", type: :request do
           request
           expect(response.body).to include("hall-image")
         end
+
+        it "shows it in both themes" do
+          request
+          expect(response.body).not_to include("light:hidden")
+        end
+
+        context "and a light mode one" do
+          before { Setting["brand.landing_image_light"] = image }
+
+          it "leaves the theme to choose between them" do
+            request
+            expect(response.body).to include("hall-image reveal light:hidden").and include("hall-image reveal hidden light:inline")
+          end
+        end
+      end
+
+      context "with only a light mode landing image" do
+        before { Setting["brand.landing_image_light"] = image }
+
+        it "shows the image" do
+          request
+          expect(response.body).to include("hall-image")
+        end
+
+        it "shows it in both themes" do
+          request
+          expect(response.body).not_to include("light:hidden")
+        end
       end
     end
 
