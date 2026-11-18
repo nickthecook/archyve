@@ -3,6 +3,7 @@ name: Image
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
 permissions: {}
@@ -39,9 +40,12 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=false
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
+            type=semver,pattern=v{{version}}
             type=sha,format=long
 
       - name: Build and push
