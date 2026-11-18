@@ -103,4 +103,44 @@ RSpec.describe "The corridor", type: :request do
       end
     end
   end
+
+  describe "the shadow under the disclaimer" do
+    let(:image) { Rack::Test::UploadedFile.new(file_fixture("logo.png"), "image/png") }
+
+    context "without a disclaimer" do
+      it "isn't cast" do
+        request
+        expect(response.body).not_to include("shaded")
+      end
+    end
+
+    context "with a disclaimer" do
+      before { Setting["brand.disclaimer"] = "Answers may be wrong." }
+
+      context "over the corridor" do
+        it "is cast" do
+          request
+          expect(response.body).to include("ask-below shaded")
+        end
+      end
+
+      context "when the corridor is turned off" do
+        before { Setting["brand.corridor"] = false }
+
+        it "isn't cast" do
+          request
+          expect(response.body).not_to include("shaded")
+        end
+
+        context "with a landing image" do
+          before { Setting["brand.landing_image"] = image }
+
+          it "is cast" do
+            request
+            expect(response.body).to include("ask-below shaded")
+          end
+        end
+      end
+    end
+  end
 end

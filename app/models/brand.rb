@@ -16,5 +16,7 @@ class Brand < Data.define(:name, :title, :logo, :ask_placeholder, :chat_placehol
 
   def corridor? = corridor
 
+  def backdrop? = corridor? || landing_image.present?
+
   def tab_title = title.presence || name.presence
 end

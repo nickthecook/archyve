@@ -96,10 +96,15 @@ class Views::Home::Index < Views::Base
 
   # One column, so the disclaimer follows the hint however many lines it wraps to.
   def below_field(&hint)
-    div(class: "ask-below") do
+    div(class: ["ask-below", ("shaded" if shade_disclaimer?)]) do
       p(class: "ask-hint", &hint) if hint
       render Views::Disclaimer.new(css: "ask-disclaimer")
     end
+  end
+
+  def shade_disclaimer?
+    brand = Brand.current
+    brand.disclaimer.present? && brand.backdrop?
   end
 
   def ask_form

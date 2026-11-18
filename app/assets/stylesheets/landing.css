@@ -83,7 +83,7 @@
 }
 /* A shadow the field casts on the floor: it dims whatever backdrop runs under
    the text without boxing it in. */
-.corridor-stage .ask-below::before {
+.corridor-stage .ask-below.shaded::before {
   content: ""; position: absolute; inset: -0.75rem 4% -1.75rem; z-index: -1; pointer-events: none;
   background: radial-gradient(ellipse closest-side,
     color-mix(in srgb, var(--color-void) 85%, transparent),
