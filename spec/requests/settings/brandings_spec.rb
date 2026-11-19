@@ -75,6 +75,24 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
       end
     end
 
+    context "when the landing image fills the screen" do
+      let(:params) { { name: "ARCHYVE", landing_image_fill: "1" } }
+
+      it "stores it" do
+        request
+        expect(Setting.brand_landing_image_fill?).to be(true)
+      end
+    end
+
+    context "when the landing image is faded" do
+      let(:params) { { name: "ARCHYVE", landing_image_fade: "1" } }
+
+      it "stores it" do
+        request
+        expect(Setting.brand_landing_image_fade?).to be(true)
+      end
+    end
+
     context "when everything is left at its default" do
       let(:params) { { name: "ARCHYVE", ask_placeholder: "Consult the archive", corridor: "1" } }
 

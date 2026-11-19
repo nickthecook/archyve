@@ -105,6 +105,39 @@ RSpec.describe "The corridor", type: :request do
             expect(response.body).to include("hall-image reveal light:hidden").and include("hall-image reveal hidden light:inline")
           end
         end
+
+        it "keeps it within the corridor's frame" do
+          request
+          expect(response.body).not_to include("hall-image reveal fill")
+        end
+
+        context "when it fills the screen" do
+          before { Setting["brand.landing_image_fill"] = true }
+
+          it "draws it outside the frame" do
+            request
+            expect(response.body).to match(/class="hall-image reveal fill"[^>]*>\s*<div class="hall-inner">/)
+          end
+
+          it "draws it once" do
+            request
+            expect(response.body.scan("hall-image").size).to eq(1)
+          end
+        end
+
+        it "shows it at full strength" do
+          request
+          expect(response.body).not_to include("faded")
+        end
+
+        context "when it's faded" do
+          before { Setting["brand.landing_image_fade"] = true }
+
+          it "fades it" do
+            request
+            expect(response.body).to include("hall-image reveal faded")
+          end
+        end
       end
 
       context "with only a light mode landing image" do

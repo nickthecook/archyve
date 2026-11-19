@@ -164,6 +164,18 @@ class Setting < ApplicationRecord
       type: :image,
       label: "Light mode landing image",
       description: "Shown instead of the default landing image in light mode. If only one landing image is set, it is used in both light and dark mode."
+    ),
+    "brand.landing_image_fill" => Definition.new(
+      default: false,
+      type: :boolean,
+      label: "Fill the screen with the landing image",
+      description: "Stretch the landing image to the width or height of the window, whichever it reaches first, instead of keeping it within the corridor's frame."
+    ),
+    "brand.landing_image_fade" => Definition.new(
+      default: false,
+      type: :boolean,
+      label: "Fade the landing image",
+      description: "Show the landing image at half opacity, so it sits behind the page rather than competing with it."
     )
   }.freeze
 
@@ -211,6 +223,8 @@ class Setting < ApplicationRecord
     def brand_corridor? = self["brand.corridor"]
     def brand_landing_image = self["brand.landing_image"]
     def brand_landing_image_light = self["brand.landing_image_light"]
+    def brand_landing_image_fill? = self["brand.landing_image_fill"]
+    def brand_landing_image_fade? = self["brand.landing_image_fade"]
 
     def label(key) = definition!(key).label
     def description(key) = definition!(key).description_text

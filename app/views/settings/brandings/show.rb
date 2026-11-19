@@ -42,10 +42,12 @@ class Views::Settings::Brandings::Show < Views::Base
         )
       end
 
-      corridor_field
+      toggle_field("corridor", @brand.corridor?)
 
       field("landing_image", IMAGE_LIMITS) { image_field("landing_image", @brand.landing_image) }
       field("landing_image_light", IMAGE_LIMITS) { image_field("landing_image_light", @brand.landing_image_light) }
+      toggle_field("landing_image_fill", @brand.landing_image_fill)
+      toggle_field("landing_image_fade", @brand.landing_image_fade)
 
       actions
     end
@@ -84,14 +86,14 @@ class Views::Settings::Brandings::Show < Views::Base
 
   def logo?(name) = name.start_with?("logo")
 
-  def corridor_field
+  def toggle_field(name, checked)
     div do
-      input(type: "hidden", name: "corridor", value: "0")
+      input(type: "hidden", name:, value: "0")
       label(class: "flex cursor-pointer items-center gap-2 text-sm font-medium text-fg") do
-        input(type: "checkbox", name: "corridor", value: "1", checked: @brand.corridor?, class: "accent-accent")
-        span { Setting.label("brand.corridor") }
+        input(type: "checkbox", name:, value: "1", checked:, class: "accent-accent")
+        span { Setting.label("brand.#{name}") }
       end
-      p(class: "mt-0.5 text-xs text-faint") { Setting.description("brand.corridor") }
+      p(class: "mt-0.5 text-xs text-faint") { Setting.description("brand.#{name}") }
     end
   end
 

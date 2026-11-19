@@ -62,6 +62,8 @@ class Views::Home::Index < Views::Base
 
   def hall
     div(class: "hall") do
+      # Outside the hall's frame, which is capped at 660px.
+      landing_image(fill: true) if Brand.current.fill_screen?
       div(class: "hall-inner") do
         backdrop
         threshold
@@ -77,12 +79,17 @@ class Views::Home::Index < Views::Base
         aria_hidden: "true", style: "animation-delay:.2s", data: { corridor_target: "rings" }
       )
       div(class: "glow")
-    elsif brand.landing_image?
-      render Views::ThemedImage.new(
-        default: brand.landing_image, light: brand.landing_image_light, alt: "",
-        class: "hall-image reveal", style: "animation-delay:.2s"
-      )
+    elsif brand.landing_image? && !brand.fill_screen?
+      landing_image
     end
+  end
+
+  def landing_image(fill: false)
+    brand = Brand.current
+    render Views::ThemedImage.new(
+      default: brand.landing_image, light: brand.landing_image_light, alt: "",
+      class: ["hall-image reveal", ("fill" if fill), ("faded" if brand.landing_image_fade)], style: "animation-delay:.2s"
+    )
   end
 
   # The lit threshold at the end of the hall. It asks rather than searches: an

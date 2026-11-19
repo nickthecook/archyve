@@ -36,14 +36,24 @@
 .corridor-stage .hall { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; }
 .corridor-stage .hall-inner {
   position: relative; width: min(80vh, 90vw, 660px); aspect-ratio: 1 / 0.86; transform: translateY(-14%);
+  --threshold-y: 63.8%;
 }
 .corridor-stage svg.rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .corridor-stage svg.rings polygon { fill: none; stroke-linejoin: round; }
-.corridor-stage .hall-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.corridor-stage .hall-image {
+  position: absolute; left: 0; top: calc(var(--threshold-y) - 50%); width: 100%; height: 100%; object-fit: contain;
+}
+/* The hall lifts itself by about as much as the threshold sits below its
+   centre, so the field lands at the stage's middle and a stage-centred image is
+   centred on it too. */
+.corridor-stage .hall-image.fill { top: 0; left: 50%; width: 100vw; transform: translateX(-50%); }
+.corridor-stage:has(.hall-image.fill) { overflow-x: visible; overflow-y: clip; }
+/* A filter, because the reveal animation holds `opacity` at 1. */
+.corridor-stage .hall-image.faded { filter: opacity(50%); }
 
 /* warm light from the vanishing point — off until the search is focused */
 .corridor-stage .glow {
-  position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: var(--threshold-y); transform: translate(-50%, -50%);
   width: 62%; aspect-ratio: 1;
   background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 18%, transparent) 0%, color-mix(in srgb, var(--color-accent) 5%, transparent) 36%, transparent 66%);
   filter: blur(8px); opacity: 0; transition: opacity 0.7s ease; z-index: 2; pointer-events: none;
@@ -52,7 +62,7 @@
 
 /* the threshold at the end of the hall: asks, or searches before a chat
    model exists ------------------------------------------------------------ */
-.corridor-stage .ask { position: absolute; left: 50%; top: 63.8%; transform: translate(-50%, -50%); width: 72%; z-index: 6; }
+.corridor-stage .ask { position: absolute; left: 50%; top: var(--threshold-y); transform: translate(-50%, -50%); width: 72%; z-index: 6; }
 .corridor-stage .ask-field {
   display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1.1rem;
   background: color-mix(in srgb, var(--color-void) 72%, transparent); border: 1px solid var(--color-line-2); border-radius: 2px;

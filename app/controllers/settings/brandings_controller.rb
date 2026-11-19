@@ -5,6 +5,7 @@ module Settings
     # Unlike the name, none of these is worth storing blank, so blank means
     # "back to the default".
     DEFAULTABLE = %w[title ask_placeholder chat_placeholder disclaimer].freeze
+    TOGGLES = %w[corridor landing_image_fill landing_image_fade].freeze
     IMAGES = {
       "logo" => "default logo", "logo_light" => "light mode logo",
       "landing_image" => "default landing image", "landing_image_light" => "light mode landing image"
@@ -19,7 +20,7 @@ module Settings
         IMAGES.each_key { |field| update_image(field) }
         store("name", params[:name].to_s.strip)
         DEFAULTABLE.each { |field| store(field, params[field].to_s.strip.presence) }
-        store("corridor", params[:corridor] == "1")
+        TOGGLES.each { |field| store(field, params[field] == "1") }
       end
       redirect_to settings_path, notice: "Saved."
     rescue ActiveRecord::RecordInvalid => e
@@ -52,7 +53,7 @@ module Settings
     def submitted_brand
       Brand.current.with(
         name: params[:name].to_s.strip,
-        corridor: params[:corridor] == "1",
+        **TOGGLES.to_h { [it.to_sym, params[it] == "1"] },
         **DEFAULTABLE.to_h { [it.to_sym, params[it].to_s.strip] }
       )
     end
