@@ -1,7 +1,7 @@
 # What the deployment calls itself, read once per request. The defaults are
 # Archyve's own, declared with the brand.* settings.
 class Brand < Data.define(
-  :name, :title, :logo, :logo_light, :ask_placeholder, :chat_placeholder, :disclaimer, :corridor,
+  :name, :title, :logo, :logo_light, :favicon, :ask_placeholder, :chat_placeholder, :disclaimer, :corridor,
   :landing_image, :landing_image_light, :landing_image_fill, :landing_image_fade
 )
   def self.current
@@ -10,6 +10,7 @@ class Brand < Data.define(
       title: Setting.brand_title,
       logo: Setting.brand_logo,
       logo_light: Setting.brand_logo_light,
+      favicon: Setting.brand_favicon,
       ask_placeholder: Setting.brand_ask_placeholder,
       chat_placeholder: Setting.brand_chat_placeholder,
       disclaimer: Setting.brand_disclaimer,
@@ -24,6 +25,8 @@ class Brand < Data.define(
   def corridor? = corridor
 
   def logo? = [logo, logo_light].any?
+
+  def tab_icon = favicon || logo || logo_light
 
   def landing_image? = [landing_image, landing_image_light].any?
 

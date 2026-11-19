@@ -24,6 +24,15 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
         expect(response.body).to include("Remove logo")
       end
     end
+
+    context "when a favicon has been uploaded" do
+      before { Setting["brand.favicon"] = logo }
+
+      it "offers to remove it" do
+        request
+        expect(response.body).to include("Remove favicon")
+      end
+    end
   end
 
   describe "PATCH /settings/branding" do
@@ -158,6 +167,34 @@ RSpec.describe "Settings::Brandings", :unauthenticated, type: :request do
         request
         follow_redirect!
         expect(response.body).to match(%r{<link rel="icon" href="/rails/active_storage/representations/[^"]+" type="image/png">})
+      end
+    end
+
+    context "with a favicon" do
+      let(:favicon) { Rack::Test::UploadedFile.new(file_fixture("logo.png"), "image/png", original_filename: "favicon.png") }
+      let(:params) { { name: "Acme", favicon: } }
+
+      before { Setting["brand.logo"] = logo }
+
+      it "makes it the favicon instead of the logo" do
+        request
+        follow_redirect!
+        expect(response.body).to include(%(<link rel="icon" href="/rails/active_storage/representations/redirect/#{Setting.brand_favicon.blob.signed_id}))
+      end
+    end
+
+    context "when removing the favicon" do
+      let(:params) { { name: "Acme", remove_favicon: "1" } }
+
+      before do
+        Setting["brand.logo"] = logo
+        Setting["brand.favicon"] = logo
+      end
+
+      it "goes back to the logo" do
+        request
+        follow_redirect!
+        expect(response.body).to include(%(<link rel="icon" href="/rails/active_storage/representations/redirect/#{Setting.brand_logo.blob.signed_id}))
       end
     end
 

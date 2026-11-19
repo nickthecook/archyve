@@ -7,7 +7,7 @@ module Settings
     DEFAULTABLE = %w[title ask_placeholder chat_placeholder disclaimer].freeze
     TOGGLES = %w[corridor landing_image_fill landing_image_fade].freeze
     IMAGES = {
-      "logo" => "default logo", "logo_light" => "light mode logo",
+      "logo" => "default logo", "logo_light" => "light mode logo", "favicon" => "favicon",
       "landing_image" => "default landing image", "landing_image_light" => "light mode landing image"
     }.freeze
 

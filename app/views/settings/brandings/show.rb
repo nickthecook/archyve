@@ -23,6 +23,7 @@ class Views::Settings::Brandings::Show < Views::Base
 
       field("logo", IMAGE_LIMITS) { image_field("logo", @brand.logo) }
       field("logo_light", IMAGE_LIMITS) { image_field("logo_light", @brand.logo_light) }
+      field("favicon", IMAGE_LIMITS) { image_field("favicon", @brand.favicon) }
 
       field("name") do
         input(type: "text", name: "name", value: @brand.name, autocomplete: "off", class: input_classes)
@@ -63,7 +64,7 @@ class Views::Settings::Brandings::Show < Views::Base
         div(class: "rounded border border-line bg-void/60 p-3") do
           img(
             src: (rails_blob_path(image, only_path: true) if image), alt: "",
-            class: "#{logo?(name) ? 'h-10' : 'h-24'} w-auto max-w-48 object-contain",
+            class: "#{landing?(name) ? 'h-24' : 'h-10'} w-auto max-w-48 object-contain",
             data: { image_preview_target: "image" }
           )
         end
@@ -80,11 +81,11 @@ class Views::Settings::Brandings::Show < Views::Base
   def remove_image(name)
     label(class: "flex cursor-pointer items-center gap-2 text-sm text-muted") do
       input(type: "checkbox", name: "remove_#{name}", value: "1", class: "accent-accent", data: { image_preview_target: "remove" })
-      span { logo?(name) ? "Remove logo" : "Remove image" }
+      span { landing?(name) ? "Remove image" : "Remove #{name.split("_").first}" }
     end
   end
 
-  def logo?(name) = name.start_with?("logo")
+  def landing?(name) = name.start_with?("landing")
 
   def toggle_field(name, checked)
     div do

@@ -47,9 +47,9 @@ class Views::Layout < Phlex::HTML
   private
 
   def favicon
-    logo = Brand.current.then { it.logo || it.logo_light }
-    if logo
-      link(rel: "icon", href: rails_representation_path(logo.variant(:icon), only_path: true), type: "image/png")
+    icon = Brand.current.tab_icon
+    if icon
+      link(rel: "icon", href: rails_representation_path(icon.variant(:icon), only_path: true), type: "image/png")
     else
       link(rel: "icon", href: "/icon.svg", type: "image/svg+xml")
     end

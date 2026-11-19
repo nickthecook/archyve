@@ -959,11 +959,6 @@ see the tolerance rejected under "The web source", phase 4.
   anyway. Worth closing with `Document.reachable_by` when convenient; not a
   privilege escalation.
 
-- **A separate favicon setting.** The favicon is the logo resized and padded to
-  64px (#85), which suits a square mark and ruins a wordmark: one that looks
-  good in the header is unreadable in a tab. Likely a `brand.icon` image that
-  falls back to the logo.
-
 ## The BookStack source
 
 Built 2026-09-18, model and UI both. The source form is now split per type the

@@ -129,6 +129,12 @@ class Setting < ApplicationRecord
       label: "Light mode logo",
       description: "Shown instead of the default logo in light mode. If only one logo is set, it is used in both light and dark mode."
     ),
+    "brand.favicon" => Definition.new(
+      default: nil,
+      type: :image,
+      label: "Favicon",
+      description: "Shown in the browser tab, scaled to a small square. Leave it unset to use the logo."
+    ),
     "brand.ask_placeholder" => Definition.new(
       default: "Consult the archive",
       type: :string,
@@ -217,6 +223,7 @@ class Setting < ApplicationRecord
     def brand_title = self["brand.title"]
     def brand_logo = self["brand.logo"]
     def brand_logo_light = self["brand.logo_light"]
+    def brand_favicon = self["brand.favicon"]
     def brand_ask_placeholder = self["brand.ask_placeholder"]
     def brand_chat_placeholder = self["brand.chat_placeholder"]
     def brand_disclaimer = self["brand.disclaimer"]
