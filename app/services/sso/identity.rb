@@ -38,6 +38,7 @@ class Sso::Identity
   def refuse_unless_entitled
     return if entitled?
 
+    Rails.logger.info("SSO refused sub #{subject.inspect}: #{Sso.required_group.inspect} not in groups #{claims['groups'].inspect}")
     by_subject&.sessions&.destroy_all
     by_subject&.api_keys&.destroy_all
     raise Refused, "Your account doesn't have access to Archyve."

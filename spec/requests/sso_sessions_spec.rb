@@ -131,6 +131,35 @@ RSpec.describe "SSO sign-in", :unauthenticated, type: :request do
     it "has no claim on a group it wasn't given" do
       expect { sign_in_with_sso(groups: nil) }.not_to change(User, :count)
     end
+
+    it "logs the groups that did arrive" do
+      allow(Rails.logger).to receive(:info).and_call_original
+
+      sign_in_with_sso(sub: "outsider", groups: ["/other-app"])
+
+      expect(Rails.logger).to have_received(:info)
+        .with(%(SSO refused sub "outsider": "/archyve-users" not in groups ["/other-app"]))
+    end
+  end
+
+  describe "debug logging of the token" do
+    let(:logged) { [] }
+
+    before do
+      allow(Rails.logger).to receive(:debug) { |*, &block| logged << block&.call }
+    end
+
+    it "names the claims and shows the groups" do
+      sign_in_with_sso(sub: "secret-sub", email: "secret@example.com")
+
+      expect(logged.compact.join).to include(%(groups=["/archyve-users"]), "email_verified")
+    end
+
+    it "keeps identifying values out" do
+      sign_in_with_sso(sub: "secret-sub", email: "secret@example.com")
+
+      expect(logged.compact.join).not_to include("secret")
+    end
   end
 
   describe "a callback that doesn't match the browser that started it" do

@@ -54,11 +54,29 @@ class Sso::Client
   def exchange(code:, redirect_uri:, code_verifier:, nonce:)
     body = post_token(code:, redirect_uri:, code_verifier:)
     id_token = body["id_token"].presence or raise ExchangeFailed, "SSO returned no ID token."
+    claims = claims_from(id_token, nonce:)
+    Rails.logger.debug { describe_claims(body, claims) }
 
-    [claims_from(id_token, nonce:), id_token]
+    [claims, id_token]
   end
 
   private
+
+  # Names only, plus groups and the granted scope: enough to see why a group
+  # didn't arrive without logging who signed in. Keycloak mappers can add a
+  # claim to the access token but not the ID token, hence both.
+  def describe_claims(body, claims)
+    access_claims = begin
+      decode_payload(body["access_token"].to_s)
+    rescue ExchangeFailed
+      {}
+    end
+    access_claims = {} unless access_claims.is_a?(Hash)
+
+    "SSO token: scope=#{body['scope'].inspect} " \
+      "id_token claims=#{claims.keys.sort} groups=#{claims['groups'].inspect} " \
+      "access_token claims=#{access_claims.keys.sort} groups=#{access_claims['groups'].inspect}"
+  end
 
   def post_token(code:, redirect_uri:, code_verifier:)
     response = connection(Sso.token_endpoint).post("") do |request|
