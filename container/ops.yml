@@ -1,5 +1,12 @@
 # Every action loads secrets: compose refuses to read compose.yml at all, even
 # for `down`, while a required variable is unset.
+dependencies:
+  # Owned by the host user rather than root, which Docker would create them as;
+  # the app runs as uid 1000.
+  dir:
+    - data/keys
+    - data/storage
+
 actions:
   start:
     command: docker compose up -d
@@ -12,6 +19,9 @@ actions:
     load_secrets: true
     alias: r
   bounce: ops stop && ops start
+  start-with-logs:
+    command: ops start && ops logs
+    alias: sl
   restart-with-logs:
     command: ops restart && ops logs
     alias: rl

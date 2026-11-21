@@ -4,7 +4,7 @@ name: archyve
 # without a value are passed through only when set.
 
 x-app: &app
-  image: ${ARCHYVE_IMAGE:-archyve:latest}
+  image: ${ARCHYVE_IMAGE:-archyve:local}
   build: ..
   restart: unless-stopped
   environment:
@@ -39,8 +39,8 @@ x-app: &app
     - JOB_CONCURRENCY
     - DOCLING_JOB_CONCURRENCY
   volumes:
-    - keys:/rails/keys
-    - storage:/rails/storage
+    - ./data/keys:/rails/keys
+    - ./data/storage:/rails/storage
 
 services:
   web:
@@ -78,7 +78,7 @@ services:
       POSTGRES_USER: archyve
       POSTGRES_PASSWORD: ${ARCHYVE_DATABASE_PASSWORD:?ARCHYVE_DATABASE_PASSWORD must be set}
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U archyve"]
       interval: 5s
@@ -93,9 +93,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
-volumes:
-  postgres:
-  storage:
-  # Back this up with postgres: without it, stored credentials can't be decrypted.
-  keys:

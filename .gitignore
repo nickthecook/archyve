@@ -43,6 +43,9 @@ config/production
 # Postgres container data (bind mount in deps/compose.yaml).
 /deps/pgdata/
 
+# Container data: Postgres, generated keys, uploads (bind mounts in container/compose.yml).
+/container/data/
+
 # ejson decryption keys (encrypted secrets.ejson files are safe to commit).
 /config/*/*.key
 

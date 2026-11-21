@@ -47,11 +47,15 @@ configuration from the environment it runs in:
 | `ARCHYVE_PORT` | Host port for the web container (default 3000). |
 
 `SECRET_KEY_BASE` and the `ACTIVE_RECORD_ENCRYPTION_*` keys are generated on
-first boot into the `keys` volume. Back that volume up with `postgres`: without
-it, stored credentials can't be decrypted.
+first boot into `container/data/keys`. Back it up with `container/data/postgres`:
+without it, stored credentials can't be decrypted.
+
+All data lives under `container/data/`. `data/keys` and `data/storage` must be
+writable by uid 1000; `ops c up` creates them as the current user.
 
 ```sh
-ops container start   # or `ops c start`; plain `docker compose up -d` works too
+ops c up              # once, to create container/data/
+ops container start   # or `ops c start`
 ops c logs
 ops c stop
 ```
