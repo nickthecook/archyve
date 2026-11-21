@@ -96,20 +96,20 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: archyve_production
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_production") %>
     username: archyve
     password: <%= ENV["ARCHYVE_DATABASE_PASSWORD"] %>
     host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
     port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
   cache:
     <<: *primary_production
-    database: archyve_production_cache
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_production") %>_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: archyve_production_queue
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_production") %>_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: archyve_production_cable
+    database: <%= ENV.fetch("DATABASE_NAME", "archyve_production") %>_cable
     migrations_paths: db/cable_migrate

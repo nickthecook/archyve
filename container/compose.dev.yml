@@ -1,0 +1,31 @@
+# Dev overlay: run the image against the local app's data — the deps/ Postgres
+# and Docling, the development database, and the repo's storage/.
+# Start deps first (`ops deps start`); it creates the archyve-deps network.
+
+x-dev: &dev
+  networks: [default, deps]
+  environment:
+    - DATABASE_NAME=archyve_development
+  volumes:
+    - ../storage:/rails/storage
+
+services:
+  web:
+    <<: *dev
+    depends_on: !reset []
+
+  jobs:
+    <<: *dev
+
+  # Disabled rather than removed; otherwise `postgres` and `docling` would
+  # resolve on both networks.
+  postgres:
+    profiles: [bundled]
+
+  docling:
+    profiles: [bundled]
+
+networks:
+  deps:
+    name: archyve-deps
+    external: true

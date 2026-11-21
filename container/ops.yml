@@ -43,3 +43,7 @@ actions:
     command: docker compose exec web bin/rails console
     alias: c
     load_secrets: true
+
+options:
+  environment:
+    COMPOSE_FILE: "`[ $environment == dev ] && echo -n compose.yml:compose.dev.yml || echo -n compose.yml`"

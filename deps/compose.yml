@@ -36,3 +36,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+networks:
+  # Fixed name so container/compose.dev.yml can join it.
+  default:
+    name: archyve-deps
