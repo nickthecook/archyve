@@ -1,7 +1,9 @@
-@import "tailwindcss";
+/* source(none): automatic detection watches the whole repo, so every write to
+   log/development.log triggered a rebuild. */
+@import "tailwindcss" source(none);
 
-/* Phlex views are Ruby, so point Tailwind's class scanner at them explicitly. */
 @source "../../../app/**/*.rb";
+@source "../../../app/javascript/**/*.js";
 
 /* Archyve brand tokens — the dark "corridor into the archive" palette. Exposed
    as Tailwind theme values so utilities (bg-base, text-accent, border-line-2,
