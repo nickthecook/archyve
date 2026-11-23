@@ -27,6 +27,7 @@ module Sso
     def client_id = ENV.fetch("ARCHYVE_SSO_CLIENT_ID")
     def client_secret = ENV.fetch("ARCHYVE_SSO_CLIENT_SECRET")
     def required_group = ENV.fetch("ARCHYVE_SSO_GROUP")
+    def idp_hint = ENV["ARCHYVE_KC_IDP_HINT"].presence
 
     def authorization_endpoint = discover.fetch("authorization_endpoint")
     def token_endpoint = discover.fetch("token_endpoint")

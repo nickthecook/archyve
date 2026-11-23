@@ -24,6 +24,7 @@ x-app: &app
     - ARCHYVE_SSO_CLIENT_ID
     - ARCHYVE_SSO_CLIENT_SECRET
     - ARCHYVE_SSO_GROUP
+    - ARCHYVE_KC_IDP_HINT
     # Generated into the keys volume on first boot when unset.
     - SECRET_KEY_BASE
     - ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY

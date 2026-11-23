@@ -42,8 +42,9 @@ class Sso::Client
       state:,
       nonce:,
       code_challenge:,
-      code_challenge_method: "S256"
-    }
+      code_challenge_method: "S256",
+      kc_idp_hint: Sso.idp_hint
+    }.compact
 
     separator = endpoint.include?("?") ? "&" : "?"
     "#{endpoint}#{separator}#{query.to_query}"

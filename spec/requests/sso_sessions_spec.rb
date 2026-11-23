@@ -31,6 +31,34 @@ RSpec.describe "SSO sign-in", :unauthenticated, type: :request do
 
       expect(response.location).not_to include(request.session[:sso_code_verifier])
     end
+
+    describe "the identity provider hint" do
+      subject(:query) { Rack::Utils.parse_query(URI.parse(response.location).query) }
+
+      before { post sso_sign_in_path }
+
+      context "when ARCHYVE_KC_IDP_HINT is set" do
+        around do |example|
+          ENV["ARCHYVE_KC_IDP_HINT"] = "google"
+          example.run
+        end
+
+        it { is_expected.to include("kc_idp_hint" => "google") }
+      end
+
+      context "when ARCHYVE_KC_IDP_HINT is blank" do
+        around do |example|
+          ENV["ARCHYVE_KC_IDP_HINT"] = ""
+          example.run
+        end
+
+        it { is_expected.not_to have_key("kc_idp_hint") }
+      end
+
+      context "when ARCHYVE_KC_IDP_HINT is unset" do
+        it { is_expected.not_to have_key("kc_idp_hint") }
+      end
+    end
   end
 
   describe "a member of the group signing in" do

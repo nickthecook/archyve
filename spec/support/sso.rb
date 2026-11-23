@@ -20,6 +20,7 @@ module SsoHelpers
     "ARCHYVE_SSO_CLIENT_SECRET" => "a-client-secret",
     "ARCHYVE_SSO_GROUP" => GROUP
   }.freeze
+  OPTIONAL_SETTINGS = %w[ARCHYVE_KC_IDP_HINT].freeze
 
   def configure_sso
     SETTINGS.each { |name, value| ENV[name] = value }
@@ -109,8 +110,9 @@ RSpec.configure do |config|
   # SSO is off unless an example asks for it, and every example leaves the
   # environment as it found it.
   config.around do |example|
-    saved = SsoHelpers::SETTINGS.keys.index_with { |name| ENV[name] }
-    SsoHelpers::SETTINGS.each_key { |name| ENV.delete(name) }
+    names = SsoHelpers::SETTINGS.keys + SsoHelpers::OPTIONAL_SETTINGS
+    saved = names.index_with { |name| ENV[name] }
+    names.each { |name| ENV.delete(name) }
     example.run
     saved.each { |name, value| value.nil? ? ENV.delete(name) : ENV[name] = value }
   end

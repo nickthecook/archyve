@@ -145,6 +145,10 @@ this is what stops a spoofed one bending it. An optional `ARCHYVE_EXTRA_HOSTS`
 (comma-separated) adds further permitted hosts alongside it, in any
 environment — e.g. a LAN hostname used to reach a dev server.
 
+An optional `ARCHYVE_KC_IDP_HINT` is passed to Keycloak as `kc_idp_hint`,
+sending users straight to that identity provider instead of Keycloak's login
+page. Its value is the provider's alias in the realm.
+
 ### 2. The client
 
 **Clients → Create client**, OpenID Connect, then:
