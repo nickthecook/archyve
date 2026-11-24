@@ -122,6 +122,12 @@ module InferenceServers
       nil
     end
 
+    # /api/tags lists an untagged pull as "name:latest". Only the last path
+    # segment can carry a tag, since a registry host can carry a port.
+    def canonical_model_name(model_name)
+      model_name.split("/").last.include?(":") ? model_name : "#{model_name}:latest"
+    end
+
     def connection
       @connection ||= Http.connection(base_url, timeout: DISCOVERY_TIMEOUT, service_name: "ollama")
     end

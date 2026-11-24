@@ -524,6 +524,12 @@ them untouched.
   is logged and skipped. A disabled embedder still occupies that slot, so moving
   the embedder to a new name takes two steps: delete the retired one, then
   reboot.
+- **Boot doesn't ask the server.** A declared model's `kind` defaults to
+  `chat` and is taken on trust, so boot never waits on the network. Checking a
+  server (`InferenceServer#discrepancies`) compares enabled models against
+  discovery. It reports a model the server doesn't have, or one it calls a
+  different kind, for provisioned and hand-added rows alike. Only the Check
+  button reports what it finds; the hourly check doesn't.
 - **A broken variable changes nothing.** Invalid JSON skips reconciliation
   entirely. A malformed entry is skipped but still counts as declared, so a
   typo can't retire what it meant to keep. An unset variable means "provision

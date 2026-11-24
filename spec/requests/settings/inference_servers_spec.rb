@@ -337,6 +337,19 @@ RSpec.describe "Settings::InferenceServers", :unauthenticated, type: :request do
       end
     end
 
+    context "when the server contradicts a model's setup" do
+      before do
+        create(:inference_model, inference_server: server, name: "nomic-embed-text:v1.5", kind: "chat")
+        allow_any_instance_of(InferenceServers::Ollama).to receive(:available_models)
+          .and_return([InferenceServer::Discovered.new(name: "nomic-embed-text:v1.5", kind: :embedding)])
+      end
+
+      it "says what doesn't match" do
+        request
+        expect(flash[:alert]).to include("nomic-embed-text:v1.5 is set up as a chat model")
+      end
+    end
+
     context "when the server is unreachable" do
       before do
         allow_any_instance_of(InferenceServers::Ollama)

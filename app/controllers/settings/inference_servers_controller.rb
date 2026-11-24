@@ -77,10 +77,14 @@ module Settings
     end
 
     def check
-      if @server.check!
-        redirect_to settings_inference_server_path(@server), notice: "#{@server.name} answered."
+      discovered = @server.check!
+      return redirect_to settings_inference_server_path(@server), alert: "Couldn't reach #{@server.name}." unless discovered
+
+      problems = @server.discrepancies(discovered)
+      if problems.any?
+        redirect_to settings_inference_server_path(@server), alert: ["#{@server.name} answered, but:", *problems].join(" ")
       else
-        redirect_to settings_inference_server_path(@server), alert: "Couldn't reach #{@server.name}."
+        redirect_to settings_inference_server_path(@server), notice: "#{@server.name} answered."
       end
     end
 

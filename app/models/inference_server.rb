@@ -176,6 +176,22 @@ class InferenceServer < ApplicationRecord
   def checked? = last_checked_at.present?
   def reachable? = last_check_status == "ok"
 
+  # Enabled models that discovery contradicts: missing from the server, or a
+  # different kind from what was declared. Only servers that list their models
+  # can say a model is missing.
+  def discrepancies(discovered)
+    return [] unless lists_models?
+
+    found = discovered.index_by { canonical_model_name(it.name) }
+    inference_models.where(enabled: true).order(:name).filter_map do |model|
+      reported = found[canonical_model_name(model.name)]
+      next "#{name} doesn't have #{model.name}." if reported.nil?
+      next if reported.kind.nil? || reported.kind.to_s == model.kind
+
+      "#{model.name} is set up as a #{model.kind} model, but #{name} reports it as #{reported.kind}."
+    end
+  end
+
   # --- passive health --------------------------------------------------------
   #
   # #check! is a deliberate probe. The two marks below are the same knowledge
@@ -276,6 +292,8 @@ class InferenceServer < ApplicationRecord
   # with the health mark so a check stays one write. Read only after
   # #available_models has run, which is what fills it in.
   def learned_from_discovery = {}
+
+  def canonical_model_name(model_name) = model_name
 
   # Take the context window discovery reports for a model that is already
   # imported, replacing whatever the row held.

@@ -240,6 +240,72 @@ RSpec.describe InferenceServer do
       end
     end
 
+    describe "#discrepancies" do
+      subject(:result) { server.discrepancies(discovered) }
+
+      let(:server) { create(:ollama_server, name: "tensor") }
+      let(:discovered) do
+        [
+          InferenceServer::Discovered.new(name: "nomic-embed-text:v1.5", kind: :embedding),
+          InferenceServer::Discovered.new(name: "gpt-oss:latest", kind: :chat),
+          InferenceServer::Discovered.new(name: "mystery:7b")
+        ]
+      end
+
+      context "when every model matches what the server reports" do
+        before { create(:embedding_model, inference_server: server) }
+
+        it { is_expected.to be_empty }
+      end
+
+      context "when an embedding model was set up as chat" do
+        before { create(:inference_model, inference_server: server, name: "nomic-embed-text:v1.5", kind: "chat") }
+
+        it "says so" do
+          expect(result).to eq(["nomic-embed-text:v1.5 is set up as a chat model, but tensor reports it as embedding."])
+        end
+      end
+
+      context "when a model isn't on the server" do
+        before { create(:inference_model, inference_server: server, name: "nomic-embed-text:1.5", kind: "chat") }
+
+        it "says so" do
+          expect(result).to eq(["tensor doesn't have nomic-embed-text:1.5."])
+        end
+      end
+
+      context "when a model was named without a tag" do
+        before { create(:inference_model, inference_server: server, name: "gpt-oss", kind: "chat") }
+
+        it "matches the server's :latest" do
+          expect(result).to be_empty
+        end
+      end
+
+      context "when the server doesn't say what kind a model is" do
+        before { create(:inference_model, inference_server: server, name: "mystery:7b", kind: "chat") }
+
+        it { is_expected.to be_empty }
+      end
+
+      context "when the mismatched model is disabled" do
+        before do
+          create(:inference_model, inference_server: server, name: "nomic-embed-text:v1.5", kind: "chat", enabled: false)
+        end
+
+        it { is_expected.to be_empty }
+      end
+
+      context "when the server can't list its models" do
+        let(:server) { create(:azure_server) }
+        let(:discovered) { [] }
+
+        before { create(:inference_model, inference_server: server, name: "prod-chat", kind: "chat") }
+
+        it { is_expected.to be_empty }
+      end
+    end
+
     describe "#mark_reachable!" do
       subject(:server) { create(:ollama_server) }
 
