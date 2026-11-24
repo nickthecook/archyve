@@ -183,7 +183,7 @@ class Views::Home::Index < Views::Base
       render Views::AccountMenu.new(placement: :footer) if Current.user
       a(href: help_path, class: "status-link") { "Help" }
       a(href: SOURCE_URL, class: "status-link") { "Source" }
-      motion_toggle
+      motion_toggle if Brand.current.corridor?
       render Views::ThemeToggle.new(classes: "status-link")
     end
   end

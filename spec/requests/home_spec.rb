@@ -204,4 +204,22 @@ RSpec.describe "The corridor", type: :request do
       end
     end
   end
+
+  describe "the reduce motion switch" do
+    context "over the corridor" do
+      it "is offered" do
+        request
+        expect(response.body).to include("reduce motion")
+      end
+    end
+
+    context "when the corridor is turned off" do
+      before { Setting["brand.corridor"] = false }
+
+      it "isn't offered" do
+        request
+        expect(response.body).not_to include("reduce motion")
+      end
+    end
+  end
 end
