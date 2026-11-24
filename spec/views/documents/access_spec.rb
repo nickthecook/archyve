@@ -9,15 +9,8 @@ RSpec.describe Views::Documents::Access do
 
   # Which affordance appears is decided by the source, never by the reader.
   context "when the source can produce links the reader's browser can follow" do
-    let(:source) do
-      instance_double(
-        Source,
-        user_accessible_links?: true,
-        document_url: "https://wiki.example/books/handbook",
-        type_label: "Bookstack"
-      )
-    end
-    let(:document) { instance_double(Document, source:) }
+    let(:source) { instance_double(Source, type_label: "Bookstack") }
+    let(:document) { instance_double(Document, source:, external_url: "https://wiki.example/books/handbook") }
 
     it "links out to the source" do
       expect(result).to include("https://wiki.example/books/handbook")

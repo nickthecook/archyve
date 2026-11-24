@@ -209,12 +209,12 @@ module Chat
     #
     # Merged rather than replaced: handles run on across a whole turn, so a
     # search, a read and a second search all cite into one namespace, and prose
-    # after the third can still cite the first. `includes(:document)` because
-    # Chat::Prose asks each hit whether it is followable and for its title,
-    # both of which reach through the association; without it the walk is gone
-    # and a query per hit takes its place.
+    # after the third can still cite the first. The includes are because the
+    # citation card asks each hit whether it is followable, for its title and
+    # for its source link, all of which reach through the associations; without
+    # them the walk is gone and a query per hit takes its place.
     def absorb(segment)
-      @hits.merge!(segment&.hits&.includes(:document)&.index_by(&:handle) || {})
+      @hits.merge!(segment&.hits&.includes(document: :source)&.index_by(&:handle) || {})
     end
 
     # Stops the page waiting. Every exit from a turn goes through here, so a

@@ -71,58 +71,49 @@ RSpec.describe Chat::Prose do
   end
 
   describe "citations" do
-    let(:document) { create(:document, title: "Handbook") }
-    let(:chunk) { create(:chunk, document:) }
-    let(:hit) { create(:hit, :reachable, chunk:, document:, handle: 1, document_title: "Handbook") }
+    subject(:prose) { described_class.new(content, hits:, popover_id: ->(hit) { "card_#{hit.handle}" }) }
+
+    let(:html) { prose.call }
+    let(:hit) { create(:hit, handle: 1, document_title: "Handbook") }
     let(:hits) { { 1 => hit } }
 
     context "with a handle that was retrieved" do
       let(:content) { "Rotate them [1]." }
 
-      it "links it straight to the chunk it cited" do
-        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
+      it "opens that hit's card" do
+        expect(html).to include(%(popovertarget="card_1"))
+      end
+
+      it "anchors the card to the marker" do
+        expect(html).to include("anchor-name: --card_1")
+      end
+
+      it "reports the hit as cited" do
+        prose.call
+        expect(prose.cited).to eq([hit])
       end
     end
 
-    # Reingestion destroys a document's chunks and makes new ones, so an old
-    # transcript's hit can outlive the passage it named. The citation still has
-    # to lead somewhere.
-    context "when the chunk it cited no longer exists" do
-      let(:hit) { create(:hit, :reachable, chunk: nil, document:, handle: 1, document_title: "Handbook") }
-      let(:content) { "Rotate them [1]." }
-
-      it "links to the document instead" do
-        expect(html).to include(%(href="/documents/#{document.id}"))
-      end
-
-      it "names no fragment" do
-        expect(html).not_to include("#chunk_")
-      end
-    end
-
-    # Nothing to follow, but the handle is still what the answer was based on —
-    # so it renders as a citation, just not as a link.
+    # The card carries the links, so the marker never does.
     context "when the document no longer exists" do
       let(:hit) { create(:hit, chunk: nil, document: nil, handle: 1, document_title: "Handbook") }
       let(:content) { "Rotate them [1]." }
 
-      it "renders the marker without a link" do
+      it "still opens a card" do
+        expect(html).to include(%(popovertarget="card_1"))
+      end
+
+      it "puts no link in the prose" do
         expect(html).not_to include("href=")
       end
     end
 
-    # A fixed-set agent draws on collections its user may not read. The citation
-    # still marks what the answer rests on, but doesn't hand them the document.
-    context "when the conversation's owner can't open the document" do
-      let(:hit) { create(:hit, chunk:, document:, handle: 1, document_title: "Handbook") }
-      let(:content) { "Rotate them [1]." }
+    context "when the same handle is cited twice" do
+      let(:content) { "Rotate them [1], then check [1]." }
 
-      it "renders the marker without a link" do
-        expect(html).not_to include("href=")
-      end
-
-      it "still renders the marker" do
-        expect(html).to include(">1</a>")
+      it "reports it once" do
+        prose.call
+        expect(prose.cited).to eq([hit])
       end
     end
 
@@ -135,8 +126,8 @@ RSpec.describe Chat::Prose do
         expect(html).to include("[7]")
       end
 
-      it "links nothing" do
-        expect(html).not_to include("<a")
+      it "opens nothing" do
+        expect(html).not_to include("popovertarget")
       end
     end
 
@@ -156,8 +147,8 @@ RSpec.describe Chat::Prose do
         expect(html).to include("results[1]")
       end
 
-      it "links nothing" do
-        expect(html).not_to include("<a")
+      it "opens nothing" do
+        expect(html).not_to include("popovertarget")
       end
     end
 
@@ -165,17 +156,16 @@ RSpec.describe Chat::Prose do
     context "with a bracket a model reached for instead" do
       let(:content) { "Rotate them 【1】." }
 
-      it "still links it" do
-        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
+      it "still cites it" do
+        expect(html).to include(%(popovertarget="card_1"))
       end
     end
 
     context "with several handles in one bracket" do
-      let(:hits) { { 1 => hit } }
       let(:content) { "Both of these [1, 7]." }
 
       it "keeps the citation that resolved" do
-        expect(html).to include(%(href="/documents/#{document.id}#chunk_#{chunk.id}"))
+        expect(html).to include(%(popovertarget="card_1"))
       end
 
       it "keeps the one that didn't as text" do

@@ -47,13 +47,6 @@ class Views::Conversations::Segment < Components::Base
   private
 
   def prose
-    return if @segment.content.blank?
-
-    # `answer` is the hook for answer.css, which styles the markdown Chat::Prose
-    # renders. No whitespace-pre-wrap: the HTML carries its own block layout now,
-    # and pre-wrap would render the newlines *between* its tags as blank lines.
-    div(id: self.class.prose_dom_id(@segment), class: "answer scroll-mt-6 text-[0.95rem] leading-relaxed text-muted") do
-      render Views::Conversations::Cited.new(segment: @segment, hits: @hits)
-    end
+    render Views::Conversations::Cited.new(segment: @segment, hits: @hits) if @segment.content.present?
   end
 end

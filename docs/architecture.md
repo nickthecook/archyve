@@ -308,10 +308,19 @@ says so, the chat page shows no composer, and the landing bar falls back to
 search. Chat's picker lists the agents a person can use, except Admin Support,
 which is started from Settings › Admin.
 
-That sharing is why **citation links follow `Conversation#reaches?`**: a citation
-links only when the conversation's owner could open the document at
-`/documents/:id`, and otherwise renders as a plain marker. It's the owner, not
+That sharing is why a **citation opens a popover rather than linking**
+(`Views::Conversations::CitationCard`). It offers the document in its source
+system when the source hands out links a reader can follow
+(`Document#external_url`) — that system decides whether they may see it, not
+Archyve. The passage in Archyve is offered only when `Conversation#reaches?`:
+the conversation's owner could open `/documents/:id`. It's the owner, not
 whoever is viewing, since `Chat::Turn` renders in a job.
+
+The card always shows the cited chunk's text (`Hit#snippet`), even to an owner
+who can't reach the document. That is deliberate: an agent's collections are a
+grant to the passages it actually puts in front of the model, and a source with
+no external link would otherwise leave a visitor nothing to check the answer
+against.
 
 *Prompt injection:* job errors and document outcomes carry text from ingested
 documents and crawled pages. The tools are read-only, there are no outbound

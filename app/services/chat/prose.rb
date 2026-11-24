@@ -2,7 +2,7 @@
 
 module Chat
   # What the model wrote, as HTML: markdown rendered, citation markers turned
-  # into links to the documents they name.
+  # into buttons that open a card about the passage each one names.
   #
   # ## Markdown first, citations second
   #
@@ -39,10 +39,16 @@ module Chat
 
     def self.call(content, hits: {}) = new(content, hits:).call
 
-    def initialize(content, hits: {})
+    # `popover_id` names the card each marker opens. The caller renders those
+    # cards, one per entry in `cited`, outside this HTML.
+    def initialize(content, hits: {}, popover_id: ->(hit) { "citation_#{hit.handle}" })
       @content = content.to_s
       @hits = hits
+      @popover_id = popover_id
+      @cited = {}
     end
+
+    def cited = @cited.values
 
     def call
       fragment = Markdown.fragment(@content)
@@ -77,9 +83,14 @@ module Chat
       hit = @hits[handle]
       return escape("[#{handle}]") if hit.nil?
 
-      tag = Nokogiri::XML::Node.new("a", Nokogiri::HTML5::Document.new)
-      tag["href"] = hit.href if hit.followable?
-      tag["title"] = [hit.title, hit.heading_path.presence].compact.join(" › ")
+      @cited[handle] = hit
+      id = @popover_id.call(hit)
+
+      tag = Nokogiri::XML::Node.new("button", Nokogiri::HTML5::Document.new)
+      tag["type"] = "button"
+      tag["popovertarget"] = id
+      tag["style"] = "anchor-name: --#{id}"
+      tag["aria-label"] = "Source #{handle}: #{hit.title}"
       tag["class"] = CITATION_CLASS
       tag.content = handle.to_s
       tag.to_html

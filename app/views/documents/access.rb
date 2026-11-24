@@ -17,7 +17,7 @@ class Views::Documents::Access < Components::Base
   end
 
   def view_template
-    if (url = source_url)
+    if (url = @document.external_url)
       a(href: url, target: "_blank", rel: "noopener", class: @class_name) do
         "Open in #{@document.source.type_label}"
       end
@@ -26,14 +26,5 @@ class Views::Documents::Access < Components::Base
     else
       span(class: "text-xs text-faint") { "Unavailable" }
     end
-  end
-
-  private
-
-  def source_url
-    source = @document.source
-    return unless source&.user_accessible_links?
-
-    source.document_url(@document)
   end
 end

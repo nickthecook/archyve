@@ -57,6 +57,8 @@ class Hit < ApplicationRecord
     chunk_id ? "#{path}##{Chunk.anchor(chunk_id)}" : path
   end
 
+  def external_url = document&.external_url
+
   # The title as it is now, falling back to the one recorded at retrieval. A
   # renamed document reads under its current name; a deleted one still reads
   # under the name it had when it was cited.

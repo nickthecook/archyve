@@ -130,6 +130,8 @@ class Document < ApplicationRecord
   # survive a reprocess months later.
   def ocr? = ocr.nil? ? source.ocr? : ocr
 
+  def external_url = source.user_accessible_links? ? source.document_url(self) : nil
+
   # Whether re-running the pipeline is worth offering. Not gated on having
   # settled: `limits_concurrency` on the job already serializes a second run
   # behind a first, and the job is idempotent, so the honest answer to "can
