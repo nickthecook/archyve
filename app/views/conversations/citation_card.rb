@@ -4,7 +4,7 @@
 # came from. See docs/architecture.md on why the snippet is shown even when
 # neither way is open to the reader.
 class Views::Conversations::CitationCard < Components::Base
-  ACTION = "block px-4 py-2 text-sm text-muted hover:text-fg hover:bg-void/40 transition-colors"
+  ACTION = "block px-4 py-2 text-sm text-accent hover:bg-accent/10 transition-colors"
 
   def initialize(hit:, id:)
     @hit = hit
