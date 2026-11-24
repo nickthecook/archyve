@@ -35,6 +35,43 @@ RSpec.describe Agent do
       it "recreates it" do
         expect { seed }.to change(described_class, :count).by(1)
       end
+
+      it "opens it to everyone" do
+        seed
+        expect(archivist).to be_everyone
+      end
+    end
+
+    context "when an admin has switched Archivist off" do
+      before { described_class.archivist.update!(access_mode: "nobody") }
+
+      it "leaves it off" do
+        seed
+        expect(archivist).to be_nobody
+      end
+    end
+
+    context "when Admin Support's access has drifted from the code" do
+      before { described_class.admin_support.update_columns(access_mode: described_class.access_modes[:nobody]) }
+
+      it "rewrites it" do
+        seed
+        expect(described_class.admin_support).to be_everyone
+      end
+    end
+  end
+
+  describe "#access_locked?" do
+    context "with Archivist" do
+      it { expect(described_class.archivist).not_to be_access_locked }
+    end
+
+    context "with Admin Support" do
+      it { expect(described_class.admin_support).to be_access_locked }
+    end
+
+    context "with an agent someone made" do
+      it { expect(build(:agent)).not_to be_access_locked }
     end
   end
 
@@ -54,6 +91,13 @@ RSpec.describe Agent do
         agent.validate
         expect(agent.errors[:toolset_keys]).to eq(["names unknown toolsets: shell"])
       end
+    end
+
+    # A built-in has no creator, so creator-only would quietly mean nobody.
+    context "when a built-in is made creator-only" do
+      subject(:agent) { described_class.archivist.tap { it.access_mode = "creator_only" } }
+
+      it { is_expected.not_to be_valid }
     end
   end
 
@@ -181,6 +225,24 @@ RSpec.describe Agent do
         end
       end
     end
+
+    context "when it is switched off" do
+      let(:access_mode) { "nobody" }
+
+      it { expect(result).to be(false) }
+
+      context "and the user is an admin" do
+        let(:user) { create(:user, :admin) }
+
+        it { expect(result).to be(false) }
+      end
+
+      context "and the user holds a grant" do
+        before { create(:agent_user, agent:, user:, access: "manager") }
+
+        it { expect(result).to be(false) }
+      end
+    end
   end
 
   describe "its slug" do
@@ -238,6 +300,39 @@ RSpec.describe Agent do
       before { Setting["chat.default_agent"] = "gone" }
 
       it { expect(result).to eq(described_class.archivist) }
+    end
+
+    context "when Archivist is switched off" do
+      before { described_class.archivist.update!(access_mode: "nobody") }
+
+      context "and nothing else qualifies" do
+        it { expect(result).to be_nil }
+      end
+
+      context "and another agent everyone can use exists" do
+        let!(:other) { create(:agent, name: "Policy bot") }
+
+        it "falls back to it" do
+          expect(result).to eq(other)
+        end
+      end
+    end
+  end
+
+  describe ".default_for" do
+    let(:result) { described_class.default_for(user) }
+    let(:user) { create(:user) }
+
+    before { described_class.archivist.update!(access_mode: "nobody") }
+
+    context "when they can use nothing" do
+      it { expect(result).to be_nil }
+    end
+
+    context "when no default qualifies but they hold a grant" do
+      let!(:granted) { create(:agent, access_mode: "granted").tap { create(:agent_user, agent: it, user:) } }
+
+      it { expect(result).to eq(granted) }
     end
   end
 

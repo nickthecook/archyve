@@ -24,7 +24,7 @@ class Views::Conversations::Index < Views::Base
   def view_template
     heading
     unavailable_panel if @unavailable
-    composer
+    composer if @agent
     render Views::Rule.new
     turbo_stream_from(Current.user, :conversations)
     @conversations.any? ? list : empty

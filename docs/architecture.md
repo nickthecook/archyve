@@ -238,8 +238,13 @@ every listing result.
 it uses, and the admin's `chat.instance_purpose`. Toolset instructions live in
 code and can't be edited, so a prompt an admin writes for an agent can't drop the
 rules its tools depend on. The purpose goes last so it can never override them.
-Agents are DB rows. The built-in ones (Archivist so far) are locked and rewritten
-from `Agent::BUILT_INS` on every seed. See issue #92.
+Agents are DB rows. The built-in ones (Archivist and Admin Support) are
+rewritten from `Agent::BUILT_INS` on every seed. See issue #92. The exception
+is Archivist's access mode, which the seed sets only on creation and which
+admins can then change (2026-11-23). That way a deployment can switch
+Archivist off and give its users one purpose-built agent, without giving
+admins a way to break Archivist's prompt or scope. Admin Support's access
+stays locked.
 
 Toolsets are a registry in code (`Toolsets.all`), and agents name theirs by key.
 Each toolset builds its own tools per turn, with the context they need, and
@@ -259,13 +264,16 @@ read them back. Tools without a panel of their own record a `tool_call` segment:
 what was checked and the result as the model read it.
 
 **Who can use an agent (built 2026-11-04).** `Agent#usable_by?` combines the
-role floor with one of three access modes:
+role floor with one of four access modes:
 
 - *everyone*: anyone who meets the floor;
 - *granted*: `agent_users` grants on the collection ladder (accessor, editor,
   manager), with the global role as ceiling and admins as manager everywhere;
 - *creator-only*: the creator and nobody else, with no admin exception. Admins
-  can see these agents in Settings but can't chat with them.
+  can see these agents in Settings but can't chat with them. Built-ins have no
+  creator, so they can't be set to this mode;
+- *nobody*: switched off, admins included. Conversations with the agent stay
+  readable but can't continue.
 
 When a creator's account is deleted, the agent stays with no creator, because
 it may be in other people's conversations. The check runs when a chat starts (a
@@ -281,20 +289,24 @@ membership means. A fixed corpus never returns an empty filter list, because
 `Retrieval::Search` reads an empty list as unrestricted.
 
 **Making and changing agents (built 2026-11-04).** Admins make agents in
-Settings › Agents, from scratch or by duplicating one; built-ins can only be
-duplicated. Both kinds of new agent start creator-only. `Agents::Sharing`
+Settings › Agents, from scratch or by duplicating one. Built-ins can only be
+duplicated, apart from Archivist's access mode. Both kinds of new agent start creator-only. `Agents::Sharing`
 enforces the two rules for sharing a fixed set, checked against whoever is
 saving:
 
 - only a manager of a collection may add it to a shared agent;
-- an agent becoming shared (leaving creator-only, or switching to a fixed set)
-  is checked for every collection it holds.
+- an agent becoming shared (leaving creator-only or nobody, or switching to a
+  fixed set) is checked for every collection it holds.
 
 Admins manage every collection, so these rules only bite once curators can edit
 agents. The default chat agent is a setting, limited to *everyone* agents with a
-visitor floor, and falls back to Archivist if its choice stops qualifying.
-Chat's picker lists the agents a person can use, except Admin Support, which is
-started from Settings › Admin.
+visitor floor. If the chosen agent stops qualifying, `Agent.default_chat` falls
+back to Archivist and then to any other agent that qualifies. It returns nil if
+none does. A chat started without picking an agent then goes to the first agent
+the person can use (`Agent.default_for`). If there's none, `Chat::Availability`
+says so, the chat page shows no composer, and the landing bar falls back to
+search. Chat's picker lists the agents a person can use, except Admin Support,
+which is started from Settings › Admin.
 
 That sharing is why **citation links follow `Conversation#reaches?`**: a citation
 links only when the conversation's owner could open the document at

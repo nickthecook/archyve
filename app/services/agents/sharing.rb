@@ -27,6 +27,6 @@ module Agents
 
     private
 
-    def shared?(access_mode, collection_mode) = access_mode.to_s != "creator_only" && collection_mode.to_s == "fixed"
+    def shared?(access_mode, collection_mode) = %w[creator_only nobody].exclude?(access_mode.to_s) && collection_mode.to_s == "fixed"
   end
 end

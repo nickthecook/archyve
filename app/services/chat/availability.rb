@@ -13,10 +13,11 @@ module Chat
   # because only an admin can fix it and pointing a reader at a Settings page
   # they can't open is worse than telling them nothing.
   class Availability
-    def self.reason_for(user) = new(user).reason
+    def self.reason_for(user, agent: Agent.default_for(user)) = new(user, agent).reason
 
-    def initialize(user)
+    def initialize(user, agent)
       @user = user
+      @agent = agent
     end
 
     def ready? = reason.nil?
@@ -33,8 +34,21 @@ module Chat
     private
 
     def unready_reason
-      return if InferenceModel.default_chat && InferenceModel.active_embedding
+      return no_models_reason unless InferenceModel.default_chat && InferenceModel.active_embedding
+      return no_agent_reason if @agent.nil?
 
+      "You no longer have access to #{@agent.name}." unless @agent.usable_by?(@user)
+    end
+
+    def no_agent_reason
+      if @user.admin?
+        "There's no agent you can chat with. Open one up under Settings › Agents."
+      else
+        "There's no agent you can chat with. An admin needs to give you access to one."
+      end
+    end
+
+    def no_models_reason
       if @user.admin?
         "Chat needs a tool-capable chat model and an embedding model. Add them under Settings › Inference."
       else

@@ -76,7 +76,7 @@ class Setting < ApplicationRecord
       label: "Default chat model",
       description: "What a new conversation starts on. Anyone asking can pick a different one for that question."
     ),
-    # A slug, resolved through Agent.default_chat, which falls back to Archivist
+    # A slug, resolved through Agent.default_chat, which falls back to another agent
     # when it names an agent that no longer qualifies.
     "chat.default_agent" => Definition.new(
       default: "archivist",

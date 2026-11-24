@@ -18,7 +18,7 @@ class Views::Settings::Agents::Form < Views::Base
 
     header(class: "mb-7") do
       h1(class: "text-2xl font-semibold tracking-tight") { title }
-      p(class: "mt-1 text-sm text-muted") { "Who it is, what it can do, and who can chat with it." }
+      p(class: "mt-1 text-sm text-muted") { subtitle }
     end
 
     form(action:, method: "post", class: "flex flex-col gap-7") do
@@ -26,12 +26,7 @@ class Views::Settings::Agents::Form < Views::Base
       input(type: "hidden", name: "_method", value: "patch") if @agent.persisted?
       errors if @agent.errors.any?
 
-      name_field
-      prompt_field
-      model_field
-      toolsets_field
-      access_field
-      collections_field
+      @agent.built_in? ? access_field : fields
       actions
     end
   end
@@ -39,6 +34,21 @@ class Views::Settings::Agents::Form < Views::Base
   private
 
   def page_title = title
+
+  def subtitle
+    return "Built into Archyve, so only who can chat with it can be changed." if @agent.built_in?
+
+    "Who it is, what it can do, and who can chat with it."
+  end
+
+  def fields
+    name_field
+    prompt_field
+    model_field
+    toolsets_field
+    access_field
+    collections_field
+  end
 
   def title = @agent.persisted? ? "Edit #{@agent.name_was}" : "New agent"
 
@@ -97,7 +107,8 @@ class Views::Settings::Agents::Form < Views::Base
       div(class: "flex flex-col gap-2.5") do
         access_choice("everyone", "Everyone", "Anyone the toolsets allow.")
         access_choice("granted", "People granted access", "Chosen on its People page once it's saved.")
-        access_choice("creator_only", "Only #{creator_name}", "Nobody else can chat with it, admins included.")
+        access_choice("creator_only", "Only #{creator_name}", "Nobody else can chat with it, admins included.") unless @agent.built_in?
+        access_choice("nobody", "No one", "Switched off. Nobody can chat with it, admins included.")
       end
     end
   end

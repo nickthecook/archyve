@@ -27,6 +27,20 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       end
     end
 
+    context "when no agent can be the default" do
+      before { Agent.archivist.update!(access_mode: "nobody") }
+
+      it "says none qualifies" do
+        request
+        expect(response.body).to include("None qualifies")
+      end
+
+      it "says why Archivist doesn't" do
+        request
+        expect(response.body).to include("Archivist (switched off)")
+      end
+    end
+
     it "offers the instance purpose" do
       request
       expect(response.body).to include("Instance purpose")
@@ -61,9 +75,32 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       expect(response.body).to include(agent.prompt)
     end
 
-    it "says it can't be changed" do
+    it "says only its access can be changed" do
       request
-      expect(response.body).to include("can&#39;t be changed")
+      expect(response.body).to include("only who can chat with it can be changed")
+    end
+
+    context "when Archivist is switched off" do
+      before { agent.update!(access_mode: "nobody") }
+
+      it "says so" do
+        request
+        expect(response.body).to include("No one: it&#39;s switched off")
+      end
+    end
+
+    context "when it is Admin Support" do
+      let(:agent) { Agent.admin_support }
+
+      it "says it can't be changed" do
+        request
+        expect(response.body).to include("can&#39;t be changed")
+      end
+
+      it "offers no edit" do
+        request
+        expect(response.body).not_to include(edit_settings_agent_path(agent))
+      end
     end
 
     context "when only its creator may use it" do
@@ -214,12 +251,64 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       end
     end
 
-    context "when the agent is built in" do
+    context "when the agent is Archivist" do
       let(:agent) { Agent.archivist }
+      let(:attributes) { super().merge(access_mode: "nobody") }
+
+      it "changes who can chat with it" do
+        request
+        expect(agent.reload).to be_nobody
+      end
+
+      it "changes nothing else" do
+        request
+        expect(agent.reload.prompt).not_to eq("Be brief.")
+      end
+
+      context "and it is made creator-only" do
+        let(:attributes) { super().merge(access_mode: "creator_only") }
+
+        it "refuses" do
+          request
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+    end
+
+    context "when the agent is Admin Support" do
+      let(:agent) { Agent.admin_support }
+      let(:attributes) { super().merge(access_mode: "nobody") }
 
       it "refuses" do
         request
-        expect(agent.reload.prompt).not_to eq("Be brief.")
+        expect(agent.reload).to be_everyone
+      end
+    end
+  end
+
+  describe "GET /settings/agents/:slug/edit" do
+    subject(:request) { get edit_settings_agent_path(agent) }
+
+    context "with Archivist" do
+      let(:agent) { Agent.archivist }
+
+      it "offers switching it off" do
+        request
+        expect(response.body).to include('value="nobody"')
+      end
+
+      it "offers only its access" do
+        request
+        expect(response.body).not_to include('name="agent[prompt]"')
+      end
+    end
+
+    context "with Admin Support" do
+      let(:agent) { Agent.admin_support }
+
+      it "refuses" do
+        request
+        expect(response).to redirect_to(settings_agent_path(agent))
       end
     end
   end
@@ -281,8 +370,17 @@ RSpec.describe "Settings::Agents", :unauthenticated, type: :request do
       expect(response.body).to include("sam@example.com")
     end
 
-    context "when the agent is built in" do
-      let(:agent) { Agent.archivist }
+    context "when the agent is Archivist" do
+      let(:agent) { Agent.archivist.tap { it.update!(access_mode: "granted") } }
+
+      it "grants access" do
+        post settings_agent_people_path(agent), params: { user_id: visitor.id, access: "accessor" }
+        expect(agent.usable_by?(visitor)).to be(true)
+      end
+    end
+
+    context "when the agent is Admin Support" do
+      let(:agent) { Agent.admin_support }
 
       it "has no people page" do
         get settings_agent_people_path(agent)

@@ -3,7 +3,8 @@ module Settings
     require_role :admin
 
     before_action :set_agent, except: [:index, :new, :create]
-    before_action :refuse_built_in, only: [:edit, :update, :destroy]
+    before_action :refuse_built_in, only: [:destroy]
+    before_action :refuse_locked, only: [:edit, :update]
 
     def index
       render Views::Settings::Agents::Index.new(
@@ -30,7 +31,7 @@ module Settings
     end
 
     def update
-      save(:updated)
+      @agent.built_in? ? save_access : save(:updated)
     end
 
     def duplicate
@@ -55,7 +56,17 @@ module Settings
     end
 
     def refuse_built_in
-      redirect_to settings_agent_path(@agent), alert: "#{@agent.name} is built in, so it can't be changed." if @agent.built_in?
+      redirect_to settings_agent_path(@agent), alert: "#{@agent.name} is built in, so it can't be removed." if @agent.built_in?
+    end
+
+    def refuse_locked
+      redirect_to settings_agent_path(@agent), alert: "#{@agent.name} is built in, so it can't be changed." if @agent.access_locked?
+    end
+
+    def save_access
+      return redirect_to(settings_agent_path(@agent), notice: "Updated #{@agent.name}.") if @agent.update(access_mode: params.dig(:agent, :access_mode))
+
+      render_form @agent, status: :unprocessable_content
     end
 
     # The sharing check compares against the agent as saved, so it runs before

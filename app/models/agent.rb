@@ -4,7 +4,6 @@ class Agent < ApplicationRecord
       name: "Archivist",
       prompt: "You are a chat assistant for a private document archive.",
       toolset_keys: ["archive"],
-      access_mode: "everyone",
       collection_mode: "user"
     },
     "admin_support" => {
@@ -18,7 +17,7 @@ class Agent < ApplicationRecord
   }.freeze
 
   # Who may chat with it. See "Agents" in docs/architecture.md.
-  enum :access_mode, { everyone: 0, granted: 1, creator_only: 2 }, validate: true
+  enum :access_mode, { everyone: 0, granted: 1, creator_only: 2, nobody: 3 }, validate: true
 
   # `user`: whatever the person chatting can read, narrowed by the picker.
   # `fixed`: exactly the agent's own collections, shared with everyone who can use it.
@@ -40,26 +39,30 @@ class Agent < ApplicationRecord
   validates :slug, presence: true, uniqueness: true, exclusion: { in: RESERVED_SLUGS }
   validates :name, presence: true
   validates :creator, presence: true, if: -> { creator_only? && new_record? }
+  validates :access_mode, exclusion: { in: ["creator_only"], message: "can't be creator-only on a built-in agent" }, if: :built_in?
   validate :toolsets_exist
   validate :model_answers_chat, if: :inference_model_id_changed?
 
   def self.archivist = find_by!(slug: "archivist")
   def self.admin_support = find_by!(slug: "admin_support")
 
-  # Falls back to Archivist when the setting names an agent that has since
-  # stopped qualifying, so a new chat always has someone to answer it.
+  # nil when no agent qualifies, which Chat::Availability explains.
   def self.default_chat
-    chosen = find_by(slug: Setting.chat_default_agent)
-    chosen&.default_eligible? ? chosen : archivist
+    [find_by(slug: Setting.chat_default_agent), find_by(slug: "archivist"), *order(:name)].compact.find(&:default_eligible?)
   end
+
+  def self.default_for(user) = default_chat || choosable_by(user).first
 
   # What Chat's picker offers. Admin Support is started from Settings › Admin instead.
   def self.choosable_by(user) = where.not(slug: "admin_support").order(:name).select { it.usable_by?(user) }
 
-  # Built-ins are locked, so this code is their source of truth: every seed rewrites them.
+  # Every seed rewrites what BUILT_INS names. A built-in without an access_mode
+  # there starts open to everyone, and from then on its access is the admin's.
   def self.seed_built_ins!
     BUILT_INS.each do |slug, attributes|
-      find_or_initialize_by(slug:).update!(**attributes, built_in: true)
+      agent = find_or_initialize_by(slug:)
+      agent.access_mode = "everyone" if agent.new_record?
+      agent.update!(**attributes, built_in: true)
     end
   end
 
@@ -70,8 +73,9 @@ class Agent < ApplicationRecord
   def role_floor = toolsets.map(&:role_floor).max_by { Roleable::ROLES.fetch(it) } || :visitor
 
   # Checked on every turn, so a revoked grant or a raised floor takes effect mid-conversation.
-  # Creator-only has no admin exception: a private agent is private.
+  # Creator-only and nobody have no admin exception: a private agent is private.
   def usable_by?(user)
+    return false if nobody?
     return false unless user.at_least?(role_floor)
     return user.may_on?(self, :accessor) if granted?
     return creator_id.present? && creator_id == user.id if creator_only?
@@ -82,6 +86,8 @@ class Agent < ApplicationRecord
   def granted_access_for(user) = agent_users.find_by(user:)&.access
 
   def admin_support? = slug == "admin_support"
+
+  def access_locked? = built_in? && BUILT_INS.fetch(slug, {}).key?(:access_mode)
 
   def searches_archive? = toolset_keys.include?(Toolsets::Archive.key)
 

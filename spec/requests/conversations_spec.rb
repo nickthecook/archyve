@@ -117,6 +117,30 @@ RSpec.describe "Conversations", type: :request do
       end
     end
 
+    context "when no agent is named and none is available to them" do
+      before { Agent.archivist.update!(access_mode: "nobody") }
+
+      it "starts nothing" do
+        expect { request }.not_to change(Conversation, :count)
+      end
+
+      it "is not found" do
+        request
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when no agent is named and only a granted one is available to them" do
+      let!(:granted) { create(:agent, access_mode: "granted").tap { create(:agent_user, agent: it, user: current_user) } }
+
+      before { Agent.archivist.update!(access_mode: "nobody") }
+
+      it "asks that one" do
+        request
+        expect(Conversation.last.agent).to eq(granted)
+      end
+    end
+
     context "when no agent is named and another is the default" do
       let!(:default) { create(:agent, slug: "policy-bot") }
 
@@ -316,6 +340,15 @@ RSpec.describe "Conversations", type: :request do
       it "says which agent it is with" do
         request
         expect(response.body).to include("Ask Archivist about your whole archive…")
+      end
+
+      context "and its agent has since been switched off" do
+        before { Agent.archivist.update!(access_mode: "nobody") }
+
+        it "says why they can't continue" do
+          request
+          expect(response.body).to include("You no longer have access to Archivist.")
+        end
       end
 
       context "with Admin Support" do
@@ -715,6 +748,20 @@ RSpec.describe "Conversations", type: :request do
       it "offers no choice" do
         request
         expect(response.body).not_to include('aria-label="Agent"')
+      end
+    end
+
+    context "when there is no agent they can use" do
+      before { Agent.archivist.update!(access_mode: "nobody") }
+
+      it "says why they can't chat" do
+        request
+        expect(response.body).to include("There&#39;s no agent you can chat with")
+      end
+
+      it "offers no composer" do
+        request
+        expect(response.body).not_to include("Start chat")
       end
     end
 

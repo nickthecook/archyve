@@ -1,6 +1,5 @@
 module Settings
-  # Who may use a granted agent. Built-ins are open to everyone and locked, so
-  # they have no people page.
+  # Who may use a granted agent.
   class AgentUsersController < ApplicationController
     require_role :admin
 
@@ -43,7 +42,8 @@ module Settings
     private
 
     def set_agent
-      @agent = Agent.where(built_in: false).find_by!(slug: params[:agent_id])
+      @agent = Agent.find_by!(slug: params[:agent_id])
+      raise ActiveRecord::RecordNotFound if @agent.access_locked?
     end
   end
 end

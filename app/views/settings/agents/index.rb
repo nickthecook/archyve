@@ -7,7 +7,7 @@ class Views::Settings::Agents::Index < Views::Base
     admin: "Admins only"
   }.freeze
 
-  ACCESS = { "everyone" => nil, "granted" => "granted", "creator_only" => "private" }.freeze
+  ACCESS = { "everyone" => nil, "granted" => "granted", "creator_only" => "private", "nobody" => "switched off" }.freeze
 
   def initialize(agents:, toolsets:, purpose:, default_agent:)
     @agents = agents
@@ -51,6 +51,7 @@ class Views::Settings::Agents::Index < Views::Base
           class: "rounded border border-line bg-void/60 px-2.5 py-1.5 text-xs text-muted outline-none " \
                  "focus:border-accent hover:text-fg transition-colors"
         ) do
+          option(value: "", selected: true, disabled: true) { "None qualifies" } unless @default_agent
           @agents.each { |agent| default_option(agent) }
         end
         button(type: "submit", class: button_class(:quiet, "py-1")) { "Save" }
@@ -70,6 +71,7 @@ class Views::Settings::Agents::Index < Views::Base
     return if agent.default_eligible?
     return "only people granted access" if agent.granted?
     return "private" if agent.creator_only?
+    return "switched off" if agent.nobody?
 
     FLOORS.fetch(agent.role_floor).downcase
   end
@@ -88,7 +90,7 @@ class Views::Settings::Agents::Index < Views::Base
   end
 
   def meta(agent)
-    [("default" if agent == @default_agent), (agent.built_in? ? "built in" : ACCESS.fetch(agent.access_mode))]
+    [("default" if agent == @default_agent), ("built in" if agent.built_in?), ACCESS.fetch(agent.access_mode)]
       .compact.join(" · ").presence
   end
 

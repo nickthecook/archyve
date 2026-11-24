@@ -14,11 +14,11 @@ class ConversationsController < ApplicationController
       conversations: Current.user.conversations.includes(:agent).recent.limit(30),
       answering: Current.user.conversations.answering.ids.to_set,
       agents:,
-      agent: agents.find { it.slug == params[:agent] } || Agent.default_chat,
+      agent: agents.find { it.slug == params[:agent] } || Agent.default_chat || agents.first,
       collections: readable_collections,
       models: choosable_models,
       scope: Retrieval::Scope.from_params(params, user: Current.user),
-      unavailable: unavailable_reason
+      unavailable: Chat::Availability.reason_for(Current.user)
     )
   end
 
@@ -27,7 +27,7 @@ class ConversationsController < ApplicationController
       conversation: @conversation,
       messages: @conversation.messages.includes(:inference_model, :feedback, segments: { hits: :document }),
       models: choosable_models,
-      unavailable: unavailable_reason
+      unavailable: Chat::Availability.reason_for(Current.user, agent: @conversation.agent)
     )
   end
 
@@ -83,7 +83,7 @@ class ConversationsController < ApplicationController
 
   # An agent this person can't use is a 404, the same as someone else's conversation.
   def chosen_agent
-    return Agent.default_chat if params[:agent].blank?
+    return Agent.default_for(Current.user) || raise(ActiveRecord::RecordNotFound) if params[:agent].blank?
 
     agent = Agent.find_by!(slug: params[:agent])
     raise ActiveRecord::RecordNotFound unless agent.usable_by?(Current.user)
@@ -105,7 +105,4 @@ class ConversationsController < ApplicationController
     id = params[:inference_model_id].presence
     id && InferenceModel.for_chat.find_by(id: id)
   end
-
-  # Shared with the landing, whose bar asks a question too — see Chat::Availability.
-  def unavailable_reason = Chat::Availability.reason_for(Current.user)
 end

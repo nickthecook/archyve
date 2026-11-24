@@ -79,7 +79,7 @@ class Views::Conversations::Show < Views::Base
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       textarea(
         name: "message", rows: "2", autocomplete: "off",
-        placeholder: ask_placeholder,
+        placeholder: @unavailable || ask_placeholder,
         data: {
           composer_target: "field",
           action: "input->composer#autogrow keydown.enter->composer#submit"

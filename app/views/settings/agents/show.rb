@@ -17,7 +17,7 @@ class Views::Settings::Agents::Show < Views::Base
         p(class: "mt-1 text-sm text-muted") { subtitle }
       end
       div(class: "flex shrink-0 items-center gap-2") do
-        a(href: edit_settings_agent_path(@agent), class: button_class(:quiet)) { "Edit" } unless @agent.built_in?
+        a(href: edit_settings_agent_path(@agent), class: button_class(:quiet)) { "Edit" } unless @agent.access_locked?
         duplicate_button
         remove_button unless @agent.built_in?
       end
@@ -34,7 +34,8 @@ class Views::Settings::Agents::Show < Views::Base
   def page_title = @agent.name
 
   def subtitle
-    return "Built into Archyve, so it can't be changed. Duplicate it to make one you can." if @agent.built_in?
+    return "Built into Archyve, so it can't be changed. Duplicate it to make one you can." if @agent.access_locked?
+    return "Built into Archyve, so only who can chat with it can be changed. Duplicate it to change the rest." if @agent.built_in?
     return "Created by: #{@agent.creator.email_address}" if @agent.creator
 
     "Its creator's account has been deleted."
@@ -98,12 +99,14 @@ class Views::Settings::Agents::Show < Views::Base
   def access
     section_titled("Who can chat with it") do
       p(class: "text-sm text-muted") { who }
-      people_link unless @agent.built_in?
+      people_link unless @agent.access_locked?
     end
     draws_on if @agent.searches_archive?
   end
 
   def who
+    return "No one: it's switched off" if @agent.nobody?
+
     floor = Views::Settings::Agents::Index::FLOORS.fetch(@agent.role_floor)
     return floor if @agent.everyone?
     return "People granted access" + (@agent.role_floor == :visitor ? "" : " — #{floor.downcase}") if @agent.granted?
