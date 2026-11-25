@@ -98,6 +98,14 @@ RSpec.describe "Settings::Endpoints", :unauthenticated, type: :request do
       end
     end
 
+    context "with the BambooHR type" do
+      before { get new_settings_endpoint_path(type: "Endpoints::Bamboohr") }
+
+      it "renders its credentials" do
+        expect(response.body).to include("API key")
+      end
+    end
+
     context "with a type nobody registered" do
       it "refuses rather than constantizing it" do
         get new_settings_endpoint_path(type: "User")

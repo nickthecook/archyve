@@ -18,6 +18,12 @@ FactoryBot.define do
     app_password { "apppassword" }
   end
 
+  factory :bamboohr_endpoint, class: "Endpoints::Bamboohr" do
+    sequence(:name) { |n| "People #{n}" }
+    base_url { "https://acme.bamboohr.com" }
+    api_key { "apikey" }
+  end
+
   factory :sharepoint_endpoint, class: "Endpoints::Sharepoint" do
     sequence(:name) { |n| "Intranet #{n}" }
     base_url { "https://example.sharepoint.com/sites/Team" }

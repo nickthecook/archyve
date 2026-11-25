@@ -914,6 +914,32 @@ directory is a definite answer. Telling those apart needs "this scan found far
 less than the source holds", which is a threshold and a different argument —
 see the tolerance rejected under "The web source", phase 4.
 
+## Sources don't honour rate limits
+
+Noted 2026-11-24. BookStack has throttled us, and BambooHR documents `429 Too
+Many Requests` with a `Retry-After` header and says clients must expect it.
+Nothing honours it. `Http::RETRY_OPTIONS` retries only timeouts and refused
+connections, so a 429 surfaces as `Faraday::TooManyRequestsError` and fails the
+run (or, from a listing, the whole scan).
+
+**The fix belongs in `Http`, not in each source.** faraday-retry already reads
+`Retry-After` when told to retry on a status: add 429 (and arguably 503) to
+`retry_statuses`. Two traps in the installed version:
+
+- **Ordering.** `:raise_error` sits inside `:retry`, so a 429 reaches retry as an
+  exception, not a response, and `retry_statuses` never sees it. Either move
+  `raise_error` outward or add `Faraday::TooManyRequestsError` to `exceptions`,
+  then confirm `Retry-After` is still read on that path.
+- **`max_interval` is a ceiling on willingness, not a clamp.** A `Retry-After`
+  longer than it means *give up*, not *wait less*. It defaults to `Float::MAX`,
+  so set it deliberately: long enough for a real backoff, short enough that a
+  server answering 429 forever fails the run instead of stalling a worker.
+
+Pacing is the other half and is per source. A per-endpoint minimum interval
+between requests, alongside the web source's `crawl_delay_seconds`, is the
+shape — but only once retrying works, since that alone may be enough.
+
+
 ## Later
 
 - **Retrieval discrimination is weak on short queries.** Observed 2026-09-07:

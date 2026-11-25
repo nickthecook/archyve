@@ -117,12 +117,6 @@ module Sources
       )
     end
 
-    def size_skip_reason(size)
-      return if size.to_i <= self.class.max_file_size
-
-      "larger than the #{ActiveSupport::NumberHelper.number_to_human_size(self.class.max_file_size)} limit"
-    end
-
     def folders_must_be_relative_paths
       return if selected_folders.all? { |folder| folder.is_a?(String) && folder.exclude?("..") }
 

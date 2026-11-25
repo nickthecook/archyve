@@ -89,7 +89,7 @@ class Source < ApplicationRecord
   # Listed explicitly rather than found via `descendants` because Zeitwerk only
   # loads a subclass once something references it — in development that list is
   # empty until the class happens to have been touched.
-  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Nextcloud Sources::Sharepoint Sources::Web Sources::ManualUpload].freeze
+  TYPES = %w[Sources::Folder Sources::Bookstack Sources::Nextcloud Sources::Sharepoint Sources::Bamboohr Sources::Web Sources::ManualUpload].freeze
 
   # Fallback when a source names no interval of its own. On the base class
   # because Source.due_for_sync inlines it into SQL for every type at once.
@@ -462,6 +462,16 @@ class Source < ApplicationRecord
   def location = nil
 
   private
+
+  # An oversized file is still *reported*: it is in the source, we simply won't
+  # ingest it. The limit is configurable, and anything missing from a scan gets
+  # tombstoned, so omitting these would make lowering the limit delete
+  # documents whose files never moved.
+  def size_skip_reason(size)
+    return if size.to_i <= self.class.max_file_size
+
+    "larger than the #{ActiveSupport::NumberHelper.number_to_human_size(self.class.max_file_size)} limit"
+  end
 
   def endpoint_must_match_type
     return if endpoint.is_a?(self.class.endpoint_type)

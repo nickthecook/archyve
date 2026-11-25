@@ -24,6 +24,12 @@ FactoryBot.define do
     folders { ["Documents"] }
   end
 
+  factory :bamboohr_source, class: "Sources::Bamboohr" do
+    sequence(:name) { |n| "People #{n}" }
+    endpoint factory: :bamboohr_endpoint
+    categories { [20] }
+  end
+
   factory :sharepoint_source, class: "Sources::Sharepoint" do
     sequence(:name) { |n| "Intranet #{n}" }
     endpoint factory: :sharepoint_endpoint

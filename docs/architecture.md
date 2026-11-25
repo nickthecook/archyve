@@ -642,6 +642,21 @@ landed: they describe *extraction*, so a folder on disk and a folder in
 Nextcloud have to answer them identically. `.filters_extensions?` is the flag
 for a type that enumerates arbitrary files and therefore applies them.
 
+**BambooHR (2026-11-24).** Company files only, selected by category. The key
+is a user's, and BambooHR filters the listing to what that user may see, so
+the endpoint is an identity like any other.
+
+- **Employee files are deliberately out.** Tried and removed the same day.
+  They hold each person's snapshot of a policy as it stood when they signed
+  it, so they duplicate company files with superseded text — chat would quote
+  an old policy as current — alongside offer letters and reviews that
+  Archyve's access model would make searchable by anyone with the
+  collection. Per-person HR records would need a design of their own.
+- **There is no modification time.** The version token is creation time plus
+  size; the import checksum covers the rest.
+- **No links out.** BambooHR documents no web URL for a file, so its documents
+  are download-only.
+
 **A second axis, added 2026-09-20: who is allowed to change it.** An endpoint is
 administered in Settings and merely *used* by whoever attaches a source, so it
 is the only place a limit on a curator can live. `Endpoints::Web#path_prefix`

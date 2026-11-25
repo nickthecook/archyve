@@ -669,6 +669,54 @@ RSpec.describe "Sources", type: :request do
     end
   end
 
+  describe "the BambooHR source" do
+    let(:endpoint) { create(:bamboohr_endpoint, name: "People") }
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+
+    before do
+      allow(Http).to receive(:connection).and_return(
+        Faraday.new(url: "https://acme.bamboohr.com") { |f| f.adapter(:test, stubs) }
+      )
+      stubs.get("/api/v1/files/view") do
+        [200, { "Content-Type" => "application/json" },
+         { "categories" => [{ "id" => 20, "name" => "Policies", "files" => [] },
+                            { "id" => 21, "name" => "Benefits", "files" => [] }] }.to_json]
+      end
+    end
+
+    describe "GET /sources/new" do
+      before do
+        endpoint
+        get new_source_path(type: "Sources::Bamboohr")
+      end
+
+      it "lists the categories to pick from" do
+        expect(response.body).to include("Policies", "Benefits")
+      end
+    end
+
+    describe "POST /sources" do
+      let(:params) do
+        { type: "Sources::Bamboohr", source: { name: "Policies", endpoint_id: endpoint.id, categories: ["", "20"] } }
+      end
+
+      it "stores the picked categories" do
+        post sources_path, params: params
+        expect(Sources::Bamboohr.last.categories).to eq([20])
+      end
+
+      context "with nothing picked" do
+        let(:params) do
+          { type: "Sources::Bamboohr", source: { name: "Policies", endpoint_id: endpoint.id, categories: [""] } }
+        end
+
+        it "refuses" do
+          expect { post sources_path, params: params }.not_to change(Sources::Bamboohr, :count)
+        end
+      end
+    end
+  end
+
   describe "the SharePoint source" do
     let(:endpoint) { create(:sharepoint_endpoint, name: "Intranet") }
     let(:stubs) { Faraday::Adapter::Test::Stubs.new }
